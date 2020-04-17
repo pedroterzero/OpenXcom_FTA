@@ -28,6 +28,13 @@
 #include "../Geoscape/BuildNewBaseState.h"
 #include "../Engine/Options.h"
 #include "../Savegame/SavedGame.h"
+//new includes
+#include "../Menu/NewBattleState.h"
+#include "../Savegame/SavedBattleGame.h"
+#include "../Savegame/Base.h"
+#include "../Battlescape/BattlescapeGenerator.h"
+#include "../Battlescape/BriefingState.h"
+#include "../Geoscape/BaseNameState.h"
 
 namespace OpenXcom
 {
@@ -165,11 +172,46 @@ void NewGameState::btnOkClick(Action *)
 	save->setDifficulty(diff);
 	save->setIronman(_btnIronman->getPressed());
 	_game->setSavedGame(save);
+	const Mod* mod = _game->getMod();
 
-	GeoscapeState *gs = new GeoscapeState;
+	GeoscapeState* gs = new GeoscapeState;
 	_game->setState(gs);
-	gs->init();
-	_game->pushState(new BuildNewBaseState(_game->getSavedGame()->getBases()->back(), gs->getGlobe(), true));
+	//choose the game scenario
+	if (_game->getMod()->getIsFTAGame())
+	{
+		//XCOM Base init
+		Base* base = save->getBases()->at(0);
+		double lon, lat;
+		lon = 0.21; //TODO random array here
+		lat = -0.85;
+		base->setLongitude(lon);
+		base->setLatitude(lat);
+		base->setName("STR_LAST_STAND"); //TODO random array here
+		for (std::vector<Craft*>::iterator i = base->getCrafts()->begin(); i != base->getCrafts()->end(); ++i)
+		{
+			(*i)->setLongitude(lon);
+			(*i)->setLatitude(lat);
+		}
+		//init the Game
+		gs->init();
+		//start base defense mission
+		SavedBattleGame* bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage());
+		_game->getSavedGame()->setBattleGame(bgame);
+		bgame->setMissionType("STR_BASE_DEFENSE");
+		BattlescapeGenerator bgen = BattlescapeGenerator(_game);
+		bgen.setBase(base);
+		bgen.setAlienCustomDeploy(_game->getMod()->getDeployment("STR_SMALL_SCOUT")); //hardcoded for now
+		bgen.setAlienRace("STR_SECTOID"); //MIB or whatever like that
+		bgen.setWorldShade(0);
+		bgen.run();
+		_game->pushState(new BriefingState(0, base));
+	}
+	else //vanilla
+	{
+		gs->init();
+		_game->pushState(new BuildNewBaseState(_game->getSavedGame()->getBases()->back(), gs->getGlobe(), true));
+	}
+	
 }
 
 /**
