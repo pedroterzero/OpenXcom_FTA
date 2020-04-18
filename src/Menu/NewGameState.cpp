@@ -35,6 +35,7 @@
 #include "../Battlescape/BattlescapeGenerator.h"
 #include "../Battlescape/BriefingState.h"
 #include "../Geoscape/BaseNameState.h"
+#include "../Savegame/AlienBase.h"
 
 namespace OpenXcom
 {
@@ -183,15 +184,24 @@ void NewGameState::btnOkClick(Action *)
 		Base* base = save->getBases()->at(0);
 		double lon, lat;
 		lon = 0.21; //TODO random array here
-		lat = -0.85;
+		lat = -0.85; //TODO random array here
 		base->setLongitude(lon);
 		base->setLatitude(lat);
-		base->setName("STR_LAST_STAND"); //TODO random array here
+		base->setName(tr("STR_LAST_STAND")); //TODO random array here
 		for (std::vector<Craft*>::iterator i = base->getCrafts()->begin(); i != base->getCrafts()->end(); ++i)
 		{
 			(*i)->setLongitude(lon);
 			(*i)->setLatitude(lat);
 		}
+		//spawn ragional ADVENT center
+		AlienDeployment* aBaseDeployment = mod->getDeployment("STR_INITIAL_REGIONAL_HQ");
+		AlienBase* aBase = new AlienBase(aBaseDeployment, 0);
+		aBase->setAlienRace("STR_ADVENT_START");
+		aBase->setId(save->getId(aBaseDeployment->getMarkerName()));
+		aBase->setLongitude(lon + 0.23); //TODO random array here
+		aBase->setLatitude(lat - 0.05); //TODO random array here
+		aBase->setDiscovered(true);
+		save->getAlienBases()->push_back(aBase);
 		//init the Game
 		gs->init();
 		//start base defense mission
@@ -200,8 +210,8 @@ void NewGameState::btnOkClick(Action *)
 		bgame->setMissionType("STR_BASE_DEFENSE");
 		BattlescapeGenerator bgen = BattlescapeGenerator(_game);
 		bgen.setBase(base);
-		bgen.setAlienCustomDeploy(_game->getMod()->getDeployment("STR_SMALL_SCOUT")); //hardcoded for now
-		bgen.setAlienRace("STR_SECTOID"); //MIB or whatever like that
+		bgen.setAlienCustomDeploy(_game->getMod()->getDeployment("STR_INITIAL_BASE_DEFENSE"));
+		//bgen.setAlienRace("STR_INITIAL_BASE_DEFENSE_RACE");
 		bgen.setWorldShade(0);
 		bgen.run();
 		_game->pushState(new BriefingState(0, base));
