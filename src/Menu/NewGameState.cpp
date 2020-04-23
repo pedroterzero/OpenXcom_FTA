@@ -36,6 +36,9 @@
 #include "../Battlescape/BriefingState.h"
 #include "../Geoscape/BaseNameState.h"
 #include "../Savegame/AlienBase.h"
+#include "../Savegame/DiplomacyFraction.h"
+#include "../Mod/RuleDiplomacyFraction.h"
+#include "../Engine/Logger.h"
 
 namespace OpenXcom
 {
@@ -177,6 +180,7 @@ void NewGameState::btnOkClick(Action *)
 
 	GeoscapeState* gs = new GeoscapeState;
 	_game->setState(gs);
+
 	//choose the game scenario
 	if (_game->getMod()->getIsFTAGame())
 	{
@@ -204,6 +208,14 @@ void NewGameState::btnOkClick(Action *)
 		save->getAlienBases()->push_back(aBase);
 		//init the Game
 		gs->init();
+		//init fractions
+		for (std::vector<std::string>::const_iterator i = mod->getDiplomacyFractionList()->begin(); i != mod->getDiplomacyFractionList()->end(); ++i)
+		{
+			RuleDiplomacyFraction* fractionRules = mod->getDiplomacyFraction(*i);
+			DiplomacyFraction* fraction = new DiplomacyFraction(*fractionRules);
+			fraction->setDiscovered(true); //TODO - remove after diplomacy initialy done
+			save->getDiplomacyFractions().push_back(fraction);
+		}
 		//start base defense mission
 		SavedBattleGame* bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage());
 		_game->getSavedGame()->setBattleGame(bgame);
