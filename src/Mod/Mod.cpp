@@ -79,6 +79,7 @@
 #include "RuleManufactureShortcut.h"
 #include "ExtraStrings.h"
 #include "RuleInterface.h"
+#include "RuleDiplomacyFraction.h"
 #include "RuleArcScript.h"
 #include "RuleEventScript.h"
 #include "RuleEvent.h"
@@ -680,6 +681,10 @@ Mod::~Mod()
 		delete i->second;
 	}
 	for (std::map<std::string, RuleMusic *>::const_iterator i = _musicDefs.begin(); i != _musicDefs.end(); ++i)
+	{
+		delete i->second;
+	}
+	for (std::map<std::string, RuleDiplomacyFraction*>::const_iterator i = _diplomacyFractions.begin(); i != _diplomacyFractions.end(); ++i)
 	{
 		delete i->second;
 	}
@@ -2627,6 +2632,15 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 		}
 	}
 
+	for (YAML::const_iterator i = doc["diplomacyFractions"].begin(); i != doc["diplomacyFractions"].end(); ++i)
+	{
+		RuleDiplomacyFraction* rule = loadRule(*i, &_diplomacyFractions, &_diplomacyFractionIndex, "name");
+		if (rule != 0)
+		{
+			rule->load(*i);
+		}
+	}
+
 	for (YAML::const_iterator i = doc["statStrings"].begin(); i != doc["statStrings"].end(); ++i)
 	{
 		StatString *statString = new StatString();
@@ -4211,6 +4225,16 @@ RuleVideo *Mod::getVideo(const std::string &id, bool error) const
 const std::map<std::string, RuleMusic *> *Mod::getMusic() const
 {
 	return &_musicDefs;
+}
+
+RuleDiplomacyFraction* Mod::getDiplomacyFraction(const std::string& name, bool error) const
+{
+	return getRule(name, "Diplomacy Fraction", _diplomacyFractions, error);
+}
+
+const std::vector<std::string>* Mod::getDiplomacyFractionList() const
+{
+	return &_diplomacyFractionIndex;
 }
 
 const std::vector<std::string>* Mod::getArcScriptList() const

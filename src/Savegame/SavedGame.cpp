@@ -58,6 +58,7 @@
 #include "AlienStrategy.h"
 #include "AlienMission.h"
 #include "GeoscapeEvent.h"
+#include "DiplomacyFraction.h"
 #include "../Mod/RuleCountry.h"
 #include "../Mod/RuleRegion.h"
 #include "../Mod/RuleSoldier.h"
@@ -203,6 +204,10 @@ SavedGame::~SavedGame()
 	for (std::vector<GeoscapeEvent*>::iterator i = _geoscapeEvents.begin(); i != _geoscapeEvents.end(); ++i)
 	{
 		delete *i;
+	}
+	for (std::vector<DiplomacyFraction*>::iterator i = _diplomacyFractions.begin(); i != _diplomacyFractions.end(); ++i)
+	{
+		delete* i;
 	}
 	for (std::vector<Soldier*>::iterator i = _deadSoldiers.begin(); i != _deadSoldiers.end(); ++i)
 	{
@@ -511,6 +516,23 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 		else
 		{
 			Log(LOG_ERROR) << "Failed to load UFO " << type;
+		}
+	}
+
+	const YAML::Node& diplomacyFractions = doc["diplomacyFractions"];
+	for (YAML::const_iterator it = diplomacyFractions.begin(); it != diplomacyFractions.end(); ++it)
+	{
+		std::string diplomacyFractionName = (*it)["name"].as<std::string>();
+		if (mod->getDiplomacyFraction(diplomacyFractionName))//(mod->getEvent(eventName))
+		{
+			const RuleDiplomacyFraction &diplomacyFractionRule = *mod->getDiplomacyFraction(diplomacyFractionName);//const RuleEvent& eventRule = *mod->getEvent(eventName);
+			DiplomacyFraction *diplomacyFraction = new DiplomacyFraction(diplomacyFractionRule);
+			diplomacyFraction->load(*it);
+			_diplomacyFractions.push_back(diplomacyFraction);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load diplomacy fraction " << diplomacyFractionName;
 		}
 	}
 
@@ -876,6 +898,10 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 	for (std::vector<GeoscapeEvent *>::const_iterator i = _geoscapeEvents.begin(); i != _geoscapeEvents.end(); ++i)
 	{
 		node["geoscapeEvents"].push_back((*i)->save());
+	}
+	for (std::vector<DiplomacyFraction*>::const_iterator i = _diplomacyFractions.begin(); i != _diplomacyFractions.end(); ++i)
+	{
+		node["diplomacyFractions"].push_back((*i)->save());
 	}
 	for (std::vector<const RuleResearch *>::const_iterator i = _discovered.begin(); i != _discovered.end(); ++i)
 	{

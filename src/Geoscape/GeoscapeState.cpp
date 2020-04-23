@@ -69,6 +69,7 @@
 #include "../Menu/ErrorMessageState.h"
 #include "GraphsState.h"
 #include "FundingState.h"
+#include "../FTA/DiplomacyStartState.h"
 #include "MonthlyReportState.h"
 #include "ProductionCompleteState.h"
 #include "UfoDetectedState.h"
@@ -2981,7 +2982,7 @@ void GeoscapeState::btnFundingClick(Action *)
 	{
 		return;
 	}
-	_game->pushState(new FundingState);
+	else if (_game->getMod()->getIsFTAGame()) {_game->pushState(new DiplomacyStartState(0, true));} else {_game->pushState(new FundingState);}	
 }
 
 /**

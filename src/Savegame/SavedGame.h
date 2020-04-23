@@ -55,6 +55,7 @@ class AlienBase;
 class AlienStrategy;
 class AlienMission;
 class GeoscapeEvent;
+class DiplomacyFraction;
 class Target;
 class Soldier;
 class Craft;
@@ -153,6 +154,7 @@ private:
 	std::map<std::string, bool> _hiddenPurchaseItemsMap;
 	std::vector<AlienMission*> _activeMissions;
 	std::vector<GeoscapeEvent*> _geoscapeEvents;
+	std::vector<DiplomacyFraction*> _diplomacyFractions;
 	bool _debug, _warned;
 	int _monthsPassed;
 	std::string _graphRegionToggles;
@@ -365,6 +367,10 @@ public:
 	std::vector<GeoscapeEvent*> &getGeoscapeEvents() { return _geoscapeEvents; }
 	/// Read-only access to the current geoscape events.
 	const std::vector<GeoscapeEvent*> &getGeoscapeEvents() const { return _geoscapeEvents; }
+	/// Full access to the current diplomacy factions.
+	std::vector<DiplomacyFraction*>& getDiplomacyFractions() { return _diplomacyFractions; }
+	/// Read-only access to the current diplomacy factions.
+	const std::vector<DiplomacyFraction*>& getDiplomacyFractions() const { return _diplomacyFractions; }
 	/// Locate a region containing a position.
 	Region *locateRegion(double lon, double lat) const;
 	/// Locate a region containing a Target.

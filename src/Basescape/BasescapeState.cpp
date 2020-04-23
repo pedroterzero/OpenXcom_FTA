@@ -39,6 +39,7 @@
 #include "ChangeHeadquartersState.h"
 #include "../Geoscape/BuildNewBaseState.h"
 #include "../Engine/Action.h"
+#include "../FTA/DiplomacyStartState.h"
 #include "BaseInfoState.h"
 #include "SoldiersState.h"
 #include "CraftsState.h"
@@ -338,7 +339,7 @@ void BasescapeState::btnManufactureClick(Action *)
  */
 void BasescapeState::btnPurchaseClick(Action *)
 {
-	_game->pushState(new PurchaseState(_base));
+	if (_game->getMod()->getIsFTAGame()) { return; } else {_game->pushState(new PurchaseState(_base));}
 }
 
 /**
@@ -347,7 +348,7 @@ void BasescapeState::btnPurchaseClick(Action *)
  */
 void BasescapeState::btnSellClick(Action *)
 {
-	_game->pushState(new SellState(_base, 0));
+	if (_game->getMod()->getIsFTAGame()) {_game->pushState(new DiplomacyStartState(_base));	} else {	_game->pushState(new SellState(_base, 0));	}
 }
 
 /**
