@@ -217,53 +217,57 @@ bool DiplomacyFaction::factionMissionGenerator(Game& engine)
 	SavedGame& game = *engine.getSavedGame();
 	if (RNG::percent(_rule.getGenMissionFrequency()))
 	{
-		const RuleMissionScript& ruleScript = *mod.getMissionScript(_rule.chooseGenMissionScriptType());
-		auto month = game.getMonthsPassed();
-		// lets process mission script with own way, first things first
-		if (ruleScript.getFirstMonth() <= month &&
-			(ruleScript.getLastMonth() >= month || ruleScript.getLastMonth() == -1) &&
-			// make sure we haven't hit our run limit, if we have one
-			(ruleScript.getMaxRuns() == -1 ||	ruleScript.getMaxRuns() > game.getAlienStrategy().getMissionsRun(ruleScript.getVarName())) &&
-			// and make sure we satisfy the difficulty restrictions
-			(month < 1 || ruleScript.getMinScore() <= game.getCurrentScore(month)) &&
-			(month < 1 || ruleScript.getMaxScore() >= game.getCurrentScore(month)) &&
-			(month < 1 || ruleScript.getMinFunds() <= game.getFunds()) &&
-			(month < 1 || ruleScript.getMaxFunds() >= game.getFunds()) &&
-			ruleScript.getMinDifficulty() <= game.getDifficulty())
+		auto scriptType = _rule.chooseGenMissionScriptType();
+		if (!scriptType.empty())
 		{
-			// level two condition check: make sure we meet any research requirements, if any.
-			bool triggerHappy = true;
-			for (std::map<std::string, bool>::const_iterator j = ruleScript.getResearchTriggers().begin(); triggerHappy && j != ruleScript.getResearchTriggers().end(); ++j)
+			const RuleMissionScript& ruleScript = *mod.getMissionScript(scriptType);
+			auto month = game.getMonthsPassed();
+			// lets process mission script with own way, first things first
+			if (ruleScript.getFirstMonth() <= month &&
+				(ruleScript.getLastMonth() >= month || ruleScript.getLastMonth() == -1) &&
+				// make sure we haven't hit our run limit, if we have one
+				(ruleScript.getMaxRuns() == -1 || ruleScript.getMaxRuns() > game.getAlienStrategy().getMissionsRun(ruleScript.getVarName())) &&
+				// and make sure we satisfy the difficulty restrictions
+				(month < 1 || ruleScript.getMinScore() <= game.getCurrentScore(month)) &&
+				(month < 1 || ruleScript.getMaxScore() >= game.getCurrentScore(month)) &&
+				(month < 1 || ruleScript.getMinFunds() <= game.getFunds()) &&
+				(month < 1 || ruleScript.getMaxFunds() >= game.getFunds()) &&
+				ruleScript.getMinDifficulty() <= game.getDifficulty())
 			{
-				triggerHappy = (game.isResearched(j->first) == j->second);
-				if (!triggerHappy)
-					return false;
-			}
-			if (triggerHappy)
-			{
-				// item requirements
-				for (auto& triggerItem : ruleScript.getItemTriggers())
+				// level two condition check: make sure we meet any research requirements, if any.
+				bool triggerHappy = true;
+				for (std::map<std::string, bool>::const_iterator j = ruleScript.getResearchTriggers().begin(); triggerHappy && j != ruleScript.getResearchTriggers().end(); ++j)
 				{
-					triggerHappy = (game.isItemObtained(triggerItem.first) == triggerItem.second);
+					triggerHappy = (game.isResearched(j->first) == j->second);
 					if (!triggerHappy)
 						return false;
 				}
-			}
-			if (triggerHappy)
-			{
-				// facility requirements
-				for (auto& triggerFacility : ruleScript.getFacilityTriggers())
+				if (triggerHappy)
 				{
-					triggerHappy = (game.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
-					if (!triggerHappy)
-						return false;
+					// item requirements
+					for (auto& triggerItem : ruleScript.getItemTriggers())
+					{
+						triggerHappy = (game.isItemObtained(triggerItem.first) == triggerItem.second);
+						if (!triggerHappy)
+							return false;
+					}
 				}
-			}
-			// levels one and two passed: insert this command into the array.
-			if (triggerHappy)
-			{
-				_generatedCommandType = ruleScript.getType();
-				return true;
+				if (triggerHappy)
+				{
+					// facility requirements
+					for (auto& triggerFacility : ruleScript.getFacilityTriggers())
+					{
+						triggerHappy = (game.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
+						if (!triggerHappy)
+							return false;
+					}
+				}
+				// levels one and two passed: insert this command into the array.
+				if (triggerHappy)
+				{
+					_generatedCommandType = ruleScript.getType();
+					return true;
+				}
 			}
 		}
 	}
