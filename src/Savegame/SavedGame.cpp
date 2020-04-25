@@ -811,8 +811,8 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 	// Saves the brief game info used in the saves list
 	YAML::Node brief;
 	brief["name"] = _name;
-	brief["version"] = OPENXCOM_VERSION_SHORT;
-	std::string git_sha = OPENXCOM_VERSION_GIT;
+	brief["version"] = OPENXCOM_FTA_VERSION_SHORT;
+	std::string git_sha = OPENXCOM_FTA_VERSION_GIT;
 	if (!git_sha.empty() && git_sha[0] ==  '.')
 	{
 		git_sha.erase(0,1);
