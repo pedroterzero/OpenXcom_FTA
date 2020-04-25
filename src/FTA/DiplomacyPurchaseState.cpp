@@ -49,8 +49,8 @@
 #include "../Mod/RuleCraftWeapon.h"
 #include "../Mod/Armor.h"
 #include "../Ufopaedia/Ufopaedia.h"
-#include "../Savegame/DiplomacyFraction.h"
-#include "../Mod/RuleDiplomacyFraction.h"
+#include "../Savegame/DiplomacyFaction.h"
+#include "../Mod/RuleDiplomacyFaction.h"
 #include "../Engine/Logger.h"
 
 
@@ -62,7 +62,7 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param base Pointer to the base to get info from.
  */
-DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFraction* fraction) : _base(base), _fraction(fraction),
+DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* faction) : _base(base), _faction(faction),
 		_sel(0), _total(0), _pQty(0), _cQty(0), _iQty(0.0), _ammoColor(0)
 {
 	// Create objects
@@ -143,7 +143,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFraction* fr
 	_cats.push_back("STR_ALL_ITEMS");
 	_cats.push_back("STR_FILTER_HIDDEN");
 
-	//auto sellList = fraction->getRules().getSellingSet();
+	//auto sellList = faction->getRules().getSellingSet();
 
 	const std::vector<std::string> &cw = _game->getMod()->getCraftWeaponsList();
 	for (std::vector<std::string>::const_iterator i = cw.begin(); i != cw.end(); ++i)
@@ -165,7 +165,10 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFraction* fr
 	{
 		RuleSoldier *rule = _game->getMod()->getSoldier(*i);
 		auto purchaseBaseFunc = rule->getRequiresBuyBaseFunc();
-		if (rule->getBuyCost() != 0 && _game->getSavedGame()->isResearched(rule->getRequirements()) && (~providedBaseFunc & purchaseBaseFunc).none())
+		if (rule->getBuyCost() != 0
+			&& _game->getSavedGame()->isResearched(rule->getRequirements())
+			&& (~providedBaseFunc & purchaseBaseFunc).none()
+			&& isEntityAllowedByFaction(rule->getType()))
 		{
 			TransferRow row = { TRANSFER_SOLDIER, rule, tr(rule->getType()), rule->getBuyCost(), _base->getSoldierCountAndSalary(rule->getType()).first, 0, 0 };
 			_items.push_back(row);
@@ -177,29 +180,39 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFraction* fr
 		}
 	}
 	{
-		TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), _game->getMod()->getHireScientistCost(), _base->getTotalScientists(), 0, 0 };
-		_items.push_back(row);
-		std::string cat = getCategory(_items.size() - 1);
-		if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
+		if (isEntityAllowedByFaction("STR_SCIENTIST"))
 		{
-			_cats.push_back(cat);
+			TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), _game->getMod()->getHireScientistCost(), _base->getTotalScientists(), 0, 0 };
+			_items.push_back(row);
+			std::string cat = getCategory(_items.size() - 1);
+			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
+			{
+				_cats.push_back(cat);
+			}
 		}
 	}
 	{
-		TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), _game->getMod()->getHireEngineerCost(), _base->getTotalEngineers(), 0, 0 };
-		_items.push_back(row);
-		std::string cat = getCategory(_items.size() - 1);
-		if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
+		if (isEntityAllowedByFaction("STR_ENGINEER"))
 		{
-			_cats.push_back(cat);
+			TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), _game->getMod()->getHireEngineerCost(), _base->getTotalEngineers(), 0, 0 };
+			_items.push_back(row);
+			std::string cat = getCategory(_items.size() - 1);
+			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
+			{
+				_cats.push_back(cat);
+			}
 		}
+
 	}
 	const std::vector<std::string> &crafts = _game->getMod()->getCraftsList();
 	for (std::vector<std::string>::const_iterator i = crafts.begin(); i != crafts.end(); ++i)
 	{
 		RuleCraft *rule = _game->getMod()->getCraft(*i);
 		auto purchaseBaseFunc = rule->getRequiresBuyBaseFunc();
-		if (rule->getBuyCost() != 0 && _game->getSavedGame()->isResearched(rule->getRequirements()) && (~providedBaseFunc & purchaseBaseFunc).none())
+		if (rule->getBuyCost() != 0
+			&& _game->getSavedGame()->isResearched(rule->getRequirements())
+			&& (~providedBaseFunc & purchaseBaseFunc).none()
+			&& isEntityAllowedByFaction(rule->getType()))
 		{
 			TransferRow row = { TRANSFER_CRAFT, rule, tr(rule->getType()), rule->getBuyCost(), _base->getCraftCount(rule), 0, 0 };
 			_items.push_back(row);
@@ -219,7 +232,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFraction* fr
 			&& _game->getSavedGame()->isResearched(rule->getRequirements())
 			&& _game->getSavedGame()->isResearched(rule->getBuyRequirements())
 			&& (~providedBaseFunc & purchaseBaseFunc).none()
-			&& isEntityAllowedByFraction(rule->getName()))
+			&& isEntityAllowedByFaction(rule->getName()))
 		{
 			TransferRow row = { TRANSFER_ITEM, rule, tr(rule->getType()), rule->getBuyCost(), _base->getStorageItems()->getItem(rule->getType()), 0, 0 };
 			_items.push_back(row);
@@ -999,33 +1012,33 @@ void DiplomacyPurchaseState::cbxCategoryChange(Action *)
 	updateList();
 }
 /**
- * Returns true if current fraction allowes to purchase
+ * Returns true if current Faction allowes to purchase
  * that item at current reputation level.
  * @param change how much we want to add.
  * @return true if entity is allowed for purchase
  */
-bool DiplomacyPurchaseState::isEntityAllowedByFraction(std::string entityName)
+bool DiplomacyPurchaseState::isEntityAllowedByFaction(std::string entityName)
 {
-	for (std::map<std::string, int>::const_iterator i = _fraction->getRules().getSellingSet().begin(); i != _fraction->getRules().getSellingSet().end(); ++i)
+	for (std::map<std::string, int>::const_iterator i = _faction->getRules().getSellingSet().begin(); i != _faction->getRules().getSellingSet().end(); ++i)
 	{
 		if ((*i).first == entityName)
 		{
 			int repReq = i->second;
-			Log(LOG_INFO) << tr(entityName) << " was found in list of fraction " << tr(_fraction->getRules().getName());
-			if (_fraction->getReputationLevel() >= repReq)
+			Log(LOG_INFO) << tr(entityName) << " was found in list of Faction " << tr(_faction->getRules().getName());
+			if (_faction->getReputationLevel() >= repReq)
 			{
-				Log(LOG_INFO) << tr(entityName) << " requers reputation level "<< repReq << " and we have " << _fraction->getReputationLevel() << " so we pass!";
+				Log(LOG_INFO) << tr(entityName) << " requers reputation level "<< repReq << " and we have " << _faction->getReputationLevel() << " so we pass!";
 				return true;
 				break;
 			}
 			else
 			{
-				Log(LOG_INFO) << tr(entityName) << " requers reputation level " << repReq << " but we have only " << _fraction->getReputationLevel() << " so we cant buy it!";
+				Log(LOG_INFO) << tr(entityName) << " requers reputation level " << repReq << " but we have only " << _faction->getReputationLevel() << " so we cant buy it!";
 				break;
 			}
 		}
 	}
-	Log(LOG_INFO) << " We fail to find  " << tr(entityName) << " in sellList of fraction " << tr(_fraction->getRules().getName());
+	Log(LOG_INFO) << " We fail to find  " << tr(entityName) << " in sellList of faction " << tr(_faction->getRules().getName());
 	return false;
 }
 

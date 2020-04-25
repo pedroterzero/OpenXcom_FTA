@@ -51,6 +51,7 @@
 #include "../Mod/RuleEventScript.h"
 #include "../Mod/RuleEvent.h"
 #include "../Mod/RuleMissionScript.h"
+#include "../Savegame/DiplomacyFaction.h"
 #include "../Savegame/Waypoint.h"
 #include "../Savegame/Transfer.h"
 #include "../Savegame/Soldier.h"
@@ -2578,6 +2579,9 @@ void GeoscapeState::time1Day()
 			(*i)->removeResearch(*iter);
 		}
 	}
+
+	//handle daily Faction logic
+	for (auto faction : saveGame->getDiplomacyFactions()) { bool answer = faction->think(*_game,TIMESTEP_DAILY); if (answer){ bool success = processCommand(mod->getMissionScript(faction->getCommandType())); } }
 
 	// check and interrupt alien missions if necessary (based on discovered research)
 	for (auto am : saveGame->getAlienMissions())

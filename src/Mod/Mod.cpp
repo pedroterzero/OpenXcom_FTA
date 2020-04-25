@@ -79,7 +79,7 @@
 #include "RuleManufactureShortcut.h"
 #include "ExtraStrings.h"
 #include "RuleInterface.h"
-#include "RuleDiplomacyFraction.h"
+#include "RuleDiplomacyFaction.h"
 #include "RuleArcScript.h"
 #include "RuleEventScript.h"
 #include "RuleEvent.h"
@@ -684,7 +684,7 @@ Mod::~Mod()
 	{
 		delete i->second;
 	}
-	for (std::map<std::string, RuleDiplomacyFraction*>::const_iterator i = _diplomacyFractions.begin(); i != _diplomacyFractions.end(); ++i)
+	for (std::map<std::string, RuleDiplomacyFaction*>::const_iterator i = _diplomacyFactions.begin(); i != _diplomacyFactions.end(); ++i)
 	{
 		delete i->second;
 	}
@@ -2632,9 +2632,9 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 		}
 	}
 
-	for (YAML::const_iterator i = doc["diplomacyFractions"].begin(); i != doc["diplomacyFractions"].end(); ++i)
+	for (YAML::const_iterator i = doc["diplomacyFactions"].begin(); i != doc["diplomacyFactions"].end(); ++i)
 	{
-		RuleDiplomacyFraction* rule = loadRule(*i, &_diplomacyFractions, &_diplomacyFractionIndex, "name");
+		RuleDiplomacyFaction* rule = loadRule(*i, &_diplomacyFactions, &_diplomacyFactionIndex, "name");
 		if (rule != 0)
 		{
 			rule->load(*i);
@@ -4227,14 +4227,14 @@ const std::map<std::string, RuleMusic *> *Mod::getMusic() const
 	return &_musicDefs;
 }
 
-RuleDiplomacyFraction* Mod::getDiplomacyFraction(const std::string& name, bool error) const
+RuleDiplomacyFaction* Mod::getDiplomacyFaction(const std::string& name, bool error) const
 {
-	return getRule(name, "Diplomacy Fraction", _diplomacyFractions, error);
+	return getRule(name, "Diplomacy Faction", _diplomacyFactions, error);
 }
 
-const std::vector<std::string>* Mod::getDiplomacyFractionList() const
+const std::vector<std::string>* Mod::getDiplomacyFactionList() const
 {
-	return &_diplomacyFractionIndex;
+	return &_diplomacyFactionIndex;
 }
 
 const std::vector<std::string>* Mod::getArcScriptList() const

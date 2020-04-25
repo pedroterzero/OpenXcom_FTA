@@ -30,8 +30,8 @@
 #include "../Savegame/SavedGame.h"
 #include "../Engine/Options.h"
 #include "../Geoscape/FundingState.h"
-#include "../Savegame/DiplomacyFraction.h"
-#include "../Mod/RuleDiplomacyFraction.h"
+#include "../Savegame/DiplomacyFaction.h"
+#include "../Mod/RuleDiplomacyFaction.h"
 #include "../Savegame/Base.h"
 #include "../FTA/DiplomacySellState.h"
 #include "../FTA/DiplomacyPurchaseState.h"
@@ -61,15 +61,15 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 	add(_txtTitle, "text1", interfaceName);
 
 
-	std::vector<DiplomacyFraction*> fractions = _game->getSavedGame()->getDiplomacyFractions();
-	DiplomacyFraction* fraction;
+	std::vector<DiplomacyFaction*> factions = _game->getSavedGame()->getDiplomacyFactions();
+	DiplomacyFaction* faction;
 	int step = 0;
 	int dX = 103;
-	for (std::vector<DiplomacyFraction*>::iterator i = fractions.begin(); i != fractions.end(); ++i)
+	for (std::vector<DiplomacyFaction*>::iterator i = factions.begin(); i != factions.end(); ++i)
 	{
 		if (step > 2) { break; } //draw only 3 cards
 		dX = 103 * step;
-		fraction = fractions.at(step);
+		faction = factions.at(step);
 		Window* card = new Window(this, 98, 150, 8 + dX, 25, POPUP_NONE);
 		Text* txtName = new Text(90, 17, 12 + dX, 31);
 		TextButton* btnInfo = new TextButton(35, 14, 14 + dX, 108); //h = 18?
@@ -77,22 +77,22 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 		TextButton* btnTalk = new TextButton(86, 14, 14 + dX, 125);
 		TextButton* btnBuy = new TextButton(86, 14, 14 + dX, 140);
 		TextButton* btnSell = new TextButton(86, 14, 14 + dX, 155);
-		if (fraction->isDiscovered())
+		if (faction->isDiscovered())
 		{
 			add(card, "window", interfaceName);
-			card->setBackground(_game->getMod()->getSurface(fraction->getRules().getCardBackground()));
+			card->setBackground(_game->getMod()->getSurface(faction->getRules().getCardBackground()));
 			card->setVeryThinBorder();
 			_cards.push_back(card);
 			//name, reputation
 			add(txtName, "name", interfaceName);
 			txtName->setAlign(ALIGN_CENTER);
 			txtName->setBig();
-			txtName->setText(tr(fraction->getRules().getName()));
+			txtName->setText(tr(faction->getRules().getName()));
 			_txtsName.push_back(txtName);
 			add(txtRep, "name", interfaceName);
 			txtRep->setAlign(ALIGN_CENTER);
-			int rep = fraction->getReputation();
-			txtRep->setText(tr(fraction->getReputationName()));
+			int rep = faction->getReputation();
+			txtRep->setText(tr(faction->getReputationName()));
 			txtRep->setAlign(ALIGN_CENTER);
 			//Info, Negation
 			add(btnInfo, "button", interfaceName);
@@ -174,7 +174,7 @@ void DiplomacyStartState::btnOkClick(Action *)
 }
 
 /**
- * Displays fraction info state.
+ * Displays Faction info state.
  * @param action Pointer to an action.
  */
 void DiplomacyStartState::btnInfoClick(Action* action)
@@ -183,15 +183,15 @@ void DiplomacyStartState::btnInfoClick(Action* action)
 	{
 		if (action->getSender() == _btnsInfo.at(i))
 		{
-			DiplomacyFraction* fraction = _game->getSavedGame()->getDiplomacyFractions().at(i);
-			_game->pushState(new DiplomacyInfoState(fraction));
+			DiplomacyFaction* faction = _game->getSavedGame()->getDiplomacyFactions().at(i);
+			_game->pushState(new DiplomacyInfoState(faction));
 			break;
 		}
 	}
 }
 
 /**
- * Displays fraction negotiation state.
+ * Displays Faction negotiation state.
  * @param action Pointer to an action.
  */
 void DiplomacyStartState::btnTalkClick(Action* action)
@@ -200,8 +200,8 @@ void DiplomacyStartState::btnTalkClick(Action* action)
 	{
 		if (action->getSender() == _btnsTalk.at(i))
 		{
-			auto fraction = _game->getSavedGame()->getDiplomacyFractions().at(i);
-			Log(LOG_INFO) << "You clicked NEGOTIATION button of " << tr(fraction->getRules().getName()) << " fraction! Sorry, it's not implemented yet!";
+			auto faction = _game->getSavedGame()->getDiplomacyFactions().at(i);
+			Log(LOG_INFO) << "You clicked NEGOTIATION button of " << tr(faction->getRules().getName()) << " faction! Sorry, it's not implemented yet!";
 			//_game->pushState(new UfopaediaSelectState(_cats[_offset + i], _heightOffset, _windowOffset));
 			break;
 		}
@@ -209,7 +209,7 @@ void DiplomacyStartState::btnTalkClick(Action* action)
 }
 
 /**
- * Displays fraction buy state.
+ * Displays Faction buy state.
  * @param action Pointer to an action.
  */
 void DiplomacyStartState::btnBuyClick(Action* action)
@@ -218,26 +218,26 @@ void DiplomacyStartState::btnBuyClick(Action* action)
 	{
 		if (action->getSender() == _btnsBuy.at(i))
 		{
-			DiplomacyFraction* fraction = _game->getSavedGame()->getDiplomacyFractions().at(i);
+			DiplomacyFaction* faction = _game->getSavedGame()->getDiplomacyFactions().at(i);
 			int size = _game->getSavedGame()->getBases()->size();
 			if (_base != 0)
 			{
-				_game->pushState(new DiplomacyPurchaseState(_base, fraction));
+				_game->pushState(new DiplomacyPurchaseState(_base, faction));
 			}
 			else if (_game->getSavedGame()->getBases()->size() == 1)
 			{
-				_game->pushState(new DiplomacyPurchaseState(_game->getSavedGame()->getBases()->front(), fraction));
+				_game->pushState(new DiplomacyPurchaseState(_game->getSavedGame()->getBases()->front(), faction));
 			}
 			else
 			{
-				_game->pushState(new DiplomacyChooseBaseState(fraction, OPERATION_BUYING));
+				_game->pushState(new DiplomacyChooseBaseState(faction, OPERATION_BUYING));
 			}
 			break;
 		}
 	}
 }
 /**
- * Displays fraction sell state.
+ * Displays Faction sell state.
  * @param action Pointer to an action.
  */
 void DiplomacyStartState::btnSellClick(Action* action)
@@ -246,19 +246,19 @@ void DiplomacyStartState::btnSellClick(Action* action)
 	{
 		if (action->getSender() == _btnsSell.at(i))
 		{
-			auto fraction = _game->getSavedGame()->getDiplomacyFractions().at(i);
+			auto faction = _game->getSavedGame()->getDiplomacyFactions().at(i);
 			int size = _game->getSavedGame()->getBases()->size();
 			if (_base != 0)
 			{
-				_game->pushState(new DiplomacySellState(_base, fraction, 0));
+				_game->pushState(new DiplomacySellState(_base, faction, 0));
 			}
 			else if (_game->getSavedGame()->getBases()->size() == 1)
 			{
-				_game->pushState(new DiplomacySellState (_game->getSavedGame()->getBases()->front(), fraction, 0));
+				_game->pushState(new DiplomacySellState (_game->getSavedGame()->getBases()->front(), faction, 0));
 			}
 			else
 			{
-				_game->pushState(new DiplomacyChooseBaseState(fraction, OPERATION_SELLING));
+				_game->pushState(new DiplomacyChooseBaseState(faction, OPERATION_SELLING));
 			}
 			break;
 		}
@@ -268,12 +268,12 @@ void DiplomacyStartState::btnSellClick(Action* action)
 
 /**
  * Initializes all the elements in the Diplomacy Info screen
- * for selected diplomacy fraction.
+ * for selected diplomacy Faction.
  * @param game Pointer to the core game.
  */
-DiplomacyInfoState::DiplomacyInfoState(const DiplomacyFraction* fraction)
+DiplomacyInfoState::DiplomacyInfoState(const DiplomacyFaction* faction)
 {
-	auto rules = fraction->getRules();
+	auto rules = faction->getRules();
 		_screen = false;
 	std::string interfaceName = "diplimacyMainWindow";
 	_window = new Window(this, 250, 160, 35, 20, POPUP_BOTH);
@@ -318,7 +318,7 @@ void DiplomacyInfoState::btnOkClick(Action* action)
 	_game->popState();
 }
 
-DiplomacyChooseBaseState::DiplomacyChooseBaseState(DiplomacyFraction* fraction, TradeOperation opeation) : _fraction(fraction), _opeation(opeation)
+DiplomacyChooseBaseState::DiplomacyChooseBaseState(DiplomacyFaction* faction, TradeOperation opeation) : _faction(faction), _opeation(opeation)
 {
 	_screen = false;
 	std::string interfaceName = "diplimacyMainWindow";
@@ -358,7 +358,7 @@ DiplomacyChooseBaseState::~DiplomacyChooseBaseState()
 {
 }
 /**
- * Opens trading with fraction.
+ * Opens trading with Faction.
  * Selling or buying is determined with TRADING constant
  * @param action Pointer to an action.
  */
@@ -373,10 +373,10 @@ void DiplomacyChooseBaseState::btnBaseClick(Action* action)
 			switch (_opeation)
 			{
 			case OpenXcom::OPERATION_BUYING:
-				_game->pushState(new DiplomacyPurchaseState(base, _fraction));
+				_game->pushState(new DiplomacyPurchaseState(base, _faction));
 				break;
 			case OpenXcom::OPERATION_SELLING:
-				_game->pushState(new DiplomacySellState(base, _fraction, 0));
+				_game->pushState(new DiplomacySellState(base, _faction, 0));
 				break;
 			default:
 				break;

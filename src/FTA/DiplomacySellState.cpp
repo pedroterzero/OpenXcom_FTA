@@ -54,8 +54,8 @@
 #include "../Basescape/TransferBaseState.h"
 #include "../Basescape/TechTreeViewerState.h"
 #include "../Ufopaedia/Ufopaedia.h"
-#include "../Savegame/DiplomacyFraction.h"
-#include "../Mod/RuleDiplomacyFraction.h"
+#include "../Savegame/DiplomacyFaction.h"
+#include "../Mod/RuleDiplomacyFaction.h"
 
 namespace OpenXcom
 {
@@ -66,7 +66,7 @@ namespace OpenXcom
  * @param base Pointer to the base to get info from.
  * @param origin Game section that originated this state.
  */
-DiplomacySellState::DiplomacySellState(Base *base, DiplomacyFraction* fraction, DebriefingState *debriefingState, OptionsOrigin origin) : _base(base), _fraction(fraction), _debriefingState(debriefingState),
+DiplomacySellState::DiplomacySellState(Base *base, DiplomacyFaction* faction, DebriefingState *debriefingState, OptionsOrigin origin) : _base(base), _faction(faction), _debriefingState(debriefingState),
 		_sel(0), _total(0), _spaceChange(0), _origin(origin), _reset(false), _sellAllButOne(false)
 {
 	bool overfull = _debriefingState == 0 && Options::storageLimitsEnforced && _base->storesOverfull();
@@ -347,7 +347,7 @@ void DiplomacySellState::init()
 	if (_reset)
 	{
 		_game->popState();
-		_game->pushState(new DiplomacySellState(_base, _fraction, _debriefingState, _origin));
+		_game->pushState(new DiplomacySellState(_base, _faction, _debriefingState, _origin));
 	}
 }
 

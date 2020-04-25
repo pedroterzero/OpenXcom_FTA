@@ -58,7 +58,7 @@
 #include "AlienStrategy.h"
 #include "AlienMission.h"
 #include "GeoscapeEvent.h"
-#include "DiplomacyFraction.h"
+#include "DiplomacyFaction.h"
 #include "../Mod/RuleCountry.h"
 #include "../Mod/RuleRegion.h"
 #include "../Mod/RuleSoldier.h"
@@ -205,7 +205,7 @@ SavedGame::~SavedGame()
 	{
 		delete *i;
 	}
-	for (std::vector<DiplomacyFraction*>::iterator i = _diplomacyFractions.begin(); i != _diplomacyFractions.end(); ++i)
+	for (std::vector<DiplomacyFaction*>::iterator i = _diplomacyFactions.begin(); i != _diplomacyFactions.end(); ++i)
 	{
 		delete* i;
 	}
@@ -519,20 +519,20 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 		}
 	}
 
-	const YAML::Node& diplomacyFractions = doc["diplomacyFractions"];
-	for (YAML::const_iterator it = diplomacyFractions.begin(); it != diplomacyFractions.end(); ++it)
+	const YAML::Node& diplomacyFactions = doc["diplomacyFactions"];
+	for (YAML::const_iterator it = diplomacyFactions.begin(); it != diplomacyFactions.end(); ++it)
 	{
-		std::string diplomacyFractionName = (*it)["name"].as<std::string>();
-		if (mod->getDiplomacyFraction(diplomacyFractionName))//(mod->getEvent(eventName))
+		std::string diplomacyFactionName = (*it)["name"].as<std::string>();
+		if (mod->getDiplomacyFaction(diplomacyFactionName))//(mod->getEvent(eventName))
 		{
-			const RuleDiplomacyFraction &diplomacyFractionRule = *mod->getDiplomacyFraction(diplomacyFractionName);//const RuleEvent& eventRule = *mod->getEvent(eventName);
-			DiplomacyFraction *diplomacyFraction = new DiplomacyFraction(diplomacyFractionRule);
-			diplomacyFraction->load(*it);
-			_diplomacyFractions.push_back(diplomacyFraction);
+			const RuleDiplomacyFaction &diplomacyFactionRule = *mod->getDiplomacyFaction(diplomacyFactionName);//const RuleEvent& eventRule = *mod->getEvent(eventName);
+			DiplomacyFaction *diplomacyFaction = new DiplomacyFaction(diplomacyFactionRule);
+			diplomacyFaction->load(*it);
+			_diplomacyFactions.push_back(diplomacyFaction);
 		}
 		else
 		{
-			Log(LOG_ERROR) << "Failed to load diplomacy fraction " << diplomacyFractionName;
+			Log(LOG_ERROR) << "Failed to load diplomacy faction " << diplomacyFactionName;
 		}
 	}
 
@@ -899,9 +899,9 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 	{
 		node["geoscapeEvents"].push_back((*i)->save());
 	}
-	for (std::vector<DiplomacyFraction*>::const_iterator i = _diplomacyFractions.begin(); i != _diplomacyFractions.end(); ++i)
+	for (std::vector<DiplomacyFaction*>::const_iterator i = _diplomacyFactions.begin(); i != _diplomacyFactions.end(); ++i)
 	{
-		node["diplomacyFractions"].push_back((*i)->save());
+		node["diplomacyFactions"].push_back((*i)->save());
 	}
 	for (std::vector<const RuleResearch *>::const_iterator i = _discovered.begin(); i != _discovered.end(); ++i)
 	{

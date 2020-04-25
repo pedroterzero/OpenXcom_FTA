@@ -26,7 +26,7 @@ class Window;
 class Text;
 class Surface;
 class Frame;
-class DiplomacyFraction;
+class DiplomacyFaction;
 class Action;
 class Game;
 class Base;
@@ -38,7 +38,7 @@ enum TradeOperation { OPERATION_BUYING, OPERATION_SELLING };
 
 /**
  * Diplomacy main screen that shows diplomacy cards
- * for all discovered fractions and fraction main interfaces.
+ * for all discovered Factions and Faction main interfaces.
  */
 class DiplomacyStartState : public State
 {
@@ -67,8 +67,8 @@ public:
 	void btnSellClick(Action* action);
 };
 /**
- * Diplomacy fraction info state.
- * Showes main stats of diplomacy fraction
+ * Diplomacy Faction info state.
+ * Showes main stats of diplomacy Faction
  */
 class DiplomacyInfoState : public State
 {
@@ -78,7 +78,7 @@ private:
 	Text* _txtTitle, *_txtDesc;
 public:
 	/// Creates the Diplomacy Start state.
-	DiplomacyInfoState(const DiplomacyFraction* fraction);
+	DiplomacyInfoState(const DiplomacyFaction* faction);
 	/// Cleans up the Diplomacy Start state.
 	~DiplomacyInfoState();
 	/// Handler for clicking the OK button.
@@ -96,11 +96,11 @@ private:
 	std::vector<TextButton*> _btnsBase;
 	Window* _window;
 	Text* _txtTitle;
-	DiplomacyFraction *_fraction;
+	DiplomacyFaction *_faction;
 	TradeOperation _opeation;
 public:
 	/// Creates the DiplomacyChooseBaseState.
-	DiplomacyChooseBaseState(DiplomacyFraction* fraction, TradeOperation opeation);
+	DiplomacyChooseBaseState(DiplomacyFaction* faction, TradeOperation opeation);
 	/// Cleans up the DiplomacyChooseBaseState.
 	~DiplomacyChooseBaseState();
 	/// Handler for clicking the Base button.

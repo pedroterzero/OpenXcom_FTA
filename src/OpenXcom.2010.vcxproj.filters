@@ -1121,17 +1121,17 @@
     <ClCompile Include="FTA\DiplomacyStartState.cpp">
       <Filter>FTA</Filter>
     </ClCompile>
-    <ClCompile Include="Mod\RuleDiplomacyFraction.cpp">
-      <Filter>Mod</Filter>
-    </ClCompile>
-    <ClCompile Include="Savegame\DiplomacyFraction.cpp">
-      <Filter>Savegame</Filter>
-    </ClCompile>
     <ClCompile Include="FTA\DiplomacySellState.cpp">
       <Filter>FTA</Filter>
     </ClCompile>
     <ClCompile Include="FTA\DiplomacyPurchaseState.cpp">
       <Filter>FTA</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\RuleDiplomacyFaction.cpp">
+      <Filter>Mod</Filter>
+    </ClCompile>
+    <ClCompile Include="Savegame\DiplomacyFaction.cpp">
+      <Filter>Savegame</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2315,17 +2315,17 @@
     <ClInclude Include="FTA\DiplomacyStartState.h">
       <Filter>FTA</Filter>
     </ClInclude>
-    <ClInclude Include="Mod\RuleDiplomacyFraction.h">
-      <Filter>Mod</Filter>
-    </ClInclude>
-    <ClInclude Include="Savegame\DiplomacyFraction.h">
-      <Filter>Savegame</Filter>
-    </ClInclude>
     <ClInclude Include="FTA\DiplomacySellState.h">
       <Filter>FTA</Filter>
     </ClInclude>
     <ClInclude Include="FTA\DiplomacyPurchaseState.h">
       <Filter>FTA</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\RuleDiplomacyFaction.h">
+      <Filter>Mod</Filter>
+    </ClInclude>
+    <ClInclude Include="Savegame\DiplomacyFaction.h">
+      <Filter>Savegame</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
