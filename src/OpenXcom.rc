@@ -34,8 +34,8 @@ BEGIN
             VALUE "CompanyName", "OpenXcom Developers"
             VALUE "FileDescription", "OpenXcom Extended/FTA"
             VALUE "FileVersion", OPENXCOM_VERSION_LONG
-            VALUE "InternalName", "OpenXcomEx.exe"
-            VALUE "LegalCopyright", "Copyright 2010-2019 OpenXcom Developers"
+            VALUE "InternalName", "OpenXcomFTA.exe"
+            VALUE "LegalCopyright", "Copyright 2010-2020 OpenXcom Developers"
             VALUE "OriginalFilename", "OpenXcomFTA.exe"
             VALUE "ProductName", "OpenXcom Extended/FTA"
             VALUE "ProductVersion", OPENXCOM_VERSION_LONG
