@@ -498,7 +498,7 @@
     <ClCompile Include="Mod\CustomPalettes.cpp" />
     <ClCompile Include="Mod\RuleArcScript.cpp" />
     <ClCompile Include="Mod\RuleDamageType.cpp" />
-    <ClCompile Include="Mod\RuleDiplomacyFraction.cpp" />
+    <ClCompile Include="Mod\RuleDiplomacyFaction.cpp" />
     <ClCompile Include="Mod\RuleEnviroEffects.cpp" />
     <ClCompile Include="Mod\RuleEvent.cpp" />
     <ClCompile Include="Mod\RuleEventScript.cpp" />
@@ -569,7 +569,7 @@
     <ClCompile Include="Savegame\Craft.cpp" />
     <ClCompile Include="Savegame\CraftWeapon.cpp" />
     <ClCompile Include="Savegame\CraftWeaponProjectile.cpp" />
-    <ClCompile Include="Savegame\DiplomacyFraction.cpp" />
+    <ClCompile Include="Savegame\DiplomacyFaction.cpp" />
     <ClCompile Include="Savegame\EquipmentLayoutItem.cpp" />
     <ClCompile Include="Savegame\GameTime.cpp" />
     <ClCompile Include="Savegame\GeoscapeEvent.cpp" />
@@ -897,7 +897,7 @@
     <ClInclude Include="Mod\RuleArcScript.h" />
     <ClInclude Include="Mod\RuleBaseFacilityFunctions.h" />
     <ClInclude Include="Mod\RuleDamageType.h" />
-    <ClInclude Include="Mod\RuleDiplomacyFraction.h" />
+    <ClInclude Include="Mod\RuleDiplomacyFaction.h" />
     <ClInclude Include="Mod\RuleEnviroEffects.h" />
     <ClInclude Include="Mod\RuleEvent.h" />
     <ClInclude Include="Mod\RuleEventScript.h" />
@@ -965,7 +965,7 @@
     <ClInclude Include="Savegame\Craft.h" />
     <ClInclude Include="Savegame\CraftWeapon.h" />
     <ClInclude Include="Savegame\CraftWeaponProjectile.h" />
-    <ClInclude Include="Savegame\DiplomacyFraction.h" />
+    <ClInclude Include="Savegame\DiplomacyFaction.h" />
     <ClInclude Include="Savegame\EquipmentLayoutItem.h" />
     <ClInclude Include="Savegame\GameTime.h" />
     <ClInclude Include="Savegame\GeoscapeEvent.h" />

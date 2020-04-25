@@ -35,7 +35,7 @@ class TextList;
 class ComboBox;
 class Timer;
 class Base;
-class DiplomacyFraction;
+class DiplomacyFaction;
 class DebriefingState;
 
 /**
@@ -46,7 +46,7 @@ class DiplomacySellState : public State
 {
 private:
 	Base *_base;
-	DiplomacyFraction* _fraction;
+	DiplomacyFaction* _faction;
 
 	DebriefingState *_debriefingState;
 	TextButton *_btnOk, *_btnCancel, *_btnTransfer;
@@ -75,7 +75,7 @@ private:
 	TransferRow &getRow() { return _items[_rows[_sel]]; }
 public:
 	/// Creates the Sell state.
-	DiplomacySellState(Base *base, DiplomacyFraction* fraction,  DebriefingState *debriefingState, OptionsOrigin origin = OPT_GEOSCAPE);
+	DiplomacySellState(Base *base, DiplomacyFaction* faction,  DebriefingState *debriefingState, OptionsOrigin origin = OPT_GEOSCAPE);
 	/// Cleans up the Sell state.
 	~DiplomacySellState();
 	/// Resets state.

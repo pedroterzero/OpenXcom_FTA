@@ -34,7 +34,7 @@ class TextList;
 class ComboBox;
 class Timer;
 class Base;
-class DiplomacyFraction;
+class DiplomacyFaction;
 
 /**
  * Purchase/Hire screen that lets the player buy
@@ -44,7 +44,7 @@ class DiplomacyPurchaseState : public State
 {
 private:
 	Base *_base;
-	DiplomacyFraction* _fraction;
+	DiplomacyFaction* _faction;
 
 	TextButton *_btnOk, *_btnCancel;
 	TextEdit *_btnQuickSearch;
@@ -72,7 +72,7 @@ private:
 	TransferRow &getRow() { return _items[_rows[_sel]]; }
 public:
 	/// Creates the Purchase state.
-	DiplomacyPurchaseState(Base *base, DiplomacyFraction* fraction);
+	DiplomacyPurchaseState(Base *base, DiplomacyFaction* faction);
 	/// Cleans up the Purchase state.
 	~DiplomacyPurchaseState();
 	/// Runs the timers.
@@ -112,8 +112,8 @@ public:
 	void updateItemStrings();
 	/// Handler for changing the category filter.
 	void cbxCategoryChange(Action *action);
-	/// Returns true if current fraction allowes to purchase that item at current reputation level.
-	bool isEntityAllowedByFraction(std::string entityName);
+	/// Returns true if current Faction allowes to purchase that item at current reputation level.
+	bool isEntityAllowedByFaction(std::string entityName);
 };
 
 }

@@ -37,31 +37,43 @@ namespace OpenXcom
  * Represents a custom Geoscape event.
  * Events are spawned using Event Script ruleset.
  */
-class RuleDiplomacyFraction
+class RuleDiplomacyFaction
 {
 private:
-	std::string _name, _description, _background, _cardBackground, _music;
-	int _startingReputation;
+	std::string _name, _description, _background, _cardBackground, _discoverResearch, _discoverEvent;
+	int _startingReputation, _genMissionFrequency;
 	std::map<std::string, int> _sellingSet;
+	WeightedOptions _helpTreatyMissions;
 	//std::vector<SellingSetEnitity> _sellingSet2;
 public:
-	/// Creates a blank RuleDiplomacyFraction.
-	RuleDiplomacyFraction(const std::string &name);
-	/// Cleans up the fraction ruleset.
-	~RuleDiplomacyFraction() = default;
-	/// Loads the fraction definition from YAML.
+	/// Creates a blank RuleDiplomacyFaction.
+	RuleDiplomacyFaction(const std::string &name);
+	/// Cleans up the Faction ruleset.
+	~RuleDiplomacyFaction() = default;
+	/// Loads the Faction definition from YAML.
 	void load(const YAML::Node &node);
-	/// Gets the fraction's name.
+	/// Gets the Faction's name.
 	const std::string &getName() const { return _name; }
-	/// Gets the fraction's description.
+	/// Gets the Faction's description.
 	const std::string &getDescription() const { return _description; }
-	/// Gets the fraction's background sprite name.
+	/// Gets the Faction's background sprite name.
 	const std::string &getBackground() const { return _background; }
 	/// Gets the sprite name, that uses to render diplomacy card.
 	const std::string &getCardBackground() const { return _cardBackground; }
-	/// Gets the fraction's selling list for purchase state.
+	/// Gets the Faction's selling list for purchase state.
 	const std::map<std::string, int>&getSellingSet() const { return _sellingSet; }
 	//const std::vector<SellingSetEnitity>& getSellingSet2() const { return _sellingSet2; }
+	/// Gets the reseach name, that opens the Faction.
+	const std::string& getDiscoverResearch() const { return _discoverResearch; }
+	/// Gets the event name, that will spawn when Faction was discovered.
+	const std::string& getDiscoverEvent() const { return _discoverEvent; }
+	/// Gets the Faction's starting reputation.
+	const int& getStartingReputation() const { return _startingReputation; }
+	/// Gets chosen mission script to run from faction mission generator
+	std::string chooseGenMissionScriptType() const;
+	/// Gets mission frequency for generatoting
+	int getGenMissionFrequency() const { return _genMissionFrequency; };
+
 };
 }
 
