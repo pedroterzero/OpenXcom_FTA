@@ -58,6 +58,7 @@
 #include "AlienStrategy.h"
 #include "AlienMission.h"
 #include "GeoscapeEvent.h"
+#include "DiplomacyFaction.h"
 #include "../Mod/RuleCountry.h"
 #include "../Mod/RuleRegion.h"
 #include "../Mod/RuleSoldier.h"
@@ -203,6 +204,10 @@ SavedGame::~SavedGame()
 	for (std::vector<GeoscapeEvent*>::iterator i = _geoscapeEvents.begin(); i != _geoscapeEvents.end(); ++i)
 	{
 		delete *i;
+	}
+	for (std::vector<DiplomacyFaction*>::iterator i = _diplomacyFactions.begin(); i != _diplomacyFactions.end(); ++i)
+	{
+		delete* i;
 	}
 	for (std::vector<Soldier*>::iterator i = _deadSoldiers.begin(); i != _deadSoldiers.end(); ++i)
 	{
@@ -513,6 +518,23 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 		}
 	}
 
+	const YAML::Node& diplomacyFactions = doc["diplomacyFactions"];
+	for (YAML::const_iterator it = diplomacyFactions.begin(); it != diplomacyFactions.end(); ++it)
+	{
+		std::string diplomacyFactionName = (*it)["name"].as<std::string>();
+		if (mod->getDiplomacyFaction(diplomacyFactionName))//(mod->getEvent(eventName))
+		{
+			const RuleDiplomacyFaction &diplomacyFactionRule = *mod->getDiplomacyFaction(diplomacyFactionName);//const RuleEvent& eventRule = *mod->getEvent(eventName);
+			DiplomacyFaction *diplomacyFaction = new DiplomacyFaction(diplomacyFactionRule);
+			diplomacyFaction->load(*it);
+			_diplomacyFactions.push_back(diplomacyFaction);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load diplomacy faction " << diplomacyFactionName;
+		}
+	}
+
 	const YAML::Node &geoEvents = doc["geoscapeEvents"];
 	for (YAML::const_iterator it = geoEvents.begin(); it != geoEvents.end(); ++it)
 	{
@@ -789,8 +811,8 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 	// Saves the brief game info used in the saves list
 	YAML::Node brief;
 	brief["name"] = _name;
-	brief["version"] = OPENXCOM_VERSION_SHORT;
-	std::string git_sha = OPENXCOM_VERSION_GIT;
+	brief["version"] = OPENXCOM_FTA_VERSION_SHORT;
+	std::string git_sha = OPENXCOM_FTA_VERSION_GIT;
 	if (!git_sha.empty() && git_sha[0] ==  '.')
 	{
 		git_sha.erase(0,1);
@@ -874,6 +896,10 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 	for (std::vector<GeoscapeEvent *>::const_iterator i = _geoscapeEvents.begin(); i != _geoscapeEvents.end(); ++i)
 	{
 		node["geoscapeEvents"].push_back((*i)->save());
+	}
+	for (std::vector<DiplomacyFaction*>::const_iterator i = _diplomacyFactions.begin(); i != _diplomacyFactions.end(); ++i)
+	{
+		node["diplomacyFactions"].push_back((*i)->save());
 	}
 	for (std::vector<const RuleResearch *>::const_iterator i = _discovered.begin(); i != _discovered.end(); ++i)
 	{
