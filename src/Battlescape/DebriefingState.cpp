@@ -64,6 +64,7 @@
 #include "../Engine/RNG.h"
 #include "../Basescape/ManageAlienContainmentState.h"
 #include "../Basescape/TransferBaseState.h"
+#include "../FTA/DiplomacyStartState.h"
 #include "../Engine/Screen.h"
 #include "../Basescape/SellState.h"
 #include "../Menu/SaveGameState.h"
@@ -811,7 +812,7 @@ void DebriefingState::btnSellClick(Action *)
 {
 	if (!_destroyBase)
 	{
-		_game->pushState(new SellState(_base, this, OPT_BATTLESCAPE));
+		if (_game->getMod()->getIsFTAGame()) { _game->pushState(new DiplomacyStartState(_base, false)); } else { _game->pushState(new SellState(_base, this, OPT_BATTLESCAPE));}
 	}
 }
 
