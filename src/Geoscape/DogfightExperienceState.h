@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Copyright 2010-2016 OpenXcom Developers.
+ * Copyright 2010-2020 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -22,38 +22,28 @@
 namespace OpenXcom
 {
 
-class Surface;
-class BattlescapeButton;
-class AlienInventory;
-class BattleItem;
-class BattleUnit;
+class TextButton;
+class Window;
 class Text;
+class TextList;
 
 /**
- * Screen which displays alien's inventory.
+ * Displays experience gained by craft pilot(s) during the current day.
  */
-class AlienInventoryState : public State
+class DogfightExperienceState : public State
 {
 private:
-	Surface *_bg, *_soldier;
-	BattlescapeButton *_btnArmor;
-	Text *_txtName;
-	Text *_txtLeftHand, *_txtRightHand;
-	AlienInventory *_inv;
-
-	void calculateMeleeWeapon(BattleUnit* unit, BattleItem* weapon, Text* label);
-	void calculateRangedWeapon(BattleUnit* unit, BattleItem* weapon, Text* label);
+	TextButton *_btnOk;
+	Window *_window;
+	Text *_txtTitle, *_txtFiringAcc, *_txtReactions, *_txtBravery, *_txtPilots;
+	TextList *_lstPilots;
 public:
-	/// Creates the AlienInventory state.
-	AlienInventoryState(BattleUnit *unit);
-	/// Cleans up the AlienInventory state.
-	~AlienInventoryState();
+	/// Creates the DogfightExperienceState.
+	DogfightExperienceState();
+	/// Cleans up the DogfightExperienceState.
+	~DogfightExperienceState() = default;
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
-	/// Handler for clicking the [Toggle] button.
-	void btnToggleClick(Action *action);
-	/// Handler for clicking the Armor button.
-	void btnArmorClickMiddle(Action *action);
 };
 
 }
