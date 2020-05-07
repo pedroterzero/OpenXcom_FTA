@@ -293,7 +293,7 @@ DiplomacyInfoState::DiplomacyInfoState(const DiplomacyFaction* faction)
 
 	// Set up objects
 	setWindowBackground(_window, interfaceName);
-	_window->setBackground(_game->getMod()->getSurface(rules.getCardBackground()));
+	_window->setBackground(_game->getMod()->getSurface(rules.getBackground()));
 	_txtTitle->setText(tr(rules.getName()));
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setBig();
