@@ -202,8 +202,8 @@ void NewGameState::btnOkClick(Action *)
 		//spawn ragional ADVENT center
 		AlienDeployment* aBaseDeployment = mod->getDeployment("STR_INITIAL_REGIONAL_HQ");
 		AlienBase* aBase = new AlienBase(aBaseDeployment, 0);
-		aBase->setAlienRace("STR_ADVENT_START");
 		aBase->setId(save->getId(aBaseDeployment->getMarkerName()));
+		aBase->setAlienRace(aBaseDeployment->getRace());
 		aBase->setLongitude(lon + 0.23); //TODO random array here
 		aBase->setLatitude(lat - 0.05); //TODO random array here
 		aBase->setDiscovered(true);
