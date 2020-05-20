@@ -45,6 +45,7 @@
 #include "CraftsState.h"
 #include "BuildFacilitiesState.h"
 #include "ResearchState.h"
+#include "CovertOperationState.h"
 #include "ManageAlienContainmentState.h"
 #include "ManufactureState.h"
 #include "PurchaseState.h"
@@ -339,7 +340,7 @@ void BasescapeState::btnManufactureClick(Action *)
  */
 void BasescapeState::btnPurchaseClick(Action *)
 {
-	if (_game->getMod()->getIsFTAGame()) { return; } else {_game->pushState(new PurchaseState(_base));}
+	if (_game->getMod()->getIsFTAGame()) { _game->pushState(new CovertOperationState(_base)); } 	else { _game->pushState(new PurchaseState(_base)); }
 }
 
 /**
@@ -348,7 +349,7 @@ void BasescapeState::btnPurchaseClick(Action *)
  */
 void BasescapeState::btnSellClick(Action *)
 {
-	if (_game->getMod()->getIsFTAGame()) {_game->pushState(new DiplomacyStartState(_base));	} else {	_game->pushState(new SellState(_base, 0));	}
+	if (_game->getMod()->getIsFTAGame()) { _game->pushState(new DiplomacyStartState(_base));	} else { _game->pushState(new SellState(_base, 0)); }
 }
 
 /**

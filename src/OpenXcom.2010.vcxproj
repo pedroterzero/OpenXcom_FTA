@@ -244,6 +244,11 @@
     <ClCompile Include="Basescape\BaseView.cpp" />
     <ClCompile Include="Basescape\BuildFacilitiesState.cpp" />
     <ClCompile Include="Basescape\ChangeHeadquartersState.cpp" />
+    <ClCompile Include="Basescape\CovertOperationArmorState.cpp" />
+    <ClCompile Include="Basescape\CovertOperationEquipmentState.cpp" />
+    <ClCompile Include="Basescape\CovertOperationSoldiersState.cpp" />
+    <ClCompile Include="Basescape\CovertOperationStartState.cpp" />
+    <ClCompile Include="Basescape\CovertOperationState.cpp" />
     <ClCompile Include="Basescape\CraftArmorState.cpp" />
     <ClCompile Include="Basescape\CraftEquipmentLoadState.cpp" />
     <ClCompile Include="Basescape\CraftEquipmentSaveState.cpp" />
@@ -501,6 +506,7 @@
     <ClCompile Include="Menu\VideoState.cpp" />
     <ClCompile Include="Mod\CustomPalettes.cpp" />
     <ClCompile Include="Mod\RuleArcScript.cpp" />
+    <ClCompile Include="Mod\RuleCovertOperation.cpp" />
     <ClCompile Include="Mod\RuleDamageType.cpp" />
     <ClCompile Include="Mod\RuleDiplomacyFaction.cpp" />
     <ClCompile Include="Mod\RuleEnviroEffects.cpp" />
@@ -570,6 +576,7 @@
     <ClCompile Include="Savegame\BattleItem.cpp" />
     <ClCompile Include="Savegame\BattleUnit.cpp" />
     <ClCompile Include="Savegame\Country.cpp" />
+    <ClCompile Include="Savegame\CovertOperation.cpp" />
     <ClCompile Include="Savegame\Craft.cpp" />
     <ClCompile Include="Savegame\CraftWeapon.cpp" />
     <ClCompile Include="Savegame\CraftWeaponProjectile.cpp" />
@@ -630,6 +637,11 @@
     <ClInclude Include="Basescape\BaseView.h" />
     <ClInclude Include="Basescape\BuildFacilitiesState.h" />
     <ClInclude Include="Basescape\ChangeHeadquartersState.h" />
+    <ClInclude Include="Basescape\CovertOperationArmorState.h" />
+    <ClInclude Include="Basescape\CovertOperationEquipmentState.h" />
+    <ClInclude Include="Basescape\CovertOperationSoldiersState.h" />
+    <ClInclude Include="Basescape\CovertOperationStartState.h" />
+    <ClInclude Include="Basescape\CovertOperationState.h" />
     <ClInclude Include="Basescape\CraftArmorState.h" />
     <ClInclude Include="Basescape\CraftEquipmentLoadState.h" />
     <ClInclude Include="Basescape\CraftEquipmentSaveState.h" />
@@ -905,6 +917,7 @@
     <ClInclude Include="Mod\ModScript.h" />
     <ClInclude Include="Mod\RuleArcScript.h" />
     <ClInclude Include="Mod\RuleBaseFacilityFunctions.h" />
+    <ClInclude Include="Mod\RuleCovertOperation.h" />
     <ClInclude Include="Mod\RuleDamageType.h" />
     <ClInclude Include="Mod\RuleDiplomacyFaction.h" />
     <ClInclude Include="Mod\RuleEnviroEffects.h" />
@@ -971,6 +984,7 @@
     <ClInclude Include="Savegame\BattleUnit.h" />
     <ClInclude Include="Savegame\BattleUnitStatistics.h" />
     <ClInclude Include="Savegame\Country.h" />
+    <ClInclude Include="Savegame\CovertOperation.h" />
     <ClInclude Include="Savegame\Craft.h" />
     <ClInclude Include="Savegame\CraftWeapon.h" />
     <ClInclude Include="Savegame\CraftWeaponProjectile.h" />

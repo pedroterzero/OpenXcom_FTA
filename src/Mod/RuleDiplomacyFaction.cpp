@@ -19,13 +19,11 @@
 #include "RuleDiplomacyFaction.h"
 #include "../Engine/RNG.h"
 #include "../fmath.h"
-#include "../Engine/Logger.h"
 
 namespace OpenXcom
 {
 
 RuleDiplomacyFaction::RuleDiplomacyFaction(const std::string &name) : _name(name), _description("NONE"), _background("BACK13.SCR"), _cardBackground("BACK13.SCR"), _startingReputation(0), _genMissionFrequency(0)
-//,_city(false), _points(0), _funds(0), _timer(30), _timerRandom(0)
 {
 }
 
@@ -52,36 +50,6 @@ void RuleDiplomacyFaction::load(const YAML::Node &node)
 		_helpTreatyMissions.load(node["helpTreatyMissions"]);
 	}
 	_genMissionFrequency = node["genMissionFreq"].as<int>(_genMissionFrequency);
-
-	//_sellingSet2 = node["sellingSet"].as<std::vector<SellingSetEnitity>>(_sellingSet2);
-	//_music = node["music"].as<std::string>(_music);
-	//_regionList = node["regionList"].as<std::vector<std::string> >(_regionList);
-	//_city = node["city"].as<bool>(_city);
-	//_points = node["points"].as<int>(_points);
-	//_funds = node["funds"].as<int>(_funds);
-	//{
-	//	// backwards-compatibility, FIXME: remove after 6 months
-	//	bool randomItem = node["randomItem"].as<bool>(false);
-	//	if (randomItem)
-	//	{
-	//		_randomItemList = node["itemList"].as<std::vector<std::string> >(_randomItemList);
-	//	}
-	//	else
-	//	{
-	//		_everyItemList = node["itemList"].as<std::vector<std::string> >(_everyItemList);
-	//	}
-	//}
-	//_everyMultiItemList = node["everyMultiItemList"].as<std::map<std::string, int> >(_everyMultiItemList);
-	//_everyItemList = node["everyItemList"].as<std::vector<std::string> >(_everyItemList);
-	//_randomItemList = node["randomItemList"].as<std::vector<std::string> >(_randomItemList);
-	//if (node["weightedItemList"])
-	//{
-	//	_weightedItemList.load(node["weightedItemList"]);
-	//}
-	//_researchList = node["researchList"].as<std::vector<std::string> >(_researchList);
-	//_interruptResearch = node["interruptResearch"].as<std::string>(_interruptResearch);
-	//_timer = node["timer"].as<int>(_timer);
-	//_timerRandom = node["timerRandom"].as<int>(_timerRandom);
 }
 std::string RuleDiplomacyFaction::chooseGenMissionScriptType() const
 {

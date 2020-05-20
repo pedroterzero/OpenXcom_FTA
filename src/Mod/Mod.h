@@ -94,6 +94,7 @@ class ModInfo;
 class RuleVideo;
 class RuleMusic;
 class RuleDiplomacyFaction;
+class RuleCovertOperation;
 class RuleArcScript;
 class RuleEventScript;
 class RuleEvent;
@@ -188,6 +189,7 @@ private:
 	std::map<std::string, std::vector<MapScript *> > _mapScripts;
 	std::map<std::string, RuleCommendations *> _commendations;
 	std::map<std::string, RuleDiplomacyFaction*> _diplomacyFactions;
+	std::map<std::string, RuleCovertOperation*> _covertOperations;
 	std::map<std::string, RuleArcScript*> _arcScripts;
 	std::map<std::string, RuleEventScript*> _eventScripts;
 	std::map<std::string, RuleEvent*> _events;
@@ -278,9 +280,10 @@ private:
 	std::vector<std::string> _skillsIndex, _soldiersIndex, _soldierTransformationIndex, _soldierBonusIndex;
 	std::vector<std::string> _alienMissionsIndex, _terrainIndex, _customPalettesIndex, _arcScriptIndex, _eventScriptIndex, _eventIndex, _missionScriptIndex;
 	std::vector<std::string> _diplomacyFactionIndex;
+	std::vector<std::string> _covertOperationIndex;
 	std::vector<std::vector<int> > _alienItemLevels;
 	std::vector<SDL_Color> _transparencies;
-	int _facilityListOrder, _craftListOrder, _itemCategoryListOrder, _itemListOrder, _researchListOrder,  _manufactureListOrder;
+	int _facilityListOrder, _craftListOrder, _covertOperationListOrder, _itemCategoryListOrder, _itemListOrder, _researchListOrder,  _manufactureListOrder;
 	int _soldierBonusListOrder, _transformationListOrder, _ufopaediaListOrder, _invListOrder, _soldierListOrder;
 	std::vector<ModData> _modData;
 	ModData* _modCurrent;
@@ -927,7 +930,10 @@ public:
 	const std::map<std::string, RuleMusic *> *getMusic() const;
 	/// Gets diplomacy Faction rules for FTA game
 	RuleDiplomacyFaction* getDiplomacyFaction(const std::string& name, bool error = false) const;
+	/// Gets covert Operation rules for FTA game
+	RuleCovertOperation* getCovertOperation(const std::string& name, bool error = false) const;
 	const std::vector<std::string>* getDiplomacyFactionList() const;
+	const std::vector<std::string>* getCovertOperationList() const;
 	const std::vector<std::string>* getArcScriptList() const;
 	RuleArcScript* getArcScript(const std::string& name, bool error = false) const;
 	const std::vector<std::string>* getEventScriptList() const;
