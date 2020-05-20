@@ -24,6 +24,7 @@
 #include "../Mod/RuleBaseFacility.h"
 #include "Craft.h"
 #include "CraftWeapon.h"
+#include "CovertOperation.h"
 #include "../Mod/RuleCraft.h"
 #include "../Mod/RuleCraftWeapon.h"
 #include "../Mod/Mod.h"
@@ -75,6 +76,10 @@ Base::~Base()
 	for (std::vector<Craft*>::iterator i = _crafts.begin(); i != _crafts.end(); ++i)
 	{
 		delete *i;
+	}
+	for (std::vector<CovertOperation*>::iterator i = _covertOperations.begin(); i != _covertOperations.end(); ++i)
+	{
+		delete* i;
 	}
 	for (std::vector<Transfer*>::iterator i = _transfers.begin(); i != _transfers.end(); ++i)
 	{
@@ -133,6 +138,21 @@ void Base::load(const YAML::Node &node, SavedGame *save, bool newGame, bool newB
 		else
 		{
 			Log(LOG_ERROR) << "Failed to load craft " << type;
+		}
+	}
+
+	for (YAML::const_iterator i = node["covertOperations"].begin(); i != node["covertOperations"].end(); ++i)
+	{
+		std::string name = (*i)["name"].as<std::string>();
+		if (_mod->getCovertOperation(name))
+		{
+			CovertOperation* c = new CovertOperation(_mod->getCovertOperation(name), this, 0);//_mod->getCraft(type), this);
+			c->load(*i);
+			_covertOperations.push_back(c);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load covertOperation " << name;
 		}
 	}
 
@@ -333,6 +353,10 @@ YAML::Node Base::save() const
 	for (std::vector<Craft*>::const_iterator i = _crafts.begin(); i != _crafts.end(); ++i)
 	{
 		node["crafts"].push_back((*i)->save());
+	}
+	for (std::vector<CovertOperation*>::const_iterator i = _covertOperations.begin(); i != _covertOperations.end(); ++i)
+	{
+		node["covertOperations"].push_back((*i)->save());
 	}
 	node["items"] = _items->save();
 	node["scientists"] = _scientists;

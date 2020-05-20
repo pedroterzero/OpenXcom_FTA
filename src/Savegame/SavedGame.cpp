@@ -608,6 +608,19 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 	}
 	sortReserchVector(_discovered);
 
+	for (YAML::const_iterator it = doc["performedCovertOperations"].begin(); it != doc["performedCovertOperations"].end(); ++it)
+	{
+		std::string operation = it->as<std::string>();
+		if (mod->getCovertOperation(operation))
+		{
+			_performedOperations.push_back(operation);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load covert operation " << operation;
+		}
+	}
+
 	_generatedEvents = doc["generatedEvents"].as< std::map<std::string, int> >(_generatedEvents);
 	_ufopediaRuleStatus = doc["ufopediaRuleStatus"].as< std::map<std::string, int> >(_ufopediaRuleStatus);
 	_manufactureRuleStatus = doc["manufactureRuleStatus"].as< std::map<std::string, int> >(_manufactureRuleStatus);
@@ -908,6 +921,10 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 	for (std::vector<const RuleResearch *>::const_iterator i = _poppedResearch.begin(); i != _poppedResearch.end(); ++i)
 	{
 		node["poppedResearch"].push_back((*i)->getName());
+	}
+	for (std::vector<std::string>::const_iterator i = _performedOperations.begin(); i != _performedOperations.end(); ++i)
+	{
+		node["performedCovertOperations"].push_back((*i));
 	}
 	node["generatedEvents"] = _generatedEvents;
 	node["ufopediaRuleStatus"] = _ufopediaRuleStatus;
@@ -1437,6 +1454,19 @@ void SavedGame::setHiddenPurchaseItemsStatus(const std::string &itemName, bool h
 const std::map<std::string, bool> &SavedGame::getHiddenPurchaseItems()
 {
 	return _hiddenPurchaseItemsMap;
+}
+
+/*
+ * Checks for and removes a covert operation from the "performed operation" list
+ * @param operation is the operation we are checking for and removing, if necessary.
+ */
+void SavedGame::removePerformedCovertOperation(const std::string& operation)
+{
+	std::vector<std::string>::iterator r = std::find(_performedOperations.begin(), _performedOperations.end(), operation);
+	if (r != _performedOperations.end())
+	{
+		_performedOperations.erase(r);
+	}
 }
 
 /*

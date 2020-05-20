@@ -31,6 +31,7 @@ enum SoldierGender { GENDER_MALE, GENDER_FEMALE };
 enum SoldierLook { LOOK_BLONDE, LOOK_BROWNHAIR, LOOK_ORIENTAL, LOOK_AFRICAN };
 
 class Craft;
+class CovertOperation;
 class SoldierNamePool;
 class Mod;
 class RuleSoldier;
@@ -67,6 +68,7 @@ private:
 	UnitStats _dailyDogfightExperienceCache;
 	SoldierRank _rank;
 	Craft *_craft;
+	CovertOperation* _covertOperation;
 	SoldierGender _gender;
 	SoldierLook _look;
 	int _lookVariant;
@@ -114,6 +116,10 @@ public:
 	Craft *getCraft() const;
 	/// Sets the soldier's craft.
 	void setCraft(Craft *craft);
+	/// Gets the soldier's Covert Operation.
+	CovertOperation* getCovertOperation() const { return _covertOperation; };
+	/// Sets the soldier's Covert Operation.
+	void setCovertOperation(CovertOperation* covertOperation) { _covertOperation = covertOperation; };
 	/// Gets the soldier's craft string.
 	std::string getCraftString(Language *lang, const BaseSumDailyRecovery& recovery) const;
 	/// Gets a string version of the soldier's rank.
