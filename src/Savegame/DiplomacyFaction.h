@@ -25,7 +25,7 @@ namespace OpenXcom
 /**
 * Define what time frame should think logic process.
 */
-enum ThinkPeriond { TIMESTEP_DAILY, TIMESTEP_MONTHLY };
+enum ThinkPeriod { TIMESTEP_DAILY, TIMESTEP_MONTHLY };
 
 /**
 * Define arrey of treaty names.
@@ -78,7 +78,7 @@ public:
 	/// Sets Faction's discovered status.
 	void setDiscovered(bool status);
 	/// Handle Faction logic.
-	bool think(Game& engine, ThinkPeriond = TIMESTEP_DAILY);
+	bool think(Game& engine, ThinkPeriod = TIMESTEP_DAILY);
 	/// Generates mission for the faction base on current situation in the game.
 	bool factionMissionGenerator(Game& engine);
 	/// Get mission script command that pass all checks to generate alien mission for that faction.

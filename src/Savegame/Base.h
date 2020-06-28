@@ -141,6 +141,10 @@ public:
 	std::vector<CovertOperation*> &getCovertOperations() {	return _covertOperations; }
 	/// Gets the base's covert operations.
 	const std::vector<CovertOperation*> &getCovertOperations() const { return _covertOperations; }
+	/// Adds new ongoing Covert Operation
+	void addCovertOperation(CovertOperation * operation);
+	/// Removes finished Covert Operation
+	void removeCovertOperation(CovertOperation* operation);
 	/// Gets the base's transfers.
 	std::vector<Transfer*> *getTransfers() { return &_transfers; }
 	/// Gets the base's transfers.

@@ -467,7 +467,7 @@ std::string Soldier::getCraftString(Language *lang, const BaseSumDailyRecovery& 
 	}
 	else if (_craft == 0)
 	{
-		s = _covertOperation->getOperationName();
+		s = lang->getString("STR_COVERT_OPERATION_UC");
 	}
 	else
 	{

@@ -1462,11 +1462,12 @@ const std::map<std::string, bool> &SavedGame::getHiddenPurchaseItems()
  */
 void SavedGame::removePerformedCovertOperation(const std::string& operation)
 {
+	bool erased = false;
 	std::vector<std::string>::iterator r = std::find(_performedOperations.begin(), _performedOperations.end(), operation);
-	if (r != _performedOperations.end())
-	{
+	if (r != _performedOperations.end()) {
 		_performedOperations.erase(r);
-	}
+		erased = true; }
+	if (!erased) { Log(LOG_ERROR) << "Covert Operation named " << operation << " was not deleted from <performed operation> list!";	}
 }
 
 /*

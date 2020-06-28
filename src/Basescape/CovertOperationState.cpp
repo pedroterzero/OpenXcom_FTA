@@ -179,31 +179,31 @@ void CovertOperationState::lstResearchMousePress(Action* action)
 		return;
 	}
 
-	/*int change = Options::oxceResearchScrollSpeed;
-	if (SDL_GetModState() & KMOD_CTRL)
-		change = Options::oxceResearchScrollSpeedWithCtrl;
+	/*int change = options::oxceresearchscrollspeed;
+	if (sdl_getmodstate() & kmod_ctrl)
+		change = options::oxceresearchscrollspeedwithctrl;
 
-	if (action->getDetails()->button.button == SDL_BUTTON_WHEELUP)
+	if (action->getdetails()->button.button == sdl_button_wheelup)
 	{
-		change = std::min(change, _base->getAvailableScientists());
-		change = std::min(change, _base->getFreeLaboratories());
+		change = std::min(change, _base->getavailablescientists());
+		change = std::min(change, _base->getfreelaboratories());
 		if (change > 0)
 		{
-			ResearchProject* selectedProject = _base->getResearch()[_lstOperations->getSelectedRow()];
-			selectedProject->setAssigned(selectedProject->getAssigned() + change);
-			_base->setScientists(_base->getScientists() - change);
-			fillProjectList(_lstResearch->getScroll());
+			researchproject* selectedproject = _base->getresearch()[_lstoperations->getselectedrow()];
+			selectedproject->setassigned(selectedproject->getassigned() + change);
+			_base->setscientists(_base->getscientists() - change);
+			fillprojectlist(_lstresearch->getscroll());
 		}
 	}
-	else if (action->getDetails()->button.button == SDL_BUTTON_WHEELDOWN)
+	else if (action->getdetails()->button.button == sdl_button_wheeldown)
 	{
-		ResearchProject* selectedProject = _base->getResearch()[_lstOperations->getSelectedRow()];
-		change = std::min(change, selectedProject->getAssigned());
+		researchproject* selectedproject = _base->getresearch()[_lstoperations->getselectedrow()];
+		change = std::min(change, selectedproject->getassigned());
 		if (change > 0)
 		{
-			selectedProject->setAssigned(selectedProject->getAssigned() - change);
-			_base->setScientists(_base->getScientists() + change);
-			fillProjectList(_lstResearch->getScroll());
+			selectedproject->setassigned(selectedproject->getassigned() - change);
+			_base->setscientists(_base->getscientists() + change);
+			fillprojectlist(_lstresearch->getscroll());
 		}
 	}*/
 	return; //temp
@@ -255,8 +255,6 @@ void CovertOperationState::fillProjectList(size_t scrl)
 	_txtSoldiersAvailable->setText(tr("STR_SOLDIERS_AVAILABLE").arg(_base->getAvailableSoldiers()));
 	_txtScientistsAvailable->setText(tr("STR_SCIENTISTS_AVAILABLE").arg(_base->getAvailableScientists()));
 	_txtEngineersAvailable->setText(tr("STR_ENGINEERS_AVAILABLE").arg(_base->getAvailableEngineers()));
-	//Log(LOG_DEBUG) << "STR_SOLDIERS_AVAILABLE: " << _base->getAvailableSoldiers();
-	//_txtSpace->setText(tr("STR_LABORATORY_SPACE_AVAILABLE").arg(_base->getFreeLaboratories()));
 
 	if (scrl)
 		_lstOperations->scrollTo(scrl);
@@ -304,7 +302,6 @@ CovertOperationsListState::CovertOperationsListState(Base* base) : _base(base), 
 	_lstOperations->setAlign(ALIGN_CENTER);
 	_lstOperations->onMouseClick((ActionHandler)&CovertOperationsListState::onSelectProject, SDL_BUTTON_LEFT);
 	_lstOperations->onMouseClick((ActionHandler)&CovertOperationsListState::onSelectProject, SDL_BUTTON_RIGHT); //change for info
-	//_lstOperations->onMouseClick((ActionHandler)&CovertOperationsListState::onSelectProject, SDL_BUTTON_MIDDLE); //change for info
 }
 
 /**
@@ -322,9 +319,8 @@ void CovertOperationsListState::init()
  */
 void CovertOperationsListState::onSelectProject(Action*)
 {
-	_game->pushState(new CovertOperationStartState(_base, _operations[_lstOperations->getSelectedRow()]));
+	_game->pushState(new CovertOperationStartState(_base, _operations[_lstOperations->getSelectedRow()])); //TODO CovertOperation Info state!
 }
-
 
 /**
  * Returns to the previous screen.
@@ -366,7 +362,7 @@ void CovertOperationsListState::fillProjectList()
 			}
 		}
 		//lets see if our base fits requirments
-		/*if (happy)
+		/*if (happy) //TODO add ProvidedBaseFunc feature
 		{
 			auto providedBaseFunc = _base->getProvidedBaseFunc({});
 			auto ruleReqBaseFunc = rule->getRequiresBuyBaseFunc();
@@ -376,6 +372,7 @@ void CovertOperationsListState::fillProjectList()
 				break;
 			}
 		}*/
+		// TODO add reputation requirments
 		//all checks passed, we can show that operation to the player
 		if (happy)
 		{
