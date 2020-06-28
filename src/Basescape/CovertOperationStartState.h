@@ -43,8 +43,9 @@ private:
 	TextButton* _btnCancel, * _btnStart, * _btnSoldiers, * _btnEquipmet, * _btnArmor;
 	TextButton* _btnAddScientist, * _btnRemoveScientist, * _btnAddEngineer, * _btnRemoveEngineer, * _btnResearchState, * _btnManufactureState;
 	Text* _txtTitle, * _txtDescription, * _txtSoldiersRequired, * _txtSoldiersAssigned, * _txtOptionalSoldiers, * _txtScientistsAssigned, * _txtEngineersAssigned, * _txtDuration, * _txtChances;
-	int _cost,  _duration, _scientists, _engeneers;
+	int _cost, _scientists, _engeneers;
 	double _chances;
+	bool _hasPsionics, _hasPsiItems;
 	std::vector<Soldier*> _soldiers;
 	ItemContainer* _items;
 	Surface* _crew, * _equip;
@@ -77,12 +78,16 @@ public:
 	void btnRemoveEngineerClick(Action* action);
 	/// Handler for the ManufactureState button.
 	void btnManufactureStateClick(Action* action);
+	/// Gets string that discribes prediction of timeframe that needs to finish the operation.
+	std::string getOperationTimeString(bool mod = false);
+	/// Gets string that discribes operations odds of success.
+	std::string getOperationOddsString(bool mod = false);
 
 	// *** Logic Section ***
-	/// Gets operation success chances
-	double getOperationOdds(); //TODO
-	/// Gets opration cost
-	int getOperationDuration() { return _duration; }; //TODO
+	/// Gets operation success chances.
+	double getOperationOdds();
+	/// Gets operation's final cost.
+	int getOperationCost();
 	/// Gets operation rules
 	const RuleCovertOperation* getRule() { return _rule; }
 	/// Gets items assigned for this planned operation.
@@ -95,6 +100,14 @@ public:
 	void removeSoldier(Soldier* soldier);
 	/// Sets soldiers assigned for this planned operation.
 	void setSoldiers(std::vector<Soldier*> soldiers) { _soldiers = soldiers; };
+	/// Gets if there are assigned psionic agents on this operation.
+	int getHasPsiAssigned() const { return _hasPsionics; };
+	/// Sets if there are assigned psionic agents on this operation.
+	void setHasPsiAssigned(int hasPsionics) { _hasPsionics = hasPsionics; };
+	/// Gets if there is equipped psionic equipment on this operation.
+	int getHasPsiItems() const { return _hasPsiItems; };
+	/// Sets if there is equipped psionic equipment on this operation.
+	void setHasPsiItems(int hasPsiItems) { _hasPsiItems = hasPsiItems; };
 	/// Gets effective value for imputed soldier stat.
 	double statEffectCalc(int stat, float a, float b, float c, float d);
 };

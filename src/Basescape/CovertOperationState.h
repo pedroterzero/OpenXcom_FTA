@@ -46,7 +46,6 @@ public:
 	CovertOperationState(Base* base);
 	/// Cleans up the CovertOperation state.
 	~CovertOperationState();
-	/// 
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action* action);
 	/// Handler for clicking the New Operation button.

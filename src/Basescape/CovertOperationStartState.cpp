@@ -75,7 +75,8 @@ namespace OpenXcom
 * @param base Pointer to the base to get info from.
 * @param rule RuleCovertOperation to start.
 */
-CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOperation* rule) : _base(base), _rule(rule), _cost(0), _chances(0), _duration(0), _scientists(0), _engeneers(0)
+CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOperation* rule) : _base(base), _rule(rule), _chances(0), _cost(0),
+																							  _scientists(0), _engeneers(0), _hasPsiItems(false), _hasPsionics(false)
 {
 	_items = new ItemContainer();
 
@@ -124,7 +125,6 @@ CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOpera
 	bool hasScientists = _rule->getScientistSlots() > 0;
 	bool hasEngineers = _rule->getEngineerSlots() > 0;
 
-
 	setInterface("newCovertOperationsMenu");
 	add(_window, "window", "newCovertOperationsMenu");
 	add(_txtTitle, "text", "newCovertOperationsMenu");
@@ -165,8 +165,8 @@ CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOpera
 	_txtDescription->setWordWrap(true);
 
 	_btnStart->setText(tr("STR_START_OPERATION_US")); 
-	_btnStart->onMouseClick((ActionHandler)&CovertOperationStartState::btnCancelClick);
-	_btnStart->onKeyboardPress((ActionHandler)&CovertOperationStartState::btnCancelClick, Options::keyOk);
+	_btnStart->onMouseClick((ActionHandler)&CovertOperationStartState::btnStartClick);
+	_btnStart->onKeyboardPress((ActionHandler)&CovertOperationStartState::btnStartClick, Options::keyOk);
 
 	_btnCancel->setText(tr("STR_CANCEL_UC"));
 	_btnCancel->onMouseClick((ActionHandler)&CovertOperationStartState::btnCancelClick);
@@ -207,13 +207,11 @@ CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOpera
 	_txtOptionalSoldiers->setVisible(_rule->getOptionalSoldierSlots() > 0);
 
 	_txtScientistsAssigned->setVisible(hasScientists);
-	//_btnScientists->setVisible(hasScientists);
 	_btnAddScientist->setVisible(hasScientists);
 	_btnRemoveScientist->setVisible(hasScientists);
 	_btnResearchState->setVisible(hasScientists);
 
 	_txtEngineersAssigned->setVisible(hasEngineers);
-	//_btnEngineers->setVisible(hasEngineers);
 	_btnAddEngineer->setVisible(hasEngineers);
 	_btnRemoveEngineer->setVisible(hasEngineers);
 	_btnManufactureState->setVisible(hasEngineers);
@@ -242,9 +240,11 @@ void CovertOperationStartState::init()
 	se << _engeneers << "/" << _rule->getEngineerSlots();
 	_txtEngineersAssigned->setText(tr("STR_ENGINEERS_REQUIRED").arg(se.str()));
 
-	_txtDuration->setText(tr("STR_OPERATION_DURATION_UC").arg(getOperationDuration()));
+	bool mod = _game->getSavedGame()->getDebugMode();
+
+	_txtDuration->setText(tr("STR_OPERATION_DURATION_UC").arg(tr(getOperationTimeString(mod))));
 	_txtDuration->setAlign(ALIGN_RIGHT);
-	_txtChances->setText(tr("STR_OPERATION_CHANCES_UC").arg(getOperationOdds()));
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_UC").arg(tr(getOperationOddsString(mod))));
 	_txtChances->setAlign(ALIGN_RIGHT);
 
 	_btnStart->setVisible(_soldiers.size() >= _rule->getSoldierSlots());
@@ -282,27 +282,9 @@ void CovertOperationStartState::init()
 		}
 
 		Surface* frame2 = texture->getFrame(40);
-
 		SurfaceSet* customItemPreviews = _game->getMod()->getSurfaceSet("CustomItemPreviews");
 		x = 0;
-		//for (std::vector<Vehicle*>::iterator i = _craft->getVehicles()->begin(); i != _craft->getVehicles()->end(); ++i)
-		//{
-		//	for (auto index : (*i)->getRules()->getCustomItemPreviewIndex())
-		//	{
-		//		Surface* customFrame2 = customItemPreviews->getFrame(index);
-		//		if (customFrame2)
-		//		{
-		//			// modded HWP/auxiliary previews
-		//			customFrame2->blitNShade(_equip, x, 0);
-		//		}
-		//		else
-		//		{
-		//			// vanilla
-		//			frame2->blitNShade(_equip, x, 0);
-		//		}
-		//		x += 10;
-		//	}
-		//}
+
 
 		Surface* frame3 = texture->getFrame(39);
 		for (int i = 0; i < _items->getTotalQuantity(); i += 4, x += 10)
@@ -310,7 +292,6 @@ void CovertOperationStartState::init()
 			frame3->blitNShade(_equip, x, 0);
 		}
 	}
-
 }
 
 /**
@@ -325,6 +306,8 @@ void CovertOperationStartState::btnCancelClick(Action*)
 		_base->getStorageItems()->addItem(it->first, it->second);
 	}
 	_game->popState();
+	_base->setScientists(_base->getScientists() + _scientists);
+	_base->setEngineers(_base->getEngineers() + _engeneers);
 }
 
 /**
@@ -333,8 +316,62 @@ void CovertOperationStartState::btnCancelClick(Action*)
 */
 void CovertOperationStartState::btnStartClick(Action*)
 {
-	CovertOperation* newOperation = new CovertOperation(_rule, _base, _cost);
-	// TODO Commit changes to soldiers and itemContainer
+	//update values one more time just in case.
+	int chances = round(this->getOperationOdds());
+	int cost = getOperationCost();
+
+	CovertOperation* newOperation = new CovertOperation(_rule, _base, cost, chances);
+	_base->addCovertOperation(newOperation);
+	// lets update operation with items and personell and assign soldiers.
+	for (std::map<std::string, int>::iterator it = _items->getContents()->begin(); it != _items->getContents()->end(); ++it)
+	{
+		newOperation->getItems()->addItem(it->first, it->second);
+		RuleItem* item = _game->getMod()->getItem(it->first);
+		if (item->getBattleType() == BT_PSIAMP) _hasPsiItems = true; //looks like this item can be used for psionic offence!
+	}
+	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+	{
+		bool matched = false;
+		auto iter = std::find(std::begin(_soldiers), std::end(_soldiers), (*i));
+		if (iter != std::end(_soldiers)) {
+			matched = true;
+		}
+		if (matched)
+		{
+			(*i)->setCovertOperation(newOperation);
+			(*i)->setCraft(0);
+			bool wasMatTraining = false;
+			bool wasPsiTraining = false;
+			if ((*i)->isInTraining())
+			{
+				(*i)->setReturnToTrainingWhenOperationOver(MARTIAL_TRAINING);
+				wasMatTraining = true;
+			}
+			if ((*i)->isInPsiTraining())
+			{
+				(*i)->setReturnToTrainingWhenOperationOver(PSI_TRAINING);
+				wasPsiTraining = true;
+			}
+			if (wasMatTraining && wasPsiTraining)
+			{
+				(*i)->setReturnToTrainingWhenOperationOver(BOTH_TRAININGS);
+			}
+			(*i)->setPsiTraining(false);
+			(*i)->setTraining(false);
+			if ((*i)->getCurrentStats()->psiSkill > 0) _hasPsionics = true; //hey, this soldier we sending has psionic skills!
+		}
+	}
+	newOperation->setAssignedScientists(_scientists);
+	newOperation->setAssignedEngineers(_engeneers);
+
+	if (_hasPsionics && _hasPsiItems && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements()))
+	{ //operation that we are about to start has psionic offencive potential
+		newOperation->setIsPsi(true);
+	}
+	// now we add this operation to list of performed operations to not let run this operation second time.
+	_game->getSavedGame()->addPerformedCovertOperation(newOperation->getOperationName());
+
+	//operation committed, close the state
 	_game->popState();
 	_game->popState();
 }
@@ -468,6 +505,81 @@ void CovertOperationStartState::btnManufactureStateClick(Action* action)
 	_game->pushState(new ManufactureState(_base));
 }
 
+
+std::string CovertOperationStartState::getOperationTimeString(bool mod)
+{
+	int time = getOperationCost();
+	if (!mod)
+	{
+		if (time > 45)
+		{
+			return ("STR_SEVERAL_MONTHS");
+		}
+		else if (time > 20)
+		{
+			return ("STR_MONTH");
+		}
+		else if (time > 10)
+		{
+			return ("STR_SEVERAL_WEEKS");
+		}
+		else if (time > 6)
+		{
+			return ("STR_WEEK");
+		}
+		else
+		{
+			return ("STR_SEVERAL_DAYS");
+		}
+	}
+	else
+	{
+		return std::to_string(time);
+	}
+
+}
+
+std::string CovertOperationStartState::getOperationOddsString(bool mod)
+{
+	int odds = round(getOperationOdds());
+	if (!mod)
+	{
+		if (odds > 100)
+		{
+			return ("STR_GREAT");
+		}
+		else if (odds > 75)
+		{
+			return ("STR_GOOD");
+		}
+		else if (odds > 50)
+		{
+			return ("STR_AVARAGE");
+		}
+		else if (odds > 25)
+		{
+			return ("STR_POOR");
+		}
+		else if (odds > 0)
+		{
+			return ("STR_VERY_LOW");
+		}
+		else
+		{
+			return ("STR_NONE");
+		}
+	}
+	else
+	{
+		return std::to_string(odds);
+	}
+}
+
+
+/**
+* Returns (re)calculated chances of success operation in form of double value.
+* @return operation chances.
+*/
 double CovertOperationStartState::getOperationOdds()
 {
 	int startOdds = _rule->getBaseChances();
@@ -523,17 +635,20 @@ double CovertOperationStartState::getOperationOdds()
 	//lets see if we need some decrease because of required items
 	if (!_rule->getRequiredItemList().empty())
 	{
-		auto reqItems = _rule->getRequiredItemList();
+		std::map<std::string, int> reqItems = _rule->getRequiredItemList();
 		int reqItemsN = 0;
 		for (std::map<std::string, int>::iterator it = reqItems.begin(); it != reqItems.end(); ++it)
 		{
 			reqItemsN = reqItemsN + it->second;
-			auto itmeName = it->first;
+			std::string itmeName = it->first;
+			Log(LOG_INFO) << "We are looking for required item " << itmeName << " in number of " << it->second;
 			for (std::map<std::string, int>::iterator j = _items->getContents()->begin(); j != _items->getContents()->end(); ++j)
 			{
 				if (j->first == itmeName)
 				{
+					Log(LOG_INFO) << "Item  " << j->first << "was found in operation items in number of " << j->second;
 					reqItemsN = reqItemsN - j->second;
+					Log(LOG_INFO) << "reqItemsN was lowered to value " << reqItemsN;
 				}
 			}
 		}
@@ -599,10 +714,10 @@ double CovertOperationStartState::getOperationOdds()
 			soldierReactions = soldierReactions + reacCalc * (solEffectivness / 100);
 			int brav = solIt->getStatsWithAllBonuses()->bravery / 10;
 			Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has brav = " << brav;
-			soldierBrav = soldierBrav + (brav * (solEffectivness / 100)) - 3;
+			soldierBrav = soldierBrav + (static_cast<double>(brav) * (solEffectivness / 100)) - 3;
 			Log(LOG_INFO) << "soldierBrav now = " << soldierBrav;
 			int psi = solIt->getStatsWithAllBonuses()->psiSkill;
-			if (psi > 0)
+			if (psi > 0 && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements())) //psi offencive bonus
 			{
 				float manaFactor = 1;
 				if (_game->getMod()->isManaFeatureEnabled())
@@ -613,6 +728,10 @@ double CovertOperationStartState::getOperationOdds()
 				}
 				soldiersPsi = ((statEffectCalc(psi, 8000, 2.2, 8, 0) + statEffectCalc(solIt->getStatsWithAllBonuses()->psiStrength, 8000, 2.2, 8, 0)) / 2) * manaFactor * (solEffectivness / 100);
 				Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has soldiersPsi = " << soldiersPsi;
+			}
+			else
+			{
+				soldiersPsi = statEffectCalc(solIt->getStatsWithAllBonuses()->psiStrength, 8000, 2.2, 8, 0) / 3; //as soldier still has psi defence and some extrasence capabilities
 			}
 			double tuCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->tu, 1400, 1.8, 15, -10);
 			Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has tuCalc = " << tuCalc;
@@ -655,7 +774,7 @@ double CovertOperationStartState::getOperationOdds()
 		}
 		if (isConcealed)
 		{
-			itemCatEffect = 4 * assignedSoldiersN;
+			itemCatEffect = 4 * static_cast<double>(assignedSoldiersN);
 			Log(LOG_INFO) << "Bonus for concealed apply and equal " << itemCatEffect;
 		}
 		itemCatEffect = itemCatEffect - (heavy * 10 / assignedSoldiersN);
@@ -663,10 +782,28 @@ double CovertOperationStartState::getOperationOdds()
 		_chances = _chances + itemCatEffect;
 	}
 
-	
-
+	if (_chances > 200) // we dont want too high chances
+	{
+		_chances = 200;
+	}
+	Log(LOG_INFO) << "TA-DA! Final operation odds score equal " << _chances << " !";
 	return _chances;
 }
+
+int CovertOperationStartState::getOperationCost()
+{
+	_cost = _rule->getCosts();
+	if (_chances > 100)
+	{
+		Log(LOG_INFO) << "Initial operation cost equal " << _cost;
+		double bonus = (((_chances - 100) / (_chances - 82)) * 24) / 100; //some cute nonlinear calculation
+		Log(LOG_INFO) << "We have _chances > 100, so we get bonus to time equal " << bonus << " !";
+		_cost = std::round(_cost * bonus);
+	}
+	Log(LOG_INFO) << "Final operation cost equal " << _cost;
+	return _cost;
+}
+
 
 /**
 * Removes soldier from covert operation start state

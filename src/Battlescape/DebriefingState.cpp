@@ -55,6 +55,7 @@
 #include "../Savegame/Ufo.h"
 #include "../Savegame/Vehicle.h"
 #include "../Savegame/BaseFacility.h"
+#include "../Savegame/CovertOperation.h"
 #include <sstream>
 #include "../Menu/ErrorMessageState.h"
 #include "../Menu/MainMenuState.h"
@@ -999,6 +1000,7 @@ void DebriefingState::prepareDebriefing()
 	bool success = !aborted || battle->allObjectivesDestroyed();
 	Craft *craft = 0;
 	Base *base = 0;
+	CovertOperation* covertOperation = 0;
 	std::string target;
 
 	int playersInExitArea = 0; // if this stays 0 the craft is lost...
@@ -1050,7 +1052,7 @@ void DebriefingState::prepareDebriefing()
 	_missionStatistics->type = battle->getMissionType();
 	_stats.push_back(new DebriefingStat(_game->getMod()->getAlienFuelName(), true));
 
-	for (std::vector<Base*>::iterator i = save->getBases()->begin(); i != save->getBases()->end(); ++i)
+	for (std::vector<Base*>::iterator i = save->getBases()->begin(); i != save->getBases()->end(); ++i) //TODO add covert operation processing
 	{
 		// in case we have a craft - check which craft it is about
 		for (std::vector<Craft*>::iterator j = (*i)->getCrafts()->begin(); j != (*i)->getCrafts()->end(); ++j)
@@ -1111,6 +1113,17 @@ void DebriefingState::prepareDebriefing()
 			}
 		}
 		// in case we DON'T have a craft (base defense)
+		//FtA: we can have covert operation, so lets handle that now
+		for (std::vector<CovertOperation*>::iterator c = (*i)->getCovertOperations().begin(); c != (*i)->getCovertOperations().end(); ++c)
+		{
+			if ((*c)->isInBattlescape())
+			{
+				covertOperation = (*c);
+				base = (*i);
+				covertOperation->setInBattlescape(false);
+				covertOperation->finishOperation();
+			}
+		}
 		if ((*i)->isInBattlescape())
 		{
 			base = (*i);

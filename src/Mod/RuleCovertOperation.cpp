@@ -31,9 +31,11 @@ namespace OpenXcom
 * type of RuleCovertOperation.
 * @param type String defining the type.
 */
-RuleCovertOperation::RuleCovertOperation(const std::string& name) : _name(name), _description("NONE"), _covertSoldierJoinFight(false), _soldierSlots(1), _optionalSoldierSlots(0),
+RuleCovertOperation::RuleCovertOperation(const std::string& name) : _name(name), _soldierSlots(1), _optionalSoldierSlots(0),
 																	_scientistSlots(0), _engineerSlots(0), _optionalSoldierEffect(15), _scientistEffect(10), _engeneerEffect(10),
-																	_baseChances(50), _costs(0), _itemSpaceLimit(-1), _itemSpaceEffect(10), _successScore(0), _failureScore(0), _progressEventChance(0), _armorEffect(20),
+																	_baseChances(50), _costs(0), _itemSpaceLimit(-1), _itemSpaceEffect(10), _danger(0), _trapChance(0), _armorEffect(20),
+																	_successScore(0), _failureScore(0), _progressEventChance(0), _repeatProgressEvent(false),
+																	_successFunds(0), _failureFunds(0), _sucessBackground("BACK13.SCR"), _failureBackground("BACK13.SCR"), 
 																	_listOrder(0)
 {
 }
@@ -57,6 +59,10 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	}
 	_name = node["name"].as<std::string>(_name);
 	_description = node["description"].as<std::string>(_description);
+	_sucessBackground = node["sucessBackground"].as<std::string>(_sucessBackground);
+	_failureBackground = node["failureBackground"].as<std::string>(_failureBackground);
+	_successDescription = node["successDescription"].as<std::string>(_successDescription);
+	_failureDescription = node["failureDescription"].as<std::string>(_failureDescription);
 	_successEvent = node["successEvent"].as<std::string>(_successEvent);
 	_failureEvent = node["failureEvent"].as<std::string>(_failureEvent);
 	_progressEvent = node["progressEvent"].as<std::string>(_progressEvent);
@@ -65,7 +71,7 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_soldierSlots = node["soldierSlots"].as<int>(_soldierSlots);
 	if (_soldierSlots < 1)
 	{
-		throw Exception("Error in loading operation '" + _name + "'! It has less than 1 soldier.");
+		throw Exception("Error in loading operation '" + _name + "'! It must have at least 1 soldier.");
 	}
 	_optionalSoldierSlots = node["optionalSoldierSlots"].as<int>(_optionalSoldierSlots);
 	_scientistSlots = node["scientistSlots"].as<int>(_scientistSlots);
@@ -73,12 +79,27 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_optionalSoldierEffect = node["optionalSoldierEffect"].as<int>(_optionalSoldierEffect);
 	_scientistEffect = node["scientistEffect"].as<int>(_scientistEffect);
 	_engeneerEffect = node["engeneerEffect"].as<int>(_engeneerEffect);
-	_covertSoldierJoinFight = node["covertSoldierJoinFight"].as<bool>(_covertSoldierJoinFight);
 	_baseChances = node["baseChances"].as<int>(_baseChances);
 	_costs = node["costs"].as<int>(_costs);
+	_progressEventChance = node["_progressEventChance"].as<int>(_progressEventChance);
+	_trapChance = node["trapChance"].as<int>(_trapChance);
+	_danger = node["danger"].as<int>(_danger);
 	_successScore = node["successScore"].as<int>(_successScore);
 	_failureScore = node["failureScore"].as<int>(_failureScore);
-	_progressEventChance = node["_progressEventChance"].as<int>(_progressEventChance);
+	_successFunds = node["successFunds"].as<int>(_successFunds);
+	_failureFunds = node["failureFunds"].as<int>(_failureFunds);
+	_successEveryItemList = node["successEveryItemList"].as<std::map<std::string, int> >(_successEveryItemList); // from event's _everyMultiItemList
+	_failureEveryItemList = node["failureEveryItemList"].as<std::map<std::string, int> >(_failureEveryItemList); // from event's _everyMultiItemList 
+	if (node["successWeightedItemList"])
+	{
+		_successWeightedItemList.load(node["successWeightedItemList"]);
+	}
+	if (node["failureWeightedItemList"])
+	{
+		_failureWeightedItemList.load(node["failureWeightedItemList"]);
+	}
+	_successResearchList = node["successResearchList"].as<std::vector<std::string> >(_successResearchList);
+	_failureResearchList = node["failureResearchList"].as<std::vector<std::string> >(_failureResearchList);
 	if (node["successMissions"])
 	{
 		_successMissions.load(node["successMissions"]);
@@ -86,6 +107,14 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	if (node["failureMissions"])
 	{
 		_failureMissions.load(node["failureMissions"]);
+	}
+	if (node["instantTrapDeployment"])
+	{
+		_instantTrapDeployment.load(node["instantTrapDeployment"]);
+	}
+	if (node["instantSuccessDeployment"])
+	{
+		_instantSuccessDeployment.load(node["instantSuccessDeployment"]);
 	}
 	_requiredReputationLvl = node["requiredReputationLvl"].as<std::map<std::string, int>>(_requiredReputationLvl);
 	_successReputationScore = node["successReputationScore"].as<std::map<std::string, int>>(_successReputationScore);
@@ -96,6 +125,7 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_allowedArmor = node["allowedArmor"].as<std::vector<std::string>>(_allowedArmor);
 	_armorEffect = node["armorEffect"].as<int>(_armorEffect);
 	_soldierTypeEffectiveness = node["soldierTypeEffectiveness"].as<std::map<std::string, int>>(_soldierTypeEffectiveness);
+	
 	if (!_listOrder)
 	{
 		_listOrder = listOrder;
@@ -111,6 +141,17 @@ std::string RuleCovertOperation::chooseGenFailureMissionType() const
 {
 	return _failureMissions.choose();
 }
+
+std::string RuleCovertOperation::chooseGenInstantTrapDeploumentType() const
+{
+	return _instantTrapDeployment.choose();
+}
+
+std::string RuleCovertOperation::chooseGenInstantSuccessDeploumentType() const
+{
+	return _instantSuccessDeployment.choose();
+}
+
 
 }
 

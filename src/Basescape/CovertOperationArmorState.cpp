@@ -31,6 +31,7 @@
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextList.h"
+#include "../Interface/ArrowButton.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/SavedGame.h"
@@ -45,6 +46,29 @@
 #include "../Ufopaedia/Ufopaedia.h"
 #include <algorithm>
 #include "../Engine/Unicode.h"
+
+
+
+#include "../Engine/Action.h"
+#include "../Engine/Game.h"
+#include "../Mod/Mod.h"
+#include "../Engine/LocalizedText.h"
+#include "../Engine/Options.h"
+#include "../Interface/ArrowButton.h"
+#include "../Interface/TextButton.h"
+#include "../Interface/Window.h"
+#include "../Interface/Text.h"
+#include "../Interface/TextList.h"
+#include "../Menu/ErrorMessageState.h"
+#include "../Mod/Armor.h"
+#include "../Mod/RuleInterface.h"
+#include "../Savegame/SavedGame.h"
+#include "../Savegame/Craft.h"
+#include "../Savegame/Soldier.h"
+#include "../Savegame/Base.h"
+#include "../Savegame/ItemContainer.h"
+#include "../Mod/RuleSoldier.h"
+#include "../Ufopaedia/Ufopaedia.h"
 
 namespace OpenXcom
 {
@@ -64,6 +88,7 @@ CovertOperationArmorState::CovertOperationArmorState(Base* base, CovertOperation
 	_txtName = new Text(114, 9, 16, 32);
 	_txtCraft = new Text(76, 9, 122, 32);
 	_txtArmor = new Text(100, 9, 192, 32);
+	_txtChances = new Text(115, 9, 192, 24);
 	_lstSoldiers = new TextList(288, 128, 8, 40);
 	_cbxSortBy = new ComboBox(this, 148, 16, 8, 176, true);
 
@@ -76,6 +101,7 @@ CovertOperationArmorState::CovertOperationArmorState(Base* base, CovertOperation
 	add(_txtName, "text", "operationArmor");
 	add(_txtCraft, "text", "operationArmor");
 	add(_txtArmor, "text", "operationArmor");
+	add(_txtChances, "text", "operationArmor");
 	add(_lstSoldiers, "list", "operationArmor");
 	add(_cbxSortBy, "button", "operationArmor");
 
@@ -98,6 +124,9 @@ CovertOperationArmorState::CovertOperationArmorState(Base* base, CovertOperation
 	_txtCraft->setText(tr("STR_CRAFT"));
 
 	_txtArmor->setText(tr("STR_ARMOR"));
+
+	bool mod = _game->getSavedGame()->getDebugMode();
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
 
 	// populate sort options
 	std::vector<std::string> sortOptions;
@@ -249,6 +278,8 @@ void CovertOperationArmorState::init()
 		_lstSoldiers->setCellText(row, 2, tr((*i)->getArmor()->getType()));
 		row++;
 	}
+	bool mod = _game->getSavedGame()->getDebugMode();
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
 }
 
 /**
@@ -271,7 +302,6 @@ void CovertOperationArmorState::initList(size_t scrl)
 		_lstSoldiers->setColumns(3, 106, 70, 104);
 	}
 
-	//Craft* c = _base->getCrafts()->at(_craft);
 	auto recovery = _base->getSumRecoveryPerDay();
 	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 	{
@@ -446,12 +476,14 @@ void CovertOperationArmorState::lstSoldiersClick(Action* action)
 	}
 
 	Soldier* s = _base->getSoldiers()->at(_lstSoldiers->getSelectedRow());
-	if (!(s->getCraft() && s->getCraft()->getStatus() == "STR_OUT") || s->getCovertOperation() != 0)
+	if (!(s->getCraft() && s->getCraft()->getStatus() == "STR_OUT") && !(s->getCovertOperation() != 0))
 	{
+		std::vector<std::string> allowedArmor = _operation->getRule()->getAllowedArmor();
 		if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 		{
 			_savedScrollPosition = _lstSoldiers->getScroll();
-			_game->pushState(new SoldierArmorState(_base, _lstSoldiers->getSelectedRow(), SA_GEOSCAPE));
+			if (!allowedArmor.empty()) _game->pushState(new SoldierArmorState(_base, _lstSoldiers->getSelectedRow(), SA_GEOSCAPE));// TODO _game->pushState(new CovertOperationSoldierArmorState(_base, _lstSoldiers->getSelectedRow(), SA_GEOSCAPE, allowedArmor));
+			else _game->pushState(new SoldierArmorState(_base, _lstSoldiers->getSelectedRow(), SA_GEOSCAPE));
 		}
 		else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
 		{
@@ -595,6 +627,279 @@ void CovertOperationArmorState::btnDeequipCraftArmorClick(Action* action)
 		}
 		row++;
 	}
+}
+
+struct compareArmorName
+{
+	typedef ArmorItem& first_argument_type;
+	typedef ArmorItem& second_argument_type;
+	typedef bool result_type;
+
+	bool _reverse;
+
+	compareArmorName(bool reverse) : _reverse(reverse) {}
+
+	bool operator()(const ArmorItem& a, const ArmorItem& b) const
+	{
+		return Unicode::naturalCompare(a.name, b.name);
+	}
+};
+
+
+/**
+ * Initializes all the elements in the Soldier Armor window.
+ * @param game Pointer to the core game.
+ * @param base Pointer to the base to get info from.
+ * @param soldier ID of the selected soldier.
+ */
+CovertOperationSoldierArmorState::CovertOperationSoldierArmorState(Base* base, size_t soldier, SoldierArmorOrigin origin, std::vector<std::string> allowedArmor) :
+	_base(base), _soldier(soldier), _origin(origin), _allowedArmor(allowedArmor)
+{
+	_screen = false;
+
+	// Create objects
+	_window = new Window(this, 192, 160, 64, 20, POPUP_BOTH);
+	_btnCancel = new TextButton(140, 16, 90, 156);
+	_txtTitle = new Text(182, 16, 69, 28);
+	_txtType = new Text(90, 9, 80, 52);
+	_txtQuantity = new Text(70, 9, 190, 52);
+	_lstArmor = new TextList(160, 80, 73, 68);
+	_sortName = new ArrowButton(ARROW_NONE, 11, 8, 80, 52);
+
+	// Set palette
+	if (_origin == SA_BATTLESCAPE)
+	{
+		setStandardPalette("PAL_BATTLESCAPE");
+	}
+	else
+	{
+		setInterface("covertOperationSoldierArmor");
+	}
+
+	add(_window, "window", "covertOperationSoldierArmor");
+	add(_btnCancel, "button", "covertOperationSoldierArmor");
+	add(_txtTitle, "text", "covertOperationSoldierArmor");
+	add(_txtType, "text", "covertOperationSoldierArmor");
+	add(_txtQuantity, "text", "covertOperationSoldierArmor");
+	add(_lstArmor, "list", "covertOperationSoldierArmor");
+	add(_sortName, "text", "covertOperationSoldierArmor");
+
+	centerAllSurfaces();
+
+	// Set up objects
+	setWindowBackground(_window, "covertOperationSoldierArmor");
+
+
+	_btnCancel->setText(tr("STR_CANCEL_UC"));
+	_btnCancel->onMouseClick((ActionHandler)&CovertOperationSoldierArmorState::btnCancelClick);
+	_btnCancel->onKeyboardPress((ActionHandler)&CovertOperationSoldierArmorState::btnCancelClick, Options::keyCancel);
+
+	Soldier* s = _base->getSoldiers()->at(_soldier);
+	_txtTitle->setAlign(ALIGN_CENTER);
+	_txtTitle->setText(tr("STR_SELECT_ARMOR_FOR_SOLDIER").arg(s->getName()));
+
+	_txtType->setText(tr("STR_TYPE"));
+
+	_txtQuantity->setText(tr("STR_QUANTITY_UC"));
+
+	_lstArmor->setColumns(2, 132, 21);
+	_lstArmor->setSelectable(true);
+	_lstArmor->setBackground(_window);
+	_lstArmor->setMargin(8);
+
+	_sortName->setX(_sortName->getX() + _txtType->getTextWidth() + 4);
+	_sortName->onMouseClick((ActionHandler)&SoldierArmorState::sortNameClick);
+
+	const std::vector<std::string>& armors = _game->getMod()->getArmorsList();
+	for (std::vector<std::string>::const_iterator i = armors.begin(); i != armors.end(); ++i)
+	{
+		Armor* a = _game->getMod()->getArmor(*i);
+		if (!a->getRequiredResearch().empty() && !_game->getSavedGame()->isResearched(a->getRequiredResearch()))
+			continue;
+		if (!a->getUnits().empty() &&
+			std::find(a->getUnits().begin(), a->getUnits().end(), s->getRules()->getType()) == a->getUnits().end())
+			continue;
+		if (_base->getStorageItems()->getItem(a->getStoreItem()) > 0)
+		{
+			std::ostringstream ss;
+			if (_game->getSavedGame()->getMonthsPassed() > -1)
+			{
+				ss << _base->getStorageItems()->getItem(a->getStoreItem());
+			}
+			else
+			{
+				ss << "-";
+			}
+			_armors.push_back(ArmorItem(a->getType(), tr(a->getType()), ss.str()));
+		}
+		else if (a->getStoreItem() == Armor::NONE)
+		{
+			_armors.push_back(ArmorItem(a->getType(), tr(a->getType()), ""));
+		}
+	}
+
+	_armorOrder = ARMOR_SORT_NONE;
+	updateArrows();
+	updateList();
+
+	_lstArmor->onMouseClick((ActionHandler)&SoldierArmorState::lstArmorClick);
+	_lstArmor->onMouseClick((ActionHandler)&SoldierArmorState::lstArmorClickMiddle, SDL_BUTTON_MIDDLE);
+
+	// switch to battlescape theme if called from inventory
+	if (_origin == SA_BATTLESCAPE)
+	{
+		applyBattlescapeTheme();
+	}
+}
+
+/**
+ *
+ */
+CovertOperationSoldierArmorState::~CovertOperationSoldierArmorState()
+{
+
+}
+
+/**
+* Updates the sorting arrows based
+* on the current setting.
+*/
+void CovertOperationSoldierArmorState::updateArrows()
+{
+	_sortName->setShape(ARROW_NONE);
+	switch (_armorOrder)
+	{
+	case ARMOR_SORT_NAME_ASC:
+		_sortName->setShape(ARROW_SMALL_UP);
+		break;
+	case ARMOR_SORT_NAME_DESC:
+		_sortName->setShape(ARROW_SMALL_DOWN);
+		break;
+	default:
+		break;
+	}
+}
+
+/**
+* Sorts the armor list.
+* @param sort Order to sort the armors in.
+*/
+void CovertOperationSoldierArmorState::sortList()
+{
+	switch (_armorOrder)
+	{
+	case ARMOR_SORT_NAME_ASC:
+		std::sort(_armors.begin(), _armors.end(), compareArmorName(false));
+		break;
+	case ARMOR_SORT_NAME_DESC:
+		std::sort(_armors.rbegin(), _armors.rend(), compareArmorName(true));
+		break;
+	default:
+		break;
+	}
+	updateList();
+}
+
+/**
+* Updates the armor list with the current list
+* of available armors.
+*/
+void CovertOperationSoldierArmorState::updateList()
+{
+	_lstArmor->clearList();
+	int row = 0;
+	for (std::vector<ArmorItem>::const_iterator j = _armors.begin(); j != _armors.end(); ++j)
+	{
+		_lstArmor->addRow(2, (*j).name.c_str(), (*j).quantity.c_str());
+		bool allowed = false;
+		auto iter = std::find(std::begin(_allowedArmor), std::end(_allowedArmor), (*j).type);
+		if (iter != std::end(_allowedArmor)) {
+			allowed = true;
+		}
+		Uint8 color;
+		if (!allowed)
+		{
+			color = _lstArmor->getSecondaryColor();
+		}
+		else
+		{
+			color = _lstArmor->getColor();
+		}
+		_lstArmor->setRowColor(row, color);
+		row++;
+	}
+}
+
+/**
+ * Returns to the previous screen.
+ * @param action Pointer to an action.
+ */
+void CovertOperationSoldierArmorState::btnCancelClick(Action*)
+{
+	_game->popState();
+}
+
+/**
+ * Equips the armor on the soldier and returns to the previous screen.
+ * @param action Pointer to an action.
+ */
+void CovertOperationSoldierArmorState::lstArmorClick(Action*)
+{
+	Soldier* soldier = _base->getSoldiers()->at(_soldier);
+	Armor* prev = soldier->getArmor();
+	Armor* next = _game->getMod()->getArmor(_armors[_lstArmor->getSelectedRow()].type);
+	Craft* craft = soldier->getCraft();
+	if (craft != 0 && next->getSize() > prev->getSize())
+	{
+		if (craft->getNumVehicles() >= craft->getRules()->getVehicles() || craft->getSpaceAvailable() < 3)
+		{
+			_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_CRAFT_SPACE"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
+			return;
+		}
+	}
+	if (_game->getSavedGame()->getMonthsPassed() != -1)
+	{
+		if (prev->getStoreItem() != Armor::NONE)
+		{
+			_base->getStorageItems()->addItem(prev->getStoreItem());
+		}
+		if (next->getStoreItem() != Armor::NONE)
+		{
+			_base->getStorageItems()->removeItem(next->getStoreItem());
+		}
+	}
+	soldier->setArmor(next);
+	_game->getSavedGame()->setLastSelectedArmor(next->getType());
+
+	_game->popState();
+}
+
+/**
+* Shows corresponding Ufopaedia article.
+* @param action Pointer to an action.
+*/
+void CovertOperationSoldierArmorState::lstArmorClickMiddle(Action* action)
+{
+	std::string articleId = _armors[_lstArmor->getSelectedRow()].type;
+	Ufopaedia::openArticle(_game, articleId);
+}
+
+/**
+* Sorts the armors by name.
+* @param action Pointer to an action.
+*/
+void CovertOperationSoldierArmorState::sortNameClick(Action*)
+{
+	if (_armorOrder == ARMOR_SORT_NAME_ASC)
+	{
+		_armorOrder = ARMOR_SORT_NAME_DESC;
+	}
+	else
+	{
+		_armorOrder = ARMOR_SORT_NAME_ASC;
+	}
+	updateArrows();
+	sortList();
 }
 
 }

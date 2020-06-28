@@ -146,7 +146,7 @@ void Base::load(const YAML::Node &node, SavedGame *save, bool newGame, bool newB
 		std::string name = (*i)["name"].as<std::string>();
 		if (_mod->getCovertOperation(name))
 		{
-			CovertOperation* c = new CovertOperation(_mod->getCovertOperation(name), this, 0);//_mod->getCraft(type), this);
+			CovertOperation* c = new CovertOperation(_mod->getCovertOperation(name), this, 0);
 			c->load(*i);
 			_covertOperations.push_back(c);
 		}
@@ -172,6 +172,18 @@ void Base::load(const YAML::Node &node, SavedGame *save, bool newGame, bool newB
 					if ((*j)->getUniqueId() == craftId)
 					{
 						s->setCraft(*j);
+						break;
+					}
+				}
+			}
+			if (const YAML::Node& op = (*i)["covertOperation"])
+			{
+				std::string covertOperation = op.as<std::string>();
+				for (std::vector<CovertOperation*>::iterator j = _covertOperations.begin(); j != _covertOperations.end(); ++j)
+				{
+					if ((*j)->getOperationName() == covertOperation)
+					{
+						s->setCovertOperation((*j));
 						break;
 					}
 				}
@@ -441,6 +453,33 @@ void Base::prepareSoldierStatsWithBonuses()
 	{
 		soldier->prepareStatsWithBonuses(_mod);
 	}
+}
+
+/**
+ * Adds operation to base's covert operations list.
+ * @param operation pointer to the CovertOPeration.
+ */
+void Base::addCovertOperation(CovertOperation* operation)
+{
+	this->getCovertOperations().push_back(operation);
+}
+
+/**
+ * Finds and erase operation from base's covert operations list.
+ * @param operation pointer to the CovertOperation.
+ */
+void Base::removeCovertOperation(CovertOperation* operation)
+{
+	bool erased = false;
+	auto iter = std::find(std::begin(_covertOperations), std::end(_covertOperations), operation);
+	for (int k = 0; k < _covertOperations.size(); k++) {
+		if (_covertOperations[k] == operation)
+		{
+			_covertOperations.erase(_covertOperations.begin() + k);
+			erased = true;
+		}
+	}
+	if (!erased) { 	Log(LOG_ERROR) << "Covert Operation named " << operation->getOperationName() << " was not deleted from base " << this->getName() << " !"; }
 }
 
 /**
@@ -780,6 +819,11 @@ int Base::getUsedQuarters() const
 			// reserve one living space for each production project (even if it's on hold)
 			total += 1;
 		}
+	}
+	//reserve space for engeneers and scientists used in covert operations
+	for (std::vector<CovertOperation*>::const_iterator i = _covertOperations.begin(); i != _covertOperations.end(); ++i)
+	{
+		total += (*i)->getAssignedScientists() + (*i)->getAssignedEngineers();
 	}
 	return total;
 }

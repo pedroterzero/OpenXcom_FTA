@@ -48,6 +48,7 @@
 #include "../Mod/RuleItem.h"
 #include "../Savegame/Vehicle.h"
 #include "../Savegame/SavedGame.h"
+#include "../Savegame/CovertOperation.h"
 #include "../Menu/ErrorMessageState.h"
 #include "../Battlescape/CannotReequipState.h"
 #include "../Battlescape/DebriefingState.h"
@@ -68,7 +69,7 @@ namespace OpenXcom
 CovertOperationEquipmentState::CovertOperationEquipmentState(Base* base, CovertOperationStartState* operation) : _lstScroll(0), _sel(0), _operation(operation), _base(base), _totalItems(0), _ammoColor(0), _reload(true)
 {
 	_rule = operation->getRule();
-	bool hasSoldiers = false;//operation->getSoldiers().size() > 0; //TODO
+	bool hasSoldiers = false; // operation->getSoldiers().size() > 0; //TODO
 
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
@@ -135,7 +136,8 @@ CovertOperationEquipmentState::CovertOperationEquipmentState(Base* base, CovertO
 	ss3 << tr("STR_SOLDIERS_UC") << ">" << Unicode::TOK_COLOR_FLIP << operation->getSoldiers().size();
 	_txtCrew->setText(ss3.str());
 
-	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(_operation->getOperationOdds()));
+	bool mod = _game->getSavedGame()->getDebugMode();
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
 
 	// populate sort options
 	_categoryStrings.push_back("STR_ALL");
@@ -248,7 +250,8 @@ void CovertOperationEquipmentState::init()
 		double itemsSize = _operation->getItems()->getTotalSize(_game->getMod());
 		ss << itemsSize << "/" << _rule->getItemSpaceLimit();
 		_txtAvailable->setText(tr("STR_SPACE_USED").arg(ss.str()));
-		_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(_operation->getOperationOdds()));
+		bool mod = _game->getSavedGame()->getDebugMode();
+		_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
 	}
 	_reload = true;
 }
@@ -571,8 +574,7 @@ void CovertOperationEquipmentState::updateQuantity()
 	Uint8 color;
 	if (cQty == 0)
 	{
-		RuleItem* rule = _game->getMod()->getItem(_items[_sel], true);
-		if (rule->getBattleType() == BT_AMMO)
+		if (item->getBattleType() == BT_AMMO)
 		{
 			color = _ammoColor;
 		}
@@ -593,7 +595,8 @@ void CovertOperationEquipmentState::updateQuantity()
 	double itemsSize = _operation->getItems()->getTotalSize(_game->getMod());
 	sse << itemsSize << "/" << _rule->getItemSpaceLimit();
 	_txtAvailable->setText(tr("STR_SPACE_USED").arg(sse.str()));
-	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(_operation->getOperationOdds()));
+	bool mod = _game->getSavedGame()->getDebugMode();
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
 }
 
 /**
@@ -684,9 +687,14 @@ void CovertOperationEquipmentState::btnInventoryClick(Action*)
 {
 	/*if (_operation->getSoldiers().size() > 0)
 	{
-		std::string firstModCraft = _game->getMod()->getCraftsList().front();
-		RuleCraft* sampleCraftRules = _game->getMod()->getCraft(firstModCraft);
-		Craft* craft = new Craft(sampleCraftRules, _base);
+		CovertOperation* preOp = new CovertOperation(_operation->getRule(), _base);
+		for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+		{
+			bool matched = false;
+			auto iter = std::find(std::begin(_operation->getSoldiers()), std::end(_operation->getSoldiers()), (*i));
+			if (iter != std::end(_operation->getSoldiers())) matched = true;
+			if (matched) (*i)->setCovertOperation(preOp);
+		}
 		SavedBattleGame* bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage());
 		_game->getSavedGame()->setBattleGame(bgame);
 
@@ -695,11 +703,19 @@ void CovertOperationEquipmentState::btnInventoryClick(Action*)
 			_game->getSavedGame()->setDisableSoldierEquipment(true);
 		}
 		BattlescapeGenerator bgen = BattlescapeGenerator(_game);
-		bgen.runInventory(craft);
+		bgen.runInventory(0, preOp);
 
 		_game->getScreen()->clear();
-		_game->pushState(new InventoryState(false, 0, _base));
-		delete craft;
+		_game->pushState(new InventoryState(false, 0, _base, true));
+
+		for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+		{
+			bool matched = false;
+			auto iter = std::find(std::begin(_operation->getSoldiers()), std::end(_operation->getSoldiers()), (*i));
+			if (iter != std::end(_operation->getSoldiers())) matched = true;
+			if (matched) (*i)->setCovertOperation(0);
+		}
+		delete preOp;
 	}
 	else
 	{

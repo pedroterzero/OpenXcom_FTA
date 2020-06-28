@@ -20,6 +20,7 @@
 #include "../Engine/State.h"
 #include <vector>
 #include "SoldierSortUtil.h"
+#include "SoldierArmorState.h"
 
 namespace OpenXcom
 {
@@ -33,7 +34,13 @@ class Base;
 class Soldier;
 class RuleCovertOperation;
 class CovertOperationStartState;
+
+class Armor;
+class ArrowButton;
+
 struct SortFunctor;
+
+
 
 /**
 * Select Armor screen that lets the player
@@ -44,12 +51,12 @@ class CovertOperationArmorState : public State
 private:
 	TextButton* _btnOk;
 	Window* _window;
-	Text* _txtTitle, * _txtName, * _txtCraft, * _txtArmor;
+	Text* _txtTitle, * _txtName, * _txtCraft, * _txtArmor, * _txtChances;
 	ComboBox* _cbxSortBy;
 	TextList* _lstSoldiers;
 
 	Base* _base;
-	size_t _craft, _savedScrollPosition;
+	size_t _savedScrollPosition;
 	CovertOperationStartState* _operation;
 	std::vector<Soldier*> _origSoldierOrder;
 	std::vector<SortFunctor*> _sortFunctors;
@@ -82,6 +89,46 @@ public:
 	/// Handler for clicking the De-equip All Armor button.
 	void btnDeequipAllArmorClick(Action* action);
 	void btnDeequipCraftArmorClick(Action* action);
+};
+
+
+/**
+ * Select Armor window that allows changing
+ * of the armor equipped on a soldier.
+ */
+class CovertOperationSoldierArmorState : public State
+{
+private:
+	Base* _base;
+	size_t _soldier;
+
+	SoldierArmorOrigin _origin;
+	TextButton* _btnCancel;
+	Window* _window;
+	Text* _txtTitle, * _txtType, * _txtQuantity;
+	TextList* _lstArmor;
+	ArrowButton* _sortName;
+	std::vector<std::string> _allowedArmor;
+	std::vector<ArmorItem> _armors;
+	ArmorSort _armorOrder;
+	void updateArrows();
+public:
+	/// Creates the Soldier Armor state.
+	CovertOperationSoldierArmorState(Base* base, size_t soldier, SoldierArmorOrigin origin, std::vector<std::string> allowedArmor);
+	/// Cleans up the Soldier Armor state.
+	~CovertOperationSoldierArmorState();
+	/// Sorts the armor list.
+	void sortList();
+	/// Updates the armor list.
+	void updateList();
+	/// Handler for clicking the Cancel button.
+	void btnCancelClick(Action* action);
+	/// Handler for clicking the Weapons list.
+	void lstArmorClick(Action* action);
+	/// Handler for clicking the Weapons list.
+	void lstArmorClickMiddle(Action* action);
+	/// Handler for clicking the Name arrow.
+	void sortNameClick(Action* action);
 };
 
 }

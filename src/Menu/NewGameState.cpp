@@ -31,7 +31,6 @@
 #include "../Engine/Options.h"
 #include "../Savegame/SavedGame.h"
 //new includes
-#include "../Menu/NewBattleState.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/Base.h"
 #include "../Battlescape/BattlescapeGenerator.h"

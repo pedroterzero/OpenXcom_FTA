@@ -29,6 +29,7 @@ namespace OpenXcom
 enum SoldierRank : char { RANK_ROOKIE, RANK_SQUADDIE, RANK_SERGEANT, RANK_CAPTAIN, RANK_COLONEL, RANK_COMMANDER};
 enum SoldierGender : char { GENDER_MALE, GENDER_FEMALE };
 enum SoldierLook : char { LOOK_BLONDE, LOOK_BROWNHAIR, LOOK_ORIENTAL, LOOK_AFRICAN };
+enum ReturnToTrainings : char {NONE, MARTIAL_TRAINING, PSI_TRAINING, BOTH_TRAININGS};
 
 class Craft;
 class CovertOperation;
@@ -77,6 +78,7 @@ private:
 	int _manaMissing = 0;   // amount of mana missing until full mana recovery
 	float _recovery = 0.0;  // amount of hospital attention soldier needs... used to calculate recovery time
 	bool _recentlyPromoted, _psiTraining, _training, _returnToTrainingWhenHealed;
+	ReturnToTrainings _returnToTrainingsWhenOperationOver;
 	Armor *_armor;
 	Armor *_replacedArmor;
 	Armor *_transformedArmor;
@@ -270,6 +272,10 @@ public:
 	bool getReturnToTrainingWhenHealed() const;
 	/// Sets whether the soldier should return to martial training automatically when fully healed.
 	void setReturnToTrainingWhenHealed(bool returnToTrainingWhenHealed);
+	/// Should the soldier return to martial training automatically when return from covert operation?
+	ReturnToTrainings getReturnToTrainingsWhenOperationOver() const { return _returnToTrainingsWhenOperationOver; };
+	/// Sets whether the soldier should return to martial training automatically when fully healed.
+	void setReturnToTrainingWhenOperationOver(ReturnToTrainings returnToTrainingWhenOperationOver) { _returnToTrainingsWhenOperationOver = returnToTrainingWhenOperationOver; };
 	/// Sets whether the soldier's body was recovered from a battle
 	void setCorpseRecovered(bool corpseRecovered);
 	/// Gets the previous transformations performed on this soldier

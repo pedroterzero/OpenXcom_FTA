@@ -37,15 +37,15 @@ class Mod;
 class RuleCovertOperation
 {
 private:
-	std::string _name, _description, _successEvent, _failureEvent, _progressEvent;
-	std::vector<std::string> _requires, _canceledBy, _allowedArmor;
-	RuleBaseFacilityFunctions _requiresBuyBaseFunc;
+	std::string _name, _description, _successDescription, _failureDescription, _sucessBackground, _failureBackground, _successEvent,  _failureEvent, _progressEvent;
+	std::vector<std::string> _requires, _canceledBy, _allowedArmor, _successResearchList, _failureResearchList; //TODO processing of _canceledBy
+	RuleBaseFacilityFunctions _requiresBuyBaseFunc; //TODO processing of _requiresBuyBaseFunc
 	int _soldierSlots, _optionalSoldierSlots, _scientistSlots, _engineerSlots, _optionalSoldierEffect, _scientistEffect, _engeneerEffect, _itemSpaceEffect, _armorEffect;
 	double _itemSpaceLimit;
-	int _baseChances, _costs, _successScore, _failureScore, _progressEventChance;
-	bool _covertSoldierJoinFight;
-	WeightedOptions _successMissions, _failureMissions;
-	std::map<std::string, int> _requiredReputationLvl, _successReputationScore, _failureReputationScore, _requiredItems, _soldierTypeEffectiveness;
+	int _baseChances, _costs, _successScore, _failureScore, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger;
+	bool _repeatProgressEvent;
+	WeightedOptions _successMissions, _failureMissions, _successWeightedItemList, _failureWeightedItemList, _instantTrapDeployment, _instantSuccessDeployment;
+	std::map<std::string, int> _requiredReputationLvl, _successReputationScore, _failureReputationScore, _successEveryItemList, _failureEveryItemList, _requiredItems, _soldierTypeEffectiveness; //TODO processing of _requiredReputationLvl
 	int _listOrder;
 public:
 	/// Creates a blank craft ruleset.
@@ -58,10 +58,20 @@ public:
 	const std::string& getName() const { return _name; };
 	/// Gets the operation's description.
 	const std::string& getDescription() const { return _description; };
+	/// Gets the operation's success results description.
+	const std::string& getSuccessDescription() const { return _successDescription; };
+	/// Gets the operation's failure results description.
+	const std::string& getFailureDescription() const { return _failureDescription; };
+	/// Gets the operation's success results backbround image.
+	const std::string& getSuccessBackground() const { return _sucessBackground; };
+	/// Gets the operation's failure results backbround image.
+	const std::string& getFailureBackground() const { return _failureBackground; };
 	/// Gets the operation's requirements.
 	const std::vector<std::string>& getRequirements() const { return _requires; };
 	/// Gets the base functions required to start operation.
 	RuleBaseFacilityFunctions getRequiresBuyBaseFunc() const { return _requiresBuyBaseFunc; }
+	/// Gets the research name that would make this operation impossible to run.
+	//const std::vector<std::string>& getCanceledBy() const { return _canceledBy; };
 	/// Gets the research name that would make this operation impossible to run.
 	const std::vector<std::string>& getCanceledBy() const { return _canceledBy; };
 	/// Gets the event name that would be spawned on success operation result.
@@ -78,8 +88,6 @@ public:
 	int getScientistSlots() const { return _scientistSlots; };
 	/// Gets the optional engeneer slots for this operations.
 	int getEngineerSlots() const { return _engineerSlots; };
-	/// Gets if covert soldiers would join the battlescape
-	bool getIfCovertSoldierJoinFight() const { return _covertSoldierJoinFight; }
 	/// Gets the optional soldiers slots effectiveness for this operations.
 	int getOptionalSoldierEffect() const { return _optionalSoldierEffect; };
 	/// Gets the optional scientist slots effectiveness for this operations.
@@ -94,16 +102,30 @@ public:
 	int getSuccessScore() const { return _successScore; };
 	/// Gets the operation's global score, that is awarded on failure.
 	int getFailureScore() const { return _failureScore; };
+	/// Gets the operation's funds, that is awarded on success result.
+	int getSuccessFunds() const { return _successFunds; };
+	/// Gets the operation's funds, that is awarded on failure.
+	int getFailureFunds() const { return _failureFunds; };
 	/// Gets chance of spawning event in progress of running covert operation.
 	int getProgressEventChance() const { return _progressEventChance; };
+	/// Gets if progress event should be repeated in progress of running covert operation.
+	int getRepeatProgressEvent() const { return _repeatProgressEvent; };
 	/// Gets operation item space limit.
 	double getItemSpaceLimit() const { return _itemSpaceLimit; }
 	/// Gets operation item space limit.
 	int getItemSpaceEffect() const { return _itemSpaceEffect; }
+	/// Gets operations trap chance.
+	int getTrapChance() const { return _trapChance; }
+	/// Gets operations danger level.
+	int getDanger() const { return _danger; }
 	/// Gets chosen alien mission to run as success resolve of covert operation.
 	std::string chooseGenSuccessMissionType() const;
 	/// Gets chosen alien mission to run as failure resolve of covert operation.
 	std::string chooseGenFailureMissionType() const;
+	/// Gets chosen deployment that would run as failure resolve of covert operation.
+	std::string chooseGenInstantTrapDeploumentType() const;
+	/// Gets chosen deployment that would run as success resolve of covert operation.
+	std::string chooseGenInstantSuccessDeploumentType() const; 
 	/// Gets the faction's required reputation list for this operation.
 	const std::map<std::string, int>& getRequiredReputationLvlList() const { return _requiredReputationLvl; }
 	/// Gets the factions reputation award list for this operation on success result.

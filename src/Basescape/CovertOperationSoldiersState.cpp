@@ -287,12 +287,22 @@ void CovertOperationSoldiersState::initList(size_t scrl)
 			matched = true;
 		}
 
+		bool psiUnavalible = false;
+		if (!Options::anytimePsiTraining)
+		{
+			if ((*i)->isInPsiTraining())
+			{
+				psiUnavalible = true;
+				_lstSoldiers->setCellText(row, 2, tr("STR_IN_PSI_TRAINING_UC"));
+			}
+		}
+
 		if (matched)
 		{
 			color = _lstSoldiers->getSecondaryColor();
 			_lstSoldiers->setCellText(row, 2, tr("STR_ASSIGNED_UC"));
 		}
-		else if ((*i)->getCraft() != 0 || (*i)->getCovertOperation() != 0)
+		else if ((*i)->getCraft() != 0 || (*i)->getCovertOperation() != 0 || psiUnavalible)
 		{
 			color = _otherCraftColor;
 		}
@@ -319,7 +329,8 @@ void CovertOperationSoldiersState::initList(size_t scrl)
 	}
 	
 	_txtUsed->setText(tr("STR_SPACE_USED").arg(_operation->getSoldiers().size()));
-	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(_operation->getOperationOdds()));
+	bool mod = _game->getSavedGame()->getDebugMode();
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
 }
 
 /**
@@ -355,7 +366,12 @@ void CovertOperationSoldiersState::lstSoldiersClick(Action* action)
 		auto opSoldiers = _operation->getSoldiers();
 		bool matched = false;
 		auto iter = std::find(std::begin(opSoldiers), std::end(opSoldiers), s);
-		bool busy = (s->getCraft() && s->getCraft()->getStatus() == "STR_OUT") || s->getCovertOperation();
+		bool busy = ((s->getCraft() && s->getCraft()->getStatus() == "STR_OUT") || s->getCovertOperation() );
+		bool psiUnavalible = false;
+		if (!Options::anytimePsiTraining && s->isInPsiTraining())
+		{
+			busy = true;
+		}
 		if (iter != std::end(opSoldiers))
 		{
 			matched = true;
@@ -406,7 +422,8 @@ void CovertOperationSoldiersState::lstSoldiersClick(Action* action)
 		_lstSoldiers->setRowColor(row, color);
 
 		_txtUsed->setText(tr("STR_SPACE_USED").arg(_operation->getSoldiers().size()));
-		_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(_operation->getOperationOdds()));
+		bool mod = _game->getSavedGame()->getDebugMode();
+		_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
 	}
 	else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
 	{
