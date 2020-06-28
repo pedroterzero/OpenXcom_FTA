@@ -63,7 +63,7 @@ void RuleBaseFacility::load(const YAML::Node &node, Mod *mod, int listOrder)
 		load(parent, mod, listOrder);
 	}
 	_type = node["type"].as<std::string>(_type);
-	_requires = node["requires"].as< std::vector<std::string> >(_requires);
+	mod->loadUnorderedNames(_type, _requires, node["requires"]);
 
 	mod->loadBaseFunction(_type, _requiresBaseFunc, node["requiresBaseFunc"]);
 	mod->loadBaseFunction(_type, _provideBaseFunc, node["provideBaseFunc"]);
@@ -147,10 +147,10 @@ void RuleBaseFacility::load(const YAML::Node &node, Mod *mod, int listOrder)
 		}
 	}
 
-	_leavesBehindOnSellNames = node["leavesBehindOnSell"].as< std::vector<std::string> >(_leavesBehindOnSellNames);
+	mod->loadNames(_type, _leavesBehindOnSellNames, node["leavesBehindOnSell"]);
 	_removalTime = node["removalTime"].as<int>(_removalTime);
 	_canBeBuiltOver = node["canBeBuiltOver"].as<bool>(_canBeBuiltOver);
-	_buildOverFacilitiesNames = node["buildOverFacilities"].as< std::vector<std::string> >(_buildOverFacilitiesNames);
+	mod->loadUnorderedNames(_type, _buildOverFacilitiesNames, node["buildOverFacilities"]);
 	std::sort(_buildOverFacilities.begin(), _buildOverFacilities.end());
 
 	_storageTiles = node["storageTiles"].as<std::vector<Position> >(_storageTiles);
@@ -164,7 +164,7 @@ void RuleBaseFacility::afterLoad(const Mod* mod)
 {
 	if (!_destroyedFacilityName.empty())
 	{
-		_destroyedFacility = mod->getBaseFacility(_destroyedFacilityName, true);
+		mod->linkRule(_destroyedFacility, _destroyedFacilityName);
 		if (_destroyedFacility->getSize() != _size)
 		{
 			throw Exception("Destroyed version of a facility must have the same size as the original facility.");
@@ -197,11 +197,7 @@ void RuleBaseFacility::afterLoad(const Mod* mod)
 	}
 	if (_buildOverFacilitiesNames.size())
 	{
-		_buildOverFacilities.reserve(_buildOverFacilitiesNames.size());
-		for (const auto& n : _buildOverFacilitiesNames)
-		{
-			_buildOverFacilities.push_back(mod->getBaseFacility(n, true));
-		}
+		mod->linkRule(_buildOverFacilities, _buildOverFacilitiesNames);
 		Collections::sortVector(_buildOverFacilities);
 	}
 	if (_mapName.empty())
@@ -209,7 +205,6 @@ void RuleBaseFacility::afterLoad(const Mod* mod)
 		throw Exception("Battlescape map name is missing.");
 	}
 	Collections::removeAll(_leavesBehindOnSellNames);
-	Collections::removeAll(_buildOverFacilitiesNames);
 }
 
 /**

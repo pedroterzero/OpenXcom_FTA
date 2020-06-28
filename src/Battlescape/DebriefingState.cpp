@@ -839,6 +839,11 @@ void DebriefingState::btnOkClick(Action *)
 	{
 		if ((*i)->getGeoscapeSoldier())
 		{
+			if (Options::fieldPromotions && !(*i)->hasGainedAnyExperience())
+			{
+				// Note: difference from OXC, soldier needs to actually have done something during the mission
+				continue;
+			}
 			participants.push_back((*i)->getGeoscapeSoldier());
 		}
 	}
@@ -1180,6 +1185,29 @@ void DebriefingState::prepareDebriefing()
 
 	// lets see what happens with units
 
+	// manual update state of all units
+	for (auto unit : *battle->getUnits())
+	{
+		// scripts (or some bugs in the game) could make aliens or soldiers that have "unresolved" stun or death state.
+		// Note: resolves the "last bleeding alien" too
+		if (!unit->isOut() && unit->isOutThresholdExceed())
+		{
+			unit->instaFalling();
+			if (unit->getTile())
+			{
+				battle->getTileEngine()->itemDropInventory(unit->getTile(), unit);
+			}
+
+			//spawn corpse/body for unit to recover
+			for (int i = unit->getArmor()->getTotalSize() - 1; i >= 0; --i)
+			{
+				auto corpse = battle->createItemForTile(unit->getArmor()->getCorpseBattlescape()[i], nullptr);
+				corpse->setUnit(unit);
+				battle->getTileEngine()->itemDrop(unit->getTile(), corpse, false);
+			}
+		}
+	}
+
 	// first, we evaluate how many surviving XCom units there are, and how many are conscious
 	// and how many have died (to use for commendations)
 	int deadSoldiers = 0;
@@ -1394,9 +1422,9 @@ void DebriefingState::prepareDebriefing()
 					// starting conditions: recover armor backup
 					if (soldier->getReplacedArmor())
 					{
-						if (soldier->getReplacedArmor()->getStoreItem() != Armor::NONE)
+						if (soldier->getReplacedArmor()->getStoreItem())
 						{
-							addItemsToBaseStores(soldier->getReplacedArmor()->getStoreItem(), base, 1, false);
+							addItemsToBaseStores(soldier->getReplacedArmor()->getStoreItem()->getType(), base, 1, false);
 						}
 						soldier->setReplacedArmor(0);
 					}
@@ -1480,9 +1508,9 @@ void DebriefingState::prepareDebriefing()
 						// starting conditions: recover armor backup
 						if (soldier->getReplacedArmor())
 						{
-							if (soldier->getReplacedArmor()->getStoreItem() != Armor::NONE)
+							if (soldier->getReplacedArmor()->getStoreItem())
 							{
-								addItemsToBaseStores(soldier->getReplacedArmor()->getStoreItem(), base, 1, false);
+								addItemsToBaseStores(soldier->getReplacedArmor()->getStoreItem()->getType(), base, 1, false);
 							}
 							soldier->setReplacedArmor(0);
 						}
@@ -1506,7 +1534,7 @@ void DebriefingState::prepareDebriefing()
 				}
 				if (!(*j)->getArmor()->getCorpseBattlescape().empty())
 				{
-					RuleItem *corpseRule = _game->getMod()->getItem((*j)->getArmor()->getCorpseBattlescape().front());
+					auto corpseRule = (*j)->getArmor()->getCorpseBattlescape().front();
 					if (corpseRule && corpseRule->isRecoverable())
 					{
 						recoverAlien(*j, base);
@@ -1524,7 +1552,7 @@ void DebriefingState::prepareDebriefing()
 				}
 				if (!(*j)->getArmor()->getCorpseBattlescape().empty())
 				{
-					RuleItem *corpseRule = _game->getMod()->getItem((*j)->getArmor()->getCorpseBattlescape().front());
+					auto corpseRule = (*j)->getArmor()->getCorpseBattlescape().front();
 					if (corpseRule && corpseRule->isRecoverable())
 					{
 						recoverAlien(*j, base);
@@ -1967,7 +1995,7 @@ void DebriefingState::reequipCraft(Base *base, Craft *craft, bool vehicleItemsCa
 	// Now let's see the vehicles
 	ItemContainer craftVehicles;
 	for (std::vector<Vehicle*>::iterator i = craft->getVehicles()->begin(); i != craft->getVehicles()->end(); ++i)
-		craftVehicles.addItem((*i)->getRules()->getType());
+		craftVehicles.addItem((*i)->getRules());
 	// Now we know how many vehicles (separated by types) we have to read
 	// Erase the current vehicles, because we have to reAdd them (cause we want to redistribute their ammo)
 	if (vehicleItemsCanBeDestroyed)
@@ -2020,7 +2048,7 @@ void DebriefingState::reequipCraft(Base *base, Craft *craft, bool vehicleItemsCa
 				for (int j = 0; j < canBeAdded; ++j)
 				{
 					craft->getVehicles()->push_back(new Vehicle(tankRule, clipSize, size));
-					base->getStorageItems()->removeItem(ammo->getType(), ammoPerVehicle);
+					base->getStorageItems()->removeItem(ammo, ammoPerVehicle);
 				}
 				base->getStorageItems()->removeItem(i->first, canBeAdded);
 			}
@@ -2411,13 +2439,13 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 
 		if (!from->getArmor()->getCorpseBattlescape().empty())
 		{
-			RuleItem *corpseRule = _game->getMod()->getItem(from->getArmor()->getCorpseBattlescape().front());
+			auto corpseRule = from->getArmor()->getCorpseBattlescape().front();
 			if (corpseRule && corpseRule->isRecoverable())
 			{
 				if (corpseRule->isCorpseRecoverable())
 				{
 					addStat("STR_ALIEN_CORPSES_RECOVERED", 1, corpseRule->getRecoveryPoints());
-					std::string corpseItem = from->getArmor()->getCorpseGeoscape();
+					auto corpseItem = from->getArmor()->getCorpseGeoscape();
 					addItemsToBaseStores(corpseItem, base, 1, true);
 				}
 			}

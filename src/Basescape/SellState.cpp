@@ -159,20 +159,6 @@ SellState::SellState(Base *base, DebriefingState *debriefingState, OptionsOrigin
 
 	_cats.push_back("STR_ALL_ITEMS");
 
-	const std::vector<std::string> &cw = _game->getMod()->getCraftWeaponsList();
-	for (std::vector<std::string>::const_iterator i = cw.begin(); i != cw.end(); ++i)
-	{
-		RuleCraftWeapon *rule = _game->getMod()->getCraftWeapon(*i);
-		_craftWeapons.insert(rule->getLauncherItem());
-		_craftWeapons.insert(rule->getClipItem());
-	}
-	const std::vector<std::string> &ar = _game->getMod()->getArmorsList();
-	for (std::vector<std::string>::const_iterator i = ar.begin(); i != ar.end(); ++i)
-	{
-		Armor *rule = _game->getMod()->getArmor(*i);
-		_armors.insert(rule->getStoreItem());
-	}
-
 	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 	{
 		if (_debriefingState) break;
@@ -383,11 +369,11 @@ std::string SellState::getCategory(int sel) const
 		}
 		if (rule->getBattleType() == BT_NONE)
 		{
-			if (_craftWeapons.find(rule->getType()) != _craftWeapons.end())
+			if (_game->getMod()->isCraftWeaponStorageItem(rule))
 			{
 				return "STR_CRAFT_ARMAMENT";
 			}
-			if (_armors.find(rule->getType()) != _armors.end())
+			if (_game->getMod()->isArmorStorageItem(rule))
 			{
 				return "STR_EQUIPMENT";
 			}
@@ -548,9 +534,9 @@ void SellState::btnOkClick(Action *)
 				{
 					if (*s == soldier)
 					{
-						if ((*s)->getArmor()->getStoreItem() != Armor::NONE)
+						if ((*s)->getArmor()->getStoreItem())
 						{
-							_base->getStorageItems()->addItem((*s)->getArmor()->getStoreItem());
+							_base->getStorageItems()->addItem((*s)->getArmor()->getStoreItem()->getType());
 						}
 						_base->getSoldiers()->erase(s);
 						break;
@@ -571,24 +557,24 @@ void SellState::btnOkClick(Action *)
 				break;
 			case TRANSFER_ITEM:
 				RuleItem *item = (RuleItem*)i->rule;
-				if (_base->getStorageItems()->getItem(item->getType()) < i->amount)
+				if (_base->getStorageItems()->getItem(item) < i->amount)
 				{
-					int toRemove = i->amount - _base->getStorageItems()->getItem(item->getType());
+					int toRemove = i->amount - _base->getStorageItems()->getItem(item);
 
 					// remove all of said items from base
-					_base->getStorageItems()->removeItem(item->getType(), INT_MAX);
+					_base->getStorageItems()->removeItem(item, INT_MAX);
 
 					// if we still need to remove any, remove them from the crafts first, and keep a running tally
 					for (std::vector<Craft*>::iterator j = _base->getCrafts()->begin(); j != _base->getCrafts()->end() && toRemove; ++j)
 					{
-						if ((*j)->getItems()->getItem(item->getType()) < toRemove)
+						if ((*j)->getItems()->getItem(item) < toRemove)
 						{
-							toRemove -= (*j)->getItems()->getItem(item->getType());
-							(*j)->getItems()->removeItem(item->getType(), INT_MAX);
+							toRemove -= (*j)->getItems()->getItem(item);
+							(*j)->getItems()->removeItem(item, INT_MAX);
 						}
 						else
 						{
-							(*j)->getItems()->removeItem(item->getType(), toRemove);
+							(*j)->getItems()->removeItem(item, toRemove);
 							toRemove = 0;
 						}
 					}
@@ -618,7 +604,7 @@ void SellState::btnOkClick(Action *)
 				}
 				else
 				{
-					_base->getStorageItems()->removeItem(item->getType(), i->amount);
+					_base->getStorageItems()->removeItem(item, i->amount);
 				}
 				if (_debriefingState != 0)
 				{
@@ -893,16 +879,15 @@ void SellState::changeByValue(int change, int dir)
 	// Calculate the change in storage space.
 	Craft *craft;
 	Soldier *soldier;
-	RuleItem *armor, *item, *weapon, *ammo;
+	RuleItem *item, *weapon, *ammo;
 	double total = 0.0;
 	switch (getRow().type)
 	{
 	case TRANSFER_SOLDIER:
 		soldier = (Soldier*)getRow().rule;
-		if (soldier->getArmor()->getStoreItem() != Armor::NONE)
+		if (soldier->getArmor()->getStoreItem())
 		{
-			armor = _game->getMod()->getItem(soldier->getArmor()->getStoreItem(), true);
-			_spaceChange += dir * armor->getSize();
+			_spaceChange += dir * soldier->getArmor()->getStoreItem()->getSize();
 		}
 		break;
 	case TRANSFER_CRAFT:

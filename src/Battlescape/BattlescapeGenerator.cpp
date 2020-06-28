@@ -257,6 +257,14 @@ void BattlescapeGenerator::nextStage()
 			{
 				_save->getTileEngine()->itemDropInventory((*unit)->getTile(), (*unit));
 			}
+
+			//spawn corpse/body for unit to recover
+			for (int i = (*unit)->getArmor()->getTotalSize() - 1; i >= 0; --i)
+			{
+				auto corpse = _save->createItemForTile((*unit)->getArmor()->getCorpseBattlescape()[i], nullptr);
+				corpse->setUnit((*unit));
+				_save->getTileEngine()->itemDrop((*unit)->getTile(), corpse, false);
+			}
 		}
 	}
 
@@ -801,7 +809,7 @@ void BattlescapeGenerator::deployXCOM(const RuleStartingCondition* startingCondi
 				if (startingCondition != 0 && !startingCondition->isVehiclePermitted(item->getType()))
 				{
 					// send disabled vehicles back to base
-					_base->getStorageItems()->addItem(item->getType(), 1);
+					_base->getStorageItems()->addItem(item, 1);
 					// ammo too, if necessary
 					if (!item->getPrimaryCompatibleAmmo()->empty())
 					{
@@ -816,7 +824,7 @@ void BattlescapeGenerator::deployXCOM(const RuleStartingCondition* startingCondi
 						{
 							ammoPerVehicle = ammo->getClipSize();
 						}
-						_base->getStorageItems()->addItem(ammo->getType(), ammoPerVehicle);
+						_base->getStorageItems()->addItem(ammo, ammoPerVehicle);
 					}
 				}
 				else if (item->getVehicleUnit()->getArmor()->getSize() > 1 || Mod::EXTENDED_HWP_LOAD_ORDER == false)
@@ -1452,9 +1460,8 @@ BattleUnit *BattlescapeGenerator::addAlien(Unit *rules, int alienRank, bool outs
 	}
 	else
 	{
-		// ASSASSINATION CHALLENGE SPECIAL: screw the player, just because we didn't find a node,
-		// doesn't mean we can't ruin Tornis's day: spawn as many aliens as possible.
-		if (_game->getSavedGame()->getDifficulty() >= DIFF_SUPERHUMAN && placeUnitNearFriend(unit))
+		// DEMIGOD DIFFICULTY: screw the player: spawn as many aliens as possible.
+		if (_game->getMod()->isDemigod() && placeUnitNearFriend(unit))
 		{
 			unit->setAIModule(new AIModule(_game->getSavedGame()->getSavedBattle(), unit, 0));
 			unit->setRankInt(alienRank);
