@@ -171,7 +171,7 @@ void DiplomacyFaction::setDiscovered(bool status)
  * @param Game game engine.
  * @param ThinkPeriond - timestep to determine think process
  */
-bool DiplomacyFaction::think(Game& engine, ThinkPeriond period)
+bool DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 {
 	const Mod& mod = *engine.getMod();
 	SavedGame& game = *engine.getSavedGame();

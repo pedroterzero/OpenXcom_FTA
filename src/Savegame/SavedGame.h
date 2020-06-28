@@ -56,6 +56,7 @@ class AlienStrategy;
 class AlienMission;
 class GeoscapeEvent;
 class DiplomacyFaction;
+class CovertOperation;
 class Target;
 class Soldier;
 class Craft;
@@ -146,6 +147,7 @@ private:
 	AlienStrategy *_alienStrategy;
 	SavedBattleGame *_battleGame;
 	std::vector<const RuleResearch*> _discovered;
+	std::vector<std::string> _performedOperations;
 	std::map<std::string, int> _generatedEvents;
 	std::map<std::string, int> _ufopediaRuleStatus;
 	std::map<std::string, int> _manufactureRuleStatus;
@@ -153,6 +155,7 @@ private:
 	std::map<std::string, bool> _hiddenPurchaseItemsMap;
 	std::vector<AlienMission*> _activeMissions;
 	std::vector<GeoscapeEvent*> _geoscapeEvents;
+	std::vector<CovertOperation*> _covertOperations;
 	std::vector<DiplomacyFaction*> _diplomacyFactions;
 	bool _debug, _warned;
 	int _monthsPassed;
@@ -270,6 +273,12 @@ public:
 	void setResearchRuleStatus(const std::string &researchRule, int newStatus);
 	/// Sets the item as hidden or unhidden
 	void setHiddenPurchaseItemsStatus(const std::string &itemName, bool hidden);
+	/// Add covert operation to the "performed operation" list
+	void addPerformedCovertOperation(const std::string & operation) { _performedOperations.push_back(operation); Log(LOG_DEBUG) << "Adding operation " << operation << " to <performed operation> list"; }; //TODO remove debug log part
+	/// Remove covert operation from the "performed operation" list
+	void removePerformedCovertOperation(const std::string& operation);
+	/// Get list of performed operations
+	const std::vector<std::string> &getPerformedCovertOperations() { return _performedOperations; };
 	/// Remove a research from the "already discovered" list
 	void removeDiscoveredResearch(const RuleResearch *research);
 	/// Add a finished ResearchProject

@@ -1024,21 +1024,17 @@ bool DiplomacyPurchaseState::isEntityAllowedByFaction(std::string entityName)
 		if ((*i).first == entityName)
 		{
 			int repReq = i->second;
-			Log(LOG_INFO) << tr(entityName) << " was found in list of Faction " << tr(_faction->getRules().getName());
 			if (_faction->getReputationLevel() >= repReq)
 			{
-				Log(LOG_INFO) << tr(entityName) << " requers reputation level "<< repReq << " and we have " << _faction->getReputationLevel() << " so we pass!";
 				return true;
 				break;
 			}
 			else
 			{
-				Log(LOG_INFO) << tr(entityName) << " requers reputation level " << repReq << " but we have only " << _faction->getReputationLevel() << " so we cant buy it!";
 				break;
 			}
 		}
 	}
-	Log(LOG_INFO) << " We fail to find  " << tr(entityName) << " in sellList of faction " << tr(_faction->getRules().getName());
 	return false;
 }
 
