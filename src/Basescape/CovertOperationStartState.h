@@ -18,6 +18,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "../Engine/State.h"
+#include "SoldierSortUtil.h"
 
 namespace OpenXcom
 {
@@ -46,7 +47,7 @@ private:
 	int _cost, _scientists, _engeneers;
 	double _chances;
 	bool _hasPsionics, _hasPsiItems;
-	std::vector<Soldier*> _soldiers;
+	std::vector<Soldier *> _soldiers;
 	ItemContainer* _items;
 	Surface* _crew, * _equip;
 public:

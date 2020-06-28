@@ -145,7 +145,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 
 	//auto sellList = faction->getRules().getSellingSet();
 
-	const std::vector<std::string> &cw = _game->getMod()->getCraftWeaponsList();
+	/*const std::vector<std::string> &cw = _game->getMod()->getCraftWeaponsList();
 	for (std::vector<std::string>::const_iterator i = cw.begin(); i != cw.end(); ++i)
 	{
 		RuleCraftWeapon *rule = _game->getMod()->getCraftWeapon(*i);
@@ -157,7 +157,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 	{
 		Armor *rule = _game->getMod()->getArmor(*i);
 		_armors.insert(rule->getStoreItem());
-	}
+	}*/
 
 	auto providedBaseFunc = _base->getProvidedBaseFunc({});
 	const std::vector<std::string> &soldiers = _game->getMod()->getSoldiersList();
@@ -330,7 +330,7 @@ void DiplomacyPurchaseState::think()
  */
 std::string DiplomacyPurchaseState::getCategory(int sel) const
 {
-	RuleItem *rule = 0;
+	RuleItem* rule = 0;
 	switch (_items[sel].type)
 	{
 	case TRANSFER_SOLDIER:
@@ -347,11 +347,11 @@ std::string DiplomacyPurchaseState::getCategory(int sel) const
 		}
 		if (rule->getBattleType() == BT_NONE)
 		{
-			if (_craftWeapons.find(rule->getType()) != _craftWeapons.end())
+			if (_game->getMod()->isCraftWeaponStorageItem(rule))
 			{
 				return "STR_CRAFT_ARMAMENT";
 			}
-			if (_armors.find(rule->getType()) != _armors.end())
+			if (_game->getMod()->isArmorStorageItem(rule))
 			{
 				return "STR_EQUIPMENT";
 			}

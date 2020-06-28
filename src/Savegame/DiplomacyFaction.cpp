@@ -18,17 +18,21 @@
  */
 #include "DiplomacyFaction.h"
 #include <assert.h>
-#include "../Mod/RuleDiplomacyFaction.h"
-#include "../Savegame/SavedGame.h"
 #include "../Engine/Game.h"
-#include "../Geoscape/GeoscapeEventState.h"
-#include "../Savegame/GeoscapeEvent.h"
-#include "../Mod/RuleEvent.h"
-#include "../Mod/RuleMissionScript.h"
-#include "../Savegame/AlienStrategy.h"
-#include "../fmath.h"
 #include "../Engine/RNG.h"
 #include "../Engine/Logger.h"
+#include "../Geoscape/GeoscapeEventState.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleEvent.h"
+#include "../Mod/RuleMissionScript.h"
+#include "../Mod/RuleDiplomacyFaction.h"
+#include "../Savegame/SavedGame.h"
+#include "../Savegame/GeoscapeEvent.h"
+#include "../Savegame/AlienStrategy.h"
+#include "../fmath.h"
+
+
+
 
 
 namespace OpenXcom

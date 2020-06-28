@@ -20,7 +20,14 @@
 #include "CovertOperationEquipmentState.h"
 #include "CovertOperationSoldiersState.h"
 #include "CovertOperationArmorState.h"
+#include "ResearchState.h"
+#include "ManufactureState.h"
 #include <sstream>
+#include <climits>
+#include <iomanip>
+#include <algorithm>
+#include <locale>
+#include "../fmath.h"
 #include "../Interface/Window.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/ToggleTextButton.h"
@@ -31,41 +38,22 @@
 #include "../Engine/Action.h"
 #include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
-#include "../Menu/ErrorMessageState.h"
+#include "../Engine/Timer.h"
 #include "../Engine/Unicode.h"
 #include "../Engine/Logger.h"
-#include "ResearchState.h"
-#include "ManufactureState.h"
+#include "../Engine/CrossPlatform.h"
 #include "../Mod/Mod.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/RuleCovertOperation.h"
 #include "../Mod/Armor.h"
 #include "../Mod/RuleSoldier.h"
+#include "../Mod/RuleInterface.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/ItemContainer.h"
 #include "../Savegame/CovertOperation.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/SavedGame.h"
 #include "../Menu/ErrorMessageState.h"
-#include "../Mod/RuleInterface.h"
-#include "../Engine/Logger.h"
-
-
-
-#include <climits>
-#include <iomanip>
-#include <algorithm>
-#include <locale>
-#include "../fmath.h"
-#include "../Engine/Game.h"
-#include "../Mod/Mod.h"
-#include "../Engine/LocalizedText.h"
-#include "../Engine/Timer.h"
-#include "../Engine/Options.h"
-#include "../Engine/CrossPlatform.h"
-#include "../Engine/Unicode.h"
-
-
 
 namespace OpenXcom
 {
