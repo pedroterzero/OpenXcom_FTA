@@ -179,7 +179,7 @@ void ExplosionBState::init()
 	}
 	else if (_attack.attacker && (_attack.attacker->getSpecialAbility() == SPECAB_EXPLODEONDEATH || _attack.attacker->getSpecialAbility() == SPECAB_BURN_AND_EXPLODE))
 	{
-		itemRule = _parent->getMod()->getItem(_attack.attacker->getArmor()->getCorpseGeoscape(), true);
+		itemRule = _attack.attacker->getArmor()->getCorpseGeoscape(); //TODO: not getCorpseBattlescape ones?
 		_power = itemRule->getPowerBonus(_attack);
 		_damageType = itemRule->getDamageType();
 		_radius = itemRule->getExplosionRadius(_attack);
@@ -247,7 +247,10 @@ void ExplosionBState::init()
 			_parent->setStateInterval(std::max(1, explosionSpeed));
 			// explosion sound
 			_parent->playSound(sound);
-			_parent->getMap()->getCamera()->centerOnPosition(_center.toTile(), false);
+			if (_parent->getMap()->getFollowProjectile() || _explosionCounter > 0)
+			{
+				_parent->getMap()->getCamera()->centerOnPosition(_center.toTile(), false);
+			}
 		}
 		else
 		{

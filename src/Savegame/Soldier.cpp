@@ -35,6 +35,7 @@
 #include "../Mod/Armor.h"
 #include "../Mod/Mod.h"
 #include "../Mod/StatString.h"
+#include "../Engine/Unicode.h"
 #include "../Mod/RuleSoldierTransformation.h"
 #include "../Mod/RuleCommendations.h"
 #include "Base.h"
@@ -310,9 +311,10 @@ std::string Soldier::getName(bool statstring, unsigned int maxLength) const
 {
 	if (statstring && !_statString.empty())
 	{
-		if (_name.length() + _statString.length() > maxLength)
+		UString name = Unicode::convUtf8ToUtf32(_name);
+		if (name.length() + _statString.length() > maxLength)
 		{
-			return _name.substr(0, maxLength - _statString.length()) + "/" + _statString;
+			return Unicode::convUtf32ToUtf8(name.substr(0, maxLength - _statString.length())) + "/" + _statString;
 		}
 		else
 		{
@@ -1491,19 +1493,20 @@ bool Soldier::isEligibleForTransformation(RuleSoldierTransformation *transformat
 	}
 
 	// Does this soldier meet the minimum stat requirements for the project?
+	UnitStats currentStats = transformationRule->getIncludeBonusesForMinStats() ? _tmpStatsWithSoldierBonuses: _currentStats;
 	UnitStats minStats = transformationRule->getRequiredMinStats();
-	if (_currentStats.tu < minStats.tu ||
-		_currentStats.stamina < minStats.stamina ||
-		_currentStats.health < minStats.health ||
-		_currentStats.bravery < minStats.bravery ||
-		_currentStats.reactions < minStats.reactions ||
-		_currentStats.firing < minStats.firing ||
-		_currentStats.throwing < minStats.throwing ||
-		_currentStats.melee < minStats.melee ||
-		_currentStats.mana < minStats.mana ||
-		_currentStats.strength < minStats.strength ||
-		_currentStats.psiStrength < minStats.psiStrength ||
-		(_currentStats.psiSkill < minStats.psiSkill && minStats.psiSkill != 0)) // The != 0 is required for the "psi training at any time" option, as it sets skill to negative in training
+	if (currentStats.tu < minStats.tu ||
+		currentStats.stamina < minStats.stamina ||
+		currentStats.health < minStats.health ||
+		currentStats.bravery < minStats.bravery ||
+		currentStats.reactions < minStats.reactions ||
+		currentStats.firing < minStats.firing ||
+		currentStats.throwing < minStats.throwing ||
+		currentStats.melee < minStats.melee ||
+		currentStats.mana < minStats.mana ||
+		currentStats.strength < minStats.strength ||
+		currentStats.psiStrength < minStats.psiStrength ||
+		(currentStats.psiSkill < minStats.psiSkill && minStats.psiSkill != 0)) // The != 0 is required for the "psi training at any time" option, as it sets skill to negative in training
 		return false;
 
 	// Does the soldier have the required commendations?

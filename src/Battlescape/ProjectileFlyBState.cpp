@@ -27,9 +27,11 @@
 #include "../Savegame/BattleItem.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/Tile.h"
+#include "../Savegame/HitLog.h"
 #include "../Mod/Mod.h"
 #include "../Engine/Sound.h"
 #include "../Engine/RNG.h"
+#include "../Mod/Armor.h"
 #include "../Mod/RuleItem.h"
 #include "../Engine/Options.h"
 #include "AIModule.h"
@@ -584,11 +586,15 @@ void ProjectileFlyBState::think()
 			&& _ammo->getAmmoQuantity() != 0
 			&& (hasFloor || unitCanFly))
 		{
-			createNewProjectile();
+			bool success = createNewProjectile();
 			if (_action.cameraPosition.z != -1)
 			{
 				_parent->getMap()->getCamera()->setMapOffset(_action.cameraPosition);
 				_parent->getMap()->invalidate();
+			}
+			if (!success)
+			{
+				_parent->getMap()->setFollowProjectile(true); // turn back on when done shooting
 			}
 		}
 		else
@@ -783,6 +789,9 @@ void ProjectileFlyBState::think()
 							++i;
 							delete proj;
 						}
+
+						// reset back for the next shot in the (potential) autoshot sequence
+						_targetVoxel = originalTarget;
 					}
 
 					// nerf unit's XP values (gained via extra shotgun bullets)

@@ -21,9 +21,7 @@
 #include <string>
 #include <yaml-cpp/yaml.h>
 #include "Tile.h"
-#include "BattleUnit.h"
 #include "../Mod/AlienDeployment.h"
-#include "HitLog.h"
 
 namespace OpenXcom
 {
@@ -33,15 +31,19 @@ class SavedGame;
 class MapDataSet;
 class Node;
 class BattlescapeState;
+class BattlescapeGame;
 class Position;
 class Pathfinding;
 class TileEngine;
 class RuleEnviroEffects;
 class BattleItem;
+class BattleUnit;
 class Mod;
 class State;
 class ItemContainer;
 class RuleItem;
+class HitLog;
+enum HitLogEntryType : int;
 
 /**
  * The battlescape data that gets written to disk when the game is saved.
@@ -320,7 +322,7 @@ public:
 	/// Removes an item from the game.
 	void removeItem(BattleItem *item);
 	/// Add buildIn weapon from list to unit.
-	void addFixedItems(BattleUnit *unit, const std::vector<std::string> &fixed);
+	void addFixedItems(BattleUnit *unit, const std::vector<const RuleItem*> &fixed);
 	/// Init new created unit.
 	void initUnit(BattleUnit *unit, size_t itemLevel = 0);
 	/// Init new created item.
@@ -332,7 +334,7 @@ public:
 	/// Create new built-in item for unit.
 	BattleItem *createItemForUnitBuildin(const RuleItem *rule, BattleUnit *unit);
 	/// Create new item for tile.
-	BattleItem *createItemForTile(RuleItem *rule, Tile *tile);
+	BattleItem *createItemForTile(const RuleItem *rule, Tile *tile);
 	/// Create new item for tile.
 	BattleItem *createItemForTile(const std::string& type, Tile *tile);
 	/// Sets whether the mission was aborted.

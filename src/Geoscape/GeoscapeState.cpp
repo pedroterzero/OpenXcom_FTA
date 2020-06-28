@@ -2290,10 +2290,10 @@ void GeoscapeState::time1Day()
 				auto ruleUnit = mod->getUnit(research->getName(), false);
 				if (ruleUnit)
 				{
-					auto ruleCorpse = mod->getItem(ruleUnit->getArmor()->getCorpseGeoscape(), false);
+					auto ruleCorpse = ruleUnit->getArmor()->getCorpseGeoscape();
 					if (ruleCorpse && ruleCorpse->isRecoverable() && ruleCorpse->isCorpseRecoverable())
 					{
-						base->getStorageItems()->addItem(ruleUnit->getArmor()->getCorpseGeoscape());
+						base->getStorageItems()->addItem(ruleCorpse->getType());
 					}
 				}
 			}
@@ -3148,7 +3148,7 @@ void GeoscapeState::handleDogfights()
  *
  * History lesson:
  * - this was in the DogfightState destructor before, but could lead to CTD when people reloaded a saved game while dogfights were still active
- * - both OXCE+ and vanilla OXC still access already deleted objects (_craft and _ufo) in the destructor... that doesn't seem to trigger CTD that often though
+ * - both OXCE and vanilla OXC still access already deleted objects (_craft and _ufo) in the destructor... that doesn't seem to trigger CTD that often though
  */
 void GeoscapeState::handleDogfightExperience()
 {

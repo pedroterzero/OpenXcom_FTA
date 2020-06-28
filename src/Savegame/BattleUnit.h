@@ -21,11 +21,7 @@
 #include <string>
 #include <unordered_set>
 #include "../Battlescape/Position.h"
-#include "../Battlescape/BattlescapeGame.h"
 #include "../Mod/RuleItem.h"
-#include "../Mod/Armor.h"
-#include "../Mod/Unit.h"
-#include "../Mod/MapData.h"
 #include "Soldier.h"
 #include "BattleItem.h"
 
@@ -34,11 +30,17 @@ namespace OpenXcom
 
 class Tile;
 class BattleItem;
+class Armor;
 class Unit;
+class BattlescapeGame;
+struct BattleAction;
+struct BattleActionCost;
+struct RuleItemUseCost;
 class SavedBattleGame;
 class Node;
 class Surface;
 class RuleInventory;
+class RuleEnviroEffects;
 class Soldier;
 class SavedGame;
 class Language;
@@ -49,6 +51,12 @@ class ScriptWorkerBlit;
 struct BattleUnitStatistics;
 struct StatAdjustment;
 
+enum SpecialTileType : int;
+enum MovementType : int;
+
+
+enum ForcedTorso : Uint8 { TORSO_USE_GENDER, TORSO_ALWAYS_MALE, TORSO_ALWAYS_FEMALE };
+enum UnitSide : Uint8 { SIDE_FRONT, SIDE_LEFT, SIDE_RIGHT, SIDE_REAR, SIDE_UNDER, SIDE_MAX };
 enum UnitStatus {STATUS_STANDING, STATUS_WALKING, STATUS_FLYING, STATUS_TURNING, STATUS_AIMING, STATUS_COLLAPSING, STATUS_DEAD, STATUS_UNCONSCIOUS, STATUS_PANICKING, STATUS_BERSERK, STATUS_IGNORE_ME};
 enum UnitFaction : int {FACTION_PLAYER, FACTION_HOSTILE, FACTION_NEUTRAL};
 enum UnitBodyPart {BODYPART_HEAD, BODYPART_TORSO, BODYPART_RIGHTARM, BODYPART_LEFTARM, BODYPART_RIGHTLEG, BODYPART_LEFTLEG, BODYPART_MAX};
@@ -107,6 +115,7 @@ private:
 	int _scannedTurn;
 	int _kills;
 	int _faceDirection; // used only during strafing moves
+	std::vector<int> _meleeAttackedBy;
 	bool _hitByFire, _hitByAnything, _alreadyExploded;
 	int _fireMaxHit;
 	int _smokeMaxHit;
@@ -116,6 +125,7 @@ private:
 	int _turnsSinceSpotted, _turnsLeftSpottedForSnipers, _turnsSinceStunned = 255;
 	const Unit *_spawnUnit = nullptr;
 	std::string _activeHand;
+	std::string _preferredHandForReactions;
 	BattleUnitStatistics* _statistics;
 	int _murdererId;	// used to credit the murderer with the kills that this unit got by blowing up on death
 	int _mindControllerID;	// used to credit the mind controller with the kills of the mind controllee
@@ -150,6 +160,8 @@ private:
 	bool _hidingForTurn, _floorAbove, _respawn, _alreadyRespawned;
 	bool _isLeeroyJenkins;	// always charges enemy, never retreats.
 	bool _summonedPlayerUnit;
+	bool _pickUpWeaponsMoreActively;
+	bool _disableIndicators;
 	MovementType _movementType;
 	std::vector<std::pair<Uint8, Uint8> > _recolor;
 	bool _capturable;
@@ -421,9 +433,20 @@ public:
 	/// Reloads a weapon if needed.
 	bool reloadAmmo();
 
+	/// Toggle the right hand as main hand for reactions.
+	void toggleRightHandForReactions();
+	/// Toggle the left hand as main hand for reactions.
+	void toggleLeftHandForReactions();
+	/// Is right hand preferred for reactions?
+	bool isRightHandPreferredForReactions() const;
+	/// Is left hand preferred for reactions?
+	bool isLeftHandPreferredForReactions() const;
+	/// Get preferred weapon for reactions, if applicable.
+	BattleItem *getWeaponForReactions(bool meleeOnly) const;
+
 	/// Check if this unit is in the exit area
-	bool isInExitArea(SpecialTileType stt = START_POINT) const;
-	bool liesInExitArea(Tile *tile, SpecialTileType stt = START_POINT) const;
+	bool isInExitArea(SpecialTileType stt) const;
+	bool liesInExitArea(Tile *tile, SpecialTileType stt) const;
 	/// Gets the unit height taking into account kneeling/standing.
 	int getHeight() const;
 	/// Gets the unit floating elevation.
@@ -676,6 +699,10 @@ public:
 	bool getHitState();
 	/// reset the unit hit state.
 	void resetHitState();
+	/// Was this unit melee attacked by a given attacker this turn (both hit and miss count)?
+	bool wasMeleeAttackedBy(int attackerId) const;
+	/// Set the "melee attacked by" flag.
+	void setMeleeAttackedBy(int attackerId);
 	/// Did this unit explode already?
 	bool hasAlreadyExploded() const { return _alreadyExploded; }
 	/// Set the already exploded flag.
@@ -686,6 +713,12 @@ public:
 	void setSummonedPlayerUnit(bool summonedPlayerUnit);
 	/// Was this unit summoned by an item?
 	bool isSummonedPlayerUnit() const;
+	/// Is the unit eagerly picking up weapons?
+	bool getPickUpWeaponsMoreActively() const { return _pickUpWeaponsMoreActively; }
+	/// Show indicators for this unit or not?
+	bool indicatorsAreEnabled() const { return !_disableIndicators; }
+	/// Disable showing indicators for this unit.
+	void disableIndicators();
 };
 
 } //namespace OpenXcom

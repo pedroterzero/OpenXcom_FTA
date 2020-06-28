@@ -2163,7 +2163,7 @@ bool SavedGame::isFacilityBuilt(const std::string &facilityType) const
 	{
 		for (auto fac : *base->getFacilities())
 		{
-			if (fac->getRules()->getType() == facilityType)
+			if (fac->getBuildTime() == 0 && fac->getRules()->getType() == facilityType)
 			{
 				return true;
 			}
