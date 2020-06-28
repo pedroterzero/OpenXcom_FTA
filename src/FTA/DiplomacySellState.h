@@ -58,7 +58,6 @@ private:
 	std::vector<TransferRow> _items;
 	std::vector<int> _rows;
 	std::vector<std::string> _cats;
-	std::set<std::string> _craftWeapons, _armors;
 	size_t _sel;
 	int _total;
 	double _spaceChange;

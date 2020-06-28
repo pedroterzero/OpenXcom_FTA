@@ -490,17 +490,17 @@ void CovertOperationArmorState::lstSoldiersClick(Action* action)
 			SavedGame* save;
 			save = _game->getSavedGame();
 			Armor* a = _game->getMod()->getArmor(save->getLastSelectedArmor());
-			if (a && (a->getUnits().empty() || std::find(a->getUnits().begin(), a->getUnits().end(), s->getRules()->getType()) != a->getUnits().end()))
+			if (a && a->getCanBeUsedBy(s->getRules()))
 			{
 				if (save->getMonthsPassed() != -1)
 				{
-					if (_base->getStorageItems()->getItem(a->getStoreItem()) > 0 || a->getStoreItem() == Armor::NONE)
+					if (a->getStoreItem() == nullptr || _base->getStorageItems()->getItem(a->getStoreItem()) > 0)
 					{
-						if (s->getArmor()->getStoreItem() != Armor::NONE)
+						if (s->getArmor()->getStoreItem())
 						{
 							_base->getStorageItems()->addItem(s->getArmor()->getStoreItem());
 						}
-						if (a->getStoreItem() != Armor::NONE)
+						if (a->getStoreItem())
 						{
 							_base->getStorageItems()->removeItem(a->getStoreItem());
 						}
@@ -569,13 +569,13 @@ void CovertOperationArmorState::btnDeequipAllArmorClick(Action* action)
 		{
 			Armor* a = _game->getMod()->getArmor((*i)->getRules()->getArmor());
 
-			if (_base->getStorageItems()->getItem(a->getStoreItem()) > 0 || a->getStoreItem() == Armor::NONE)
+			if (a->getStoreItem() == nullptr || _base->getStorageItems()->getItem(a->getStoreItem()) > 0)
 			{
-				if ((*i)->getArmor()->getStoreItem() != Armor::NONE)
+				if ((*i)->getArmor()->getStoreItem())
 				{
 					_base->getStorageItems()->addItem((*i)->getArmor()->getStoreItem());
 				}
-				if (a->getStoreItem() != Armor::NONE)
+				if (a->getStoreItem())
 				{
 					_base->getStorageItems()->removeItem(a->getStoreItem());
 				}
@@ -609,13 +609,13 @@ void CovertOperationArmorState::btnDeequipCraftArmorClick(Action* action)
 		{
 			Armor* a = _game->getMod()->getArmor(s->getRules()->getArmor());
 
-			if (_base->getStorageItems()->getItem(a->getStoreItem()) > 0 || a->getStoreItem() == Armor::NONE)
+			if (a->getStoreItem() == nullptr || _base->getStorageItems()->getItem(a->getStoreItem()) > 0)
 			{
-				if (s->getArmor()->getStoreItem() != Armor::NONE)
+				if (s->getArmor()->getStoreItem())
 				{
 					_base->getStorageItems()->addItem(s->getArmor()->getStoreItem());
 				}
-				if (a->getStoreItem() != Armor::NONE)
+				if (a->getStoreItem())
 				{
 					_base->getStorageItems()->removeItem(a->getStoreItem());
 				}
@@ -710,16 +710,18 @@ CovertOperationSoldierArmorState::CovertOperationSoldierArmorState(Base* base, s
 	_sortName->setX(_sortName->getX() + _txtType->getTextWidth() + 4);
 	_sortName->onMouseClick((ActionHandler)&SoldierArmorState::sortNameClick);
 
-	const std::vector<std::string>& armors = _game->getMod()->getArmorsList();
-	for (std::vector<std::string>::const_iterator i = armors.begin(); i != armors.end(); ++i)
+	const auto& armors = _game->getMod()->getArmorsForSoldiers();
+	for (auto* a : armors)
 	{
-		Armor* a = _game->getMod()->getArmor(*i);
-		if (!a->getRequiredResearch().empty() && !_game->getSavedGame()->isResearched(a->getRequiredResearch()))
+		if (a->getRequiredResearch() && !_game->getSavedGame()->isResearched(a->getRequiredResearch()))
 			continue;
-		if (!a->getUnits().empty() &&
-			std::find(a->getUnits().begin(), a->getUnits().end(), s->getRules()->getType()) == a->getUnits().end())
+		if (!a->getCanBeUsedBy(s->getRules()))
 			continue;
-		if (_base->getStorageItems()->getItem(a->getStoreItem()) > 0)
+		if (a->hasInfiniteSupply())
+		{
+			_armors.push_back(ArmorItem(a->getType(), tr(a->getType()), ""));
+		}
+		else if (_base->getStorageItems()->getItem(a->getStoreItem()) > 0)
 		{
 			std::ostringstream ss;
 			if (_game->getSavedGame()->getMonthsPassed() > -1)
@@ -731,10 +733,6 @@ CovertOperationSoldierArmorState::CovertOperationSoldierArmorState(Base* base, s
 				ss << "-";
 			}
 			_armors.push_back(ArmorItem(a->getType(), tr(a->getType()), ss.str()));
-		}
-		else if (a->getStoreItem() == Armor::NONE)
-		{
-			_armors.push_back(ArmorItem(a->getType(), tr(a->getType()), ""));
 		}
 	}
 
@@ -859,11 +857,11 @@ void CovertOperationSoldierArmorState::lstArmorClick(Action*)
 	}
 	if (_game->getSavedGame()->getMonthsPassed() != -1)
 	{
-		if (prev->getStoreItem() != Armor::NONE)
+		if (prev->getStoreItem())
 		{
 			_base->getStorageItems()->addItem(prev->getStoreItem());
 		}
-		if (next->getStoreItem() != Armor::NONE)
+		if (next->getStoreItem())
 		{
 			_base->getStorageItems()->removeItem(next->getStoreItem());
 		}

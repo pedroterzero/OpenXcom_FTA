@@ -162,20 +162,6 @@ DiplomacySellState::DiplomacySellState(Base *base, DiplomacyFaction* faction, De
 
 	_cats.push_back("STR_ALL_ITEMS");
 
-	const std::vector<std::string> &cw = _game->getMod()->getCraftWeaponsList();
-	for (std::vector<std::string>::const_iterator i = cw.begin(); i != cw.end(); ++i)
-	{
-		RuleCraftWeapon *rule = _game->getMod()->getCraftWeapon(*i);
-		_craftWeapons.insert(rule->getLauncherItem());
-		_craftWeapons.insert(rule->getClipItem());
-	}
-	const std::vector<std::string> &ar = _game->getMod()->getArmorsList();
-	for (std::vector<std::string>::const_iterator i = ar.begin(); i != ar.end(); ++i)
-	{
-		Armor *rule = _game->getMod()->getArmor(*i);
-		_armors.insert(rule->getStoreItem());
-	}
-
 	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 	{
 		if (_debriefingState) break;
@@ -369,7 +355,7 @@ void DiplomacySellState::think()
  */
 std::string DiplomacySellState::getCategory(int sel) const
 {
-	RuleItem *rule = 0;
+	RuleItem* rule = 0;
 	switch (_items[sel].type)
 	{
 	case TRANSFER_SOLDIER:
@@ -386,11 +372,11 @@ std::string DiplomacySellState::getCategory(int sel) const
 		}
 		if (rule->getBattleType() == BT_NONE)
 		{
-			if (_craftWeapons.find(rule->getType()) != _craftWeapons.end())
+			if (_game->getMod()->isCraftWeaponStorageItem(rule))
 			{
 				return "STR_CRAFT_ARMAMENT";
 			}
-			if (_armors.find(rule->getType()) != _armors.end())
+			if (_game->getMod()->isArmorStorageItem(rule))
 			{
 				return "STR_EQUIPMENT";
 			}
@@ -551,9 +537,9 @@ void DiplomacySellState::btnOkClick(Action *)
 				{
 					if (*s == soldier)
 					{
-						if ((*s)->getArmor()->getStoreItem() != Armor::NONE)
+						if ((*s)->getArmor()->getStoreItem())
 						{
-							_base->getStorageItems()->addItem((*s)->getArmor()->getStoreItem());
+							_base->getStorageItems()->addItem((*s)->getArmor()->getStoreItem()->getType());
 						}
 						_base->getSoldiers()->erase(s);
 						break;
@@ -902,10 +888,9 @@ void DiplomacySellState::changeByValue(int change, int dir)
 	{
 	case TRANSFER_SOLDIER:
 		soldier = (Soldier*)getRow().rule;
-		if (soldier->getArmor()->getStoreItem() != Armor::NONE)
+		if (soldier->getArmor()->getStoreItem())
 		{
-			armor = _game->getMod()->getItem(soldier->getArmor()->getStoreItem(), true);
-			_spaceChange += dir * armor->getSize();
+			_spaceChange += dir * soldier->getArmor()->getStoreItem()->getSize();
 		}
 		break;
 	case TRANSFER_CRAFT:
