@@ -10,6 +10,11 @@ set ( basescape_src
   Basescape/BaseView.cpp
   Basescape/BuildFacilitiesState.cpp
   Basescape/ChangeHeadquartersState.cpp
+  Basescape/CovertOperationArmorState.cpp
+  Basescape/CovertOperationEquipmentState.cpp
+  Basescape/CovertOperationSoldiersState.cpp
+  Basescape/CovertOperationStartState.cpp
+  Basescape/CovertOperationState.cpp
   Basescape/CraftArmorState.cpp
   Basescape/CraftEquipmentLoadState.cpp
   Basescape/CraftEquipmentSaveState.cpp
@@ -192,6 +197,8 @@ set ( geoscape_src
   Geoscape/DogfightErrorState.cpp
   Geoscape/DogfightExperienceState.cpp
   Geoscape/DogfightState.cpp
+  Geoscape/FinishedCoverOperationDetailsState.cpp
+  Geoscape/FinishedCoverOperationState.cpp
   Geoscape/FundingState.cpp
   Geoscape/GeoscapeCraftState.cpp
   Geoscape/GeoscapeEventState.cpp
@@ -306,6 +313,7 @@ set ( mod_src
   Mod/RuleCommendations.cpp
   Mod/RuleConverter.cpp
   Mod/RuleCountry.cpp
+  Mod/RuleCovertOperation.cpp
   Mod/RuleCraft.cpp
   Mod/RuleCraftWeapon.cpp
   Mod/RuleDamageType.cpp
@@ -351,6 +359,7 @@ set ( savegame_src
   Savegame/BattleItem.cpp
   Savegame/BattleUnit.cpp
   Savegame/Country.cpp
+  Savegame/CovertOperation.cpp
   Savegame/Craft.cpp
   Savegame/CraftWeapon.cpp
   Savegame/CraftWeaponProjectile.cpp
