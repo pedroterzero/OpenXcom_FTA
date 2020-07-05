@@ -234,7 +234,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 			&& (~providedBaseFunc & purchaseBaseFunc).none()
 			&& isEntityAllowedByFaction(rule->getName()))
 		{
-			TransferRow row = { TRANSFER_ITEM, rule, tr(rule->getType()), rule->getBuyCost(), _base->getStorageItems()->getItem(rule->getType()), 0, 0 };
+			TransferRow row = { TRANSFER_ITEM, rule, tr(rule->getType()), rule->getBuyCost(), _base->getStorageItems()->getItem(rule), 0, 0 };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())

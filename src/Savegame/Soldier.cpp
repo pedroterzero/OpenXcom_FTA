@@ -1340,6 +1340,7 @@ void Soldier::die(SoldierDeath *death)
 
 	// Clean up associations
 	_craft = 0;
+	_covertOperation = 0;
 	_psiTraining = false;
 	_training = false;
 	_returnToTrainingWhenHealed = false;

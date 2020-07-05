@@ -193,6 +193,7 @@ void NewGameState::btnOkClick(Action *)
 		base->setLongitude(lon);
 		base->setLatitude(lat);
 		base->setName(tr("STR_LAST_STAND")); //TODO random array here
+		gs->getGlobe()->center(lon, lat);
 		for (std::vector<Craft*>::iterator i = base->getCrafts()->begin(); i != base->getCrafts()->end(); ++i)
 		{
 			(*i)->setLongitude(lon);
@@ -219,6 +220,7 @@ void NewGameState::btnOkClick(Action *)
 				faction->setDiscovered(true);
 			}
 			faction->setReputation(factionRules->getStartingReputation());
+			faction->updateReputationLevel();
 			save->getDiplomacyFactions().push_back(faction);
 		}
 		//start base defense mission

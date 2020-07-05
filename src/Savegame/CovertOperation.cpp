@@ -24,7 +24,7 @@
 #include "../fmath.h"
 #include "../Engine/RNG.h"
 #include "../Engine/Logger.h"
-#include "../Geoscape/GeoscapeEventState.h"
+#include "../Geoscape/FinishedCoverOperationState.h"
 #include "../Geoscape/Globe.h"
 #include "../Battlescape/BattlescapeGenerator.h"
 #include "../Battlescape/BriefingState.h"
@@ -39,7 +39,7 @@
 #include "../Savegame/DiplomacyFaction.h"
 #include "../Savegame/AlienMission.h"
 #include "../Savegame/SavedBattleGame.h"
-#include "../Savegame/Craft.h"
+#include "../Savegame/ItemContainer.h"
 #include "../Mod/Mod.h"
 #include "../Mod/RuleCovertOperation.h"
 #include "../Mod/RuleSoldier.h"
@@ -136,29 +136,17 @@ std::string CovertOperation::getOperationName()
 std::string CovertOperation::getOddsName()
 {
 	if (_successChance > 100)
-	{
 		return ("STR_GREAT");
-	}
 	else if (_successChance > 75)
-	{
 		return ("STR_GOOD");
-	}
 	else if (_successChance > 50)
-	{
 		return ("STR_AVARAGE");
-	}
 	else if (_successChance > 25)
-	{
 		return ("STR_POOR");
-	}
 	else if (_successChance > 0)
-	{
 		return ("STR_VERY_LOW");
-	}
 	else
-	{
 		return ("STR_NONE");
-	}
 	
 }
 
@@ -170,25 +158,15 @@ std::string CovertOperation::getTimeLeftName()
 {
 	int time = _cost - _spent;
 	if (time > 45)
-	{
 		return ("STR_SEVERAL_MONTHS");
-	}
 	else if (time > 20)
-	{
 		return ("STR_MONTH");
-	}
 	else if (time > 10)
-	{
 		return ("STR_SEVERAL_WEEKS");
-	}
 	else if (time > 6)
-	{
 		return ("STR_WEEK");
-	}
 	else
-	{
 		return ("STR_SEVERAL_DAYS");
-	}
 }
 
 /**
@@ -202,20 +180,26 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 	SavedGame& save = *engine.getSavedGame();
 	// if finished, don't do anything
 	if (_over)
-	{
 		return;
-	}
 
 	// are we there yet?
 	if (_spent <= _cost)
 	{
 		++_spent;
 		//should we spawn ongoing event?
-		if (_rule->getRepeatProgressEvent() || !_progressEventSpawned )
+		std::string progressEvent = _rule->getProgressEvent();
+		if (!progressEvent.empty())
 		{
-			if (RNG::percent(_rule->getProgressEventChance()))
+			bool spawn = false;
+			if (!_rule->getRepeatProgressEvent() && _progressEventSpawned)
+				return;
+			else
 			{
-				spawnEvent(engine, _rule->getProgressEvent());
+				if (RNG::percent(_rule->getProgressEventChance()))
+				{
+					spawnEvent(engine, _rule->getProgressEvent());
+					_progressEventSpawned = true;
+				}
 			}
 		}
 		return;
@@ -223,7 +207,7 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 
 	// ok, the time has come to resolve covert operation
 	GameDifficulty diff = save.getDifficulty(); //first, we understand values based on game difficulty
-	int critFailCoef = 1; // 45;
+	int critFailCoef = 45;
 	int woundOdds = 15;
 	int deathOdds = 10;
 	switch (diff)
@@ -255,8 +239,11 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 	int roll = RNG::generate(0, 99);
 	bool operationResult = _successChance > roll;
 	bool criticalFail = roll > (_successChance + critFailCoef);
-	int score = 0; 
+	int score = 0;
+	int funds = 0;
 	std::string eventName;
+	std::vector<std::string> researchList;
+	std::map<std::string, int> itemsToAdd; //TODO
 	std::string missionName;
 	std::string deploymentName;
 	std::map<std::string, int> reputationScore;
@@ -269,22 +256,68 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 	if (operationResult)
 	{
 		score = _rule->getSuccessScore();
+		funds = _rule->getSuccessFunds();
+		researchList = _rule->getSuccessResearchList();
 		eventName = _rule->getSuccessEvent();
 		reputationScore = _rule->getSuccessReputationScoreList();
 		missionName = _rule->chooseGenSuccessMissionType();
 		deploymentName = _rule->chooseGenInstantSuccessDeploumentType();
+		for (auto& pair : _rule->getSuccessEveryItemList())
+		{
+			const RuleItem* itemRule = mod.getItem(pair.first, true);
+			if (itemRule)
+			{
+				itemsToAdd[itemRule->getType()] += pair.second;
+			}
+		}
+		if (!_rule->getSuccessWeightedItemList().empty())
+		{
+			const RuleItem* weightedItem = mod.getItem(_rule->getSuccessWeightedItemList().choose(), true);
+			if (weightedItem)
+			{
+				itemsToAdd[weightedItem->getType()] += 1;
+			}
+		}
 	}
 	else
 	{
 		score = _rule->getFailureScore() * (-1);
 		if (criticalFail) score = score - 300;
+		funds = _rule->getFailureFunds();
+		researchList = _rule->getFailureResearchList();
 		eventName = _rule->getFailureEvent();
 		reputationScore = _rule->getFailureReputationScoreList();
 		missionName = _rule->chooseGenFailureMissionType();
 		deploymentName = _rule->chooseGenInstantTrapDeploumentType();
+		for (auto& pair : _rule->getFailureEveryItemList())
+		{
+			const RuleItem* itemRule = mod.getItem(pair.first, true);
+			if (itemRule)
+			{
+				itemsToAdd[itemRule->getType()] += pair.second;
+			}
+		}
+		if (!_rule->getFailureWeightedItemList().empty())
+		{
+			const RuleItem* weightedItem = mod.getItem(_rule->getFailureWeightedItemList().choose(), true);
+			if (weightedItem)
+			{
+				itemsToAdd[weightedItem->getType()] += 1;
+			}
+		}
 	}
 	// lets process operation results
-	save.addResearchScore(score);
+	if (score != 0) save.addResearchScore(score);
+
+	if (funds != 0) save.setFunds(save.getFunds() + funds);
+
+	if (!itemsToAdd.empty())
+	{
+		for (auto& addItems : itemsToAdd)
+		{
+			this->getItems()->addItem(addItems.first, addItems.second);
+		}
+	}
 
 	if (!eventName.empty())
 	{
@@ -295,19 +328,13 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 	{
 		for (std::map<std::string, int>::const_iterator i = reputationScore.begin(); i != reputationScore.end(); ++i)
 		{
-			Log(LOG_INFO) << "Attempt to add reputation to faction " << (*i).first << " in value: " << (*i).second;
-
-
 			for (std::vector<DiplomacyFaction*>::iterator j = save.getDiplomacyFactions().begin(); j != save.getDiplomacyFactions().end(); ++j)
 			{
-				auto factionName = (*j)->getRules().getName();
-				auto lookingName = (*i).first;
+				std::string factionName = (*j)->getRules().getName();
+				std::string lookingName = (*i).first;
 				if (factionName == lookingName)
 				{
-					Log(LOG_INFO) << "Found mactch in finding faction " << (*i).first << " that equal existing faction " << (*j)->getRules().getName();
-					Log(LOG_INFO) << "Faction " << (*j)->getRules().getName() << " now has reputation score " << (*j)->getReputation();
 					(*j)->setReputation((*j)->getReputation() + (*i).second);
-					Log(LOG_INFO) << "After updating faction " << (*j)->getRules().getName() << " has reputation score " << (*j)->getReputation();
 					break;
 				}
 			}
@@ -347,6 +374,10 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 			}
 
 			RuleRegion* region = mod.getRegion(targetRegion, true);
+			if (!region)
+			{
+				throw Exception("Error processing alien mission named: " + missionName + ", region named: " + targetRegion + " is not defined");
+			}
 			if ((int)(region->getMissionZones().size()) > targetZone)
 			{
 				hasZone = true;
@@ -388,10 +419,6 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 			Log(LOG_ERROR) << "An error occurred during the processing of the result of a covert operation:  " << this->getOperationName() << " ! Failed to choose right region for mission: " << missionName <<
 				". Some alien mission rules could be ignored!";
 		}
-		if (mod.getRegion(targetRegion) == 0)
-		{
-			throw Exception("Error processing alien mission named: " + missionName + ", region named: " + targetRegion + " is not defined");
-		}
 
 		missionRace = missionRules->generateRace(month);
 		if (missionRace.empty())
@@ -426,8 +453,7 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 		save.getAlienMissions().push_back(mission);
 	}
 
-	bool done = true; //remove or set true when done;
-	if (!deploymentName.empty() && done)
+	if (!deploymentName.empty())
 	{
 		bool process = true;
 		if (!operationResult) //if operation failed lets see if we get into a trap!
@@ -436,10 +462,9 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 			if (criticalFail && trapRoll > 0) trapRoll = trapRoll + 35;
 			process = RNG::generate(0, 99) < trapRoll;
 		}
-
-		if (process) //oh, boy, we are going to generate battlescape to resolve our covert opration!
-		{
-			auto deployment = mod.getDeployment(deploymentName);
+		if (process) 
+		{//oh, boy, we are going to generate battlescape to resolve our covert opration!
+			AlienDeployment* deployment = mod.getDeployment(deploymentName);
 			if (deployment != 0)
 			{
 				SavedBattleGame* bgame = new SavedBattleGame(engine.getMod(), engine.getLanguage());
@@ -457,21 +482,18 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 			{
 				throw Exception("No deployment defined for operation: " + this->getOperationName() + " ! It is reffering to alienDeployment named: " + deploymentName);
 			}
-			
 		}
 	}
-	//we do not push battlescape for our operation or anything like that, so we can return to our base!
-	else 
+	else //we do not push any battlescape for our operation or anything like that, so we can return to our base!
 	{
-
-
 		// lets return items from operation to the base
 		for (std::map<std::string, int>::iterator it = _items->getContents()->begin(); it != _items->getContents()->end(); ++it)
 		{
 			_base->getStorageItems()->addItem(it->first, it->second);
 		}
 		//now we can finish operation
-		finishOperation();
+		engine.pushState(new FinishedCoverOperationState(this, operationResult));
+		//finishOperation();
 	}
 	return;
 }

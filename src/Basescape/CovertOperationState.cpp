@@ -41,6 +41,8 @@
 #include "../Interface/TextEdit.h"
 #include "../Engine/Game.h"
 #include "../Savegame/SavedGame.h"
+#include "../Savegame/DiplomacyFaction.h"
+#include "../Mod/RuleDiplomacyFaction.h"
 
 
 namespace OpenXcom
@@ -338,42 +340,50 @@ void CovertOperationsListState::fillProjectList()
 {
 	_operations.clear();
 	_lstOperations->clearList();
-
-	bool happy;
-	for (std::vector<std::string>::const_iterator i = _game->getMod()->getCovertOperationList()->begin(); i != _game->getMod()->getCovertOperationList()->end(); ++i)
+	const Mod *mod = _game->getMod();
+	SavedGame *save = _game->getSavedGame();
+	for (std::vector<std::string>::const_iterator i = mod->getCovertOperationList()->begin(); i != mod->getCovertOperationList()->end(); ++i)
 	{
-		RuleCovertOperation* rule = _game->getMod()->getCovertOperation(*i);
-		happy = true;
+		RuleCovertOperation* rule = mod->getCovertOperation(*i);
+		bool happy = true;
 		// we dont want to do same operations twice
-		const std::vector<std::string>& performedOperations = _game->getSavedGame()->getPerformedCovertOperations();
+		const std::vector<std::string>& performedOperations = save->getPerformedCovertOperations();
 		for (std::vector<std::string>::const_iterator i = performedOperations.begin(); i != performedOperations.end(); ++i)
 		{
-			if (rule->getName() == (*i))
-			{
-				happy = false;
-			}
+			if (rule->getName() == (*i)) happy = false;
 		}
-		//lets see if we have required research
+		//do we have required research...
 		if (happy && !rule->getRequirements().empty())
 		{
-			if (!_game->getSavedGame()->isResearched(_game->getMod()->getResearch(rule->getRequirements())))
-			{
-				happy = false;
-			}
+			if (!save->isResearched(mod->getResearch(rule->getRequirements())))	happy = false;
+		}
+		//or one that can close opprtunity for this operation?
+		if (happy && !rule->getCanceledBy().empty())
+		{
+			if (save->isResearched(mod->getResearch(rule->getCanceledBy()))) happy = false;
 		}
 		//lets see if our base fits requirments
-		/*if (happy) //TODO add ProvidedBaseFunc feature
+		if (happy)
 		{
 			auto providedBaseFunc = _base->getProvidedBaseFunc({});
-			auto ruleReqBaseFunc = rule->getRequiresBuyBaseFunc();
-			if ((~providedBaseFunc & ruleReqBaseFunc).none())
+			auto ruleReqBaseFunc = rule->getRequiresBaseFunc();
+			if (!((~providedBaseFunc & ruleReqBaseFunc).none())) happy = false;
+		}
+		//finally, reputation requirments
+		if (happy && !rule->getRequiredReputationLvlList().empty())
+		{
+			for (std::map<std::string, int>::const_iterator i = rule->getRequiredReputationLvlList().begin(); i != rule->getRequiredReputationLvlList().end(); ++i)
 			{
-				happy = false;
-				break;
+				for (std::vector<DiplomacyFaction*>::iterator j = save->getDiplomacyFactions().begin(); j != save->getDiplomacyFactions().end(); ++j)
+				{
+					if ((*j)->getRules().getName() == (*i).first)
+					{
+						if ((*j)->getReputationLevel() < (*i).second || !(*j)->isDiscovered()) happy = false;
+					}
+				}
 			}
-		}*/
-		// TODO add reputation requirments
-		//all checks passed, we can show that operation to the player
+		}
+		//all checks passed, we can show now operation to the player!
 		if (happy)
 		{
 			_operations.push_back(rule);

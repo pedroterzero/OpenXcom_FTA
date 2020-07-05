@@ -81,6 +81,7 @@ GeoscapeEventState::GeoscapeEventState(GeoscapeEvent *geoEvent) : _eventRule(geo
 
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)& GeoscapeEventState::btnOkClick);
+	_btnOk->onKeyboardPress((ActionHandler)&GeoscapeEventState::btnOkClick, Options::keyOk);
 
 	eventLogic();
 }
