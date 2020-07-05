@@ -38,8 +38,8 @@ class RuleCovertOperation
 {
 private:
 	std::string _name, _description, _successDescription, _failureDescription, _sucessBackground, _failureBackground, _successEvent,  _failureEvent, _progressEvent;
-	std::vector<std::string> _requires, _canceledBy, _allowedArmor, _successResearchList, _failureResearchList; //TODO processing of _canceledBy
-	RuleBaseFacilityFunctions _requiresBuyBaseFunc; //TODO processing of _requiresBuyBaseFunc
+	std::vector<std::string> _requires, _canceledBy, _allowedArmor, _successResearchList, _failureResearchList;
+	RuleBaseFacilityFunctions _requiresBaseFunc;
 	int _soldierSlots, _optionalSoldierSlots, _scientistSlots, _engineerSlots, _optionalSoldierEffect, _scientistEffect, _engeneerEffect, _itemSpaceEffect, _armorEffect;
 	double _itemSpaceLimit;
 	int _baseChances, _costs, _successScore, _failureScore, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger;
@@ -69,7 +69,7 @@ public:
 	/// Gets the operation's requirements.
 	const std::vector<std::string>& getRequirements() const { return _requires; };
 	/// Gets the base functions required to start operation.
-	RuleBaseFacilityFunctions getRequiresBuyBaseFunc() const { return _requiresBuyBaseFunc; }
+	RuleBaseFacilityFunctions getRequiresBaseFunc() const { return _requiresBaseFunc; }
 	/// Gets the research name that would make this operation impossible to run.
 	//const std::vector<std::string>& getCanceledBy() const { return _canceledBy; };
 	/// Gets the research name that would make this operation impossible to run.
@@ -80,6 +80,10 @@ public:
 	const std::string& getFailureEvent() const { return _failureEvent; };
 	/// Gets the event name that would be spawned while operation is in progress.
 	const std::string& getProgressEvent() const { return _progressEvent; };
+	/// Gets the operation's list of projects that would be discovered on success resolve.
+	const std::vector<std::string>& getSuccessResearchList() const { return _successResearchList; };
+	/// Gets the operation's list of projects that would be discovered on failure.
+	const std::vector<std::string>& getFailureResearchList() const { return _failureResearchList; };
 	/// Gets the soldiers number that required by this operations.
 	int getSoldierSlots() const { return _soldierSlots; };
 	/// Gets the optional soldiers slots for this operations.
@@ -109,7 +113,7 @@ public:
 	/// Gets chance of spawning event in progress of running covert operation.
 	int getProgressEventChance() const { return _progressEventChance; };
 	/// Gets if progress event should be repeated in progress of running covert operation.
-	int getRepeatProgressEvent() const { return _repeatProgressEvent; };
+	bool getRepeatProgressEvent() const { return _repeatProgressEvent; };
 	/// Gets operation item space limit.
 	double getItemSpaceLimit() const { return _itemSpaceLimit; }
 	/// Gets operation item space limit.
@@ -132,6 +136,14 @@ public:
 	const std::map<std::string, int>& getSuccessReputationScoreList() const { return _successReputationScore; }
 	/// Gets the factions reputation award list for this operation on failure.
 	const std::map<std::string, int>& getFailureReputationScoreList() const { return _failureReputationScore; }
+	/// Gets list of items, all of it would be added to this operation on success result.
+	const std::map<std::string, int>& getSuccessEveryItemList() const { return _successEveryItemList; }
+	/// Gets list of items, all of it would be added to this operation on failure.
+	const std::map<std::string, int>& getFailureEveryItemList() const { return _failureEveryItemList; }
+	/// Gets a list of items; one of them is randomly selected (considering weights) and would be added to this operation on success result.
+	const WeightedOptions& getSuccessWeightedItemList() const { return _successWeightedItemList; }
+	/// Gets a list of items; one of them is randomly selected (considering weights) and  would be added to this operation on failure.
+	const WeightedOptions& getFailureWeightedItemList() const { return _failureWeightedItemList; }
 	/// Gets the operation's required item list.
 	const std::map<std::string, int>& getRequiredItemList() const { return _requiredItems; }
 	/// Gets the operation's allowed armor.

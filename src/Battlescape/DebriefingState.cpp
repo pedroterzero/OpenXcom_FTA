@@ -85,6 +85,8 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 {
 	_missionStatistics = new MissionStatistics();
 
+	if (_game->getMod()->getIsFTAGame()) _showSellButton = false; //TODO
+
 	Options::baseXResolution = Options::baseXGeoscape;
 	Options::baseYResolution = Options::baseYGeoscape;
 	_game->getScreen()->resetDisplay(false);
@@ -1112,7 +1114,7 @@ void DebriefingState::prepareDebriefing()
 			}
 		}
 		// in case we DON'T have a craft (base defense)
-		//FtA: we can have covert operation, so lets handle that now
+		//FtA: we can have covert operation, so let's handle that now
 		for (std::vector<CovertOperation*>::iterator c = (*i)->getCovertOperations().begin(); c != (*i)->getCovertOperations().end(); ++c)
 		{
 			if ((*c)->isInBattlescape())
@@ -1121,6 +1123,7 @@ void DebriefingState::prepareDebriefing()
 				base = (*i);
 				covertOperation->setInBattlescape(false);
 				covertOperation->finishOperation();
+				break;
 			}
 		}
 		if ((*i)->isInBattlescape())

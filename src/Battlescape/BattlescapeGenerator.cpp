@@ -1283,12 +1283,14 @@ BattleUnit *BattlescapeGenerator::addXCOMUnit(BattleUnit *unit)
 			Node* node = _save->getSpawnNode(NR_XCOM, unit); //case deployment have special block with fixed spawn points
 			if (node)
 			{
-				_save->setUnitPosition(unit, node->getPosition());
-				_craftInventoryTile = _save->getTile(node->getPosition());
-				unit->setDirection(RNG::generate(0, 7));
-				_save->getUnits()->push_back(unit);
-				_save->initUnit(unit);
-				return unit;
+				if (_save->setUnitPosition(unit, node->getPosition()))
+				{
+					_craftInventoryTile = _save->getTile(node->getPosition());
+					unit->setDirection(RNG::generate(0, 7));
+					_save->getUnits()->push_back(unit);
+					_save->initUnit(unit);
+					return unit;
+				}
 			}
 			bool spawnClose = RNG::percent(35);
 			if (spawnClose && placeUnitNearFriend(unit))
@@ -1304,10 +1306,11 @@ BattleUnit *BattlescapeGenerator::addXCOMUnit(BattleUnit *unit)
 				int tries = 100;
 				while (tries)
 				{
-					int blockX = RNG::generate(0, (_mapsize_x / 10) - 1);
-					int blockY = RNG::generate(0, (_mapsize_y / 10) - 1);
+					int blockX = RNG::generate(1, (_mapsize_x / 10) - 1);
+					int blockY = RNG::generate(1, (_mapsize_y / 10) - 1);
 					MapBlock* block = _blocks[blockX][blockY];
-					if (block->isInGroup(0))
+					bool checkBlock = block->getSizeX() > 0; //avoid memory-blanck positions caused by 2x2 blocks
+					if (checkBlock && (!block->isInGroup(1) && !block->isInGroup(2) && !block->isInGroup(3) && !block->isInGroup(4)))
 					{
 						int iter = 100;
 						while (iter) // now we look for fine place inside mapblock
@@ -1328,7 +1331,7 @@ BattleUnit *BattlescapeGenerator::addXCOMUnit(BattleUnit *unit)
 							}
 							--iter;
 						}
-					}
+					}	
 					--tries;
 				}
 			}

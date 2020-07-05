@@ -35,8 +35,8 @@ RuleCovertOperation::RuleCovertOperation(const std::string& name) : _name(name),
 																	_scientistSlots(0), _engineerSlots(0), _optionalSoldierEffect(15), _scientistEffect(10), _engeneerEffect(10),
 																	_baseChances(50), _costs(0), _itemSpaceLimit(-1), _itemSpaceEffect(10), _danger(0), _trapChance(0), _armorEffect(20),
 																	_successScore(0), _failureScore(0), _progressEventChance(0), _repeatProgressEvent(false),
-																	_successFunds(0), _failureFunds(0), _sucessBackground("BACK13.SCR"), _failureBackground("BACK13.SCR"), 
-																	_listOrder(0)
+																	_successFunds(0), _failureFunds(0), 
+																	_listOrder(0) //, _sucessBackground("BACK13.SCR"), _failureBackground("BACK13.SCR")
 {
 }
 
@@ -67,7 +67,7 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_failureEvent = node["failureEvent"].as<std::string>(_failureEvent);
 	_progressEvent = node["progressEvent"].as<std::string>(_progressEvent);
 	_requires = node["requires"].as<std::vector<std::string>>(_requires);
-	mod->loadBaseFunction(_name, _requiresBuyBaseFunc, node["requiresBuyBaseFunc"]);
+	mod->loadBaseFunction(_name, _requiresBaseFunc, node["requiresBaseFunc"]);
 	_soldierSlots = node["soldierSlots"].as<int>(_soldierSlots);
 	if (_soldierSlots < 1)
 	{

@@ -28,16 +28,13 @@ class RuleCovertOperation;
 class Game;
 class SavedGame;
 class Globe;
-class Region;
 class Mod;
-class GeoscapeEvent;
-class RuleEvent;
 class RuleAlienMission;
 class DiplomacyFaction;
 class Soldier;
 class Base;
 class ItemContainer;
-class RuleStartingCondition;
+class UnitStats;
 
 /**
 * Represents a Covert Operation.
@@ -51,7 +48,8 @@ private:
 	int _successChance, _assignedScientists, _assignedEngineers;
 	ItemContainer* _items;
 	bool _inBattlescape, _hasBattlescapeResolve, _over, _hasPsi, _progressEventSpawned;
-	std::string _generatedMission;
+	std::string _generatedMission, _researchName;
+	typedef std::pair<std::string, UnitStats> SoldierStatsEntry;
 public:
 	/// Creates a blank Covert Operation.
 	CovertOperation(const RuleCovertOperation* rule, Base* base, int cost = 0, int chances = 0);
@@ -94,6 +92,8 @@ public:
 	int getIsPsi() const { return _hasPsi; };
 	/// Sets if operation has psionic agents capable to use their abilities.
 	void setIsPsi(int hasPsi) { _hasPsi = hasPsi; };
+	/// Gets name of the discovered research
+	std::string getDiscoveredResearch() { return _researchName; }
 
 	/// Gets operation's items.
 	ItemContainer* getItems() { return _items; };
@@ -120,4 +120,32 @@ public:
 	/// Takes care to finish covert operation.
 	void finishOperation();
 };
+
+class CovertOperationResults
+{
+private:
+	std::string _operationName;
+	std::string _finishDate;
+	bool _result;
+	int _score, _funds;
+	std::map<std::string, int> _bountyItems, _reputation, _soldierDamage;
+	std::string _specialMessage;
+	typedef std::pair<std::string, UnitStats> SoldierStatsEntry;
+public:
+	CovertOperationResults(const std::string& operationName, bool result, std::string& finishDate) :
+		_operationName(operationName), _result(result), _finishDate(finishDate), _score(0), _funds(0) {};
+	void addScore(int score) { _score += score; }
+	int getScore() { return _score; }
+	void addFunds(int funds) { _funds += funds; }
+	int getFunds() { return _funds; }
+	void addItem(const std::string& name, int value) { _bountyItems[name] = value; }
+	std::map<std::string, int> getItems() { return _bountyItems; }
+	void addReputation(const std::string& name, int value) { _reputation[name] = value; }
+	std::map<std::string, int> getReputation() { return _reputation; }
+	void addSoldierDamage(const std::string& name, int value) { _soldierDamage[name] = value; }
+	std::map<std::string, int> getSoldierDamage() { return _soldierDamage; }
+	void setSpecialMessage(const std::string& message) { _specialMessage = message; }
+	std::string getSpecialMessage() { return _specialMessage; }
+};
+
 }
