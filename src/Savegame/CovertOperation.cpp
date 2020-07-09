@@ -243,7 +243,7 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 	int funds = 0;
 	std::string eventName;
 	std::vector<std::string> researchList;
-	std::map<std::string, int> itemsToAdd; //TODO
+	std::map<std::string, int> itemsToAdd;
 	std::string missionName;
 	std::string deploymentName;
 	std::map<std::string, int> reputationScore;
@@ -252,6 +252,7 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 	int eng = this->getAssignedEngineers();
 	if (sci > 0) _base->setScientists(_base->getScientists() + sci);
 	if (eng > 0) _base->setEngineers(_base->getEngineers() + eng);
+	_results = new CovertOperationResults(this->getOperationName(), operationResult, "0");
 	//load results of operation
 	if (operationResult)
 	{
@@ -307,15 +308,24 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 		}
 	}
 	// lets process operation results
-	if (score != 0) save.addResearchScore(score);
+	if (score != 0)
+	{
+		save.addResearchScore(score);
+		_results->addScore(score);
+	}
 
-	if (funds != 0) save.setFunds(save.getFunds() + funds);
+	if (funds != 0)
+	{
+		save.setFunds(save.getFunds() + funds);
+		_results->addFunds(funds);
+	}
 
 	if (!itemsToAdd.empty())
 	{
 		for (auto& addItems : itemsToAdd)
 		{
 			this->getItems()->addItem(addItems.first, addItems.second);
+			_results->addItem(addItems.first, addItems.second);
 		}
 	}
 
@@ -335,6 +345,7 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 				if (factionName == lookingName)
 				{
 					(*j)->setReputation((*j)->getReputation() + (*i).second);
+					_results->addReputation(factionName, (*i).second);
 					break;
 				}
 			}
