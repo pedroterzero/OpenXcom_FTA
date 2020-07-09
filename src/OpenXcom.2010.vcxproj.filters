@@ -1155,6 +1155,9 @@
     <ClCompile Include="Geoscape\FinishedCoverOperationDetailsState.cpp">
       <Filter>Geoscape</Filter>
     </ClCompile>
+    <ClCompile Include="Basescape\CovertOperationInfoState.cpp">
+      <Filter>Basescape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2367,6 +2370,9 @@
     </ClInclude>
     <ClInclude Include="Geoscape\FinishedCoverOperationDetailsState.h">
       <Filter>Geoscape</Filter>
+    </ClInclude>
+    <ClInclude Include="Basescape\CovertOperationInfoState.h">
+      <Filter>Basescape</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

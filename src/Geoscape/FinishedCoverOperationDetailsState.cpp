@@ -43,7 +43,7 @@ namespace OpenXcom
 	{
 		_screen = false;
 
-		_results = operation.getResults();
+		_results = _operation->getResults();
 		// Create objects
 		_window = new Window(this, 320, 200, 0, 0);
 		_btnOk = new TextButton(40, 12, 16, 180);
