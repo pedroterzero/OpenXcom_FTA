@@ -52,8 +52,6 @@ public:
 	void btnNewClick(Action* action);
 	/// Handler for clicking the CovertOperation list.
 	void onSelectOperation(Action* action);
-	void onOpenTechTreeViewer(Action* action);
-	void lstResearchMousePress(Action* action);
 	/// Handler for opening the Current Global Research UI.
 	void onCurrentGlobalResearchClick(Action* action);
 	/// Fills the CovertOperation list with Base CovertOperation.
@@ -77,15 +75,15 @@ private:
 	Text* _txtTitle;
 	TextList* _lstOperations;
 	size_t _lstScroll;
-	void onSelectProject(Action* action);
-	std::vector<RuleCovertOperation*> _operations;
+	void onSelectOperation(Action* action);
+	std::vector<RuleCovertOperation*> _operationRules;
 public:
 	/// Creates the Covert Operations List state.
 	CovertOperationsListState(Base* base);
 	/// Handler for clicking the OK button.
 	void btnOKClick(Action* action);
 	/// Fills the ResearchProject list with possible ResearchProjects.
-	void fillProjectList();
+	void fillOperationList();
 	/// Initializes the state.
 	void init() override;
 };

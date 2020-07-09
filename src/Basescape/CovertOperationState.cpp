@@ -28,13 +28,10 @@
 #include "../Interface/Text.h"
 #include "../Interface/TextList.h"
 #include "../Savegame/Base.h"
-#include "NewResearchListState.h"
-#include "GlobalResearchState.h"
 #include "../Savegame/CovertOperation.h"
 #include "../Mod/RuleCovertOperation.h"
-#include "CovertOperationStartState.h"
-#include "ResearchInfoState.h"
-#include "TechTreeViewerState.h"
+#include "../Basescape/CovertOperationStartState.h"
+#include "../Basescape/CovertOperationInfoState.h"
 #include <algorithm>
 #include "../Engine/Logger.h"
 
@@ -118,8 +115,6 @@ CovertOperationState::CovertOperationState(Base* base) : _base(base)
 	_lstOperations->setMargin(2);
 	_lstOperations->setWordWrap(true);
 	_lstOperations->onMouseClick((ActionHandler)&CovertOperationState::onSelectOperation, SDL_BUTTON_LEFT);
-	//_lstOperations->onMouseClick((ActionHandler)&CovertOperationState::onOpenTechTreeViewer, SDL_BUTTON_MIDDLE);
-	//_lstOperations->onMousePress((ActionHandler)&CovertOperationState::lstResearchMousePress);
 }
 
 /**
@@ -153,62 +148,9 @@ void CovertOperationState::btnNewClick(Action*)
 */
 void CovertOperationState::onSelectOperation(Action*)
 {
-	/*const std::vector<ResearchProject*>& baseProjects(_base->getResearch());
-	_game->pushState(new ResearchInfoState(_base, baseProjects[_lstOperations->getSelectedRow()]));*/
-	return; //temp
-}
-
-/**
-* Opens the TechTreeViewer for the corresponding topic.
-* @param action Pointer to an action.
-*/
-void CovertOperationState::onOpenTechTreeViewer(Action*)
-{
-	/*const std::vector<ResearchProject*>& baseProjects(_base->getResearch());
-	const RuleResearch* selectedTopic = baseProjects[_lstOperations->getSelectedRow()]->getRules();
-	_game->pushState(new TechTreeViewerState(selectedTopic, 0));*/
-	return; //temp
-}
-
-/**
-* Handles the mouse-wheels.
-* @param action Pointer to an action.
-*/
-void CovertOperationState::lstResearchMousePress(Action* action)
-{
-	if (!_lstOperations->isInsideNoScrollArea(action->getAbsoluteXMouse()))
-	{
-		return;
-	}
-
-	/*int change = options::oxceresearchscrollspeed;
-	if (sdl_getmodstate() & kmod_ctrl)
-		change = options::oxceresearchscrollspeedwithctrl;
-
-	if (action->getdetails()->button.button == sdl_button_wheelup)
-	{
-		change = std::min(change, _base->getavailablescientists());
-		change = std::min(change, _base->getfreelaboratories());
-		if (change > 0)
-		{
-			researchproject* selectedproject = _base->getresearch()[_lstoperations->getselectedrow()];
-			selectedproject->setassigned(selectedproject->getassigned() + change);
-			_base->setscientists(_base->getscientists() - change);
-			fillprojectlist(_lstresearch->getscroll());
-		}
-	}
-	else if (action->getdetails()->button.button == sdl_button_wheeldown)
-	{
-		researchproject* selectedproject = _base->getresearch()[_lstoperations->getselectedrow()];
-		change = std::min(change, selectedproject->getassigned());
-		if (change > 0)
-		{
-			selectedproject->setassigned(selectedproject->getassigned() - change);
-			_base->setscientists(_base->getscientists() + change);
-			fillprojectlist(_lstresearch->getscroll());
-		}
-	}*/
-	return; //temp
+	std::vector<CovertOperation*>& baseProjects(_base->getCovertOperations());
+	CovertOperation* selectedTopic = baseProjects[_lstOperations->getSelectedRow()];
+	_game->pushState(new CovertOperationInfoState(selectedTopic));
 }
 
 /**
@@ -217,7 +159,8 @@ void CovertOperationState::lstResearchMousePress(Action* action)
 */
 void CovertOperationState::onCurrentGlobalResearchClick(Action*)
 {
-	_game->pushState(new GlobalResearchState(true));
+	return; //TODO
+	//_game->pushState(new GlobalResearchState(true));
 }
 /**
 * Updates the research list
@@ -302,8 +245,7 @@ CovertOperationsListState::CovertOperationsListState(Base* base) : _base(base), 
 	_lstOperations->setBackground(_window);
 	_lstOperations->setMargin(8);
 	_lstOperations->setAlign(ALIGN_CENTER);
-	_lstOperations->onMouseClick((ActionHandler)&CovertOperationsListState::onSelectProject, SDL_BUTTON_LEFT);
-	_lstOperations->onMouseClick((ActionHandler)&CovertOperationsListState::onSelectProject, SDL_BUTTON_RIGHT); //change for info
+	_lstOperations->onMouseClick((ActionHandler)&CovertOperationsListState::onSelectOperation, SDL_BUTTON_LEFT);
 }
 
 /**
@@ -312,16 +254,16 @@ CovertOperationsListState::CovertOperationsListState(Base* base) : _base(base), 
 void CovertOperationsListState::init()
 {
 	State::init();
-	fillProjectList();
+	fillOperationList();
 }
 
 /**
  * Selects the CovertOperations to work on.
  * @param action Pointer to an action.
  */
-void CovertOperationsListState::onSelectProject(Action*)
+void CovertOperationsListState::onSelectOperation(Action*)
 {
-	_game->pushState(new CovertOperationStartState(_base, _operations[_lstOperations->getSelectedRow()])); //TODO CovertOperation Info state!
+	_game->pushState(new CovertOperationStartState(_base, _operationRules[_lstOperations->getSelectedRow()]));
 }
 
 /**
@@ -336,9 +278,9 @@ void CovertOperationsListState::btnOKClick(Action*)
 /**
  * Fills the list with possible CovertOperations.
  */
-void CovertOperationsListState::fillProjectList()
+void CovertOperationsListState::fillOperationList()
 {
-	_operations.clear();
+	_operationRules.clear();
 	_lstOperations->clearList();
 	const Mod *mod = _game->getMod();
 	SavedGame *save = _game->getSavedGame();
@@ -386,7 +328,7 @@ void CovertOperationsListState::fillProjectList()
 		//all checks passed, we can show now operation to the player!
 		if (happy)
 		{
-			_operations.push_back(rule);
+			_operationRules.push_back(rule);
 			_lstOperations->addRow(1, tr((*i)).c_str());
 		}
 	}

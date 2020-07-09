@@ -246,6 +246,7 @@
     <ClCompile Include="Basescape\ChangeHeadquartersState.cpp" />
     <ClCompile Include="Basescape\CovertOperationArmorState.cpp" />
     <ClCompile Include="Basescape\CovertOperationEquipmentState.cpp" />
+    <ClCompile Include="Basescape\CovertOperationInfoState.cpp" />
     <ClCompile Include="Basescape\CovertOperationSoldiersState.cpp" />
     <ClCompile Include="Basescape\CovertOperationStartState.cpp" />
     <ClCompile Include="Basescape\CovertOperationState.cpp" />
@@ -641,6 +642,7 @@
     <ClInclude Include="Basescape\ChangeHeadquartersState.h" />
     <ClInclude Include="Basescape\CovertOperationArmorState.h" />
     <ClInclude Include="Basescape\CovertOperationEquipmentState.h" />
+    <ClInclude Include="Basescape\CovertOperationInfoState.h" />
     <ClInclude Include="Basescape\CovertOperationSoldiersState.h" />
     <ClInclude Include="Basescape\CovertOperationStartState.h" />
     <ClInclude Include="Basescape\CovertOperationState.h" />
