@@ -39,22 +39,23 @@ namespace OpenXcom
 	 * @param geoEvent Pointer to the event.
 	 * @param result - comes true if sucess operation, false if it was failed.
 	 */
-	FinishedCoverOperationDetailsState::FinishedCoverOperationDetailsState(CovertOperation* operation) : _operation(operation), _rule(operation->getRules())
+	FinishedCoverOperationDetailsState::FinishedCoverOperationDetailsState(CovertOperation* operation) : _operation(operation)
 	{
 		_screen = false;
 
-		// Create objects
+		_results = operation.getResults();
 		// Create objects
 		_window = new Window(this, 320, 200, 0, 0);
 		_btnOk = new TextButton(40, 12, 16, 180);
-		_btnStats = new TextButton(60, 12, 244, 180); //replace results
-		_btnResults = new TextButton(60, 12, 244, 180); //replace stats
+		_btnStats = new TextButton(60, 12, 244, 180); //replacing results
+		_btnResults = new TextButton(60, 12, 244, 180); //replacing stats
 		_txtTitle = new Text(300, 17, 16, 8);
+
 		_txtItem = new Text(180, 9, 16, 24);
-		_txtQuantity = new Text(60, 9, 200, 24);
-		_lstStats = new TextList(290, 80, 16, 32);
-		_lstRecovery = new TextList(290, 80, 16, 32);
-		_lstTotal = new TextList(290, 9, 16, 12);
+		_lstRecoveredItems = new TextList(272, 48, 16, 32); // h=144 = 18 rows and 48 means 8 rows
+		_lstReputation = new TextList(272, 24, 16, 92);
+		//_lstRecovery = new TextList(290, 80, 16, 32);
+		//_lstTotal = new TextList(290, 9, 16, 12);
 
 		// Second page (soldier stats)
 		_txtSoldier = new Text(90, 9, 16, 24); //16..106 = 90
@@ -74,17 +75,19 @@ namespace OpenXcom
 
 		_txtTooltip = new Text(200, 9, 64, 180);
 
-		// Third page (recovered items)
-		_lstRecoveredItems = new TextList(272, 144, 16, 32); // 18 rows
-
 		// Set palette
 		setInterface("covertOperationFinishDetails");
 
 		add(_window, "window", "covertOperationFinishDetails");
-		add(_txtTitle, "text1", "covertOperationFinishDetails");
+		add(_txtTitle, "heading", "covertOperationFinishDetails");
 		add(_btnOk, "button", "covertOperationFinishDetails");
 		add(_btnStats, "button", "covertOperationFinishDetails");
 		add(_btnResults, "button", "covertOperationFinishDetails");
+
+		add(_txtItem, "text", "covertOperationFinishDetails");
+		add(_lstRecoveredItems, "list", "covertOperationFinishDetails");
+		add(_lstReputation, "list", "covertOperationFinishDetails");
+
 
 		centerAllSurfaces();
 
@@ -92,9 +95,7 @@ namespace OpenXcom
 
 		setWindowBackground(_window, "covertOperationFinishDetails");
 		
-		_txtTitle->setAlign(ALIGN_CENTER);
 		_txtTitle->setBig();
-		_txtTitle->setWordWrap(true);
 		_txtTitle->setText(tr(operation->getOperationName()));
 
 
@@ -102,17 +103,49 @@ namespace OpenXcom
 		_btnOk->onMouseClick((ActionHandler)&FinishedCoverOperationDetailsState::btnOkClick);
 		_btnOk->onKeyboardPress((ActionHandler)&FinishedCoverOperationDetailsState::btnOkClick, Options::keyOk);
 
+		//_btnStats->onMouseClick((ActionHandler)&FinishedCoverOperationDetailsState::btnStatsClick);
+
+		_txtItem->setText(tr("STR_LIST_ITEM"));
+
+		_lstRecoveredItems->setColumns(2, 254, 18);
+		_lstRecoveredItems->setAlign(ALIGN_LEFT);
+		_lstRecoveredItems->setDot(true);
+
+		_lstReputation->setColumns(2, 254, 18);
+		_lstReputation->setAlign(ALIGN_LEFT);
+		_lstReputation->setDot(true);
+
+		std::map<std::string, int> items = _results->getItems();
+
+		int rowItem = 0;
+		for (std::map<std::string, int>::const_iterator i = items.begin(); i != items.end(); ++i)
+		{
+			auto item = tr((*i).first);
+			int qty = (*i).second;
+			std::ostringstream ss;
+			ss << Unicode::TOK_COLOR_FLIP << qty << Unicode::TOK_COLOR_FLIP;
+			_lstRecoveredItems->addRow(2, item.c_str(), ss.str().c_str());
+			++rowItem;
+		}
+
+		int rowReputation = 0;
+		auto factions = _results->getReputation();
+		for (std::map<std::string, int>::const_iterator i = factions.begin(); i != factions.end(); ++i)
+		{
+			auto faction = tr((*i).first);
+			int qty = (*i).second;
+			std::ostringstream ss;
+			ss << Unicode::TOK_COLOR_FLIP << qty << Unicode::TOK_COLOR_FLIP;
+			_lstReputation->addRow(2, faction.c_str(), ss.str().c_str());
+			++rowReputation;
+		}
+
+
+
+
 	}
 
-	/**
-	 *
-	 */
-	FinishedCoverOperationDetailsState::~FinishedCoverOperationDetailsState()
-	{
-		// Empty by design
-	}
-
-	//methods to generate UI
+	FinishedCoverOperationDetailsState::~FinishedCoverOperationDetailsState() {}
 
 	std::string FinishedCoverOperationDetailsState::makeSoldierString(int stat)
 	{

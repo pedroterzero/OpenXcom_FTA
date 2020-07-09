@@ -35,6 +35,7 @@ class Soldier;
 class Base;
 class ItemContainer;
 class UnitStats;
+class CovertOperationResults;
 
 /**
 * Represents a Covert Operation.
@@ -47,6 +48,7 @@ private:
 	int _spent, _cost;
 	int _successChance, _assignedScientists, _assignedEngineers;
 	ItemContainer* _items;
+	CovertOperationResults* _results;
 	bool _inBattlescape, _hasBattlescapeResolve, _over, _hasPsi, _progressEventSpawned;
 	std::string _generatedMission, _researchName;
 	typedef std::pair<std::string, UnitStats> SoldierStatsEntry;
@@ -97,6 +99,8 @@ public:
 
 	/// Gets operation's items.
 	ItemContainer* getItems() { return _items; };
+	/// Gets operation's results.
+	CovertOperationResults* getResults() { return _results; }
 
 	/// Gets approximate odds of operation success for UI.
 	std::string getOddsName();
@@ -132,18 +136,25 @@ private:
 	std::string _specialMessage;
 	typedef std::pair<std::string, UnitStats> SoldierStatsEntry;
 public:
-	CovertOperationResults(const std::string& operationName, bool result, std::string& finishDate) :
+	/// Create base Covert Operation results
+	CovertOperationResults(const std::string& operationName, bool result, std::string finishDate) :
 		_operationName(operationName), _result(result), _finishDate(finishDate), _score(0), _funds(0) {};
+	/// Manipulate score
 	void addScore(int score) { _score += score; }
 	int getScore() { return _score; }
+	/// Manipulate funds
 	void addFunds(int funds) { _funds += funds; }
 	int getFunds() { return _funds; }
+	/// Manipulate items
 	void addItem(const std::string& name, int value) { _bountyItems[name] = value; }
 	std::map<std::string, int> getItems() { return _bountyItems; }
+	/// Manipulate reputation
 	void addReputation(const std::string& name, int value) { _reputation[name] = value; }
 	std::map<std::string, int> getReputation() { return _reputation; }
+	/// Manipulate soldier damage information
 	void addSoldierDamage(const std::string& name, int value) { _soldierDamage[name] = value; }
 	std::map<std::string, int> getSoldierDamage() { return _soldierDamage; }
+	/// Manipulate special story messages
 	void setSpecialMessage(const std::string& message) { _specialMessage = message; }
 	std::string getSpecialMessage() { return _specialMessage; }
 };

@@ -27,7 +27,7 @@ namespace OpenXcom
 	class Text;
 	class TextList;
 	class CovertOperation;
-	class RuleCovertOperation;
+	class CovertOperationResults;
 
 	/**
 	 * Displays info about complete Covert Operations.
@@ -36,17 +36,17 @@ namespace OpenXcom
 	{
 	private:
 		Window* _window;
-		Text* _txtTitle, *_txtItem, *_txtQuantity;
+		Text* _txtTitle, *_txtItem, *_txtReputation;
 		Text* _txtSoldier, * _txtTU, * _txtStamina, * _txtHealth, * _txtBravery, * _txtReactions;
 		Text* _txtFiring, * _txtThrowing, * _txtMelee, * _txtStrength, * _txtPsiStrength, * _txtPsiSkill;
-		TextList* _lstStats, * _lstRecovery, * _lstTotal, * _lstSoldierStats, * _lstRecoveredItems;
+		TextList* _lstRecoveredItems, *_lstReputation, * _lstRecovery, * _lstTotal, * _lstSoldierStats;
 		std::string _currentTooltip;
 		Text* _txtTooltip;
 		TextButton* _btnOk, * _btnStats, *_btnResults;
 
 		std::string _researchName;
 		CovertOperation* _operation;
-		const RuleCovertOperation* _rule;
+		CovertOperationResults* _results;
 
 	public:
 		/// Creates the FinishedCoverOperationState.
