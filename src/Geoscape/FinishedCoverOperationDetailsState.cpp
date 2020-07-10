@@ -42,7 +42,6 @@ namespace OpenXcom
 	FinishedCoverOperationDetailsState::FinishedCoverOperationDetailsState(CovertOperation* operation) : _operation(operation)
 	{
 		_screen = false;
-
 		_results = _operation->getResults();
 		// Create objects
 		_window = new Window(this, 320, 200, 0, 0);
@@ -53,9 +52,17 @@ namespace OpenXcom
 
 		_txtItem = new Text(180, 9, 16, 24);
 		_lstRecoveredItems = new TextList(272, 48, 16, 32); // h=144 = 18 rows and 48 means 8 rows
-		_lstReputation = new TextList(272, 24, 16, 92);
-		//_lstRecovery = new TextList(290, 80, 16, 32);
-		//_lstTotal = new TextList(290, 9, 16, 12);
+
+		_txtReputation = new Text(180, 9, 16, 84);
+		_lstReputation = new TextList(272, 24, 16, 92); //3 rows max
+
+		_lstFunds = new TextList(290, 9, 16, 120);
+		_lstScore = new TextList(290, 9, 16, 128);
+
+		_txtSoldierStatus = new Text(180, 9, 16, 140);
+		_lstSoldierStatus = new TextList(290, 16, 16, 148); //2 rows max
+
+		_txtMessage = new Text(290, 9, 16, 168);
 
 		// Second page (soldier stats)
 		_txtSoldier = new Text(90, 9, 16, 24); //16..106 = 90
@@ -86,13 +93,20 @@ namespace OpenXcom
 
 		add(_txtItem, "text", "covertOperationFinishDetails");
 		add(_lstRecoveredItems, "list", "covertOperationFinishDetails");
+		add(_txtReputation, "text", "covertOperationFinishDetails");
 		add(_lstReputation, "list", "covertOperationFinishDetails");
 
+		add(_lstFunds, "totals", "covertOperationFinishDetails");
+		add(_lstScore, "totals", "covertOperationFinishDetails");
+
+		add(_txtSoldierStatus, "text", "covertOperationFinishDetails");
+		add(_lstSoldierStatus, "list", "covertOperationFinishDetails");
+
+		add(_txtMessage, "text", "covertOperationFinishDetails");
 
 		centerAllSurfaces();
 
 		// Set up objects
-
 		setWindowBackground(_window, "covertOperationFinishDetails");
 		
 		_txtTitle->setBig();
@@ -103,21 +117,36 @@ namespace OpenXcom
 		_btnOk->onMouseClick((ActionHandler)&FinishedCoverOperationDetailsState::btnOkClick);
 		_btnOk->onKeyboardPress((ActionHandler)&FinishedCoverOperationDetailsState::btnOkClick, Options::keyOk);
 
-		//_btnStats->onMouseClick((ActionHandler)&FinishedCoverOperationDetailsState::btnStatsClick);
+		_btnStats->setText(tr("STR_OK"));
+		_btnStats->onMouseClick((ActionHandler)&FinishedCoverOperationDetailsState::btnOkClick); //TODO
 
 		_txtItem->setText(tr("STR_LIST_ITEM"));
-
 		_lstRecoveredItems->setColumns(2, 254, 18);
-		_lstRecoveredItems->setAlign(ALIGN_LEFT);
 		_lstRecoveredItems->setDot(true);
 
+		_txtReputation->setText(tr("STR_REPUTATION_BONUSES"));
 		_lstReputation->setColumns(2, 254, 18);
-		_lstReputation->setAlign(ALIGN_LEFT);
 		_lstReputation->setDot(true);
 
-		std::map<std::string, int> items = _results->getItems();
+		_lstFunds->setColumns(2, 254, 18);
+		_lstFunds->setDot(true);
+		_lstScore->setColumns(2, 254, 18);
+		_lstScore->setDot(true);
+
+		_txtSoldierStatus->setText(tr("STR_SOLDIERS_STATUS"));
+		_lstSoldierStatus->setColumns(2, 254, 18);
+		_lstSoldierStatus->setDot(true);
+
+		_txtMessage->setText(tr(_results->getSpecialMessage()));
+
+
+
+		//populate lists
+
+
 
 		int rowItem = 0;
+		std::map<std::string, int> items = _results->getItems();
 		for (std::map<std::string, int>::const_iterator i = items.begin(); i != items.end(); ++i)
 		{
 			auto item = tr((*i).first);
@@ -134,13 +163,52 @@ namespace OpenXcom
 		{
 			auto faction = tr((*i).first);
 			int qty = (*i).second;
-			std::ostringstream ss;
-			ss << Unicode::TOK_COLOR_FLIP << qty << Unicode::TOK_COLOR_FLIP;
-			_lstReputation->addRow(2, faction.c_str(), ss.str().c_str());
+			std::ostringstream ss2;
+			ss2 << Unicode::TOK_COLOR_FLIP << qty << Unicode::TOK_COLOR_FLIP;
+			_lstReputation->addRow(2, faction.c_str(), ss2.str().c_str());
 			++rowReputation;
 		}
 
+		bool hasFunds, hasScore;
+		if (_results->getFunds() > 0)
+		{
+			std::ostringstream ss3;
+			ss3 << _results->getFunds();
+			_lstFunds->addRow(2, tr("STR_FUNDS_UC").c_str(), ss3.str().c_str());
+			hasFunds = true;
+		}
+		if (_results->getScore() > 0)
+		{
+			std::ostringstream ss4;
+			ss4 << _results->getFunds();
+			_lstFunds->addRow(2, tr("STR_TOTAL_UC").c_str(), ss4.str().c_str());
+			hasScore = true;
+		}
 
+		int rowSoldierStatus = 0;
+		auto soldierStatus = _results->getReputation();
+		int wounded = 0, mia = 0;
+		for (std::map<std::string, int>::const_iterator i = soldierStatus.begin(); i != soldierStatus.end(); ++i)
+		{
+			auto soldier = tr((*i).first);
+			int damage = (*i).second;
+			if (damage > 0) ++wounded;
+			if (damage < 0) ++mia;
+			if (wounded > 0)
+			{
+				std::ostringstream ss5;
+				ss5 << Unicode::TOK_COLOR_FLIP << wounded << Unicode::TOK_COLOR_FLIP;
+				_lstReputation->addRow(2, tr("STR_XCOM_OPERATIVES_WOUNDED_IN_OPERATION"), ss5.str().c_str());
+				++rowSoldierStatus;
+			}
+			if (mia > 0)
+			{
+				std::ostringstream ss5;
+				ss5 << Unicode::TOK_COLOR_FLIP << mia << Unicode::TOK_COLOR_FLIP;
+				_lstReputation->addRow(2, tr("STR_XCOM_OPERATIVES_MISSING_IN_ACTION"), ss5.str().c_str());
+				++rowSoldierStatus;
+			}
+		}
 
 
 	}

@@ -565,6 +565,8 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	if (!operationResult && !criticalFail) expRolls = round(expRolls / 3);
 	else if (criticalFail) expRolls = round(expRolls / 4) - 2;
 
+	std::vector<Soldier*> soldiersToKill;
+	int operationSoldierN = 0;
 	//processing soldiers change before returning home
 	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 	{
@@ -574,6 +576,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 		bool saved = false;
 		if ((*i)->getCovertOperation() != 0 && (*i)->getCovertOperation()->getOperationName() == this->getOperationName())
 		{
+			++operationSoldierN;
 			//our dudes did something very wrong, so we hurt them back
 			if (criticalFail && danger > 0)
 			{
@@ -612,11 +615,11 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 					int requiredProtection = 15 + danger;
 					if (requiredProtection > protection)
 					{//RIP...
-						(*i)->setCovertOperation(0);
-						save.killSoldier(*i);
+						soldiersToKill.push_back(*i);
 					}
 					else
 					{
+						dead = false;
 						saved = true;
 					}
 				}
@@ -720,6 +723,23 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			}
 		}
 	}
+
+	//lets actually kill soldiers here to not change iteration
+	int it = 0;
+	for (std::vector<Soldier*>::iterator j = soldiersToKill.begin(); j != soldiersToKill.end(); ++j)
+	{
+		int killN = soldiersToKill.size();
+		int chosenID = RNG::generate(0, killN - 1);
+		if (killN == operationSoldierN && chosenID == it)
+		{
+			Log(LOG_INFO) << "All soldiers on covert operation named: " << this->getOperationName() << "should be dead, but soldier named: " << (*j)->getName() << " was chosen to be the last survived.";
+		}
+		else
+		{
+			save.killSoldier(*j); //RIP
+		}
+	}
+
 }
 
 
