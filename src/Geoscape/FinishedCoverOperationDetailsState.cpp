@@ -170,23 +170,23 @@ namespace OpenXcom
 		}
 
 		bool hasFunds, hasScore;
-		if (_results->getFunds() > 0)
+		if (_results->getFunds() != 0)
 		{
 			std::ostringstream ss3;
 			ss3 << _results->getFunds();
 			_lstFunds->addRow(2, tr("STR_FUNDS_UC").c_str(), ss3.str().c_str());
 			hasFunds = true;
 		}
-		if (_results->getScore() > 0)
+		if (_results->getScore() != 0)
 		{
 			std::ostringstream ss4;
 			ss4 << _results->getFunds();
-			_lstFunds->addRow(2, tr("STR_TOTAL_UC").c_str(), ss4.str().c_str());
+			_lstScore->addRow(2, tr("STR_SCORE_UC").c_str(), ss4.str().c_str());
 			hasScore = true;
 		}
 
 		int rowSoldierStatus = 0;
-		auto soldierStatus = _results->getReputation();
+		auto soldierStatus = _results->getSoldierDamage();
 		int wounded = 0, mia = 0;
 		for (std::map<std::string, int>::const_iterator i = soldierStatus.begin(); i != soldierStatus.end(); ++i)
 		{
@@ -198,14 +198,14 @@ namespace OpenXcom
 			{
 				std::ostringstream ss5;
 				ss5 << Unicode::TOK_COLOR_FLIP << wounded << Unicode::TOK_COLOR_FLIP;
-				_lstReputation->addRow(2, tr("STR_XCOM_OPERATIVES_WOUNDED_IN_OPERATION"), ss5.str().c_str());
+				_lstSoldierStatus->addRow(2, tr("STR_XCOM_OPERATIVES_WOUNDED"), ss5.str().c_str());
 				++rowSoldierStatus;
 			}
 			if (mia > 0)
 			{
 				std::ostringstream ss5;
 				ss5 << Unicode::TOK_COLOR_FLIP << mia << Unicode::TOK_COLOR_FLIP;
-				_lstReputation->addRow(2, tr("STR_XCOM_OPERATIVES_MISSING_IN_ACTION"), ss5.str().c_str());
+				_lstSoldierStatus->addRow(2, tr("STR_XCOM_OPERATIVES_MISSING_IN_ACTION"), ss5.str().c_str());
 				++rowSoldierStatus;
 			}
 		}
