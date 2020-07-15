@@ -619,12 +619,10 @@ void CovertOperationEquipmentState::moveLeft()
 void CovertOperationEquipmentState::moveLeftByValue(int change)
 {
 	RuleItem* item = _game->getMod()->getItem(_items[_sel], true);
-	int cQty = 0;
-	cQty = _operation->getItems()->getItem(_items[_sel]);
+	int cQty = _operation->getItems()->getItem(_items[_sel]);
 	if (change <= 0 || cQty <= 0) return;
-	change = std::min(cQty, change);
 	_operation->getItems()->removeItem(_items[_sel], change);
-	_totalItems -= change;
+	_totalItems -= item->getSize();
 	_base->getStorageItems()->addItem(_items[_sel], change);
 	updateQuantity();
 }
@@ -647,6 +645,8 @@ void CovertOperationEquipmentState::moveRight()
 void CovertOperationEquipmentState::moveRightByValue(int change, bool suppressErrors)
 {
 	RuleItem* item = _game->getMod()->getItem(_items[_sel], true);
+	int bqty = _base->getStorageItems()->getItem(_items[_sel]);
+	if (0 >= change || 0 >= bqty) return;
 	if (_rule->getItemSpaceLimit() >= 0 && _totalItems + item->getSize() > _rule->getItemSpaceLimit())
 	{
 		if (!suppressErrors)
