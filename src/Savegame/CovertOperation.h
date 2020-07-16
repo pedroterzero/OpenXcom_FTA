@@ -34,7 +34,6 @@ class DiplomacyFaction;
 class Soldier;
 class Base;
 class ItemContainer;
-class UnitStats;
 class CovertOperationResults;
 
 /**
@@ -51,7 +50,6 @@ private:
 	CovertOperationResults* _results;
 	bool _inBattlescape, _hasBattlescapeResolve, _over, _hasPsi, _progressEventSpawned;
 	std::string _generatedMission, _researchName;
-	typedef std::pair<std::string, UnitStats> SoldierStatsEntry;
 public:
 	/// Creates a blank Covert Operation.
 	CovertOperation(const RuleCovertOperation* rule, Base* base, int cost = 0, int chances = 0);
@@ -125,6 +123,8 @@ public:
 	void finishOperation();
 };
 
+struct UnitStats;
+
 class CovertOperationResults
 {
 private:
@@ -134,7 +134,7 @@ private:
 	int _score, _funds;
 	std::map<std::string, int> _bountyItems, _reputation, _soldierDamage;
 	std::string _specialMessage;
-	typedef std::pair<std::string, UnitStats> SoldierStatsEntry;
+	std::vector<std::pair<std::string, UnitStats*>> _soldierStats;
 public:
 	/// Create base Covert Operation results
 	CovertOperationResults(const std::string& operationName, bool result, std::string finishDate) :
@@ -157,6 +157,10 @@ public:
 	/// Manipulate special story messages
 	void setSpecialMessage(const std::string& message) { _specialMessage = message; }
 	std::string getSpecialMessage() { return _specialMessage; }
+	/// Handlers for soldier stat improvement
+	void addSoldierImprovement(std::string soldier, UnitStats* improvement)
+	{ _soldierStats.push_back(std::pair<std::string, UnitStats*>(soldier, improvement)); };
+	std::vector<std::pair<std::string, UnitStats*>> getSoldierImprovement() const { return _soldierStats; }
 };
 
 }

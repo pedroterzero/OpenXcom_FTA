@@ -19,15 +19,16 @@
 #include "CovertOperation.h"
 #include "SerializationHelper.h"
 #include <assert.h>
+#include "../fmath.h"
 #include "../Engine/Language.h"
 #include "../Engine/Game.h"
-#include "../fmath.h"
 #include "../Engine/RNG.h"
 #include "../Engine/Logger.h"
 #include "../Geoscape/FinishedCoverOperationState.h"
 #include "../Geoscape/Globe.h"
 #include "../Battlescape/BattlescapeGenerator.h"
 #include "../Battlescape/BriefingState.h"
+#include "../Battlescape/DebriefingState.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/Region.h"
@@ -48,6 +49,7 @@
 #include "../Mod/RuleRegion.h"
 #include "../Mod/AlienDeployment.h"
 #include "../Mod/AlienRace.h"
+#include "../Mod/Unit.h"
 
 namespace OpenXcom
 {
@@ -252,7 +254,7 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 	int eng = this->getAssignedEngineers();
 	if (sci > 0) _base->setScientists(_base->getScientists() + sci);
 	if (eng > 0) _base->setEngineers(_base->getEngineers() + eng);
-	_results = new CovertOperationResults(this->getOperationName(), operationResult, "0");
+	_results = new CovertOperationResults(this->getOperationName(), operationResult, "0"); //TODO date
 	//load results of operation
 	if (operationResult)
 	{
@@ -491,12 +493,15 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 			}
 			else
 			{
-				throw Exception("No deployment defined for operation: " + this->getOperationName() + " ! It is reffering to alienDeployment named: " + deploymentName);
+				throw Exception("No deployment defined for operation: " + this->getOperationName() +
+					" ! It is reffering to alienDeployment named: " + deploymentName);
 			}
 		}
 	}
 	else //we do not push any battlescape for our operation or anything like that, so we can return to our base!
 	{
+		//simulating operation
+		backgroundSimulation(engine, operationResult, criticalFail, woundOdds, deathOdds);
 		// lets return items from operation to the base
 		for (std::map<std::string, int>::iterator it = _items->getContents()->begin(); it != _items->getContents()->end(); ++it)
 		{
@@ -570,13 +575,16 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	//processing soldiers change before returning home
 	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 	{
-		bool dead = false;
-		int wound = 0;
-		int damage = 0;
-		bool saved = false;
 		if ((*i)->getCovertOperation() != 0 && (*i)->getCovertOperation()->getOperationName() == this->getOperationName())
 		{
+			bool dead = false;
+			int wound = 0;
+			int damage = 0;
+			bool saved = false;
 			++operationSoldierN;
+			UnitStats* stats = (*i)->getCurrentStats();
+			const UnitStats caps = (*i)->getRules()->getStatCaps();
+			UnitStats* improvement = new UnitStats();
 			//our dudes did something very wrong, so we hurt them back
 			if (criticalFail && danger > 0)
 			{
@@ -627,8 +635,6 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			//soldiers can improve stats based on virtual expirience they take
 			if (!dead && expRolls > 0)
 			{
-				UnitStats* stats = (*i)->getCurrentStats();
-				const UnitStats caps = (*i)->getRules()->getStatCaps();
 				//TU and Energy is increased most time
 				int tuExp = 0, staminaExp = 0;
 				if (stats->tu < caps.tu) tuExp = RNG::generate(-2, expRolls); //negative roll makes small additional chance for improveStat return 0
@@ -658,10 +664,9 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 					case 1:
 						if (stats->bravery < caps.bravery && !braveryTrained)
 						{
-							int braveryRoll = 8;
-							if (saved) braveryRoll -= 2;
+							int braveryRoll = 9;
 							if (wound > 0) braveryRoll -= 1;
-							if (wound > 3) braveryRoll -= 2;
+							if (saved || wound > 4) braveryRoll -= 2;
 							if (RNG::generate(0, 10) > braveryRoll)
 							{
 								braveryTrained = true; //lets make bravery trained only once
@@ -702,21 +707,35 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 						break;
 					}
 				}
-				//ok, now lets actually improve soldier stats!
-				stats->tu += improveStat(tuExp);
-				stats->stamina += improveStat(staminaExp);
-				stats->health += improveStat(healthExp);
-				stats->bravery += improveStat(braveryExp);
-				stats->reactions += improveStat(reactionsExp);
-				stats->firing += improveStat(firingExp);
-				stats->throwing += improveStat(throwingExp);
-				stats->melee += improveStat(meleeExp);
-				stats->strength += improveStat(streingthExp);
-				stats->psiSkill += improveStat(psiSkillExp);
-				stats->psiStrength += improveStat(psiStrExp);
-				stats->mana += improveStat(manaExp);
-			}
+				//we want to remember stat improvement for later use
+				improvement->tu = improveStat(tuExp);
+				improvement->stamina = improveStat(staminaExp);
+				improvement->health = improveStat(healthExp);
+				if (braveryExp > 0)	improvement->bravery = 10;
+				improvement->reactions = improveStat(reactionsExp);
+				improvement->firing = improveStat(firingExp);
+				improvement->throwing = improveStat(throwingExp);
+				improvement->melee = improveStat(meleeExp);
+				improvement->strength = improveStat(streingthExp);
+				improvement->psiSkill = improveStat(psiSkillExp);
+				improvement->psiStrength = improveStat(psiStrExp);
+				improvement->mana = improveStat(manaExp);
+				_results->addSoldierImprovement((*i)->getName(), improvement);
 
+				//ok, now lets actually improve soldier stats!
+				stats->tu += improvement->tu;
+				stats->stamina += improvement->stamina;
+				stats->health += improvement->health;
+				stats->bravery += improvement->bravery;
+				stats->reactions += improvement->reactions;
+				stats->firing += improvement->firing;
+				stats->throwing += improvement->throwing;
+				stats->melee += improvement->melee;
+				stats->strength += improvement->strength;
+				stats->psiSkill += improvement->psiSkill;
+				stats->psiStrength += improvement->psiStrength;
+				stats->mana += improvement->mana;
+			}
 			if (dead || wound != 0)
 			{
 				(*i)->setReturnToTrainingWhenOperationOver(NONE);
@@ -724,21 +743,33 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 		}
 	}
 
-	//lets actually kill soldiers here to not change iteration
-	int it = 0;
-	for (std::vector<Soldier*>::iterator j = soldiersToKill.begin(); j != soldiersToKill.end(); ++j)
+	//if needed kill soldiers from doomed list
+	if (!soldiersToKill.empty())
 	{
+		int it = 0;
 		int killN = soldiersToKill.size();
-		int chosenID = RNG::generate(0, killN - 1);
-		if (killN == operationSoldierN && chosenID == it)
+		bool loneSaved = false;
+		int chosenID = 0;
+		if (killN == operationSoldierN) //we want to keep at least one soldier alive, that would say operation filure results
 		{
-			Log(LOG_INFO) << "All soldiers on covert operation named: " << this->getOperationName() << "should be dead, but soldier named: " << (*j)->getName() << " was chosen to be the last survived.";
-		}
-		else
+			loneSaved = true;
+			chosenID = RNG::generate(0, killN - 1);
+		} 
+		for (std::vector<Soldier*>::iterator j = soldiersToKill.begin(); j != soldiersToKill.end(); ++j)
 		{
-			save.killSoldier(*j); //RIP
+			if (loneSaved && chosenID == it)
+			{
+				Log(LOG_INFO) << "All soldiers on covert operation named: " << this->getOperationName() <<
+					" should be dead, but soldier named: " << (*j)->getName() << " was chosen to be the last survived.";
+			}
+			else
+			{
+				save.killSoldier(*j); //RIP
+			}
+			++it;
 		}
 	}
+
 
 }
 
