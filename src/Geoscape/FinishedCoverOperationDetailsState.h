@@ -42,8 +42,9 @@ namespace OpenXcom
 		TextList* _lstRecoveredItems, *_lstReputation, * _lstRecovery, * _lstFunds, * _lstScore, * _lstSoldierStatus, * _lstSoldierStats;
 		std::string _currentTooltip;
 		Text* _txtTooltip;
-		TextButton* _btnOk, * _btnStats, *_btnResults;
-
+		TextButton* _btnOk, * _btnPage;
+		int _pageNumber;
+		bool _hasItems, _hasRep, _hasFunds, _hasScore, _hasSStatus, _hasMessage;
 		std::string _researchName;
 		CovertOperation* _operation;
 		CovertOperationResults* _results;
@@ -58,7 +59,17 @@ namespace OpenXcom
 		/// Handler for clicking the OK button.
 		void btnOkClick(Action* action);
 		/// Handler for clicking the DETAILS button.
-		void btnDetailsClick(Action* action);
+		void btnPageClick(Action* action);
+		/// Hide all page UI elements
+		void hidePageUI();
+		/// Drawing first page
+		void firstPage();
+		/// Drawing second page
+		void secondPage();
+		/// Handler for showing tooltip.
+		void txtTooltipIn(Action* action);
+		/// Handler for hiding tooltip.
+		void txtTooltipOut(Action* action);
 	};
 
 }

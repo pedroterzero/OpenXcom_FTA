@@ -778,18 +778,19 @@ double CovertOperationStartState::getOperationOdds()
 	return _chances;
 }
 
-int CovertOperationStartState::getOperationCost()
+int CovertOperationStartState::getOperationCost() //TODO remove LOOP!
 {
-	_cost = _rule->getCosts();
+	_cost = _rule->getCosts(); //load initial rule value
+	int reducedCost = _cost;
 	if (_chances > 100)
 	{
 		Log(LOG_INFO) << "Initial operation cost equal " << _cost;
 		double bonus = (((_chances - 100) / (_chances - 82)) * 24) / 100; //some cute nonlinear calculation
 		Log(LOG_INFO) << "We have _chances > 100, so we get bonus to time equal " << bonus << " !";
-		_cost = std::round(_cost * bonus);
+		reducedCost = std::round(_cost * bonus);
 	}
-	Log(LOG_INFO) << "Final operation cost equal " << _cost;
-	return _cost;
+	Log(LOG_INFO) << "Final operation cost equal " << reducedCost;
+	return reducedCost;
 }
 
 

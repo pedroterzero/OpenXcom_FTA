@@ -20,6 +20,7 @@
 #include "../Engine/Game.h"
 #include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
+#include "../Engine/Logger.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
 #include "../Interface/Text.h"
@@ -28,7 +29,70 @@
 #include "../Mod/RuleCovertOperation.h"
 #include "../Savegame/CovertOperation.h"
 #include "../Savegame/Base.h"
+#include "../Savegame/SavedBattleGame.h"
 #include "../Ufopaedia/Ufopaedia.h"
+
+
+#include <algorithm>
+#include <climits>
+#include "../Battlescape/TileEngine.h"
+#include "../Battlescape/DebriefingState.h"
+#include "../Battlescape/CannotReequipState.h"
+#include "../Engine/Action.h"
+#include "../Engine/Game.h"
+#include "../Engine/LocalizedText.h"
+#include "../Interface/TextButton.h"
+#include "../Interface/Text.h"
+#include "../Interface/TextList.h"
+#include "../Interface/Window.h"
+#include "../Battlescape/PromotionsState.h"
+#include "../Battlescape/CommendationState.h"
+#include "../Battlescape/CommendationLateState.h"
+#include "../Mod/Mod.h"
+#include "../Mod/RuleCountry.h"
+#include "../Mod/RuleCraft.h"
+#include "../Mod/RuleItem.h"
+#include "../Mod/RuleRegion.h"
+#include "../Mod/RuleSoldier.h"
+#include "../Mod/RuleUfo.h"
+#include "../Mod/Armor.h"
+#include "../Savegame/AlienBase.h"
+#include "../Savegame/AlienMission.h"
+#include "../Savegame/Base.h"
+#include "../Savegame/BattleItem.h"
+#include "../Savegame/Country.h"
+#include "../Savegame/Craft.h"
+#include "../Savegame/ItemContainer.h"
+#include "../Savegame/Region.h"
+#include "../Savegame/SavedBattleGame.h"
+#include "../Savegame/Soldier.h"
+#include "../Savegame/SoldierDiary.h"
+#include "../Savegame/MissionSite.h"
+#include "../Savegame/Tile.h"
+#include "../Savegame/Ufo.h"
+#include "../Savegame/Vehicle.h"
+#include "../Savegame/BaseFacility.h"
+#include "../Savegame/CovertOperation.h"
+#include <sstream>
+#include "../Menu/ErrorMessageState.h"
+#include "../Menu/MainMenuState.h"
+#include "../Interface/Cursor.h"
+#include "../Engine/Options.h"
+#include "../Engine/RNG.h"
+#include "../Basescape/ManageAlienContainmentState.h"
+#include "../Basescape/TransferBaseState.h"
+#include "../FTA/DiplomacyStartState.h"
+#include "../Engine/Screen.h"
+#include "../Basescape/SellState.h"
+#include "../Menu/SaveGameState.h"
+#include "../Mod/AlienDeployment.h"
+#include "../Mod/RuleInterface.h"
+#include "../Savegame/MissionStatistics.h"
+#include "../Savegame/BattleUnitStatistics.h"
+#include "../fallthrough.h"
+
+
+
 
 
 namespace OpenXcom
@@ -39,15 +103,15 @@ namespace OpenXcom
 	 * @param geoEvent Pointer to the event.
 	 * @param result - comes true if sucess operation, false if it was failed.
 	 */
-	FinishedCoverOperationDetailsState::FinishedCoverOperationDetailsState(CovertOperation* operation) : _operation(operation)
+	FinishedCoverOperationDetailsState::FinishedCoverOperationDetailsState(CovertOperation* operation) :
+		_operation(operation), _pageNumber(0), _hasItems(false), _hasRep(false), _hasFunds(false), _hasScore(false), _hasSStatus(false), _hasMessage(false)
 	{
 		_screen = false;
 		_results = _operation->getResults();
 		// Create objects
 		_window = new Window(this, 320, 200, 0, 0);
 		_btnOk = new TextButton(40, 12, 16, 180);
-		_btnStats = new TextButton(60, 12, 244, 180); //replacing results
-		_btnResults = new TextButton(60, 12, 244, 180); //replacing stats
+		_btnPage = new TextButton(60, 12, 244, 180);
 		_txtTitle = new Text(300, 17, 16, 8);
 
 		_txtItem = new Text(180, 9, 16, 24);
@@ -82,14 +146,12 @@ namespace OpenXcom
 
 		_txtTooltip = new Text(200, 9, 64, 180);
 
-		// Set palette
 		setInterface("covertOperationFinishDetails");
-
+		//1st page
 		add(_window, "window", "covertOperationFinishDetails");
 		add(_txtTitle, "heading", "covertOperationFinishDetails");
 		add(_btnOk, "button", "covertOperationFinishDetails");
-		add(_btnStats, "button", "covertOperationFinishDetails");
-		add(_btnResults, "button", "covertOperationFinishDetails");
+		add(_btnPage, "button", "covertOperationFinishDetails");
 
 		add(_txtItem, "text", "covertOperationFinishDetails");
 		add(_lstRecoveredItems, "list", "covertOperationFinishDetails");
@@ -104,6 +166,23 @@ namespace OpenXcom
 
 		add(_txtMessage, "text", "covertOperationFinishDetails");
 
+		//2ed page
+		add(_txtSoldier, "text", "covertOperationFinishDetails");
+		add(_txtTU, "text", "covertOperationFinishDetails");
+		add(_txtStamina, "text", "covertOperationFinishDetails");
+		add(_txtHealth, "text", "covertOperationFinishDetails");
+		add(_txtBravery, "text", "covertOperationFinishDetails");
+		add(_txtReactions, "text", "covertOperationFinishDetails");
+		add(_txtFiring, "text", "covertOperationFinishDetails");
+		add(_txtThrowing, "text", "covertOperationFinishDetails");
+		add(_txtMelee, "text", "covertOperationFinishDetails");
+		add(_txtStrength, "text", "covertOperationFinishDetails");
+		add(_txtPsiStrength, "text", "covertOperationFinishDetails");
+		add(_txtPsiSkill, "text", "covertOperationFinishDetails");
+		add(_lstSoldierStats, "list", "covertOperationFinishDetails");
+
+		add(_txtTooltip, "text", "debriefing");
+
 		centerAllSurfaces();
 
 		// Set up objects
@@ -117,14 +196,14 @@ namespace OpenXcom
 		_btnOk->onMouseClick((ActionHandler)&FinishedCoverOperationDetailsState::btnOkClick);
 		_btnOk->onKeyboardPress((ActionHandler)&FinishedCoverOperationDetailsState::btnOkClick, Options::keyOk);
 
-		_btnStats->setText(tr("STR_OK"));
-		_btnStats->onMouseClick((ActionHandler)&FinishedCoverOperationDetailsState::btnOkClick); //TODO
+		_btnPage->setText(tr("STR_STATS"));
+		_btnPage->onMouseClick((ActionHandler)&FinishedCoverOperationDetailsState::btnPageClick);
 
 		_txtItem->setText(tr("STR_LIST_ITEM"));
 		_lstRecoveredItems->setColumns(2, 254, 18);
 		_lstRecoveredItems->setDot(true);
 
-		_txtReputation->setText(tr("STR_REPUTATION_BONUSES"));
+		_txtReputation->setText(tr("STR_REPUTATION_CHANGE"));
 		_lstReputation->setColumns(2, 254, 18);
 		_lstReputation->setDot(true);
 
@@ -139,82 +218,297 @@ namespace OpenXcom
 
 		_txtMessage->setText(tr(_results->getSpecialMessage()));
 
+		// Second page
+		_txtSoldier->setText(tr("STR_NAME_UC"));
 
+		_txtTU->setAlign(ALIGN_CENTER);
+		_txtTU->setText(tr("STR_TIME_UNITS_ABBREVIATION"));
+		_txtTU->setTooltip("STR_TIME_UNITS");
+		_txtTU->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtTU->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
 
-		//populate lists
+		_txtStamina->setAlign(ALIGN_CENTER);
+		_txtStamina->setText(tr("STR_STAMINA_ABBREVIATION"));
+		_txtStamina->setTooltip("STR_STAMINA");
+		_txtStamina->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtStamina->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
 
+		_txtHealth->setAlign(ALIGN_CENTER);
+		_txtHealth->setText(tr("STR_HEALTH_ABBREVIATION"));
+		_txtHealth->setTooltip("STR_HEALTH");
+		_txtHealth->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtHealth->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
 
+		_txtBravery->setAlign(ALIGN_CENTER);
+		_txtBravery->setText(tr("STR_BRAVERY_ABBREVIATION"));
+		_txtBravery->setTooltip("STR_BRAVERY");
+		_txtBravery->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtBravery->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
 
-		int rowItem = 0;
+		_txtReactions->setAlign(ALIGN_CENTER);
+		_txtReactions->setText(tr("STR_REACTIONS_ABBREVIATION"));
+		_txtReactions->setTooltip("STR_REACTIONS");
+		_txtReactions->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtReactions->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
+
+		_txtFiring->setAlign(ALIGN_CENTER);
+		_txtFiring->setText(tr("STR_FIRING_ACCURACY_ABBREVIATION"));
+		_txtFiring->setTooltip("STR_FIRING_ACCURACY");
+		_txtFiring->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtFiring->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
+
+		_txtThrowing->setAlign(ALIGN_CENTER);
+		_txtThrowing->setText(tr("STR_THROWING_ACCURACY_ABBREVIATION"));
+		_txtThrowing->setTooltip("STR_THROWING_ACCURACY");
+		_txtThrowing->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtThrowing->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
+
+		_txtMelee->setAlign(ALIGN_CENTER);
+		_txtMelee->setText(tr("STR_MELEE_ACCURACY_ABBREVIATION"));
+		_txtMelee->setTooltip("STR_MELEE_ACCURACY");
+		_txtMelee->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtMelee->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
+
+		_txtStrength->setAlign(ALIGN_CENTER);
+		_txtStrength->setText(tr("STR_STRENGTH_ABBREVIATION"));
+		_txtStrength->setTooltip("STR_STRENGTH");
+		_txtStrength->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtStrength->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
+
+		_txtPsiStrength->setAlign(ALIGN_CENTER);
+		if (_game->getMod()->isManaFeatureEnabled())
+		{
+			_txtPsiStrength->setText(tr("STR_MANA_ABBREVIATION"));
+			_txtPsiStrength->setTooltip("STR_MANA_POOL");
+		}
+		else
+		{
+			_txtPsiStrength->setText(tr("STR_PSIONIC_STRENGTH_ABBREVIATION"));
+			_txtPsiStrength->setTooltip("STR_PSIONIC_STRENGTH");
+		}
+		_txtPsiStrength->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtPsiStrength->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
+
+		_txtPsiSkill->setAlign(ALIGN_CENTER);
+		_txtPsiSkill->setText(tr("STR_PSIONIC_SKILL_ABBREVIATION"));
+		_txtPsiSkill->setTooltip("STR_PSIONIC_SKILL");
+		_txtPsiSkill->onMouseIn((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipIn);
+		_txtPsiSkill->onMouseOut((ActionHandler)&FinishedCoverOperationDetailsState::txtTooltipOut);
+
+		_lstSoldierStats->setColumns(13, 90, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0);
+		_lstSoldierStats->setAlign(ALIGN_CENTER);
+		_lstSoldierStats->setAlign(ALIGN_LEFT, 0);
+		_lstSoldierStats->setDot(true);
+
 		std::map<std::string, int> items = _results->getItems();
-		for (std::map<std::string, int>::const_iterator i = items.begin(); i != items.end(); ++i)
+		int rowItem = 0;
+		if (!items.empty())
 		{
-			auto item = tr((*i).first);
-			int qty = (*i).second;
-			std::ostringstream ss;
-			ss << Unicode::TOK_COLOR_FLIP << qty << Unicode::TOK_COLOR_FLIP;
-			_lstRecoveredItems->addRow(2, item.c_str(), ss.str().c_str());
-			++rowItem;
+			_hasItems = true;
+			_txtItem->setVisible(true);
+			_lstRecoveredItems->setVisible(true);
+			for (std::map<std::string, int>::const_iterator i = items.begin(); i != items.end(); ++i)
+			{
+				auto item = tr((*i).first);
+				int qty = (*i).second;
+				std::ostringstream ss;
+				ss << Unicode::TOK_COLOR_FLIP << qty << Unicode::TOK_COLOR_FLIP;
+				_lstRecoveredItems->addRow(2, item.c_str(), ss.str().c_str());
+				++rowItem;
+			}
 		}
 
+		std::map<std::string, int> factions = _results->getReputation();
 		int rowReputation = 0;
-		auto factions = _results->getReputation();
-		for (std::map<std::string, int>::const_iterator i = factions.begin(); i != factions.end(); ++i)
+		if (!factions.empty())
 		{
-			auto faction = tr((*i).first);
-			int qty = (*i).second;
-			std::ostringstream ss2;
-			ss2 << Unicode::TOK_COLOR_FLIP << qty << Unicode::TOK_COLOR_FLIP;
-			_lstReputation->addRow(2, faction.c_str(), ss2.str().c_str());
-			++rowReputation;
+			_hasRep = true;
+			_txtReputation->setVisible(true);
+			_lstReputation->setVisible(true);
+			for (std::map<std::string, int>::const_iterator i = factions.begin(); i != factions.end(); ++i)
+			{
+				auto faction = tr((*i).first);
+				int qty = (*i).second;
+				std::ostringstream ss2;
+				ss2 << Unicode::TOK_COLOR_FLIP << qty << Unicode::TOK_COLOR_FLIP;
+				_lstReputation->addRow(2, faction.c_str(), ss2.str().c_str());
+				++rowReputation;
+			}
 		}
 
-		bool hasFunds, hasScore;
 		if (_results->getFunds() != 0)
 		{
 			std::ostringstream ss3;
 			ss3 << _results->getFunds();
 			_lstFunds->addRow(2, tr("STR_FUNDS_UC").c_str(), ss3.str().c_str());
-			hasFunds = true;
+			_hasFunds = true;
+			_lstFunds->setVisible(true);
 		}
 		if (_results->getScore() != 0)
 		{
 			std::ostringstream ss4;
-			ss4 << _results->getFunds();
+			ss4 << _results->getScore();
 			_lstScore->addRow(2, tr("STR_SCORE_UC").c_str(), ss4.str().c_str());
-			hasScore = true;
+			_hasScore = true;
+			_lstFunds->setVisible(true);
 		}
 
 		int rowSoldierStatus = 0;
-		auto soldierStatus = _results->getSoldierDamage();
-		int wounded = 0, mia = 0;
-		for (std::map<std::string, int>::const_iterator i = soldierStatus.begin(); i != soldierStatus.end(); ++i)
+		std::map<std::string, int> soldierStatus = _results->getSoldierDamage();
+		if (!soldierStatus.empty())
 		{
-			auto soldier = tr((*i).first);
-			int damage = (*i).second;
-			if (damage > 0) ++wounded;
-			if (damage < 0) ++mia;
-			if (wounded > 0)
+			_hasSStatus = true;
+			_txtSoldierStatus->setVisible(true);
+			_lstSoldierStatus->setVisible(true);
+			int wounded = 0, mia = 0;
+			for (std::map<std::string, int>::const_iterator i = soldierStatus.begin(); i != soldierStatus.end(); ++i)
 			{
-				std::ostringstream ss5;
-				ss5 << Unicode::TOK_COLOR_FLIP << wounded << Unicode::TOK_COLOR_FLIP;
-				_lstSoldierStatus->addRow(2, tr("STR_XCOM_OPERATIVES_WOUNDED"), ss5.str().c_str());
-				++rowSoldierStatus;
-			}
-			if (mia > 0)
-			{
-				std::ostringstream ss5;
-				ss5 << Unicode::TOK_COLOR_FLIP << mia << Unicode::TOK_COLOR_FLIP;
-				_lstSoldierStatus->addRow(2, tr("STR_XCOM_OPERATIVES_MISSING_IN_ACTION"), ss5.str().c_str());
-				++rowSoldierStatus;
+				auto soldier = tr((*i).first);
+				int damage = (*i).second;
+				if (damage > 0) ++wounded;
+				if (damage < 0) ++mia;
+				if (wounded > 0)
+				{
+					std::ostringstream ss5;
+					ss5 << Unicode::TOK_COLOR_FLIP << wounded << Unicode::TOK_COLOR_FLIP;
+					_lstSoldierStatus->addRow(2, tr("STR_XCOM_OPERATIVES_WOUNDED"), ss5.str().c_str());
+					++rowSoldierStatus;
+				}
+				if (mia > 0)
+				{
+					std::ostringstream ss5;
+					ss5 << Unicode::TOK_COLOR_FLIP << mia << Unicode::TOK_COLOR_FLIP;
+					_lstSoldierStatus->addRow(2, tr("STR_XCOM_OPERATIVES_MISSING_IN_ACTION"), ss5.str().c_str());
+					++rowSoldierStatus;
+				}
 			}
 		}
 
+		if (!_results->getSpecialMessage().empty())
+		{
+			_hasMessage = true;
+			_txtMessage->setText(tr(_results->getSpecialMessage()));
+		}
 
+		//ok, now we want adapt our UI to its content
+		//first, we calculate offsets to know how much we need to move content
+		int itemOffset = 0;
+		if (rowItem == 0)
+			itemOffset = 48 + 8; //full list size + header
+		else if (rowItem > 7)
+			itemOffset = 0; //we displayed maximum elements in this section, no offset
+		else itemOffset = (48 - (rowItem * 8));
+
+		int repOffset = 0;
+		if (rowReputation == 0)
+			repOffset = 24 + 8;
+		else repOffset = (24 - (rowReputation * 8));
+
+		int fundOffset = 0;
+		if (!_hasFunds)
+			fundOffset = 8;
+		int scoreOffset = 0;
+		if (!_hasScore)
+			scoreOffset = 8;
+
+		int statusOffset = 0;
+		if (rowSoldierStatus == 0)
+			statusOffset = 16 + 8; //full list size + header
+		else
+			statusOffset = (16 - (rowSoldierStatus * 8));
+
+		//extra expanding of item list if we do not have a lot of things to show on the screen
+		if (rowItem > 7) //TODO FIXME
+		{
+			int globalOffset = repOffset + fundOffset + scoreOffset + statusOffset;
+			if (globalOffset < rowItem * 8)
+			{
+				int extraRowSpace = (rowItem - 8) * 8;
+				_lstRecoveredItems->setHeight(_lstRecoveredItems->getHeight() + extraRowSpace);
+				itemOffset -= extraRowSpace;
+			}
+			else
+			{
+				_lstRecoveredItems->setHeight(_lstRecoveredItems->getHeight() + (floor(globalOffset / 8) * 8));
+				itemOffset -= globalOffset;
+			}
+		}
+
+		//move UI elemnts by calculated offset
+		_txtReputation->setY(_txtReputation->getY() - itemOffset);
+		_lstReputation->setY(_lstReputation->getY() - itemOffset);
+
+		_lstFunds->setY(_lstFunds->getY() - itemOffset - repOffset);
+		_lstScore->setY(_lstScore->getY() - itemOffset - repOffset - fundOffset);
+
+		_txtSoldierStatus->setY(_txtSoldierStatus->getY() - itemOffset - repOffset - fundOffset - scoreOffset);
+		_lstSoldierStatus->setY(_lstSoldierStatus->getY() - itemOffset - repOffset - fundOffset - scoreOffset);
+
+		_txtMessage->setY(_txtMessage->getY() - itemOffset - repOffset - fundOffset - scoreOffset - statusOffset);
+
+		auto soldierStats = _results->getSoldierImprovement();
+		for (std::vector<std::pair<std::string, UnitStats*>>::const_iterator i = soldierStats.begin(); i != soldierStats.end(); ++i)
+		{
+			auto tmp = (*i).second->psiStrength;
+			if (_game->getMod()->isManaFeatureEnabled())
+			{
+				tmp = (*i).second->mana;
+			}
+			_lstSoldierStats->addRow(13, (*i).first.c_str(),
+				makeSoldierString((*i).second->tu).c_str(),
+				makeSoldierString((*i).second->stamina).c_str(),
+				makeSoldierString((*i).second->health).c_str(),
+				makeSoldierString((*i).second->bravery).c_str(),
+				makeSoldierString((*i).second->reactions).c_str(),
+				makeSoldierString((*i).second->firing).c_str(),
+				makeSoldierString((*i).second->throwing).c_str(),
+				makeSoldierString((*i).second->melee).c_str(),
+				makeSoldierString((*i).second->strength).c_str(),
+				makeSoldierString(tmp).c_str(),
+				makeSoldierString((*i).second->psiSkill).c_str(),
+				"");
+		}
+
+		//set up first page at startup
+		hidePageUI();
+		firstPage();	
 	}
 
 	FinishedCoverOperationDetailsState::~FinishedCoverOperationDetailsState() {}
 
+	/**
+	 * Closes the window and shows a pedia article if needed.
+	 * @param action Pointer to an action.
+	 */
+	void FinishedCoverOperationDetailsState::btnOkClick(Action*)
+	{
+		_game->popState();
+	}
+
+	/**
+	 * Changes state page.
+	 * @param action Pointer to an action.
+	 */
+	void FinishedCoverOperationDetailsState::btnPageClick(Action*)
+	{
+		hidePageUI();
+		_pageNumber = (_pageNumber + 1) % 2;
+		if (_pageNumber == 0)
+		{
+			_btnPage->setText(tr("STR_STATS"));
+			firstPage();
+		}
+		else
+		{
+			_btnPage->setText(tr("STR_RESULTS"));
+			secondPage();
+		}
+	}
+
+	/**
+	 * Draws soldier line.
+	 * @param stat Stat increase value.
+	 */
 	std::string FinishedCoverOperationDetailsState::makeSoldierString(int stat)
 	{
 		if (stat == 0) return "";
@@ -225,22 +519,117 @@ namespace OpenXcom
 	}
 
 	/**
-	 * Closes the window and shows a pedia article if needed.
-	 * @param action Pointer to an action.
+	 * Hides all paging UI elements.
 	 */
-	void FinishedCoverOperationDetailsState::btnOkClick(Action*)
+	void FinishedCoverOperationDetailsState::hidePageUI()
 	{
-		_game->popState();
+		_txtItem->setVisible(false);
+		_lstRecoveredItems->setVisible(false);
+		_txtReputation->setVisible(false);
+		_lstReputation->setVisible(false);
+		_lstFunds->setVisible(false);
+		_lstScore->setVisible(false);
+		_txtSoldierStatus->setVisible(false);
+		_lstSoldierStatus->setVisible(false);
+		_txtMessage->setVisible(false);
+
+		_txtSoldier->setVisible(false);
+		_txtTU->setVisible(false);
+		_txtStamina->setVisible(false);
+		_txtHealth->setVisible(false);
+		_txtBravery->setVisible(false);
+		_txtReactions->setVisible(false);
+		_txtFiring->setVisible(false);
+		_txtThrowing->setVisible(false);
+		_txtMelee->setVisible(false);
+		_txtStrength->setVisible(false);
+		_txtPsiStrength->setVisible(false);
+		_txtPsiSkill->setVisible(false);
+		_lstSoldierStats->setVisible(false);
 	}
+
 	/**
-	 * Shows Finished Covert Opration details.
-	 * @param action Pointer to an action.
+	 * Draws all first page UI elements.
 	 */
-	void FinishedCoverOperationDetailsState::btnDetailsClick(Action* action)
+	void FinishedCoverOperationDetailsState::firstPage()
 	{
+		if (_hasItems)
+		{
+			_txtItem->setVisible(true);
+			_lstRecoveredItems->setVisible(true);
+		}
+
+		if (_hasRep)
+		{
+			_txtReputation->setVisible(true);
+			_lstReputation->setVisible(true);
+		}
+
+		if (_hasFunds)
+		{
+			_lstFunds->setVisible(true);
+		}
+		if (_hasScore)
+		{
+			_lstFunds->setVisible(true);
+		}
+
+		if (_hasSStatus)
+		{
+			_txtSoldierStatus->setVisible(true);
+			_lstSoldierStatus->setVisible(true);
+		}
+
+		if (_hasMessage)
+		{
+			_txtMessage->setVisible(true);
+		}
+	}
+
+	/**
+	 * Draws all second page UI elements.
+	 */
+	void FinishedCoverOperationDetailsState::secondPage()
+	{
+		_txtSoldier->setVisible(true);
+		_txtTU->setVisible(true);
+		_txtStamina->setVisible(true);
+		_txtHealth->setVisible(true);
+		_txtBravery->setVisible(true);
+		_txtReactions->setVisible(true);
+		_txtFiring->setVisible(true);
+		_txtThrowing->setVisible(true);
+		_txtMelee->setVisible(true);
+		_txtStrength->setVisible(true);
+		_txtPsiStrength->setVisible(true);
+		_txtPsiSkill->setVisible(true);
+		_lstSoldierStats->setVisible(true);
+
+		
 	}
 
 	
-	
+	/**
+	* Shows a tooltip for the appropriate text.
+	* @param action Pointer to an action.
+	*/
+	void FinishedCoverOperationDetailsState::txtTooltipIn(Action* action)
+	{
+		_currentTooltip = action->getSender()->getTooltip();
+		_txtTooltip->setText(tr(_currentTooltip));
+	}
+
+	/**
+	* Clears the tooltip text.
+	* @param action Pointer to an action.
+	*/
+	void FinishedCoverOperationDetailsState::txtTooltipOut(Action* action)
+	{
+		if (_currentTooltip == action->getSender()->getTooltip())
+		{
+			_txtTooltip->setText("");
+		}
+	}
+
 
 }

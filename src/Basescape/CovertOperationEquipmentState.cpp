@@ -526,6 +526,7 @@ void CovertOperationEquipmentState::lstEquipmentRightArrowClick(Action* action)
 		int baseItemsCount = _base->getStorageItems()->getItem(_items[_sel]);
 		moveRightByValue(baseItemsCount, true);
 	}
+
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
 		moveRightByValue(1);
