@@ -59,7 +59,7 @@ private:
 	const RuleCovertOperation* _rule;
 	CovertOperationStartState* _operation;
 	std::vector<std::string> _items;
-	int _totalItems;
+	double _totalItems;
 	Uint8 _ammoColor;
 	bool _reload;
 	/// Updates quantities of item.
