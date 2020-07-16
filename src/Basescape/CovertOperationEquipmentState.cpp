@@ -455,7 +455,8 @@ void CovertOperationEquipmentState::btnOkClick(Action*)
 void CovertOperationEquipmentState::lstEquipmentLeftArrowPress(Action* action)
 {
 	_sel = _lstEquipment->getSelectedRow();
-	if (action->getDetails()->button.button == SDL_BUTTON_LEFT && !_timerLeft->isRunning()) _timerLeft->start();
+	if (action->getDetails()->button.button == SDL_BUTTON_LEFT && !_timerLeft->isRunning())
+		_timerLeft->start();
 }
 
 /**
@@ -492,7 +493,8 @@ void CovertOperationEquipmentState::lstEquipmentLeftArrowClick(Action* action)
 void CovertOperationEquipmentState::lstEquipmentRightArrowPress(Action* action)
 {
 	_sel = _lstEquipment->getSelectedRow();
-	if (action->getDetails()->button.button == SDL_BUTTON_LEFT && !_timerRight->isRunning()) _timerRight->start();
+	if (action->getDetails()->button.button == SDL_BUTTON_LEFT && !_timerRight->isRunning())
+		_timerRight->start();
 }
 
 /**
@@ -513,7 +515,8 @@ void CovertOperationEquipmentState::lstEquipmentRightArrowRelease(Action* action
 	*/
 void CovertOperationEquipmentState::lstEquipmentRightArrowClick(Action* action)
 {
-	if (action->getDetails()->button.button == SDL_BUTTON_RIGHT) moveRightByValue(INT_MAX);
+	if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
+		moveRightByValue(INT_MAX);
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
 		moveRightByValue(1);
@@ -616,12 +619,10 @@ void CovertOperationEquipmentState::moveLeft()
 void CovertOperationEquipmentState::moveLeftByValue(int change)
 {
 	RuleItem* item = _game->getMod()->getItem(_items[_sel], true);
-	int cQty = 0;
-	cQty = _operation->getItems()->getItem(_items[_sel]);
+	int cQty = _operation->getItems()->getItem(_items[_sel]);
 	if (change <= 0 || cQty <= 0) return;
-	change = std::min(cQty, change);
 	_operation->getItems()->removeItem(_items[_sel], change);
-	_totalItems -= change;
+	_totalItems -= item->getSize();
 	_base->getStorageItems()->addItem(_items[_sel], change);
 	updateQuantity();
 }
@@ -646,8 +647,7 @@ void CovertOperationEquipmentState::moveRightByValue(int change, bool suppressEr
 	RuleItem* item = _game->getMod()->getItem(_items[_sel], true);
 	int bqty = _base->getStorageItems()->getItem(_items[_sel]);
 	if (0 >= change || 0 >= bqty) return;
-	change = std::min(bqty, change);
-	if (_rule->getItemSpaceLimit() >= 0 && _totalItems + item->getSize() > _rule->getItemSpaceLimit() * 2)
+	if (_rule->getItemSpaceLimit() >= 0 && _totalItems + item->getSize() > _rule->getItemSpaceLimit())
 	{
 		if (!suppressErrors)
 		{
@@ -655,11 +655,11 @@ void CovertOperationEquipmentState::moveRightByValue(int change, bool suppressEr
 			LocalizedText msg(tr("STR_NO_MORE_EQUIPMENT_ALLOWED", _rule->getItemSpaceLimit()));
 			_game->pushState(new ErrorMessageState(msg, _palette, _game->getMod()->getInterface("operationEquipment")->getElement("errorMessage")->color, _game->getMod()->getInterface("operationEquipment")->getBackgroundImage(), _game->getMod()->getInterface("operationEquipment")->getElement("errorPalette")->color));
 			_reload = false;
+			return;
 		}
-		change = _rule->getItemSpaceLimit() - _totalItems;
 	}
 	_operation->getItems()->addItem(_items[_sel], change);
-	_totalItems += change;
+	_totalItems += item->getSize();
 	if (_game->getSavedGame()->getMonthsPassed() > -1)
 	{
 		_base->getStorageItems()->removeItem(_items[_sel], change);
