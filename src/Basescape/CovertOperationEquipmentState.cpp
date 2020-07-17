@@ -662,18 +662,24 @@ void CovertOperationEquipmentState::moveRightByValue(int change, bool suppressEr
 	double sumAdd = _totalItems + item->getSize() * change;
 	if (_rule->getItemSpaceLimit() >= 0 && sumAdd > _rule->getItemSpaceLimit())
 	{
-		if (!suppressErrors)
+		change = (_rule->getItemSpaceLimit() - _totalItems) / item->getSize();
+		if (!suppressErrors || (suppressErrors && baseItemsCount>0 && change == 0))
 		{
 			_timerRight->stop();
 			LocalizedText msg(tr("STR_NO_MORE_EQUIPMENT_ALLOWED", _rule->getItemSpaceLimit()));
-			_game->pushState(new ErrorMessageState(msg, _palette, _game->getMod()->getInterface("operationEquipment")->getElement("errorMessage")->color, _game->getMod()->getInterface("operationEquipment")->getBackgroundImage(), _game->getMod()->getInterface("operationEquipment")->getElement("errorPalette")->color));
+			_game->pushState
+			(
+				new ErrorMessageState
+				(
+					msg,
+					_palette,
+					_game->getMod()->getInterface("operationEquipment")->getElement("errorMessage")->color,
+					_game->getMod()->getInterface("operationEquipment")->getBackgroundImage(),
+					_game->getMod()->getInterface("operationEquipment")->getElement("errorPalette")->color
+				)
+			);
 			_reload = false;
 			return;
-		}
-		else
-		{
-			double r = _rule->getItemSpaceLimit() - _totalItems;
-			change = (_rule->getItemSpaceLimit() - _totalItems) / item->getSize();
 		}
 	}
 	_operation->getItems()->addItem(_items[_sel], change);
