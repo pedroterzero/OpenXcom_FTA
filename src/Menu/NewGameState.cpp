@@ -204,7 +204,7 @@ void NewGameState::btnOkClick(Action *)
 		aBase->setAlienRace(aBaseDeployment->getRace());
 		aBase->setLongitude(lon + 0.23); //TODO random array here
 		aBase->setLatitude(lat - 0.05); //TODO random array here
-		aBase->setDiscovered(true);
+		aBase->setDiscovered(false);
 		save->getAlienBases()->push_back(aBase);
 		//init the Game
 		gs->init();

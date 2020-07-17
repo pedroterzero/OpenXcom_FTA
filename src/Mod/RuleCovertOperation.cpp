@@ -35,8 +35,8 @@ RuleCovertOperation::RuleCovertOperation(const std::string& name) : _name(name),
 																	_scientistSlots(0), _engineerSlots(0), _optionalSoldierEffect(15), _scientistEffect(10), _engeneerEffect(10),
 																	_baseChances(50), _costs(0), _itemSpaceLimit(-1), _itemSpaceEffect(10), _danger(0), _trapChance(0), _armorEffect(20),
 																	_successScore(0), _failureScore(0), _progressEventChance(0), _repeatProgressEvent(false),
-																	_successFunds(0), _failureFunds(0), 
-																	_listOrder(0) //, _sucessBackground("BACK13.SCR"), _failureBackground("BACK13.SCR")
+																	_successFunds(0), _failureFunds(0), _successMusic("GMMARS"), _failureMusic("GMLOSE"),
+																	_listOrder(0) 
 {
 }
 
@@ -63,6 +63,8 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_failureBackground = node["failureBackground"].as<std::string>(_failureBackground);
 	_successDescription = node["successDescription"].as<std::string>(_successDescription);
 	_failureDescription = node["failureDescription"].as<std::string>(_failureDescription);
+	_successMusic = node["successMusic"].as<std::string>(_successMusic);
+	_failureMusic = node["failureMusic"].as<std::string>(_failureMusic);
 	_successEvent = node["successEvent"].as<std::string>(_successEvent);
 	_failureEvent = node["failureEvent"].as<std::string>(_failureEvent);
 	_progressEvent = node["progressEvent"].as<std::string>(_progressEvent);
@@ -88,8 +90,8 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_failureScore = node["failureScore"].as<int>(_failureScore);
 	_successFunds = node["successFunds"].as<int>(_successFunds);
 	_failureFunds = node["failureFunds"].as<int>(_failureFunds);
-	_successEveryItemList = node["successEveryItemList"].as<std::map<std::string, int> >(_successEveryItemList); // from event's _everyMultiItemList
-	_failureEveryItemList = node["failureEveryItemList"].as<std::map<std::string, int> >(_failureEveryItemList); // from event's _everyMultiItemList 
+	_successEveryItemList = node["successEveryItemList"].as<std::map<std::string, int> >(_successEveryItemList);
+	_failureEveryItemList = node["failureEveryItemList"].as<std::map<std::string, int> >(_failureEveryItemList);
 	if (node["successWeightedItemList"])
 	{
 		_successWeightedItemList.load(node["successWeightedItemList"]);
@@ -125,6 +127,7 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_allowedArmor = node["allowedArmor"].as<std::vector<std::string>>(_allowedArmor);
 	_armorEffect = node["armorEffect"].as<int>(_armorEffect);
 	_soldierTypeEffectiveness = node["soldierTypeEffectiveness"].as<std::map<std::string, int>>(_soldierTypeEffectiveness);
+	_specialRule = node["specialRule"].as<std::string>(_specialRule);
 	
 	if (!_listOrder)
 	{

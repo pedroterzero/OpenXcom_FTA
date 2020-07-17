@@ -18,6 +18,7 @@
  */
 #include "FinishedCoverOperationDetailsState.h"
 #include "../Engine/Game.h"
+#include "../Engine/Action.h"
 #include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Engine/Logger.h"
@@ -30,70 +31,8 @@
 #include "../Savegame/CovertOperation.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/SavedBattleGame.h"
-#include "../Ufopaedia/Ufopaedia.h"
-
-
-#include <algorithm>
-#include <climits>
-#include "../Battlescape/TileEngine.h"
-#include "../Battlescape/DebriefingState.h"
-#include "../Battlescape/CannotReequipState.h"
-#include "../Engine/Action.h"
-#include "../Engine/Game.h"
-#include "../Engine/LocalizedText.h"
-#include "../Interface/TextButton.h"
-#include "../Interface/Text.h"
-#include "../Interface/TextList.h"
-#include "../Interface/Window.h"
-#include "../Battlescape/PromotionsState.h"
-#include "../Battlescape/CommendationState.h"
-#include "../Battlescape/CommendationLateState.h"
-#include "../Mod/Mod.h"
-#include "../Mod/RuleCountry.h"
-#include "../Mod/RuleCraft.h"
-#include "../Mod/RuleItem.h"
-#include "../Mod/RuleRegion.h"
-#include "../Mod/RuleSoldier.h"
-#include "../Mod/RuleUfo.h"
-#include "../Mod/Armor.h"
-#include "../Savegame/AlienBase.h"
-#include "../Savegame/AlienMission.h"
-#include "../Savegame/Base.h"
-#include "../Savegame/BattleItem.h"
-#include "../Savegame/Country.h"
-#include "../Savegame/Craft.h"
-#include "../Savegame/ItemContainer.h"
-#include "../Savegame/Region.h"
-#include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/Soldier.h"
-#include "../Savegame/SoldierDiary.h"
-#include "../Savegame/MissionSite.h"
-#include "../Savegame/Tile.h"
-#include "../Savegame/Ufo.h"
-#include "../Savegame/Vehicle.h"
-#include "../Savegame/BaseFacility.h"
-#include "../Savegame/CovertOperation.h"
-#include <sstream>
-#include "../Menu/ErrorMessageState.h"
-#include "../Menu/MainMenuState.h"
-#include "../Interface/Cursor.h"
-#include "../Engine/Options.h"
-#include "../Engine/RNG.h"
-#include "../Basescape/ManageAlienContainmentState.h"
-#include "../Basescape/TransferBaseState.h"
-#include "../FTA/DiplomacyStartState.h"
-#include "../Engine/Screen.h"
-#include "../Basescape/SellState.h"
-#include "../Menu/SaveGameState.h"
-#include "../Mod/AlienDeployment.h"
-#include "../Mod/RuleInterface.h"
-#include "../Savegame/MissionStatistics.h"
-#include "../Savegame/BattleUnitStatistics.h"
-#include "../fallthrough.h"
-
-
-
-
+#include "../Ufopaedia/Ufopaedia.h"
 
 namespace OpenXcom
 {
@@ -115,7 +54,7 @@ namespace OpenXcom
 		_txtTitle = new Text(300, 17, 16, 8);
 
 		_txtItem = new Text(180, 9, 16, 24);
-		_lstRecoveredItems = new TextList(272, 48, 16, 32); // h=144 = 18 rows and 48 means 8 rows
+		_lstRecoveredItems = new TextList(272, 48, 16, 32); // h=48 = 8 rows
 
 		_txtReputation = new Text(180, 9, 16, 84);
 		_lstReputation = new TextList(272, 24, 16, 92); //3 rows max
@@ -187,7 +126,7 @@ namespace OpenXcom
 
 		// Set up objects
 		setWindowBackground(_window, "covertOperationFinishDetails");
-		
+
 		_txtTitle->setBig();
 		_txtTitle->setText(tr(operation->getOperationName()));
 
@@ -305,8 +244,6 @@ namespace OpenXcom
 		if (!items.empty())
 		{
 			_hasItems = true;
-			_txtItem->setVisible(true);
-			_lstRecoveredItems->setVisible(true);
 			for (std::map<std::string, int>::const_iterator i = items.begin(); i != items.end(); ++i)
 			{
 				auto item = tr((*i).first);
@@ -323,8 +260,6 @@ namespace OpenXcom
 		if (!factions.empty())
 		{
 			_hasRep = true;
-			_txtReputation->setVisible(true);
-			_lstReputation->setVisible(true);
 			for (std::map<std::string, int>::const_iterator i = factions.begin(); i != factions.end(); ++i)
 			{
 				auto faction = tr((*i).first);
@@ -342,7 +277,6 @@ namespace OpenXcom
 			ss3 << _results->getFunds();
 			_lstFunds->addRow(2, tr("STR_FUNDS_UC").c_str(), ss3.str().c_str());
 			_hasFunds = true;
-			_lstFunds->setVisible(true);
 		}
 		if (_results->getScore() != 0)
 		{
@@ -350,7 +284,6 @@ namespace OpenXcom
 			ss4 << _results->getScore();
 			_lstScore->addRow(2, tr("STR_SCORE_UC").c_str(), ss4.str().c_str());
 			_hasScore = true;
-			_lstFunds->setVisible(true);
 		}
 
 		int rowSoldierStatus = 0;
@@ -358,15 +291,15 @@ namespace OpenXcom
 		if (!soldierStatus.empty())
 		{
 			_hasSStatus = true;
-			_txtSoldierStatus->setVisible(true);
-			_lstSoldierStatus->setVisible(true);
 			int wounded = 0, mia = 0;
 			for (std::map<std::string, int>::const_iterator i = soldierStatus.begin(); i != soldierStatus.end(); ++i)
 			{
 				auto soldier = tr((*i).first);
 				int damage = (*i).second;
-				if (damage > 0) ++wounded;
-				if (damage < 0) ++mia;
+				if (damage > 0)
+					++wounded;
+				if (damage < 0)
+					++mia;
 				if (wounded > 0)
 				{
 					std::ostringstream ss5;
@@ -418,12 +351,12 @@ namespace OpenXcom
 			statusOffset = (16 - (rowSoldierStatus * 8));
 
 		//extra expanding of item list if we do not have a lot of things to show on the screen
-		if (rowItem > 7) //TODO FIXME
+		if (rowItem > 7)
 		{
 			int globalOffset = repOffset + fundOffset + scoreOffset + statusOffset;
-			if (globalOffset < rowItem * 8)
+			if (globalOffset > rowItem * 8)
 			{
-				int extraRowSpace = (rowItem - 8) * 8;
+				int extraRowSpace = (rowItem - 6) * 8;
 				_lstRecoveredItems->setHeight(_lstRecoveredItems->getHeight() + extraRowSpace);
 				itemOffset -= extraRowSpace;
 			}
@@ -433,7 +366,6 @@ namespace OpenXcom
 				itemOffset -= globalOffset;
 			}
 		}
-
 		//move UI elemnts by calculated offset
 		_txtReputation->setY(_txtReputation->getY() - itemOffset);
 		_lstReputation->setY(_lstReputation->getY() - itemOffset);
@@ -471,7 +403,7 @@ namespace OpenXcom
 
 		//set up first page at startup
 		hidePageUI();
-		firstPage();	
+		firstPage();
 	}
 
 	FinishedCoverOperationDetailsState::~FinishedCoverOperationDetailsState() {}
@@ -571,7 +503,7 @@ namespace OpenXcom
 		}
 		if (_hasScore)
 		{
-			_lstFunds->setVisible(true);
+			_lstScore->setVisible(true);
 		}
 
 		if (_hasSStatus)
@@ -605,10 +537,10 @@ namespace OpenXcom
 		_txtPsiSkill->setVisible(true);
 		_lstSoldierStats->setVisible(true);
 
-		
+
 	}
 
-	
+
 	/**
 	* Shows a tooltip for the appropriate text.
 	* @param action Pointer to an action.

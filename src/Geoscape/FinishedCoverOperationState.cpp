@@ -53,6 +53,7 @@ namespace OpenXcom
 			resultTxt = tr("STR_SUCCESS_US");
 			description = _rule->getSuccessDescription();
 			backgrd = _rule->getSuccessBackground();
+			_music = _rule->getSuccessMusic();
 		}
 		else
 		{
@@ -60,6 +61,7 @@ namespace OpenXcom
 			resultTxt = tr("STR_FAILURE_US");
 			description = _rule->getFailureDescription();
 			backgrd = _rule->getFailureBackground();
+			_music = _rule->getFailureMusic();
 		}
 		_researchName = operation->getDiscoveredResearch();
 
@@ -129,17 +131,17 @@ namespace OpenXcom
 		// Empty by design
 	}
 
-	///**
-	// * Initializes the state.
-	// */
-	//void FinishedCoverOperationState::init()
-	//{
-	//	State::init();
-	//	if (!_eventRule.getMusic().empty())
-	//	{
-	//		_game->getMod()->playMusic(_eventRule.getMusic());
-	//	}
-	//}
+	/**
+	 * Initializes the state.
+	 */
+	void FinishedCoverOperationState::init()
+	{
+		State::init();
+		if (!_music.empty())
+		{
+			_game->getMod()->playMusic(_music);
+		}
+	}
 
 	/**
 	 * Closes the window and shows a pedia article if needed.

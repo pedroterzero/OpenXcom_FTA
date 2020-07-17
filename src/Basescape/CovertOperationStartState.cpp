@@ -787,7 +787,7 @@ int CovertOperationStartState::getOperationCost() //TODO remove LOOP!
 		Log(LOG_INFO) << "Initial operation cost equal " << _cost;
 		double bonus = (((_chances - 100) / (_chances - 82)) * 24) / 100; //some cute nonlinear calculation
 		Log(LOG_INFO) << "We have _chances > 100, so we get bonus to time equal " << bonus << " !";
-		reducedCost = std::round(_cost * bonus);
+		reducedCost -= std::round(_cost * bonus);
 	}
 	Log(LOG_INFO) << "Final operation cost equal " << reducedCost;
 	return reducedCost;

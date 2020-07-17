@@ -39,7 +39,7 @@ namespace OpenXcom
 		Text* _txtTitle, *_txtResult, *_txtBase, *_txtMessage;
 		TextButton* _btnOk, * _btnDetails;
 
-		std::string _researchName;
+		std::string _researchName, _music;
 		CovertOperation* _operation;
 		const RuleCovertOperation* _rule;
 
@@ -49,7 +49,7 @@ namespace OpenXcom
 		/// Cleans up the FinishedCoverOperationState.
 		~FinishedCoverOperationState();
 		/// Initializes the state.
-		//void init() override;
+		void init() override;
 		/// Handler for clicking the OK button.
 		void btnOkClick(Action* action);
 		/// Handler for clicking the DETAILS button.
