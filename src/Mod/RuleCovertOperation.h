@@ -37,7 +37,7 @@ class Mod;
 class RuleCovertOperation
 {
 private:
-	std::string _name, _description, _successDescription, _failureDescription, _sucessBackground, _failureBackground, _successEvent,  _failureEvent, _progressEvent;
+	std::string _name, _description, _successDescription, _failureDescription, _sucessBackground, _failureBackground, _successMusic, _failureMusic, _successEvent,  _failureEvent, _progressEvent, _specialRule;
 	std::vector<std::string> _requires, _canceledBy, _allowedArmor, _successResearchList, _failureResearchList;
 	RuleBaseFacilityFunctions _requiresBaseFunc;
 	int _soldierSlots, _optionalSoldierSlots, _scientistSlots, _engineerSlots, _optionalSoldierEffect, _scientistEffect, _engeneerEffect, _itemSpaceEffect, _armorEffect;
@@ -66,6 +66,10 @@ public:
 	const std::string& getSuccessBackground() const { return _sucessBackground; };
 	/// Gets the operation's failure results backbround image.
 	const std::string& getFailureBackground() const { return _failureBackground; };
+	/// Gets the operation's success results backbround image.
+	const std::string& getSuccessMusic() const { return _successMusic; };
+	/// Gets the operation's failure results backbround image.
+	const std::string& getFailureMusic() const { return _failureMusic; };
 	/// Gets the operation's requirements.
 	const std::vector<std::string>& getRequirements() const { return _requires; };
 	/// Gets the base functions required to start operation.
@@ -152,6 +156,8 @@ public:
 	int getAllowedArmorEffect() const { return _armorEffect; };
 	/// Gets the effectivness by soldier type for this operations.
 	const std::map<std::string, int>& getSoldierTypeEffectiveness() const { return _soldierTypeEffectiveness; }
+	/// Gets the operation's special campaign rule.
+	const std::string& getSpecialRule() const { return _specialRule; };
 	/// Gets the operation's list order.
 	int getListOrder() const { return _listOrder; }
 };

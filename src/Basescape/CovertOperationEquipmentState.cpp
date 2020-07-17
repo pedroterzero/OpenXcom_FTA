@@ -672,7 +672,6 @@ void CovertOperationEquipmentState::moveRightByValue(int change, bool suppressEr
 		}
 		else
 		{
-			double r = _rule->getItemSpaceLimit() - _totalItems;
 			change = (_rule->getItemSpaceLimit() - _totalItems) / item->getSize();
 		}
 	}

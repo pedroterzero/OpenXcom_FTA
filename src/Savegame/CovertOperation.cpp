@@ -41,6 +41,7 @@
 #include "../Savegame/AlienMission.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/ItemContainer.h"
+#include "../Savegame/AlienBase.h"
 #include "../Mod/Mod.h"
 #include "../Mod/RuleCovertOperation.h"
 #include "../Mod/RuleSoldier.h"
@@ -336,6 +337,34 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 		spawnEvent(engine, eventName);
 	}
 
+	if (!researchList.empty())
+	{
+		std::vector<const RuleResearch*> possibilities;
+
+		for (auto rName : researchList)
+		{
+			const RuleResearch* rRule = mod.getResearch(rName, true);
+			if (!save.isResearched(rRule, false))
+			{
+				possibilities.push_back(rRule);
+			}
+		}
+
+		if (!possibilities.empty())
+		{
+			const RuleResearch* eventResearch = possibilities.at(0);
+			save.addFinishedResearch(eventResearch, &mod, _base, true);
+			_researchName = eventResearch->getName();
+			_results->setSpecialMessage("STR_NEW_DATA_ACQUIRED");
+			if (!eventResearch->getLookup().empty())
+			{
+				const RuleResearch* lookupResearch = mod.getResearch(eventResearch->getLookup(), true);
+				save.addFinishedResearch(lookupResearch, &mod, _base, true);
+				_researchName = lookupResearch->getName();
+			}
+		}
+	}
+	
 	if (!reputationScore.empty())
 	{
 		for (std::map<std::string, int>::const_iterator i = reputationScore.begin(); i != reputationScore.end(); ++i)
@@ -466,6 +495,24 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 		save.getAlienMissions().push_back(mission);
 	}
 
+	if (!_rule->getSpecialRule().empty())//processing of yet hardcoded fta story arc
+	{
+		std::string specRule = _rule->getSpecialRule();
+		if (specRule == "STR_REGIONAL_HQ_DICOVERY")
+		{
+			for (std::vector<OpenXcom::AlienBase*>::iterator i = save.getAlienBases()->begin(); i != save.getAlienBases()->end(); ++i)
+			{
+				auto baseName = (*i)->getDeployment()->getType();
+				if (baseName == "STR_INITIAL_REGIONAL_HQ")
+				{
+					(*i)->setDiscovered(true);
+
+					_results->setSpecialMessage("STR_REGIONAL_HQ_FOUND");
+				}
+			}
+		}
+	}
+
 	if (!deploymentName.empty())
 	{
 		bool process = true;
@@ -489,7 +536,6 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 				_inBattlescape = true;
 				bgen.run();
 				engine.pushState(new BriefingState());
-				//_pause = true;
 			}
 			else
 			{
@@ -509,7 +555,6 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 		}
 		//now we can finish operation
 		engine.pushState(new FinishedCoverOperationState(this, operationResult));
-		//finishOperation();
 	}
 	return;
 }
