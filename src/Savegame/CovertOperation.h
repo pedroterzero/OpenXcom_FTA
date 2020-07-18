@@ -99,6 +99,8 @@ public:
 	ItemContainer* getItems() { return _items; };
 	/// Gets operation's results.
 	CovertOperationResults* getResults() { return _results; }
+	/// Gets operation's soldiers
+	std::vector<Soldier*> getSoldiers();
 
 	/// Gets approximate odds of operation success for UI.
 	std::string getOddsName();
