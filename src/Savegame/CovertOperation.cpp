@@ -130,10 +130,27 @@ std::string CovertOperation::getOperationName()
 	return _rule->getName();
 }
 
+
+/**
+ * Return a vector of pointers to a Soldier realisations that assigned to this operation.
+ * @return a vector of pointers to a Soldier class.
+ */
+std::vector<Soldier*> CovertOperation::getSoldiers()
+{
+	std::vector<Soldier*> soldiers;
+	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+	{
+		if ((*i)->getCovertOperation() != 0 && (*i)->getCovertOperation()->getOperationName() == this->getOperationName())
+		{
+			soldiers.push_back(*i);
+		}
+	}
+	return soldiers;
+}
+
 /**
  * Return a string describing CovertOperation success odds.
  * @par chance is input to calculate chance name.
- * @par mode to define if we need to calculate string or get existing mission chance.
  * @return a string describing CovertOperation success odds.
  */
 std::string CovertOperation::getOddsName()
