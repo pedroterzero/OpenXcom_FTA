@@ -2531,13 +2531,22 @@ void GeoscapeState::time1Day()
 	}
 
 	//handle daily Faction logic
-	for (auto faction : saveGame->getDiplomacyFactions()) { bool answer = faction->think(*_game,TIMESTEP_DAILY); if (answer){ bool success = processCommand(mod->getMissionScript(faction->getCommandType())); } }
+	for (auto faction : saveGame->getDiplomacyFactions())
+	{
+		bool answer = faction->think(*_game,TIMESTEP_DAILY);
+		if (answer)
+		{
+			bool success = processCommand(mod->getMissionScript(faction->getCommandType()));
+		}
+	}
 	//handle daily covert operations logic
 	for (std::vector<Base*>::iterator i = _game->getSavedGame()->getBases()->begin(); i != _game->getSavedGame()->getBases()->end(); ++i)
 	{
 		for (auto operation : (*i)->getCovertOperations())
 		{
-			operation->think(*_game, *_globe);
+			bool process = operation->think(*_game, *_globe);
+			if (process)
+				timerReset();
 			// Remove finished operatio 
 			Collections::deleteIf(
 				_game->getSavedGame()->getGeoscapeEvents(),

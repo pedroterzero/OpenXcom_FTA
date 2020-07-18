@@ -114,7 +114,7 @@ public:
 	/// Sets if this operation is running in battlescape
 	void setInBattlescape(bool inbattle) { _inBattlescape = inbattle; }
 	/// Handle covert operation logic.
-	void think(Game& engine, const Globe& globe);
+	bool think(Game& engine, const Globe& globe);
 	/// Generates event for covert operation.
 	void spawnEvent(Game& engine, std::string eventName);
 	/// Process soldier's actions results in covert operation
