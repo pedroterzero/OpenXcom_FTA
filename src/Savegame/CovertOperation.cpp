@@ -56,7 +56,7 @@ namespace OpenXcom
 {
 CovertOperation::CovertOperation(const RuleCovertOperation* rule, Base* base, int cost, int chances) :
 	_rule(rule), _base(base), _spent(0), _cost(cost), _successChance(chances), _assignedScientists(0), _assignedEngineers(0),
-	_inBattlescape(false), _hasBattlescapeResolve(false), _over(false), _hasPsi(false), _progressEventSpawned(false)
+	_inBattlescape(false), _hasBattlescapeResolve(false), _over(false), _hasPsi(false), _progressEventSpawned(false), _results(0)
 {
 	_items = new ItemContainer();
 	if (base != 0)
@@ -194,13 +194,13 @@ std::string CovertOperation::getTimeLeftName()
 * @param Game game engine.
 * @param ThinkPeriond - timestep to determine think process
 */
-void CovertOperation::think(Game& engine, const Globe& globe)
+bool CovertOperation::think(Game& engine, const Globe& globe)
 {
 	const Mod& mod = *engine.getMod();
 	SavedGame& save = *engine.getSavedGame();
 	// if finished, don't do anything
 	if (_over)
-		return;
+		return false;
 
 	// are we there yet?
 	if (_spent <= _cost)
@@ -212,7 +212,7 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 		{
 			bool spawn = false;
 			if (!_rule->getRepeatProgressEvent() && _progressEventSpawned)
-				return;
+				return false;
 			else
 			{
 				if (RNG::percent(_rule->getProgressEventChance()))
@@ -222,13 +222,13 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 				}
 			}
 		}
-		return;
+		return false;
 	}
 
 	// ok, the time has come to resolve covert operation
 	GameDifficulty diff = save.getDifficulty(); //first, we understand values based on game difficulty
 	int critFailCoef = 45;
-	int woundOdds = 15;
+	int woundOdds = 20;
 	int deathOdds = 10;
 	switch (diff)
 	{
@@ -573,7 +573,7 @@ void CovertOperation::think(Game& engine, const Globe& globe)
 		//now we can finish operation
 		engine.pushState(new FinishedCoverOperationState(this, operationResult));
 	}
-	return;
+	return true;
 }
 
 /**
@@ -593,7 +593,8 @@ void CovertOperation::spawnEvent(Game& engine, std::string eventName)
 	}
 	GeoscapeEvent* newEvent = new GeoscapeEvent(*eventRules);
 	int minutes = (eventRules->getTimer() + (RNG::generate(0, eventRules->getTimerRandom()))) / 30 * 30;
-	if (minutes < 30) minutes = 30;
+	if (minutes < 30)
+		minutes = 30; //spawn event on next game timestep
 	newEvent->setSpawnCountdown(minutes);
 	save.getGeoscapeEvents().push_back(newEvent);
 	save.addGeneratedEvent(eventRules);
@@ -618,13 +619,15 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	if (ruleCost < 20) effCost = ceil(ruleCost / 8);
 	else if (ruleCost < 40) effCost = ceil(ruleCost / 8.5);
 	else if (ruleCost < 60) effCost = ceil(ruleCost / 9.86);
-	else if (effCost < 80) effCost = ceil(ruleCost / 11.54);
+	else if (effCost < 80) 	effCost = ceil(ruleCost / 11.54);
 	else effCost = ceil(ruleCost / 12.52);
+
 	int expRolls = 1 + effCost + ceil(danger / 3);
 	//limit expirience gain
 	if (expRolls > 10 && expRolls <= 13) expRolls = 10;
 	if (expRolls > 13 && expRolls <= 16) expRolls = 11;
 	if (expRolls > 16) expRolls = 12;
+
 	if (save.getMonthsPassed() > 10) expRolls++; //bonus for lategame
 	int expRollsRandom = RNG::generate(-3, 3);
 	expRolls += expRollsRandom; //add more random
@@ -632,177 +635,203 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	if (!operationResult && !criticalFail) expRolls = round(expRolls / 3);
 	else if (criticalFail) expRolls = round(expRolls / 4) - 2;
 
+	//processing soldiers change before returning home
 	std::vector<Soldier*> soldiersToKill;
 	int operationSoldierN = 0;
-	//processing soldiers change before returning home
-	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+	std::vector<Soldier*> soldiers = getSoldiers();
+	for (std::vector<Soldier*>::iterator i = soldiers.begin(); i != soldiers.end(); ++i)
 	{
-		if ((*i)->getCovertOperation() != 0 && (*i)->getCovertOperation()->getOperationName() == this->getOperationName())
+		bool dead = false;
+		int wound = 0;
+		int damage = 0;
+		bool saved = false;
+		++operationSoldierN;
+		UnitStats* stats = (*i)->getCurrentStats();
+		const UnitStats caps = (*i)->getRules()->getStatCaps();
+		UnitStats* improvement = new UnitStats();
+		int tuExp = 0, staminaExp = 0;
+		int healthExp = 0, braveryExp = 0, reactionsExp = 0, firingExp = 0, throwingExp = 0, meleeExp = 0, streingthExp = 0;
+		int psiSkillExp = 0, psiStrExp = 0, manaExp = 0;
+		//our dudes did something very wrong, so we hurt them back
+		if (criticalFail && danger > 0)
 		{
-			bool dead = false;
-			int wound = 0;
-			int damage = 0;
-			bool saved = false;
-			++operationSoldierN;
-			UnitStats* stats = (*i)->getCurrentStats();
-			const UnitStats caps = (*i)->getRules()->getStatCaps();
-			UnitStats* improvement = new UnitStats();
-			//our dudes did something very wrong, so we hurt them back
-			if (criticalFail && danger > 0)
+			for (size_t j = 0; j < danger; j++)
 			{
-				for (size_t j = 0; j < danger; j++)
+				bool hit = RNG::generate(0, 99) < woundOdds;
+				if (hit)
 				{
-					bool hit = RNG::generate(0, 99) < woundOdds;
-					if (hit)
+					bool miss = RNG::generate(0, 99) < ceil((*i)->getStatsWithAllBonuses()->reactions * 0.7);
+					if (miss)
 					{
-						bool miss = RNG::generate(0, 99) < ceil((*i)->getStatsWithAllBonuses()->reactions * 0.7);
-						if (!miss) ++wound;
-					}
-				}
-				if (wound > 0)
-				{
-					damage = (int)RNG::generate((wound * 8), (wound * 12));
-				}
-				if (damage < (*i)->getCurrentStats()->health)
-				{
-					(*i)->setHealthMissing(damage);
-				}
-				else
-				{
-					dead = true; //ouch, too much damage rolled!
-				}
-				if (!dead)
-				{ //OMG, Finger of Death for soldier on critical failed operation!!!
-					dead = RNG::generate(0, 99) < deathOdds + ceil(danger / 4);
-				}
-				if (dead)
-				{
-					//Check for divine protection
-					int protection = (*i)->getRank();
-					protection += (((*i)->getDiary()->getKillTotal() / 20) + ((*i)->getDiary()->getStunTotal() / 15)); //there is a place for additional perks
-					//lets add save if we have psi
-					if (_hasPsi) protection += 2;
-					int requiredProtection = 15 + danger;
-					if (requiredProtection > protection)
-					{//RIP...
-						soldiersToKill.push_back(*i);
+						++reactionsExp;
 					}
 					else
 					{
-						dead = false;
-						saved = true;
+						++wound;
 					}
 				}
 			}
-			//soldiers can improve stats based on virtual expirience they take
-			if (!dead && expRolls > 0)
+			if (wound > 0)
 			{
-				//TU and Energy is increased most time
-				int tuExp = 0, staminaExp = 0;
-				if (stats->tu < caps.tu) tuExp = RNG::generate(-2, expRolls); //negative roll makes small additional chance for improveStat return 0
-				if (stats->stamina < caps.stamina) staminaExp = RNG::generate(-2, expRolls);
-				//other stats would be rolled to be improved
-				int statID = 0;
-				int expGain = 0;
-				int healthExp = 0, braveryExp = 0, reactionsExp = 0, firingExp = 0, throwingExp = 0, meleeExp = 0, streingthExp = 0, psiSkillExp = 0, psiStrExp = 0, manaExp = 0;
-				bool braveryTrained = false;
-				bool trainPsiSkill = (stats->psiSkill > 0 && _hasPsi);//TODO add more checks here
-				bool trainPsiStr = false;
-				if (trainPsiSkill && Options::allowPsiStrengthImprovement) trainPsiStr = true; //in case we have this special property
-				bool trainingManaPri = false;
-				if (trainPsiSkill && mod.isManaTrainingPrimary()) trainingManaPri = true;
-				bool trainingManaSec = false;
-				if (mod.isManaTrainingSecondary()) trainingManaSec = true;
-				for (size_t j = 0; j < expRolls; j++)
+				damage = (int)RNG::generate((wound * 8), (wound * 12));
+			}
+			if (damage < (*i)->getCurrentStats()->health)
+			{
+				(*i)->setHealthMissing(damage);
+				_results->addSoldierDamage((*i)->getName(), damage);
+			}
+			else
+			{
+				dead = true; //ouch, too much damage rolled!
+			}
+			if (!dead)
+			{ //OMG, Finger of Death for soldier on critical failed operation!!!
+				dead = RNG::generate(0, 99) < deathOdds + ceil(danger / 4);
+			}
+			if (dead)
+			{
+				//Check for divine protection
+				int protection = (*i)->getRank();
+				protection += (((*i)->getDiary()->getKillTotal() / 20) + ((*i)->getDiary()->getStunTotal() / 15)); //there is a place for additional perks
+				//lets add save if we have psi
+				if (_hasPsi)
+					protection += 2;
+				int requiredProtection = 15 + danger;
+				if (requiredProtection > protection)
+				{//RIP...
+					soldiersToKill.push_back(*i);
+				}
+				else
 				{
-					statID = RNG::generate(1, 8); //choose stat
-					expGain = RNG::generate(1, 4); //choose how many expirience it would be
-					if (expGain == 4) expGain = 1;
-					switch (statID)
-					{
-					case 0:
-						if (stats->health < caps.health) healthExp += expGain;
-						break;
-					case 1:
-						if (stats->bravery < caps.bravery && !braveryTrained)
-						{
-							int braveryRoll = 9;
-							if (wound > 0) braveryRoll -= 1;
-							if (saved || wound > 4) braveryRoll -= 2;
-							if (RNG::generate(0, 10) > braveryRoll)
-							{
-								braveryTrained = true; //lets make bravery trained only once
-								braveryExp += expGain;
-							}
-							else ++expRolls; //re-roll as it all was only to reduce bravery training
-						}
-						break;
-					case 2:
-						if (stats->reactions < caps.reactions) reactionsExp += expGain;
-						break;
-					case 3:
-						if (stats->firing < caps.firing) firingExp += expGain;
-						break;
-					case 4:
-						if (stats->throwing < caps.throwing) throwingExp += expGain;
-						break;
-					case 5:
-						if (stats->melee < caps.melee) meleeExp += expGain;
-						break;
-					case 6:
-						if (stats->strength < caps.strength) streingthExp += expGain;
-						break;
-					case 7:
-						if (stats->psiSkill < caps.psiSkill && trainPsiSkill)
-						{
-							psiSkillExp += expGain;
-							if (stats->psiStrength < caps.psiStrength && trainPsiStr) psiStrExp += expGain;
-							if (stats->mana < caps.mana && trainingManaPri) manaExp += expGain;
-						}
-						else if (!trainPsiSkill) ++expRolls; //re-roll as we assume soldier used other tools to achieave his or her goals
-						break;
-					case 8: //special case for separate non-psi mana using, like XCF
-						if (stats->mana < caps.mana && trainingManaSec) manaExp += expGain;
-						else if (!trainingManaSec) ++expRolls;
-						break;
-					default:
-						break;
-					}
+					dead = false;
+					saved = true;
+					++braveryExp;
 				}
-				//we want to remember stat improvement for later use
-				improvement->tu = improveStat(tuExp);
-				improvement->stamina = improveStat(staminaExp);
-				improvement->health = improveStat(healthExp);
-				if (braveryExp > 0)	improvement->bravery = 10;
-				improvement->reactions = improveStat(reactionsExp);
-				improvement->firing = improveStat(firingExp);
-				improvement->throwing = improveStat(throwingExp);
-				improvement->melee = improveStat(meleeExp);
-				improvement->strength = improveStat(streingthExp);
-				improvement->psiSkill = improveStat(psiSkillExp);
-				improvement->psiStrength = improveStat(psiStrExp);
-				improvement->mana = improveStat(manaExp);
-				_results->addSoldierImprovement((*i)->getName(), improvement);
-
-				//ok, now lets actually improve soldier stats!
-				stats->tu += improvement->tu;
-				stats->stamina += improvement->stamina;
-				stats->health += improvement->health;
-				stats->bravery += improvement->bravery;
-				stats->reactions += improvement->reactions;
-				stats->firing += improvement->firing;
-				stats->throwing += improvement->throwing;
-				stats->melee += improvement->melee;
-				stats->strength += improvement->strength;
-				stats->psiSkill += improvement->psiSkill;
-				stats->psiStrength += improvement->psiStrength;
-				stats->mana += improvement->mana;
-			}
-			if (dead || wound != 0)
-			{
-				(*i)->setReturnToTrainingWhenOperationOver(NONE);
 			}
 		}
+		//soldiers can improve stats based on virtual expirience they take
+		
+		if (!dead && expRolls > 0)
+		{
+			//TU and Energy is increased most time
+			if (stats->tu < caps.tu)
+				tuExp = RNG::generate(-2, expRolls); //negative roll makes small additional chance for improveStat return 0
+			if (stats->stamina < caps.stamina)
+				staminaExp = RNG::generate(-2, expRolls);
+			//other stats would be rolled to be improved
+			int statID = 0;
+			int expGain = 0;
+			bool trainPsiSkill = (stats->psiSkill > 0 && _hasPsi);//TODO add more checks here
+			bool trainPsiStr = false;
+			if (trainPsiSkill && Options::allowPsiStrengthImprovement)
+				trainPsiStr = true; //in case we have this special property
+			bool trainingManaPri = false;
+			if (trainPsiSkill && mod.isManaTrainingPrimary())
+				trainingManaPri = true;
+			bool trainingManaSec = false;
+			if (mod.isManaTrainingSecondary())
+				trainingManaSec = true;
+			for (size_t j = 0; j < expRolls; j++)
+			{
+				statID = RNG::generate(1, 8); //choose stat
+				expGain = RNG::generate(1, 4); //choose how many expirience it would be
+				if (expGain == 4)
+					expGain = 1;
+				switch (statID)
+				{
+				case 0:
+					if (stats->health < caps.health)
+						healthExp += expGain;
+					break;
+				case 1:
+					if (stats->bravery < caps.bravery && !braveryExp)
+					{
+						int braveryRoll = 9;
+						if (wound > 0)
+							braveryRoll -= 1;
+						if (saved || wound > 4)
+							braveryRoll -= 2;
+						if (RNG::generate(0, 10) > braveryRoll)
+							braveryExp += expGain;
+						else
+							++expRolls; //re-roll as it all was only to reduce bravery training
+					}
+					break;
+				case 2:
+					if (stats->reactions < caps.reactions)
+						reactionsExp += expGain;
+					break;
+				case 3:
+					if (stats->firing < caps.firing)
+						firingExp += expGain;
+					break;
+				case 4:
+					if (stats->throwing < caps.throwing)
+						throwingExp += expGain;
+					break;
+				case 5:
+					if (stats->melee < caps.melee)
+						meleeExp += expGain;
+					break;
+				case 6:
+					if (stats->strength < caps.strength)
+						streingthExp += expGain;
+					break;
+				case 7:
+					if (stats->psiSkill < caps.psiSkill && trainPsiSkill)
+					{
+						psiSkillExp += expGain;
+						if (stats->psiStrength < caps.psiStrength && trainPsiStr)
+							psiStrExp += expGain;
+						if (stats->mana < caps.mana && trainingManaPri)
+							manaExp += expGain;
+					}
+					else if (!trainPsiSkill) ++expRolls; //re-roll as we assume soldier used other tools to achieave his or her goals
+					break;
+				case 8: //special case for separate non-psi mana using, like XCF
+					if (stats->mana < caps.mana && trainingManaSec)
+						manaExp += expGain;
+					else if (!trainingManaSec)
+						++expRolls;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		if (dead || wound != 0)
+		{
+			(*i)->setReturnToTrainingWhenOperationOver(NONE);
+		}
+		//we want to remember stat improvement for later use
+		improvement->tu = improveStat(tuExp);
+		improvement->stamina = improveStat(staminaExp);
+		improvement->health = improveStat(healthExp);
+		if (braveryExp > 0)
+			improvement->bravery = 10;
+		improvement->reactions = improveStat(reactionsExp);
+		improvement->firing = improveStat(firingExp);
+		improvement->throwing = improveStat(throwingExp);
+		improvement->melee = improveStat(meleeExp);
+		improvement->strength = improveStat(streingthExp);
+		improvement->psiSkill = improveStat(psiSkillExp);
+		improvement->psiStrength = improveStat(psiStrExp);
+		improvement->mana = improveStat(manaExp);
+		_results->addSoldierImprovement((*i)->getName(), improvement);
+
+		//ok, now lets actually improve soldier stats!
+		stats->tu += improvement->tu;
+		stats->stamina += improvement->stamina;
+		stats->health += improvement->health;
+		stats->bravery += improvement->bravery;
+		stats->reactions += improvement->reactions;
+		stats->firing += improvement->firing;
+		stats->throwing += improvement->throwing;
+		stats->melee += improvement->melee;
+		stats->strength += improvement->strength;
+		stats->psiSkill += improvement->psiSkill;
+		stats->psiStrength += improvement->psiStrength;
+		stats->mana += improvement->mana;
 	}
 
 	//if needed kill soldiers from doomed list
@@ -826,13 +855,12 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			}
 			else
 			{
+				_results->addSoldierDamage((*j)->getName(), -10);
 				save.killSoldier(*j); //RIP
 			}
 			++it;
 		}
 	}
-
-
 }
 
 
@@ -855,30 +883,28 @@ int CovertOperation::improveStat(int exp) const
  */
 void CovertOperation::finishOperation()
 {
-	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+	auto soldiers = getSoldiers();
+	for (std::vector<Soldier*>::iterator i = soldiers.begin(); i != soldiers.end(); ++i)
 	{
-		if ((*i)->getCovertOperation() != 0 && (*i)->getCovertOperation()->getOperationName() == this->getOperationName())
-		{
-			//remove soldier from operation
-			(*i)->setCovertOperation(0);
+		//remove soldier from operation
+		(*i)->setCovertOperation(0);
 
-			//if soldier was not hurt we return him or her to trainig, if settings allows it
-			if ((*i)->getHealthMissing() == 0)
+		//if soldier was not hurt we return him or her to trainig, if settings allows it
+		if ((*i)->getHealthMissing() == 0)
+		{
+			ReturnToTrainings trainings = (*i)->getReturnToTrainingsWhenOperationOver();
+			if (trainings == MARTIAL_TRAINING || trainings == BOTH_TRAININGS)
 			{
-				ReturnToTrainings trainings = (*i)->getReturnToTrainingsWhenOperationOver();
-				if (trainings == MARTIAL_TRAINING || trainings == BOTH_TRAININGS)
+				if (_base->getUsedTraining() < _base->getAvailableTraining())
 				{
-					if (_base->getUsedTraining() < _base->getAvailableTraining())
-					{
-						(*i)->setTraining(true);
-					}
+					(*i)->setTraining(true);
 				}
-				if (trainings == PSI_TRAINING || trainings == BOTH_TRAININGS)
+			}
+			if (trainings == PSI_TRAINING || trainings == BOTH_TRAININGS)
+			{
+				if ((_base->getUsedPsiLabs() < _base->getAvailablePsiLabs()) && Options::anytimePsiTraining)
 				{
-					if ((_base->getUsedPsiLabs() < _base->getAvailablePsiLabs()) && Options::anytimePsiTraining)
-					{
-						(*i)->setPsiTraining(true);
-					}
+					(*i)->setPsiTraining(true);
 				}
 			}
 		}

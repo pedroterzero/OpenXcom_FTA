@@ -28,6 +28,7 @@
 #include "../Interface/TextList.h"
 #include "../Mod/Mod.h"
 #include "../Mod/RuleCovertOperation.h"
+#include "../Mod/RuleInterface.h"
 #include "../Savegame/CovertOperation.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/SavedBattleGame.h"
@@ -139,16 +140,16 @@ namespace OpenXcom
 		_btnPage->onMouseClick((ActionHandler)&FinishedCoverOperationDetailsState::btnPageClick);
 
 		_txtItem->setText(tr("STR_LIST_ITEM"));
-		_lstRecoveredItems->setColumns(2, 254, 18);
+		_lstRecoveredItems->setColumns(2, 254, 64);
 		_lstRecoveredItems->setDot(true);
 
 		_txtReputation->setText(tr("STR_REPUTATION_CHANGE"));
-		_lstReputation->setColumns(2, 254, 18);
+		_lstReputation->setColumns(2, 254, 64);
 		_lstReputation->setDot(true);
 
-		_lstFunds->setColumns(2, 254, 18);
+		_lstFunds->setColumns(2, 254, 64);
 		_lstFunds->setDot(true);
-		_lstScore->setColumns(2, 254, 18);
+		_lstScore->setColumns(2, 254, 64);
 		_lstScore->setDot(true);
 
 		_txtSoldierStatus->setText(tr("STR_SOLDIERS_STATUS"));
@@ -300,20 +301,20 @@ namespace OpenXcom
 					++wounded;
 				if (damage < 0)
 					++mia;
-				if (wounded > 0)
-				{
-					std::ostringstream ss5;
-					ss5 << Unicode::TOK_COLOR_FLIP << wounded << Unicode::TOK_COLOR_FLIP;
-					_lstSoldierStatus->addRow(2, tr("STR_XCOM_OPERATIVES_WOUNDED"), ss5.str().c_str());
-					++rowSoldierStatus;
-				}
-				if (mia > 0)
-				{
-					std::ostringstream ss5;
-					ss5 << Unicode::TOK_COLOR_FLIP << mia << Unicode::TOK_COLOR_FLIP;
-					_lstSoldierStatus->addRow(2, tr("STR_XCOM_OPERATIVES_MISSING_IN_ACTION"), ss5.str().c_str());
-					++rowSoldierStatus;
-				}
+			}
+			if (wounded > 0)
+			{
+				std::ostringstream ss5;
+				ss5 << Unicode::TOK_COLOR_FLIP << wounded << Unicode::TOK_COLOR_FLIP;
+				_lstSoldierStatus->addRow(2, tr("STR_XCOM_OPERATIVES_WOUNDED").c_str(), ss5.str().c_str());
+				++rowSoldierStatus;
+			}
+			if (mia > 0)
+			{
+				std::ostringstream ss5;
+				ss5 << Unicode::TOK_COLOR_FLIP << mia << Unicode::TOK_COLOR_FLIP;
+				_lstSoldierStatus->addRow(2, tr("STR_XCOM_OPERATIVES_MISSING_IN_ACTION").c_str(), ss5.str().c_str());
+				++rowSoldierStatus;
 			}
 		}
 
@@ -379,26 +380,48 @@ namespace OpenXcom
 		_txtMessage->setY(_txtMessage->getY() - itemOffset - repOffset - fundOffset - scoreOffset - statusOffset);
 
 		auto soldierStats = _results->getSoldierImprovement();
+		int row = 0;
 		for (std::vector<std::pair<std::string, UnitStats*>>::const_iterator i = soldierStats.begin(); i != soldierStats.end(); ++i)
 		{
-			auto tmp = (*i).second->psiStrength;
-			if (_game->getMod()->isManaFeatureEnabled())
+			auto soldierDamage = _results->getSoldierDamage();
+			int damage = 0;
+			for (std::map<std::string, int>::const_iterator j = soldierDamage.begin(); j != soldierDamage.end(); ++j)
 			{
-				tmp = (*i).second->mana;
+				if ((*i).first == (*j).first)
+				{
+					damage = (*j).second;
+					std::ostringstream sName;
+					if (damage < 0) //soldier MiA
+					{
+						_lstSoldierStats->setSmall();
+						_lstSoldierStats->addRow(13, (*i).first.c_str(), "", "", "", "", "", "", "", "", "", "", "", "");
+						_lstSoldierStats->setRowColor(row, _game->getMod()->getInterface("covertOperationFinishDetails")->getElement("damaged")->color);
+						_lstSoldierStats->getTooltip();
+					}
+				}
 			}
-			_lstSoldierStats->addRow(13, (*i).first.c_str(),
-				makeSoldierString((*i).second->tu).c_str(),
-				makeSoldierString((*i).second->stamina).c_str(),
-				makeSoldierString((*i).second->health).c_str(),
-				makeSoldierString((*i).second->bravery).c_str(),
-				makeSoldierString((*i).second->reactions).c_str(),
-				makeSoldierString((*i).second->firing).c_str(),
-				makeSoldierString((*i).second->throwing).c_str(),
-				makeSoldierString((*i).second->melee).c_str(),
-				makeSoldierString((*i).second->strength).c_str(),
-				makeSoldierString(tmp).c_str(),
-				makeSoldierString((*i).second->psiSkill).c_str(),
-				"");
+			if (damage >= 0)
+			{
+				auto tmp = (*i).second->psiStrength;
+				if (_game->getMod()->isManaFeatureEnabled())
+				{
+					tmp = (*i).second->mana;
+				}
+				_lstSoldierStats->addRow(13, (*i).first.c_str(),
+					makeSoldierString((*i).second->tu).c_str(),
+					makeSoldierString((*i).second->stamina).c_str(),
+					makeSoldierString((*i).second->health).c_str(),
+					makeSoldierString((*i).second->bravery).c_str(),
+					makeSoldierString((*i).second->reactions).c_str(),
+					makeSoldierString((*i).second->firing).c_str(),
+					makeSoldierString((*i).second->throwing).c_str(),
+					makeSoldierString((*i).second->melee).c_str(),
+					makeSoldierString((*i).second->strength).c_str(),
+					makeSoldierString(tmp).c_str(),
+					makeSoldierString((*i).second->psiSkill).c_str(),
+					"");
+			}
+			row++;
 		}
 
 		//set up first page at startup
