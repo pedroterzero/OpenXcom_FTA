@@ -85,7 +85,7 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 {
 	_missionStatistics = new MissionStatistics();
 
-	if (_game->getMod()->getIsFTAGame()) _showSellButton = false; //TODO
+	if (_game->getMod()->getIsFTAGame()) _showSellButton = false; //TODO diplomacy selling
 
 	Options::baseXResolution = Options::baseXGeoscape;
 	Options::baseYResolution = Options::baseYGeoscape;
@@ -1053,7 +1053,7 @@ void DebriefingState::prepareDebriefing()
 	_missionStatistics->type = battle->getMissionType();
 	_stats.push_back(new DebriefingStat(_game->getMod()->getAlienFuelName(), true));
 
-	for (std::vector<Base*>::iterator i = save->getBases()->begin(); i != save->getBases()->end(); ++i) //TODO add covert operation processing
+	for (std::vector<Base*>::iterator i = save->getBases()->begin(); i != save->getBases()->end(); ++i)
 	{
 		// in case we have a craft - check which craft it is about
 		for (std::vector<Craft*>::iterator j = (*i)->getCrafts()->begin(); j != (*i)->getCrafts()->end(); ++j)

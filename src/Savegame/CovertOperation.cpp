@@ -721,7 +721,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			//other stats would be rolled to be improved
 			int statID = 0;
 			int expGain = 0;
-			bool trainPsiSkill = (stats->psiSkill > 0 && _hasPsi);//TODO add more checks here
+			bool trainPsiSkill = (stats->psiSkill > 0 && _hasPsi);
 			bool trainPsiStr = false;
 			if (trainPsiSkill && Options::allowPsiStrengthImprovement)
 				trainPsiStr = true; //in case we have this special property

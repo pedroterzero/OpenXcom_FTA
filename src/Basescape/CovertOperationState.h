@@ -39,7 +39,7 @@ private:
 	Base* _base;
 	TextButton* _btnNew, * _btnOk;
 	Window* _window;
-	Text* _txtTitle, * _txtSoldiersAvailable, * _txtScientistsAvailable, * _txtEngineersAvailable, * _txtOperation, * _txtChances, * _txtProgress; //* _txtSpace,
+	Text* _txtTitle, * _txtSoldiersAvailable, * _txtScientistsAvailable, * _txtEngineersAvailable, * _txtOperation, * _txtChances, * _txtProgress;
 	TextList* _lstOperations;
 public:
 	/// Creates the CovertOperation state.

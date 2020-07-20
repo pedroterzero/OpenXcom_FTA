@@ -668,7 +668,7 @@ void CovertOperationEquipmentState::moveRightByValue(int change, bool suppressEr
 		if (!suppressErrors || (suppressErrors && baseItemsCount>0 && change == 0))
 		{
 			_timerRight->stop();
-			LocalizedText msg (tr("STR_NO_MORE_EQUIPMENT_ALLOWED", _rule->getItemSpaceLimit()));
+			LocalizedText msg (tr("STR_OVER_ITEM_SIZE_LIMIT", _rule->getItemSpaceLimit()));
 			_game->pushState
 			(
 				new ErrorMessageState
