@@ -51,6 +51,8 @@
 #include "../Mod/RuleEventScript.h"
 #include "../Mod/RuleEvent.h"
 #include "../Mod/RuleMissionScript.h"
+#include "../Savegame/DiplomacyFaction.h"
+#include "../Savegame/CovertOperation.h"
 #include "../Savegame/Waypoint.h"
 #include "../Savegame/Transfer.h"
 #include "../Savegame/Soldier.h"
@@ -69,6 +71,7 @@
 #include "../Menu/ErrorMessageState.h"
 #include "GraphsState.h"
 #include "FundingState.h"
+#include "../FTA/DiplomacyStartState.h"
 #include "MonthlyReportState.h"
 #include "ProductionCompleteState.h"
 #include "UfoDetectedState.h"
@@ -2527,6 +2530,34 @@ void GeoscapeState::time1Day()
 		}
 	}
 
+	//handle daily Faction logic
+	for (auto faction : saveGame->getDiplomacyFactions())
+	{
+		bool answer = faction->think(*_game,TIMESTEP_DAILY);
+		if (answer)
+		{
+			bool success = processCommand(mod->getMissionScript(faction->getCommandType()));
+		}
+	}
+	//handle daily covert operations logic
+	for (std::vector<Base*>::iterator i = _game->getSavedGame()->getBases()->begin(); i != _game->getSavedGame()->getBases()->end(); ++i)
+	{
+		for (auto operation : (*i)->getCovertOperations())
+		{
+			bool process = operation->think(*_game, *_globe);
+			if (process)
+				timerReset();
+			// Remove finished operatio 
+			Collections::deleteIf(
+				_game->getSavedGame()->getGeoscapeEvents(),
+				[](GeoscapeEvent* ge)
+				{
+					return ge->isOver();
+				}
+			);
+		}
+	}
+
 	// check and interrupt alien missions if necessary (based on discovered research)
 	for (auto am : saveGame->getAlienMissions())
 	{
@@ -2701,7 +2732,7 @@ void GeoscapeState::time1Month()
 	// Handle funding
 	timerReset();
 	_game->getSavedGame()->monthlyFunding();
-	popup(new MonthlyReportState(_globe));
+	if (_game->getMod()->getIsFTAGame()) { 	popup(new AlphaGameVersionEnds());	} else { popup(new MonthlyReportState(_globe)); } //temp for alpha FTA release
 
 	// Handle Xcom Operatives discovering bases
 	if (!_game->getSavedGame()->getAlienBases()->empty() && RNG::percent(20))
@@ -2925,7 +2956,7 @@ void GeoscapeState::btnFundingClick(Action *)
 	{
 		return;
 	}
-	_game->pushState(new FundingState);
+	else if (_game->getMod()->getIsFTAGame()) {_game->pushState(new DiplomacyStartState(0, true));} else {_game->pushState(new FundingState);}	
 }
 
 /**

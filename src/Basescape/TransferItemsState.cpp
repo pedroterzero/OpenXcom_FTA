@@ -138,7 +138,7 @@ TransferItemsState::TransferItemsState(Base *baseFrom, Base *baseTo, DebriefingS
 	for (std::vector<Soldier*>::iterator i = _baseFrom->getSoldiers()->begin(); i != _baseFrom->getSoldiers()->end(); ++i)
 	{
 		if (_debriefingState) break;
-		if ((*i)->getCraft() == 0)
+		if ((*i)->getCraft() == 0 && (*i)->getCovertOperation() == 0)
 		{
 			TransferRow row = { TRANSFER_SOLDIER, (*i), (*i)->getName(true), (int)(5 * _distance), 1, 0, 0 };
 			_items.push_back(row);

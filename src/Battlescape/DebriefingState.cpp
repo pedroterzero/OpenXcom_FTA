@@ -55,6 +55,7 @@
 #include "../Savegame/Ufo.h"
 #include "../Savegame/Vehicle.h"
 #include "../Savegame/BaseFacility.h"
+#include "../Savegame/CovertOperation.h"
 #include <sstream>
 #include "../Menu/ErrorMessageState.h"
 #include "../Menu/MainMenuState.h"
@@ -63,6 +64,7 @@
 #include "../Engine/RNG.h"
 #include "../Basescape/ManageAlienContainmentState.h"
 #include "../Basescape/TransferBaseState.h"
+#include "../FTA/DiplomacyStartState.h"
 #include "../Engine/Screen.h"
 #include "../Basescape/SellState.h"
 #include "../Menu/SaveGameState.h"
@@ -82,6 +84,8 @@ namespace OpenXcom
 DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(true), _destroyBase(false), _showSellButton(true), _pageNumber(0)
 {
 	_missionStatistics = new MissionStatistics();
+
+	if (_game->getMod()->getIsFTAGame()) _showSellButton = false; //TODO diplomacy selling
 
 	Options::baseXResolution = Options::baseXGeoscape;
 	Options::baseYResolution = Options::baseYGeoscape;
@@ -810,7 +814,7 @@ void DebriefingState::btnSellClick(Action *)
 {
 	if (!_destroyBase)
 	{
-		_game->pushState(new SellState(_base, this, OPT_BATTLESCAPE));
+		if (_game->getMod()->getIsFTAGame()) { _game->pushState(new DiplomacyStartState(_base, false)); } else { _game->pushState(new SellState(_base, this, OPT_BATTLESCAPE));}
 	}
 }
 
@@ -997,6 +1001,7 @@ void DebriefingState::prepareDebriefing()
 	bool success = !aborted || battle->allObjectivesDestroyed();
 	Craft *craft = 0;
 	Base *base = 0;
+	CovertOperation* covertOperation = 0;
 	std::string target;
 
 	int playersInExitArea = 0; // if this stays 0 the craft is lost...
@@ -1109,6 +1114,18 @@ void DebriefingState::prepareDebriefing()
 			}
 		}
 		// in case we DON'T have a craft (base defense)
+		//FtA: we can have covert operation, so let's handle that now
+		for (std::vector<CovertOperation*>::iterator c = (*i)->getCovertOperations().begin(); c != (*i)->getCovertOperations().end(); ++c)
+		{
+			if ((*c)->isInBattlescape())
+			{
+				covertOperation = (*c);
+				base = (*i);
+				covertOperation->setInBattlescape(false);
+				covertOperation->finishOperation();
+				break;
+			}
+		}
 		if ((*i)->isInBattlescape())
 		{
 			base = (*i);

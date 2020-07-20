@@ -33,6 +33,7 @@ class TextList;
 class BattleItem;
 class Craft;
 class Base;
+class CovertOperation;
 class Region;
 class Country;
 class RuleItem;
