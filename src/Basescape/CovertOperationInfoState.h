@@ -18,6 +18,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "../Engine/State.h"
+#include "SoldierSortUtil.h"
 #include <vector>
 #include <map>
 #include <string>
@@ -39,11 +40,12 @@ namespace OpenXcom
 	class CovertOperationInfoState : public State
 	{
 	private:
-		TextButton* _btnOk, * _btnTerminate;
+		TextButton* _btnOk;
 		Window* _window;
-		Text* _txtTitle; // , * _txtSelectedTopic, * _txtProgress, * _txtCostIndicator;
-		//TextList* _lstLeft, * _lstRight;
+		Text* _txtTitle, * _txtScientists, * _txtEngineers, * _txtDungeonLevel, * _txtProgress, * _txtSoldiers, * _txtAditionalInfo;
+		TextList* _lstSoldiers, * _lstAditionalInfo;
 		CovertOperation* _operation;
+		RuleCovertOperation* _rule;
 	public:
 		/// Creates the Tech Tree Viewer state.
 		CovertOperationInfoState(CovertOperation* operation);
@@ -53,29 +55,11 @@ namespace OpenXcom
 		void btnOkClick(Action* action);
 		/// Handler for clicking the New button.
 		void btnTerminateClick(Action* action);
+		void lstSoldiersClick(Action* action);
+		// init class
+		void init() override;
 
-
-		//TODO add soldier info state call on soldier list click
+		void fillSoldiersList();
+		void fillAditionalInfoList();
 	};
-
-	class CovertOperationConfirmTerminateState : public State
-	{
-	private:
-		TextButton* _btnOk, * _btnCancel;
-		Window* _window;
-		Text* _txtText;
-		CovertOperation* _operation;
-	public:
-		/// Creates the Tech Tree Viewer state.
-		CovertOperationConfirmTerminateState(CovertOperation* operation);
-		/// Cleans up the Tech Tree Viewer state.
-		~CovertOperationConfirmTerminateState();
-		/// Handler for clicking the OK button.
-		void btnOkClick(Action* action);
-		/// Handler for clicking the New button.
-		void btnCancelClick(Action* action);
-	};
-
-
-
 }

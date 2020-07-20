@@ -29,6 +29,8 @@
 #include "../Interface/TextList.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/CovertOperation.h"
+#include "../Savegame/Base.h"
+#include "SoldierInfoState.h"
 #include <algorithm>
 #include <unordered_set>
 
@@ -43,8 +45,15 @@ namespace OpenXcom
 		// Create objects
 		_window = new Window(this, 320, 200, 0, 0);
 		_txtTitle = new Text(304, 17, 8, 7);
-		_btnTerminate = new TextButton(148, 16, 8, 176);
-		_btnOk = new TextButton(148, 16, 164, 176);
+		_txtScientists = new Text(150, 9, 8, 20);
+		_txtEngineers = new Text(150, 9, 8, 30);
+		_txtDungeonLevel = new Text(150, 9, 164, 20);
+		_txtProgress = new Text(150, 9, 164, 30);
+		_txtSoldiers = new Text(150, 9, 8, 40);
+		_txtAditionalInfo = new Text(150, 9, 164, 40);
+		_lstSoldiers = new TextList(148, 120, 8, 50);
+		_lstAditionalInfo = new TextList(148, 112, 120, 50);
+		_btnOk = new TextButton(304, 16, 8, 176);
 
 		// Set palette
 		setInterface("covertOperationInfoState");
@@ -52,7 +61,14 @@ namespace OpenXcom
 		add(_window, "window", "covertOperationInfoState");
 		add(_txtTitle, "text", "covertOperationInfoState");
 		add(_btnOk, "button", "covertOperationInfoState");
-		add(_btnTerminate, "button", "covertOperationInfoState");
+		add(_txtScientists, "text", "covertOperationInfoState");
+		add(_txtEngineers, "text", "covertOperationInfoState");
+		add(_txtDungeonLevel, "text", "covertOperationInfoState");
+		add(_txtProgress, "text", "covertOperationInfoState");
+		add(_txtSoldiers, "text", "covertOperationInfoState");
+		add(_txtAditionalInfo, "text", "covertOperationInfoState");
+		add(_lstSoldiers, "list", "covertOperationInfoState");
+		add(_lstAditionalInfo, "list", "covertOperationInfoState");
 
 		centerAllSurfaces();
 
@@ -61,17 +77,40 @@ namespace OpenXcom
 
 		_txtTitle->setBig();
 		_txtTitle->setAlign(ALIGN_CENTER);
-		_txtTitle->setText("Anton, load operation name to me, please =)"); //TODO
+		std::string operationName = tr(_operation->getOperationName());
+		_txtTitle->setText(operationName);
 
-		_btnTerminate->setText(tr("STR_TERMINATE_OPERATION"));
-		_btnTerminate->onMouseClick((ActionHandler)&CovertOperationInfoState::btnTerminateClick);
+		_txtScientists->setText(tr("STR_SCIENTISTS").arg(_operation->getAssignedScientists()));
+		_txtEngineers->setText(tr("STR_ENGINEERS").arg(_operation->getAssignedEngineers()));
+		_txtDungeonLevel->setText(tr("STR_DANGER_LEVEL").arg(_operation->getSuccessChance()));
+		_txtProgress->setText(tr("STR_OPERATION_PROGRESS").arg(_operation->getSpent()));
+
+		_txtSoldiers->setText(tr("STR_SOLDIERS"));
+		_lstSoldiers->setColumns(1, 148);
+		_lstSoldiers->setSelectable(true);
+		_lstSoldiers->setBackground(_window);
+		_lstSoldiers->setMargin(2);
+		_lstSoldiers->setWordWrap(true);
+		_lstSoldiers->onMouseClick((ActionHandler)&CovertOperationInfoState::lstSoldiersClick);
+		fillSoldiersList();
+
+		_txtAditionalInfo->setText(tr("STR_ADITIONALINFO"));
+		_lstAditionalInfo->setColumns(1, 148);
+		_lstAditionalInfo->setSelectable(true);
+		_lstAditionalInfo->setBackground(_window);
+		_lstAditionalInfo->setMargin(2);
+		_lstAditionalInfo->setWordWrap(true);
+		fillAditionalInfoList();
 
 		_btnOk->setText(tr("STR_OK"));
 		_btnOk->onMouseClick((ActionHandler)&CovertOperationInfoState::btnOkClick);
 		_btnOk->onKeyboardPress((ActionHandler)&CovertOperationInfoState::btnOkClick, Options::keyCancel);
-
-		//TODO more elements here
 		
+	}
+
+	void CovertOperationInfoState::init()
+	{
+		State::init();
 	}
 
 	/**
@@ -91,75 +130,34 @@ namespace OpenXcom
 	}
 
 	/**
-	* Opens the Select Topic screen.
-	* @param action Pointer to an action.
-	*/
-	void CovertOperationInfoState::btnTerminateClick(Action*)
+ * Shows the selected soldier's info.
+ * @param action Pointer to an action.
+ */
+	void CovertOperationInfoState::lstSoldiersClick(Action* action)
 	{
-		_game->pushState(new CovertOperationConfirmTerminateState(_operation));
+		double mx = action->getAbsoluteXMouse();
+		if (mx >= _lstSoldiers->getArrowsLeftEdge() && mx < _lstSoldiers->getArrowsRightEdge())
+		{
+			return;
+		}
+
+		_game->pushState(new SoldierInfoState(_operation->getBase(), _lstSoldiers->getSelectedRow()));
 	}
 
-	//TODO more state methods here, please
-
-
-	/**
-	 * Initializes all the elements on the UI.
-	 */
-	CovertOperationConfirmTerminateState::CovertOperationConfirmTerminateState(CovertOperation* operation) : _operation(operation)
+	void CovertOperationInfoState::fillSoldiersList()
 	{
-
-		// Create objects
-		_window = new Window(this, 320, 200, 0, 0);
-		_txtText = new Text(304, 17, 8, 7);
-		_btnOk = new TextButton(148, 16, 8, 176);
-		_btnCancel = new TextButton(148, 16, 164, 176);
-
-		// Set palette
-		setInterface("covertOperationConfirmTerminateState");
-
-		add(_window, "window", "covertOperationConfirmTerminateState");
-		add(_txtText, "text", "covertOperationConfirmTerminateState");
-		add(_btnOk, "button", "covertOperationConfirmTerminateState");
-
-		centerAllSurfaces();
-
-		// Set up objects
-		setWindowBackground(_window, "covertOperationConfirmTerminateState");
-
-		_txtText->setBig();
-		_txtText->setAlign(ALIGN_CENTER);
-		_txtText->setVerticalAlign(ALIGN_MIDDLE);
-		_txtText->setText(tr("STR_TERMINATE_OPERATION_TEXT"));
-
-		_btnOk->setText(tr("STR_OK"));
-		_btnOk->onMouseClick((ActionHandler)&CovertOperationConfirmTerminateState::btnOkClick);
-
-		_btnCancel->setText(tr("STR_CANCEL_UC"));
-		_btnCancel->onMouseClick((ActionHandler)&CovertOperationConfirmTerminateState::btnCancelClick);
-		_btnCancel->onKeyboardPress((ActionHandler)&CovertOperationConfirmTerminateState::btnCancelClick, Options::keyCancel);
-
+		std::vector<Soldier*> soldiers = _operation->getSoldiers();
+		for (std::vector<Soldier*>::iterator i = soldiers.begin(); i < soldiers.end(); i++)
+		{
+			_lstSoldiers->addRow(1, (*i)->getName().c_str());
+		}
 	}
 
-	CovertOperationConfirmTerminateState::~CovertOperationConfirmTerminateState()
+	void CovertOperationInfoState::fillAditionalInfoList()
 	{
+		if (_operation->getIsPsi())
+		{
+			_lstAditionalInfo->addRow(1, tr("STR_TEAM_HAS_PSIONIC_POWER").c_str());
+		}
 	}
-
-	/**
-	* Returns to the previous screen.
-	* @param action Pointer to an action.
-	*/
-	void CovertOperationConfirmTerminateState::btnOkClick(Action*)
-	{
-		return; //TODO add operation termination here pls
-	}
-
-	/**
-	* Opens the Select Topic screen.
-	* @param action Pointer to an action.
-	*/
-	void CovertOperationConfirmTerminateState::btnCancelClick(Action*)
-	{
-		_game->popState();
-	}
-
 }
