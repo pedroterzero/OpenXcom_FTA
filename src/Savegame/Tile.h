@@ -34,6 +34,7 @@ class BattleUnit;
 class BattleItem;
 class RuleInventory;
 class Particle;
+class ScriptParserBase;
 
 enum LightLayers : Uint8 { LL_AMBIENT, LL_FIRE, LL_ITEMS, LL_UNITS, LL_MAX };
 
@@ -54,6 +55,12 @@ enum TileUnitOverlapping : int
 class Tile
 {
 public:
+
+	/// Name of class used in script.
+	static constexpr const char *ScriptName = "Tile";
+	/// Register all useful function used by script.
+	static void ScriptRegister(ScriptParserBase* parser);
+
 	static struct SerializationKey
 	{
 		// how many bytes to store for each variable or each member of array of the same name
@@ -146,6 +153,24 @@ public:
 	MapData *getMapData(TilePart part) const
 	{
 		return _objects[part];
+	}
+
+	/**
+	 * Get special tile type of floor part.
+	 * @return Type of Tile.
+	 */
+	SpecialTileType getFloorSpecialTileType() const
+	{
+		return _objects[O_FLOOR] ? _objects[O_FLOOR]->getSpecialType() : TILE;
+	}
+
+	/**
+	 * Get special tile type of object part.
+	 * @return Type of Tile.
+	 */
+	SpecialTileType getObjectSpecialTileType() const
+	{
+		return _objects[O_OBJECT] ? _objects[O_OBJECT]->getSpecialType() : TILE;
 	}
 
 	/// Sets the pointer to the mapdata for a specific part of the tile
