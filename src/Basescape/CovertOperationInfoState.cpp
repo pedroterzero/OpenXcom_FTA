@@ -80,23 +80,26 @@ namespace OpenXcom
 		std::string operationName = tr(_operation->getOperationName());
 		_txtTitle->setText(operationName);
 
-		_txtScientists->setText(tr("STR_SCIENTISTS").arg(_operation->getAssignedScientists()));
-		_txtEngineers->setText(tr("STR_ENGINEERS").arg(_operation->getAssignedEngineers()));
-		_txtDungeonLevel->setText(tr("STR_DANGER_LEVEL").arg(_operation->getSuccessChance()));
+		_txtScientists->setText(tr("STR_SCIENTISTS_N").arg(_operation->getAssignedScientists()));
+		_txtEngineers->setText(tr("STR_ENGINEERS_N").arg(_operation->getAssignedEngineers()));
+		_txtDungeonLevel->setText(tr("STR_DANGER_LEVEL").arg(_operation->getRules()->getDanger()));
 		_txtProgress->setText(tr("STR_OPERATION_PROGRESS").arg(_operation->getSpent()));
 
-		_txtSoldiers->setText(tr("STR_SOLDIERS"));
+		if (_operation->getAssignedScientists() == 0)
+			_txtScientists->setVisible(false);
+		if (_operation->getAssignedEngineers() == 0)
+			_txtEngineers->setVisible(false);
+		_txtSoldiers->setText(tr("STR_SOLDIERS_N"));
 		_lstSoldiers->setColumns(1, 148);
-		_lstSoldiers->setSelectable(true);
+		//_lstSoldiers->setSelectable(true);
 		_lstSoldiers->setBackground(_window);
 		_lstSoldiers->setMargin(2);
 		_lstSoldiers->setWordWrap(true);
-		_lstSoldiers->onMouseClick((ActionHandler)&CovertOperationInfoState::lstSoldiersClick);
+		//_lstSoldiers->onMouseClick((ActionHandler)&CovertOperationInfoState::lstSoldiersClick);
 		fillSoldiersList();
 
-		_txtAditionalInfo->setText(tr("STR_ADITIONALINFO"));
+		_txtAditionalInfo->setText(tr("STR_ADDITIONAL_INFO"));
 		_lstAditionalInfo->setColumns(1, 148);
-		_lstAditionalInfo->setSelectable(true);
 		_lstAditionalInfo->setBackground(_window);
 		_lstAditionalInfo->setMargin(2);
 		_lstAditionalInfo->setWordWrap(true);
@@ -130,9 +133,9 @@ namespace OpenXcom
 	}
 
 	/**
- * Shows the selected soldier's info.
- * @param action Pointer to an action.
- */
+	* Shows the selected soldier's info.
+	* @param action Pointer to an action.
+	*/
 	void CovertOperationInfoState::lstSoldiersClick(Action* action)
 	{
 		double mx = action->getAbsoluteXMouse();
@@ -140,8 +143,7 @@ namespace OpenXcom
 		{
 			return;
 		}
-
-		_game->pushState(new SoldierInfoState(_operation->getBase(), _lstSoldiers->getSelectedRow()));
+		return; // _game->pushState(new SoldierInfoState(_operation->getBase(), _lstSoldiers->getSelectedRow())); TODO
 	}
 
 	void CovertOperationInfoState::fillSoldiersList()

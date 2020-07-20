@@ -616,14 +616,21 @@ int Base::getAvailableSoldiers(bool checkCombatReadiness, bool includeWounded) c
 	int total = 0;
 	for (std::vector<Soldier*>::const_iterator i = _soldiers.begin(); i != _soldiers.end(); ++i)
 	{
-		if (!checkCombatReadiness && (*i)->getCraft() == 0)
+		if ((*i)->getCovertOperation() != 0)
 		{
-			total++;
+			//we do not want to count soldiers that are on covert operation
 		}
-		else if (checkCombatReadiness && (((*i)->getCraft() != 0 && (*i)->getCraft()->getStatus() != "STR_OUT") ||
-			((*i)->getCraft() == 0 && ((*i)->hasFullHealth() || (includeWounded && (*i)->canDefendBase())))))
+		else
 		{
-			total++;
+			if (!checkCombatReadiness && (*i)->getCraft() == 0)
+			{
+				total++;
+			}
+			else if (checkCombatReadiness && (((*i)->getCraft() != 0 && (*i)->getCraft()->getStatus() != "STR_OUT") ||
+				((*i)->getCraft() == 0 && ((*i)->hasFullHealth() || (includeWounded && (*i)->canDefendBase())))))
+			{
+				total++;
+			}
 		}
 	}
 	return total;

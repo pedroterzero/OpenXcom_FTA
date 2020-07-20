@@ -714,9 +714,16 @@ void SoldierInfoState::btnNextClick(Action *)
  */
 void SoldierInfoState::btnArmorClick(Action *)
 {
-	if (!_soldier->getCraft() || (_soldier->getCraft() && _soldier->getCraft()->getStatus() != "STR_OUT") || _soldier->getCovertOperation() != 0)
+	if (!_soldier->getCraft() || (_soldier->getCraft() && _soldier->getCraft()->getStatus() != "STR_OUT"))
 	{
-		_game->pushState(new SoldierArmorState(_base, _soldierId, SA_GEOSCAPE));
+		if (_soldier->getCovertOperation() != 0)
+		{
+			return;
+		}
+		else
+		{
+			_game->pushState(new SoldierArmorState(_base, _soldierId, SA_GEOSCAPE));
+		}
 	}
 }
 
@@ -735,7 +742,14 @@ void SoldierInfoState::btnBonusesClick(Action *)
  */
 void SoldierInfoState::btnSackClick(Action *)
 {
-	_game->pushState(new SackSoldierState(_base, _soldierId));
+	if (_soldier->getCovertOperation() != 0)
+	{
+		return;
+	}
+	else
+	{
+		_game->pushState(new SackSoldierState(_base, _soldierId));
+	}
 }
 
 /**

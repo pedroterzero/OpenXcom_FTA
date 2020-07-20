@@ -870,7 +870,11 @@ void BattlescapeGenerator::deployXCOM(const RuleStartingCondition* startingCondi
 		for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 		{
 			if ((_craft != 0 && (*i)->getCraft() == _craft) ||
-				(_craft == 0 && ((*i)->hasFullHealth() || (*i)->canDefendBase()) && ((*i)->getCraft() == 0 || (*i)->getCraft()->getStatus() != "STR_OUT")))
+				(_covertOperation != 0 && (*i)->getCovertOperation() == _covertOperation) ||
+				((_craft == 0 && _covertOperation == 0)
+					&& ((*i)->hasFullHealth() || (*i)->canDefendBase())
+					&& ((*i)->getCraft() == 0 || (*i)->getCraft()->getStatus() != "STR_OUT")
+					&& (*i)->getCovertOperation() == 0))
 			{
 				Armor* transformedArmor = nullptr;
 				if (enviro)
@@ -904,7 +908,11 @@ void BattlescapeGenerator::deployXCOM(const RuleStartingCondition* startingCondi
 				continue;
 			}
 			if ((_craft != 0 && (*i)->getCraft() == _craft) ||
-				(_craft == 0 && ((*i)->hasFullHealth() || (*i)->canDefendBase()) && ((*i)->getCraft() == 0 || (*i)->getCraft()->getStatus() != "STR_OUT")))
+				(_covertOperation != 0 && (*i)->getCovertOperation() == _covertOperation) ||
+				((_craft == 0 && _covertOperation == 0)
+					&& ((*i)->hasFullHealth() || (*i)->canDefendBase())
+					&& ((*i)->getCraft() == 0 || (*i)->getCraft()->getStatus() != "STR_OUT")
+					&& (*i)->getCovertOperation() == 0))
 			{
 				// clear the soldier's equipment layout, we want to start fresh
 				if (_game->getSavedGame()->getDisableSoldierEquipment())
@@ -952,10 +960,9 @@ void BattlescapeGenerator::deployXCOM(const RuleStartingCondition* startingCondi
 			if ((_craft != 0 && (*i)->getCraft() == _craft) ||
 				(_covertOperation != 0 && (*i)->getCovertOperation() == _covertOperation) ||
 				((_craft == 0 && _covertOperation == 0)
-					&& ((*i)->hasFullHealth()
-						|| (*i)->canDefendBase()) && ((*i)->getCraft() == 0
-						|| (*i)->getCraft()->getStatus() != "STR_OUT"
-						|| (*i)->getCovertOperation() != 0)))
+					&& ((*i)->hasFullHealth() || (*i)->canDefendBase())
+					&& ((*i)->getCraft() == 0 || (*i)->getCraft()->getStatus() != "STR_OUT")
+					&& (*i)->getCovertOperation() == 0))
 			{
 				// clear the soldier's equipment layout, we want to start fresh
 				if (_game->getSavedGame()->getDisableSoldierEquipment())
