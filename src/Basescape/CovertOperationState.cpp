@@ -60,11 +60,10 @@ CovertOperationState::CovertOperationState(Base* base) : _base(base)
 	_txtSoldiersAvailable = new Text(150, 9, 10, 24);
 	_txtScientistsAvailable = new Text(150, 9, 160, 24);
 	_txtEngineersAvailable = new Text(150, 9, 160, 34);
-	//_txtSpace = new Text(150, 9, 10, 34);
 	_txtOperation = new Text(150, 17, 10, 44);
-	_txtChances = new Text(66, 17, 160, 44);
-	_txtProgress = new Text(84, 17, 226, 44);
-	_lstOperations = new TextList(302, 112, 8, 62);
+	_txtChances = new Text(52, 17, 160, 44);
+	_txtProgress = new Text(84, 17, 212, 44);
+	_lstOperations = new TextList(288, 112, 8, 62);
 
 	// Set palette
 	setInterface("covertOperationsMenu");
@@ -76,7 +75,6 @@ CovertOperationState::CovertOperationState(Base* base) : _base(base)
 	add(_txtSoldiersAvailable, "text", "covertOperationsMenu");
 	add(_txtScientistsAvailable, "text", "covertOperationsMenu");
 	add(_txtEngineersAvailable, "text", "covertOperationsMenu");
-	//add(_txtSpace, "text", "covertOperationsMenu");
 	add(_txtOperation, "text", "covertOperationsMenu");
 	add(_txtChances, "text", "covertOperationsMenu");
 	add(_txtProgress, "text", "covertOperationsMenu");
@@ -109,7 +107,7 @@ CovertOperationState::CovertOperationState(Base* base) : _base(base)
 	_txtProgress->setWordWrap(true);
 	_txtProgress->setText(tr("STR_APPROX_TIME"));
 
-	_lstOperations->setColumns(3, 150, 66, 84);
+	_lstOperations->setColumns(3, 150, 52, 84);
 	_lstOperations->setSelectable(true);
 	_lstOperations->setBackground(_window);
 	_lstOperations->setMargin(2);
@@ -216,7 +214,7 @@ CovertOperationsListState::CovertOperationsListState(Base* base) : _base(base), 
 	_screen = false;
 
 	_window = new Window(this, 230, 140, 45, 30, POPUP_BOTH);
-	_btnOK = new TextButton(103, 16, 164, 146);
+	_btnOK = new TextButton(214, 16, 53, 146);
 	_txtTitle = new Text(214, 16, 53, 38);
 	_lstOperations = new TextList(198, 88, 53, 54);
 

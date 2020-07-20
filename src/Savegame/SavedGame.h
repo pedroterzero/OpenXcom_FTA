@@ -275,7 +275,7 @@ public:
 	/// Sets the item as hidden or unhidden
 	void setHiddenPurchaseItemsStatus(const std::string &itemName, bool hidden);
 	/// Add covert operation to the "performed operation" list
-	void addPerformedCovertOperation(const std::string & operation) { _performedOperations.push_back(operation); Log(LOG_DEBUG) << "Adding operation " << operation << " to <performed operation> list"; }; //TODO remove debug log part
+	void addPerformedCovertOperation(const std::string & operation) { _performedOperations.push_back(operation); };
 	/// Remove covert operation from the "performed operation" list
 	void removePerformedCovertOperation(const std::string& operation);
 	/// Get list of performed operations

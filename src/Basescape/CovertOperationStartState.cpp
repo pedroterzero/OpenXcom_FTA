@@ -241,44 +241,41 @@ void CovertOperationStartState::init()
 
 
 	SurfaceSet* texture = _game->getMod()->getSurfaceSet("BASEBITS.PCK");
-	if (_soldiers.size() > 0)
+	_crew->clear();
+	_equip->clear();
+
+	Surface* frame1 = texture->getFrame(38);
+
+	SurfaceSet* customArmorPreviews = _game->getMod()->getSurfaceSet("CustomArmorPreviews");
+	int x = 0;
+	for (std::vector<Soldier*>::iterator i = _soldiers.begin(); i != _soldiers.end(); ++i)
 	{
-		_crew->clear();
-		_equip->clear();
-
-		Surface* frame1 = texture->getFrame(38);
-
-		SurfaceSet* customArmorPreviews = _game->getMod()->getSurfaceSet("CustomArmorPreviews");
-		int x = 0;
-		for (std::vector<Soldier*>::iterator i = _soldiers.begin(); i != _soldiers.end(); ++i)
+		for (auto index : (*i)->getArmor()->getCustomArmorPreviewIndex())
 		{
-			for (auto index : (*i)->getArmor()->getCustomArmorPreviewIndex())
+			Surface* customFrame1 = customArmorPreviews->getFrame(index);
+			if (customFrame1)
 			{
-				Surface* customFrame1 = customArmorPreviews->getFrame(index);
-				if (customFrame1)
-				{
-					// modded armor previews
-					customFrame1->blitNShade(_crew, x, 0);
-				}
-				else
-				{
-					// vanilla
-					frame1->blitNShade(_crew, x, 0);
-				}
-				x += 10;
+				// modded armor previews
+				customFrame1->blitNShade(_crew, x, 0);
 			}
+			else
+			{
+				// vanilla
+				frame1->blitNShade(_crew, x, 0);
+			}
+			x += 10;
 		}
+	}
 
-		Surface* frame2 = texture->getFrame(40);
-		SurfaceSet* customItemPreviews = _game->getMod()->getSurfaceSet("CustomItemPreviews");
-		x = 0;
+	Surface* frame2 = texture->getFrame(40);
+	SurfaceSet* customItemPreviews = _game->getMod()->getSurfaceSet("CustomItemPreviews");
+	x = 0;
 
 
-		Surface* frame3 = texture->getFrame(39);
-		for (int i = 0; i < _items->getTotalQuantity(); i += 4, x += 10)
-		{
-			frame3->blitNShade(_equip, x, 0);
-		}
+	Surface* frame3 = texture->getFrame(39);
+	for (int i = 0; i < _items->getTotalQuantity(); i += 4, x += 10)
+	{
+		frame3->blitNShade(_equip, x, 0);
 	}
 }
 
@@ -572,8 +569,6 @@ double CovertOperationStartState::getOperationOdds()
 {
 	int startOdds = _rule->getBaseChances();
 	_chances = startOdds;
-	Log(LOG_INFO) << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
-	Log(LOG_INFO) << "Starting odds = " << startOdds;
 
 	int requierdSoldiers = _rule->getSoldierSlots();
 	int assignedSoldiersN = _soldiers.size();
@@ -601,25 +596,6 @@ double CovertOperationStartState::getOperationOdds()
 		_chances = _chances - (slots * effect * 0.9) + (_engeneers * effect);
 		slots = 0;
 	}
-	//lets check if we over the item limit
-	if (_rule->getItemSpaceLimit() > 0)
-	{
-		double itemsSize = _items->getTotalSize(_game->getMod());
-		double ruleSize = _rule->getItemSpaceLimit();
-		if (itemsSize > ruleSize)
-		{
-			int soldierStrEff = 0;
-			for (auto &solIt : _soldiers)
-			{
-				int str = solIt->getCurrentStats()->strength;
-				int avgstr = round((solIt->getRules()->getMaxStats().strength - solIt->getRules()->getMinStats().strength) / 2);
-				soldierStrEff = soldierStrEff + (str - avgstr);
-			}
-			double effect = (itemsSize - ruleSize) * _rule->getItemSpaceEffect() - soldierStrEff / 10;
-			Log(LOG_INFO) << "Odds was lowered by " << effect << " because we out of item limit by " << round(itemsSize - ruleSize);
-			_chances = _chances - effect;
-		}
-	}
 	//lets see if we need some decrease because of required items
 	if (!_rule->getRequiredItemList().empty())
 	{
@@ -629,19 +605,15 @@ double CovertOperationStartState::getOperationOdds()
 		{
 			reqItemsN = reqItemsN + it->second;
 			std::string itmeName = it->first;
-			Log(LOG_INFO) << "We are looking for required item " << itmeName << " in number of " << it->second;
 			for (std::map<std::string, int>::iterator j = _items->getContents()->begin(); j != _items->getContents()->end(); ++j)
 			{
 				if (j->first == itmeName)
 				{
-					Log(LOG_INFO) << "Item  " << j->first << "was found in operation items in number of " << j->second;
 					reqItemsN = reqItemsN - j->second;
-					Log(LOG_INFO) << "reqItemsN was lowered to value " << reqItemsN;
 				}
 			}
 		}
 		int change = reqItemsN * 5;
-		Log(LOG_INFO) << "Odds was lowered because we dont have required items by " << change;
 		_chances = _chances - change;
 	}
 	//now lets check soldier armor if we have something about it in rules
@@ -653,11 +625,12 @@ double CovertOperationStartState::getOperationOdds()
 			std::string armorName = solIt->getArmor()->getType();
 			for (auto& ruleArmor : _rule->getAllowedArmor())
 			{
-				if (ruleArmor == armorName) --armorlessSoldiers;
-				Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has allowed armor " << armorName;
+				if (ruleArmor == armorName)
+				{
+					--armorlessSoldiers;
+				}
 			}
 		}
-		Log(LOG_INFO) << "Soldiers without allowed armor: " << armorlessSoldiers;
 		_chances = _chances - armorlessSoldiers * static_cast<double>(_rule->getAllowedArmorEffect());
 	}
 	//lets process soldier stats as pure bonus
@@ -685,25 +658,19 @@ double CovertOperationStartState::getOperationOdds()
 					if (ruleTypeName == solType)
 					{
 						solEffectivness = t->second;
-						Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has solEffectivness = " << solEffectivness;
 					}
 				}
 			}
 			_chances = _chances * (solEffectivness / 100);
 			//lets make a bonus for having officer for field command and avg ranking
 			int rank = solIt->getRank();
-			Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has rank # = " << rank;
 			if (rank > soldierMaxRank) soldierMaxRank = rank;
 			soldiersTotalRank = soldiersTotalRank + rank;
-			Log(LOG_INFO) << "soldiersTotalRank now = " << soldiersTotalRank;
 			//now lets handle soldier stats
 			double reacCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->reactions, 2000, 2, 16, -9) ;
-			Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has reacCalc = " << reacCalc;
 			soldierReactions = soldierReactions + reacCalc * (solEffectivness / 100);
 			int brav = solIt->getStatsWithAllBonuses()->bravery / 10;
-			Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has brav = " << brav;
 			soldierBrav = soldierBrav + (static_cast<double>(brav) * (solEffectivness / 100)) - 3;
-			Log(LOG_INFO) << "soldierBrav now = " << soldierBrav;
 			int psi = solIt->getStatsWithAllBonuses()->psiSkill;
 			if (psi > 0 && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements())) //psi offencive bonus
 			{
@@ -712,20 +679,16 @@ double CovertOperationStartState::getOperationOdds()
 				{
 					int mana = solIt->getStatsWithAllBonuses()->mana;
 					manaFactor = (mana - solIt->getManaMissing()) / mana;
-					Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has manaFactor = " << manaFactor;
 				}
 				soldiersPsi = ((statEffectCalc(psi, 8000, 2.2, 8, 0) + statEffectCalc(solIt->getStatsWithAllBonuses()->psiStrength, 8000, 2.2, 8, 0)) / 2) * manaFactor * (solEffectivness / 100);
-				Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has soldiersPsi = " << soldiersPsi;
 			}
 			else
 			{
 				soldiersPsi = statEffectCalc(solIt->getStatsWithAllBonuses()->psiStrength, 8000, 2.2, 8, 0) / 3; //as soldier still has psi defence and some extrasence capabilities
 			}
 			double tuCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->tu, 1400, 1.8, 15, -10);
-			Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has tuCalc = " << tuCalc;
 			soldiersTU = soldiersTU + tuCalc * (solEffectivness / 100);
 			double staCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->stamina, 1600, 1.8, 10, -6);
-			Log(LOG_INFO) << "Soldier named " << solIt->getName() << " has staCalc = " << staCalc;
 			soldiersSta = soldiersSta + staCalc * (solEffectivness / 100);
 		}
 
@@ -735,19 +698,7 @@ double CovertOperationStartState::getOperationOdds()
 		double reactEffect = (soldierReactions / assignedSoldiersN);
 		double tuEffect = (soldiersTU / assignedSoldiersN);
 		double staEffect = (soldiersSta / assignedSoldiersN);
-		Log(LOG_INFO) << "===============";
-		Log(LOG_INFO) << "Max rank now = " << soldierMaxRank;
-		Log(LOG_INFO) << "officerEffect = " << officerEffect;
-		Log(LOG_INFO) << "Avg rank = " << soldiersTotalRank / assignedSoldiersN;
-		Log(LOG_INFO) << "Rank effect = " << rankEffect;
-		Log(LOG_INFO) << "bravEffect = " << bravEffect;
-		Log(LOG_INFO) << "reactEffect = " << reactEffect;
-		Log(LOG_INFO) << "soldiersPsi = " << soldiersPsi;
-		Log(LOG_INFO) << "tuEffect = " << tuEffect;
-		Log(LOG_INFO) << "staEffect = " << staEffect;
 		double effect = rankEffect + bravEffect + reactEffect + soldiersPsi + tuEffect + staEffect;
-		Log(LOG_INFO) << "effect = " << effect;
-		Log(LOG_INFO) << "===============";
 		_chances = _chances + effect;
 
 		// let's check if itemset has specific FTA's item categories
@@ -763,10 +714,8 @@ double CovertOperationStartState::getOperationOdds()
 		if (isConcealed)
 		{
 			itemCatEffect = 4 * static_cast<double>(assignedSoldiersN);
-			Log(LOG_INFO) << "Bonus for concealed apply and equal " << itemCatEffect;
 		}
 		itemCatEffect = itemCatEffect - (heavy * 10 / assignedSoldiersN);
-		Log(LOG_INFO) << "itemCatEffect =  " << itemCatEffect;
 		_chances = _chances + itemCatEffect;
 	}
 
@@ -774,22 +723,18 @@ double CovertOperationStartState::getOperationOdds()
 	{
 		_chances = 200;
 	}
-	Log(LOG_INFO) << "TA-DA! Final operation odds score equal " << _chances << " !";
 	return _chances;
 }
 
-int CovertOperationStartState::getOperationCost() //TODO remove LOOP!
+int CovertOperationStartState::getOperationCost()
 {
 	_cost = _rule->getCosts(); //load initial rule value
 	int reducedCost = _cost;
 	if (_chances > 100)
 	{
-		Log(LOG_INFO) << "Initial operation cost equal " << _cost;
 		double bonus = (((_chances - 100) / (_chances - 82)) * 24) / 100; //some cute nonlinear calculation
-		Log(LOG_INFO) << "We have _chances > 100, so we get bonus to time equal " << bonus << " !";
 		reducedCost -= std::round(_cost * bonus);
 	}
-	Log(LOG_INFO) << "Final operation cost equal " << reducedCost;
 	return reducedCost;
 }
 
