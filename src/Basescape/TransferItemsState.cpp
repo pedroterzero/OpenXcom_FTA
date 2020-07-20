@@ -788,13 +788,17 @@ void TransferItemsState::increaseByValue(int change)
 		{
 			errorMessage = tr("STR_NO_FREE_HANGARS_FOR_TRANSFER");
 		}
-		else if (_pQty + craft->getNumSoldiers() > _baseTo->getAvailableQuarters() - _baseTo->getUsedQuarters())
+		else if (craft->getNumSoldiers() > 0 && _pQty + craft->getNumSoldiers() > _baseTo->getAvailableQuarters() - _baseTo->getUsedQuarters())
 		{
 			errorMessage = tr("STR_NO_FREE_ACCOMODATION_CREW");
 		}
-		else if (Options::storageLimitsEnforced && _baseTo->storesOverfull(_iQty + craft->getItems()->getTotalSize(_game->getMod())))
+		else if (Options::storageLimitsEnforced)
 		{
-			errorMessage = tr("STR_NOT_ENOUGH_STORE_SPACE_FOR_CRAFT");
+			auto used = craft->getTotalItemStorageSize(_game->getMod());
+			if (used > 0.0 && _baseTo->storesOverfull(_iQty + used))
+			{
+				errorMessage = tr("STR_NOT_ENOUGH_STORE_SPACE_FOR_CRAFT");
+			}
 		}
 		break;
 	case TRANSFER_ITEM:
@@ -829,7 +833,7 @@ void TransferItemsState::increaseByValue(int change)
 		case TRANSFER_CRAFT:
 			_cQty++;
 			_pQty += craft->getNumSoldiers();
-			_iQty += craft->getItems()->getTotalSize(_game->getMod());
+			_iQty += craft->getTotalItemStorageSize(_game->getMod());
 			getRow().amount++;
 			if (!Options::canTransferCraftsWhileAirborne || craft->getStatus() != "STR_OUT")
 				_total += getRow().cost;
@@ -901,7 +905,7 @@ void TransferItemsState::decreaseByValue(int change)
 		craft = (Craft*)getRow().rule;
 		_cQty--;
 		_pQty -= craft->getNumSoldiers();
-		_iQty -= craft->getItems()->getTotalSize(_game->getMod());
+		_iQty -= craft->getTotalItemStorageSize(_game->getMod());
 		break;
 	case TRANSFER_ITEM:
 		const RuleItem *selItem = (RuleItem*)getRow().rule;

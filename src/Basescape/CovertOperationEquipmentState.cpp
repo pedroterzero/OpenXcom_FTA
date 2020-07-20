@@ -350,12 +350,11 @@ void CovertOperationEquipmentState::initList()
 					bool isOK = rule->belongsToCategory(selectedCategory);
 					if (shareAmmoCategories && !isOK && rule->getBattleType() == BT_FIREARM)
 					{
-						for (auto& compatibleAmmoName : *rule->getPrimaryCompatibleAmmo())
+						for (auto* ammoRule : *rule->getPrimaryCompatibleAmmo())
 						{
-							if (_base->getStorageItems()->getItem(compatibleAmmoName) > 0 || _operation->getItems()->getItem(compatibleAmmoName) > 0)
+							if (_base->getStorageItems()->getItem(ammoRule) > 0 || _operation->getItems()->getItem(ammoRule) > 0)
 							{
-								RuleItem* ammoRule = _game->getMod()->getItem(compatibleAmmoName);
-								if (ammoRule && ammoRule->isInventoryItem() && ammoRule->canBeEquippedToCraftInventory() && _game->getSavedGame()->isResearched(ammoRule->getRequirements()))
+								if (ammoRule->isInventoryItem() && ammoRule->canBeEquippedToCraftInventory() && _game->getSavedGame()->isResearched(ammoRule->getRequirements()))
 								{
 									isOK = ammoRule->belongsToCategory(selectedCategory);
 									if (isOK) break;

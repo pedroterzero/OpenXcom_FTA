@@ -336,9 +336,9 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 				if (rule->getVehicleUnit())
 				{
 					// if this vehicle requires ammo, remember to ignore it later too
-					if (!rule->getPrimaryCompatibleAmmo()->empty())
+					if (rule->getVehicleClipAmmo())
 					{
-						origBaseItems->addItem(rule->getPrimaryCompatibleAmmo()->front(), 1000000);
+						origBaseItems->addItem(rule->getVehicleClipAmmo(), 1000000);
 					}
 					continue;
 				}
@@ -1390,6 +1390,32 @@ void DebriefingState::prepareDebriefing()
 		}
 	}
 
+	// transforam all zombie like units to spawned ones
+	std::vector<BattleUnit*> waitingTransformations;
+	for (auto* u : *battle->getUnits())
+	{
+		if (u->getSpawnUnit() && u->getOriginalFaction() == FACTION_HOSTILE && (!u->isOut() || u->getStatus() == STATUS_IGNORE_ME))
+		{
+			waitingTransformations.push_back(u);
+		}
+	}
+	for (auto* u : waitingTransformations)
+	{
+		auto status = u->getStatus();
+		auto faction = u->getFaction();
+		// convert it, and mind control the resulting unit.
+		// reason: zombies don't create unconscious bodies... ever.
+		// the only way we can get into this situation is if psi-capture is enabled.
+		// we can use that knowledge to our advantage to save having to make it unconscious and spawn a body item for it.
+		BattleUnit *newUnit = _game->getSavedGame()->getSavedBattle()->getBattleGame()->convertUnit(u);
+		u->killedBy(FACTION_HOSTILE); //skip counting as kill
+		newUnit->convertToFaction(faction);
+		if (status == STATUS_IGNORE_ME)
+		{
+			newUnit->goToTimeOut();
+		}
+	}
+
 	// time to care for units.
 	for (std::vector<BattleUnit*>::iterator j = battle->getUnits()->begin(); j != battle->getUnits()->end(); ++j)
 	{
@@ -1494,8 +1520,8 @@ void DebriefingState::prepareDebriefing()
 							{
 								const RuleItem *primaryRule = weapon->getRules();
 								const BattleItem *ammoItem = weapon->getAmmoForSlot(0);
-								const auto *compatible = primaryRule->getPrimaryCompatibleAmmo();
-								if (primaryRule->getVehicleUnit() && !compatible->empty() && ammoItem != 0 && ammoItem->getAmmoQuantity() > 0)
+								const auto *compatible = primaryRule->getVehicleClipAmmo();
+								if (primaryRule->getVehicleUnit() && compatible && ammoItem != 0 && ammoItem->getAmmoQuantity() > 0)
 								{
 									int total = ammoItem->getAmmoQuantity();
 
@@ -1504,7 +1530,7 @@ void DebriefingState::prepareDebriefing()
 										total /= ammoItem->getRules()->getClipSize();
 									}
 
-									addItemsToBaseStores(compatible->front(), base, total, false);
+									addItemsToBaseStores(compatible, base, total, false);
 								}
 							}
 						};
@@ -1699,7 +1725,7 @@ void DebriefingState::prepareDebriefing()
 		{
 			for (int i = 0; i < battle->getMapSizeXYZ(); ++i)
 			{
-				if (battle->getTile(i)->getMapData(O_FLOOR) && (battle->getTile(i)->getMapData(O_FLOOR)->getSpecialType() == START_POINT))
+				if (battle->getTile(i)->getFloorSpecialTileType() == START_POINT)
 					recoverItems(battle->getTile(i)->getInventory(), base);
 			}
 		}
@@ -2031,27 +2057,18 @@ void DebriefingState::reequipCraft(Base *base, Craft *craft, bool vehicleItemsCa
 			ReequipStat stat = {i->first, missing, craft->getName(_game->getLanguage()), 0};
 			_missingItems.push_back(stat);
 		}
-		if (tankRule->getPrimaryCompatibleAmmo()->empty())
+		if (tankRule->getVehicleClipAmmo() == nullptr)
 		{ // so this tank does NOT require ammo
 			for (int j = 0; j < canBeAdded; ++j)
-				craft->getVehicles()->push_back(new Vehicle(tankRule, tankRule->getClipSize(), size));
+				craft->getVehicles()->push_back(new Vehicle(tankRule, tankRule->getVehicleClipSize(), size));
 			base->getStorageItems()->removeItem(i->first, canBeAdded);
 		}
 		else
 		{ // so this tank requires ammo
-			RuleItem *ammo = _game->getMod()->getItem(tankRule->getPrimaryCompatibleAmmo()->front(), true);
-			int ammoPerVehicle, clipSize;
-			if (ammo->getClipSize() > 0 && tankRule->getClipSize() > 0)
-			{
-				clipSize = tankRule->getClipSize();
-				ammoPerVehicle = clipSize / ammo->getClipSize();
-			}
-			else
-			{
-				clipSize = ammo->getClipSize();
-				ammoPerVehicle = clipSize;
-			}
-			int baqty = base->getStorageItems()->getItem(ammo->getType()); // Ammo Quantity for this vehicle-type on the base
+			const RuleItem *ammo = tankRule->getVehicleClipAmmo();
+			int ammoPerVehicle = tankRule->getVehicleClipsLoaded();
+
+			int baqty = base->getStorageItems()->getItem(ammo); // Ammo Quantity for this vehicle-type on the base
 			if (baqty < i->second * ammoPerVehicle)
 			{ // missing ammo
 				int missing = (i->second * ammoPerVehicle) - baqty;
@@ -2063,7 +2080,7 @@ void DebriefingState::reequipCraft(Base *base, Craft *craft, bool vehicleItemsCa
 			{
 				for (int j = 0; j < canBeAdded; ++j)
 				{
-					craft->getVehicles()->push_back(new Vehicle(tankRule, clipSize, size));
+					craft->getVehicles()->push_back(new Vehicle(tankRule, tankRule->getVehicleClipSize(), size));
 					base->getStorageItems()->removeItem(ammo, ammoPerVehicle);
 				}
 				base->getStorageItems()->removeItem(i->first, canBeAdded);
@@ -2304,7 +2321,7 @@ void DebriefingState::recoverItems(std::vector<BattleItem*> *from, Base *base)
 				{
 					for (std::vector<Craft*>::iterator c = base->getCrafts()->begin(); c != base->getCrafts()->end(); ++c)
 					{
-						(*c)->reuseItem(rule->getType());
+						(*c)->reuseItem(rule);
 					}
 				}
 			}
@@ -2413,7 +2430,7 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 {
 	// Transform a live alien into one or more recovered items?
 	RuleItem* liveAlienItemRule = _game->getMod()->getItem(from->getType());
-	if (!liveAlienItemRule->getRecoveryTransformations().empty())
+	if (liveAlienItemRule && !liveAlienItemRule->getRecoveryTransformations().empty())
 	{
 		addItemsToBaseStores(liveAlienItemRule, base, 1, true);
 
@@ -2422,18 +2439,6 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 		return;
 	}
 
-	// Zombie handling: don't recover a zombie.
-	if (from->getSpawnUnit())
-	{
-		// convert it, and mind control the resulting unit.
-		// reason: zombies don't create unconscious bodies... ever.
-		// the only way we can get into this situation is if psi-capture is enabled.
-		// we can use that knowledge to our advantage to save having to make it unconscious and spawn a body item for it.
-		BattleUnit *newUnit = _game->getSavedGame()->getSavedBattle()->getBattleGame()->convertUnit(from);
-		newUnit->convertToFaction(FACTION_PLAYER);
-		// don't process the zombie itself, our new unit just got added to the end of the vector we're iterating, and will be handled later.
-		return;
-	}
 	std::string type = from->getType();
 	RuleItem *ruleLiveAlienItem = _game->getMod()->getItem(type);
 	bool killPrisonersAutomatically = base->getAvailableContainment(ruleLiveAlienItem->getPrisonType()) == 0;
@@ -2503,7 +2508,7 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
  * Gets the number of recovered items of certain type.
  * @param rule Type of item.
  */
-int DebriefingState::getRecoveredItemCount(RuleItem *rule)
+int DebriefingState::getRecoveredItemCount(const RuleItem *rule)
 {
 	auto it = _recoveredItems.find(rule);
 	if (it != _recoveredItems.end())
@@ -2530,12 +2535,12 @@ int DebriefingState::getTotalRecoveredItemCount()
  * @param rule Type of item.
  * @param amount Number of items sold or transferred.
  */
-void DebriefingState::decreaseRecoveredItemCount(RuleItem *rule, int amount)
+void DebriefingState::decreaseRecoveredItemCount(const RuleItem *rule, int amount)
 {
 	auto it = _recoveredItems.find(rule);
 	if (it != _recoveredItems.end())
 	{
-		_recoveredItems[rule] = std::max(0, _recoveredItems[rule] - amount);
+		it->second = std::max(0, it->second - amount);
 	}
 }
 
