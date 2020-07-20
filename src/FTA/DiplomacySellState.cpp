@@ -39,6 +39,7 @@
 #include "../Savegame/Base.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/Craft.h"
+#include "../Savegame/Vehicle.h"
 #include "../Savegame/ItemContainer.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/Armor.h"
@@ -70,6 +71,7 @@ DiplomacySellState::DiplomacySellState(Base *base, DiplomacyFaction* faction, De
 		_sel(0), _total(0), _spaceChange(0), _origin(origin), _reset(false), _sellAllButOne(false)
 {
 	bool overfull = _debriefingState == 0 && Options::storageLimitsEnforced && _base->storesOverfull();
+	bool overfullCritical = overfull ? _base->storesOverfullCritical() : false;
 
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
@@ -210,28 +212,36 @@ DiplomacySellState::DiplomacySellState(Base *base, DiplomacyFaction* faction, De
 			_cats.push_back(cat);
 		}
 	}
-	const std::vector<std::string> &items = _game->getMod()->getItemsList();
+	const std::vector<std::string>& items = _game->getMod()->getItemsList();
 	for (std::vector<std::string>::const_iterator i = items.begin(); i != items.end(); ++i)
 	{
-		int qty = _base->getStorageItems()->getItem(*i);
-		if (Options::storageLimitsEnforced && _origin == OPT_BATTLESCAPE)
-		{
-			for (std::vector<Transfer*>::iterator j = _base->getTransfers()->begin(); j != _base->getTransfers()->end(); ++j)
-			{
-				if ((*j)->getItems() == *i)
-				{
-					qty += (*j)->getQuantity();
-				}
-			}
-			for (std::vector<Craft*>::iterator j = _base->getCrafts()->begin(); j != _base->getCrafts()->end(); ++j)
-			{
-				qty += (*j)->getItems()->getItem(*i);
-			}
-		}
-		RuleItem *rule = _game->getMod()->getItem(*i, true);
+		const RuleItem* rule = _game->getMod()->getItem(*i, true);
+		int qty = 0;
 		if (_debriefingState != 0)
 		{
 			qty = _debriefingState->getRecoveredItemCount(rule);
+		}
+		else
+		{
+			qty = _base->getStorageItems()->getItem(rule);
+			if (Options::storageLimitsEnforced && _origin == OPT_BATTLESCAPE)
+			{
+				for (std::vector<Transfer*>::iterator j = _base->getTransfers()->begin(); j != _base->getTransfers()->end(); ++j)
+				{
+					if ((*j)->getItems() == *i)
+					{
+						qty += (*j)->getQuantity();
+					}
+					else if ((*j)->getCraft())
+					{
+						qty += overfullCritical ? (*j)->getCraft()->getTotalItemCount(rule) : (*j)->getCraft()->getItems()->getItem(rule);
+					}
+				}
+				for (std::vector<Craft*>::iterator j = _base->getCrafts()->begin(); j != _base->getCrafts()->end(); ++j)
+				{
+					qty += overfullCritical ? (*j)->getTotalItemCount(rule) : (*j)->getItems()->getItem(rule);
+				}
+			}
 		}
 		if (qty > 0 && (Options::canSellLiveAliens || !rule->isAlien()))
 		{
@@ -250,6 +260,7 @@ DiplomacySellState::DiplomacySellState(Base *base, DiplomacyFaction* faction, De
 			}
 		}
 	}
+
 
 	if (_game->getMod()->getUseCustomCategories())
 	{
@@ -393,7 +404,7 @@ std::string DiplomacySellState::getCategory(int sel) const
  * @param cat Category.
  * @returns True if row item belongs to given category, otherwise False.
  */
-bool DiplomacySellState::belongsToCategory(int sel, const std::string &cat) const
+bool DiplomacySellState::belongsToCategory(int sel, const std::string& cat) const
 {
 	switch (_items[sel].type)
 	{
@@ -403,7 +414,7 @@ bool DiplomacySellState::belongsToCategory(int sel, const std::string &cat) cons
 	case TRANSFER_CRAFT:
 		return false;
 	case TRANSFER_ITEM:
-		RuleItem *rule = (RuleItem*)_items[sel].rule;
+		RuleItem* rule = (RuleItem*)_items[sel].rule;
 		return rule->belongsToCategory(cat);
 	}
 	return false;
@@ -413,7 +424,7 @@ bool DiplomacySellState::belongsToCategory(int sel, const std::string &cat) cons
 * Quick search toggle.
 * @param action Pointer to an action.
 */
-void DiplomacySellState::btnQuickSearchToggle(Action *action)
+void DiplomacySellState::btnQuickSearchToggle(Action* action)
 {
 	if (_btnQuickSearch->getVisible())
 	{
@@ -432,7 +443,7 @@ void DiplomacySellState::btnQuickSearchToggle(Action *action)
 * Quick search.
 * @param action Pointer to an action.
 */
-void DiplomacySellState::btnQuickSearchApply(Action *)
+void DiplomacySellState::btnQuickSearchApply(Action*)
 {
 	updateList();
 }
@@ -493,7 +504,7 @@ void DiplomacySellState::updateList()
 		bool ammo = false;
 		if (_items[i].type == TRANSFER_ITEM)
 		{
-			RuleItem *rule = (RuleItem*)_items[i].rule;
+			RuleItem* rule = (RuleItem*)_items[i].rule;
 			ammo = (rule->getBattleType() == BT_AMMO || (rule->getBattleType() == BT_NONE && rule->getClipSize() > 0));
 			if (ammo)
 			{
@@ -520,11 +531,102 @@ void DiplomacySellState::updateList()
  * Sells the selected items.
  * @param action Pointer to an action.
  */
-void DiplomacySellState::btnOkClick(Action *)
+void DiplomacySellState::btnOkClick(Action*)
 {
 	_game->getSavedGame()->setFunds(_game->getSavedGame()->getFunds() + _total);
-	Soldier *soldier;
-	Craft *craft;
+	Soldier* soldier;
+	Craft* craft;
+
+	auto cleanUpContainer = [&](ItemContainer* container, const RuleItem* rule, int toRemove) -> int
+	{
+		auto curr = container->getItem(rule);
+		if (curr > toRemove)
+		{
+			container->removeItem(rule, toRemove);
+			return 0;
+		}
+		else
+		{
+			container->removeItem(rule, INT_MAX);
+			return toRemove - curr;
+		}
+	};
+
+	auto cleanUpCraft = [&](Craft* craft, const RuleItem* rule, int toRemove) -> int
+	{
+		struct S
+		{
+			int ToRemove, ToSave;
+			const RuleItem* rule;
+		};
+
+		auto tryRemove = [&toRemove, rule](int curr, const RuleItem* i) -> S
+		{
+			if (i == rule)
+			{
+				auto r = std::min(toRemove, curr);
+				toRemove -= r;
+				curr -= r;
+				return S{ r, curr, i };
+			}
+			else
+			{
+				return S{ 0, curr, i };
+			}
+		};
+		auto tryStore = [&](S s)
+		{
+			if (s.ToSave > 0)
+			{
+				_base->getStorageItems()->addItem(s.rule, s.ToSave);
+			}
+		};
+
+		for (auto*& w : *craft->getWeapons())
+		{
+			if (w != nullptr)
+			{
+				auto* wr = w->getRules();
+
+				auto launcher = tryRemove(1, wr->getLauncherItem());
+				auto clip = tryRemove(w->getClipsLoaded(), wr->getClipItem());
+				if (launcher.ToRemove || clip.ToRemove)
+				{
+					tryStore(launcher);
+					tryStore(clip);
+
+					delete w;
+					w = nullptr;
+				}
+			}
+		}
+
+		Collections::deleteIf(
+			*craft->getVehicles(),
+			[&](Vehicle* v)
+			{
+				auto clipType = v->getRules()->getVehicleClipAmmo();
+
+				auto launcher = tryRemove(1, v->getRules());
+				auto clip = tryRemove(v->getRules()->getVehicleClipsLoaded(), clipType);
+
+				if (launcher.ToRemove || clip.ToRemove)
+				{
+					tryStore(launcher);
+					tryStore(clip);
+
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		);
+
+		return toRemove;
+	};
+
 	for (std::vector<TransferRow>::const_iterator i = _items.begin(); i != _items.end(); ++i)
 	{
 		if (i->amount > 0)
@@ -559,27 +661,24 @@ void DiplomacySellState::btnOkClick(Action *)
 				_base->setEngineers(_base->getEngineers() - i->amount);
 				break;
 			case TRANSFER_ITEM:
-				RuleItem *item = (RuleItem*)i->rule;
-				if (_base->getStorageItems()->getItem(item) < i->amount)
+				RuleItem* item = (RuleItem*)i->rule;
+				if (_debriefingState != 0)
 				{
-					int toRemove = i->amount - _base->getStorageItems()->getItem(item->getType());
+					// remember the decreased amount for next sell/transfer
+					_debriefingState->decreaseRecoveredItemCount(item, i->amount);
 
+					// set autosell status if we sold all of the item
+					_game->getSavedGame()->setAutosell(item, (i->qtySrc == i->amount));
+				}
+				else
+				{
 					// remove all of said items from base
-					_base->getStorageItems()->removeItem(item, INT_MAX);
+					int toRemove = cleanUpContainer(_base->getStorageItems(), item, i->amount);
 
 					// if we still need to remove any, remove them from the crafts first, and keep a running tally
 					for (std::vector<Craft*>::iterator j = _base->getCrafts()->begin(); j != _base->getCrafts()->end() && toRemove; ++j)
 					{
-						if ((*j)->getItems()->getItem(item) < toRemove)
-						{
-							toRemove -= (*j)->getItems()->getItem(item);
-							(*j)->getItems()->removeItem(item, INT_MAX);
-						}
-						else
-						{
-							(*j)->getItems()->removeItem(item, toRemove);
-							toRemove = 0;
-						}
+						toRemove = cleanUpContainer((*j)->getItems(), item, toRemove);
 					}
 
 					// if there are STILL any left to remove, take them from the transfers, and if necessary, delete it.
@@ -590,7 +689,7 @@ void DiplomacySellState::btnOkClick(Action *)
 							if ((*j)->getQuantity() <= toRemove)
 							{
 								toRemove -= (*j)->getQuantity();
-								delete *j;
+								delete* j;
 								j = _base->getTransfers()->erase(j);
 							}
 							else
@@ -601,21 +700,19 @@ void DiplomacySellState::btnOkClick(Action *)
 						}
 						else
 						{
+							if ((*j)->getCraft())
+							{
+								toRemove = cleanUpContainer((*j)->getCraft()->getItems(), item, toRemove);
+							}
 							++j;
 						}
 					}
-				}
-				else
-				{
-					_base->getStorageItems()->removeItem(item, i->amount);
-				}
-				if (_debriefingState != 0)
-				{
-					// remember the decreased amount for next sell/transfer
-					_debriefingState->decreaseRecoveredItemCount(item, i->amount);
 
-					// set autosell status if we sold all of the item
-					_game->getSavedGame()->setAutosell(item, (i->qtySrc == i->amount));
+					// clean reast of craft weapons and vehicles
+					for (std::vector<Craft*>::iterator j = _base->getCrafts()->begin(); j != _base->getCrafts()->end() && toRemove; ++j)
+					{
+						toRemove = cleanUpCraft((*j), item, toRemove);
+					}
 				}
 
 				break;
@@ -641,7 +738,7 @@ void DiplomacySellState::btnOkClick(Action *)
  * Returns to the previous screen.
  * @param action Pointer to an action.
  */
-void DiplomacySellState::btnCancelClick(Action *)
+void DiplomacySellState::btnCancelClick(Action*)
 {
 	_game->popState();
 }
@@ -651,7 +748,7 @@ void DiplomacySellState::btnCancelClick(Action *)
 * Returns back to this screen when finished.
 * @param action Pointer to an action.
 */
-void DiplomacySellState::btnTransferClick(Action *)
+void DiplomacySellState::btnTransferClick(Action*)
 {
 	_reset = true;
 	_game->pushState(new TransferBaseState(_base, nullptr));
@@ -661,7 +758,7 @@ void DiplomacySellState::btnTransferClick(Action *)
 * Increase all items to max, i.e. sell everything.
 * @param action Pointer to an action.
 */
-void DiplomacySellState::btnSellAllClick(Action *)
+void DiplomacySellState::btnSellAllClick(Action*)
 {
 	bool allItemsSelected = true;
 	for (size_t i = 0; i < _lstItems->getRows(); ++i)
@@ -687,7 +784,7 @@ void DiplomacySellState::btnSellAllClick(Action *)
 * Increase all items to max - 1, i.e. sell everything but one.
 * @param action Pointer to an action.
 */
-void DiplomacySellState::btnSellAllButOneClick(Action *)
+void DiplomacySellState::btnSellAllButOneClick(Action*)
 {
 	_sellAllButOne = true;
 	btnSellAllClick(nullptr);
@@ -698,7 +795,7 @@ void DiplomacySellState::btnSellAllButOneClick(Action *)
  * Starts increasing the item.
  * @param action Pointer to an action.
  */
-void DiplomacySellState::lstItemsLeftArrowPress(Action *action)
+void DiplomacySellState::lstItemsLeftArrowPress(Action* action)
 {
 	_sel = _lstItems->getSelectedRow();
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT && !_timerInc->isRunning()) _timerInc->start();
@@ -708,7 +805,7 @@ void DiplomacySellState::lstItemsLeftArrowPress(Action *action)
  * Stops increasing the item.
  * @param action Pointer to an action.
  */
-void DiplomacySellState::lstItemsLeftArrowRelease(Action *action)
+void DiplomacySellState::lstItemsLeftArrowRelease(Action* action)
 {
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
@@ -721,12 +818,12 @@ void DiplomacySellState::lstItemsLeftArrowRelease(Action *action)
  * by one on left-click, to max on right-click.
  * @param action Pointer to an action.
  */
-void DiplomacySellState::lstItemsLeftArrowClick(Action *action)
+void DiplomacySellState::lstItemsLeftArrowClick(Action* action)
 {
 	if (action->getDetails()->button.button == SDL_BUTTON_RIGHT) changeByValue(INT_MAX, 1);
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
-		changeByValue(1,1);
+		changeByValue(1, 1);
 		_timerInc->setInterval(250);
 		_timerDec->setInterval(250);
 	}
@@ -736,7 +833,7 @@ void DiplomacySellState::lstItemsLeftArrowClick(Action *action)
  * Starts decreasing the item.
  * @param action Pointer to an action.
  */
-void DiplomacySellState::lstItemsRightArrowPress(Action *action)
+void DiplomacySellState::lstItemsRightArrowPress(Action* action)
 {
 	_sel = _lstItems->getSelectedRow();
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT && !_timerDec->isRunning()) _timerDec->start();
@@ -746,7 +843,7 @@ void DiplomacySellState::lstItemsRightArrowPress(Action *action)
  * Stops decreasing the item.
  * @param action Pointer to an action.
  */
-void DiplomacySellState::lstItemsRightArrowRelease(Action *action)
+void DiplomacySellState::lstItemsRightArrowRelease(Action* action)
 {
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
@@ -759,12 +856,12 @@ void DiplomacySellState::lstItemsRightArrowRelease(Action *action)
  * by one on left-click, to 0 on right-click.
  * @param action Pointer to an action.
  */
-void DiplomacySellState::lstItemsRightArrowClick(Action *action)
+void DiplomacySellState::lstItemsRightArrowClick(Action* action)
 {
 	if (action->getDetails()->button.button == SDL_BUTTON_RIGHT) changeByValue(INT_MAX, -1);
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
-		changeByValue(1,-1);
+		changeByValue(1, -1);
 		_timerInc->setInterval(250);
 		_timerDec->setInterval(250);
 	}
@@ -774,7 +871,7 @@ void DiplomacySellState::lstItemsRightArrowClick(Action *action)
  * Handles the mouse-wheels on the arrow-buttons.
  * @param action Pointer to an action.
  */
-void DiplomacySellState::lstItemsMousePress(Action *action)
+void DiplomacySellState::lstItemsMousePress(Action* action)
 {
 	_sel = _lstItems->getSelectedRow();
 	if (action->getDetails()->button.button == SDL_BUTTON_WHEELUP)
@@ -806,7 +903,7 @@ void DiplomacySellState::lstItemsMousePress(Action *action)
 		}
 		if (getRow().type == TRANSFER_ITEM)
 		{
-			RuleItem *rule = (RuleItem*)getRow().rule;
+			RuleItem* rule = (RuleItem*)getRow().rule;
 			if (rule != 0)
 			{
 				_game->pushState(new ManufactureDependenciesTreeState(rule->getType()));
@@ -817,11 +914,11 @@ void DiplomacySellState::lstItemsMousePress(Action *action)
 	{
 		if (getRow().type == TRANSFER_ITEM)
 		{
-			RuleItem *rule = (RuleItem*)getRow().rule;
+			RuleItem* rule = (RuleItem*)getRow().rule;
 			if (rule != 0)
 			{
 				std::string articleId = rule->getType();
-				const RuleResearch *selectedTopic = _game->getMod()->getResearch(articleId, false);
+				const RuleResearch* selectedTopic = _game->getMod()->getResearch(articleId, false);
 				bool ctrlPressed = SDL_GetModState() & KMOD_CTRL;
 				if (selectedTopic && !ctrlPressed)
 				{
@@ -835,7 +932,7 @@ void DiplomacySellState::lstItemsMousePress(Action *action)
 		}
 		else if (getRow().type == TRANSFER_CRAFT)
 		{
-			Craft *rule = (Craft*)getRow().rule;
+			Craft* rule = (Craft*)getRow().rule;
 			if (rule != 0)
 			{
 				std::string articleId = rule->getRules()->getType();
@@ -852,7 +949,7 @@ void DiplomacySellState::increase()
 {
 	_timerDec->setInterval(50);
 	_timerInc->setInterval(50);
-	changeByValue(1,1);
+	changeByValue(1, 1);
 }
 
 /**
@@ -880,9 +977,9 @@ void DiplomacySellState::changeByValue(int change, int dir)
 	_total += dir * getRow().cost * change;
 
 	// Calculate the change in storage space.
-	Craft *craft;
-	Soldier *soldier;
-	RuleItem *armor, *item, *weapon, *ammo;
+	Craft* craft;
+	Soldier* soldier;
+	const RuleItem* item, * weapon, * ammo;
 	double total = 0.0;
 	switch (getRow().type)
 	{
@@ -899,17 +996,17 @@ void DiplomacySellState::changeByValue(int change, int dir)
 		{
 			if (*w)
 			{
-				weapon = _game->getMod()->getItem((*w)->getRules()->getLauncherItem(), true);
+				weapon = (*w)->getRules()->getLauncherItem();
 				total += weapon->getSize();
-				ammo = _game->getMod()->getItem((*w)->getRules()->getClipItem());
+				ammo = (*w)->getRules()->getClipItem();
 				if (ammo)
-					total += ammo->getSize() * (*w)->getClipsLoaded(_game->getMod());
+					total += ammo->getSize() * (*w)->getClipsLoaded();
 			}
 		}
 		_spaceChange += dir * total;
 		break;
 	case TRANSFER_ITEM:
-		item = (RuleItem*)getRow().rule;
+		item = (const RuleItem*)getRow().rule;
 		_spaceChange -= dir * change * item->getSize();
 		break;
 	default:
@@ -927,7 +1024,7 @@ void DiplomacySellState::decrease()
 {
 	_timerInc->setInterval(50);
 	_timerDec->setInterval(50);
-	changeByValue(1,-1);
+	changeByValue(1, -1);
 }
 
 /**
@@ -951,7 +1048,7 @@ void DiplomacySellState::updateItemStrings()
 		_lstItems->setRowColor(_sel, _lstItems->getColor());
 		if (getRow().type == TRANSFER_ITEM)
 		{
-			RuleItem *rule = (RuleItem*)getRow().rule;
+			RuleItem* rule = (RuleItem*)getRow().rule;
 			if (rule->getBattleType() == BT_AMMO || (rule->getBattleType() == BT_NONE && rule->getClipSize() > 0))
 			{
 				_lstItems->setRowColor(_sel, _ammoColor);
@@ -978,7 +1075,7 @@ void DiplomacySellState::updateItemStrings()
 /**
 * Updates the production list to match the category filter.
 */
-void DiplomacySellState::cbxCategoryChange(Action *)
+void DiplomacySellState::cbxCategoryChange(Action*)
 {
 	updateList();
 }
