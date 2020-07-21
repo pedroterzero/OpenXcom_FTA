@@ -2003,7 +2003,15 @@ void DebriefingState::prepareDebriefing()
 			}
 		}
 	}
-
+	else
+	{
+		const RuleResearch* disabledResearch = _game->getMod()->getResearch(ruleDeploy->getDisabledResearch());
+		if (disabledResearch)
+		{
+			_game->getSavedGame()->removeDiscoveredResearch(disabledResearch); // unresearch
+			_game->getSavedGame()->setResearchRuleStatus(disabledResearch->getName(), RuleResearch::RESEARCH_STATUS_DISABLED);
+		}
+	}
 	// remember the base for later use (of course only if it's not lost already (in that case base=0))
 	_base = base;
 }

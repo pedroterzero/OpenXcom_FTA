@@ -161,6 +161,7 @@ void AlienDeployment::load(const YAML::Node &node, Mod *mod)
 	_enviroEffects = node["enviroEffects"].as<std::string>(_enviroEffects);
 	_startingCondition = node["startingCondition"].as<std::string>(_startingCondition);
 	_unlockedResearch = node["unlockedResearch"].as<std::string>(_unlockedResearch);
+	_disabledResearch = node["unlockedResearch"].as<std::string>(_disabledResearch);
 	_missionBountyItem = node["missionBountyItem"].as<std::string>(_missionBountyItem);
 	_bughuntMinTurn = node["bughuntMinTurn"].as<int>(_bughuntMinTurn);
 	_data = node["data"].as< std::vector<DeploymentData> >(_data);
@@ -295,6 +296,11 @@ const std::string& AlienDeployment::getStartingCondition() const
 std::string AlienDeployment::getUnlockedResearch() const
 {
 	return _unlockedResearch;
+}
+
+std::string AlienDeployment::getDisabledResearch() const
+{
+	return _disabledResearch;
 }
 
 /**

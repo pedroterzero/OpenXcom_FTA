@@ -67,7 +67,7 @@ private:
 	std::string _type;
 	std::string _customUfo;
 	std::string _enviroEffects, _startingCondition;
-	std::string _unlockedResearch, _missionBountyItem;
+	std::string _unlockedResearch, _disabledResearch, _missionBountyItem;
 	int _bughuntMinTurn;
 	std::vector<DeploymentData> _data;
 	int _width, _length, _height, _civilians;
@@ -111,6 +111,8 @@ public:
 	const std::string& getStartingCondition() const;
 	/// Gets the research topic to be unlocked after a successful mission.
 	std::string getUnlockedResearch() const;
+	/// Gets the research topic to be disabled after a failed mission.
+	std::string getDisabledResearch() const;
 	/// Gets the item to be recovered/given after a successful mission.
 	std::string getMissionBountyItem() const;
 	/// Gets the bug hunt mode minimum turn requirement (default = 0 = not used).
