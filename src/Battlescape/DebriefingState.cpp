@@ -852,6 +852,8 @@ void DebriefingState::btnOkClick(Action *)
 	}
 	_game->getSavedGame()->setBattleGame(0);
 	_game->popState();
+	if (_game->getMod()->getIsFTAGame() && !_game->getSavedGame()->isResearched("STR_HELLO"))
+		_game->popState();
 	if (_game->getSavedGame()->getMonthsPassed() == -1)
 	{
 		_game->setState(new MainMenuState);
