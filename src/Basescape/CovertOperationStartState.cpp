@@ -539,7 +539,7 @@ std::string CovertOperationStartState::getOperationOddsString(bool mod)
 		}
 		else if (odds > 50)
 		{
-			return ("STR_AVARAGE");
+			return ("STR_AVERAGE");
 		}
 		else if (odds > 25)
 		{
