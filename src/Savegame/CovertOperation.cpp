@@ -160,7 +160,7 @@ std::string CovertOperation::getOddsName()
 	else if (_successChance > 75)
 		return ("STR_GOOD");
 	else if (_successChance > 50)
-		return ("STR_AVARAGE");
+		return ("STR_AVERAGE");
 	else if (_successChance > 25)
 		return ("STR_POOR");
 	else if (_successChance > 0)

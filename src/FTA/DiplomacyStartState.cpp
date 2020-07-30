@@ -297,7 +297,9 @@ DiplomacyInfoState::DiplomacyInfoState(const DiplomacyFaction* faction)
 	_txtTitle->setText(tr(rules.getName()));
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setBig();
+
 	_txtDesc->setText(tr(rules.getDescription()));
+	_txtDesc->setWordWrap(true);
 
 
 	_btnOk->setText(tr("STR_OK"));
