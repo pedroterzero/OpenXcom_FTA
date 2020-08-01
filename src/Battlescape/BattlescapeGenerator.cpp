@@ -647,6 +647,30 @@ void BattlescapeGenerator::run()
 	// Note: this considers also fake underwater UFO deployment (via _alienCustomMission)
 	const AlienDeployment *ruleDeploy = _alienCustomMission ? _alienCustomMission : _game->getMod()->getDeployment(_ufo?_ufo->getRules()->getType():_save->getMissionType(), true);
 
+	bool noAlter = false;
+	int tries = 0; //prevent recursion in deployment links
+	while (!noAlter && tries < 100)
+	{
+		if (!ruleDeploy->getAlternativeDeploymentName().empty())
+		{
+			if (_game->getSavedGame()->isResearched(ruleDeploy->getAlternativeDeploymentResearchName()))
+			{
+				ruleDeploy = _game->getMod()->getDeployment(ruleDeploy->getAlternativeDeploymentName());
+				if (ruleDeploy == 0)
+				{
+					throw Exception(ruleDeploy->getType() +  " is not defined in rulesets!");
+				}
+				tries++;
+			}
+		}
+		else
+		{
+			noAlter = true;
+		}
+	}
+	
+
+
 	_save->setTurnLimit(ruleDeploy->getTurnLimit());
 	_save->setChronoTrigger(ruleDeploy->getChronoTrigger());
 	_save->setCheatTurn(ruleDeploy->getCheatTurn());
