@@ -12,6 +12,7 @@ set ( basescape_src
   Basescape/ChangeHeadquartersState.cpp
   Basescape/CovertOperationArmorState.cpp
   Basescape/CovertOperationEquipmentState.cpp
+  Basescape/CovertOperationInfoState.cpp
   Basescape/CovertOperationSoldiersState.cpp
   Basescape/CovertOperationStartState.cpp
   Basescape/CovertOperationState.cpp
