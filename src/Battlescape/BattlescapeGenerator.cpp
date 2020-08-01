@@ -660,7 +660,7 @@ void BattlescapeGenerator::run()
 				{
 					throw Exception(ruleDeploy->getType() +  " is not defined in rulesets!");
 				}
-				tries++;
+				++tries;
 			}
 		}
 		else
@@ -669,8 +669,6 @@ void BattlescapeGenerator::run()
 		}
 	}
 	
-
-
 	_save->setTurnLimit(ruleDeploy->getTurnLimit());
 	_save->setChronoTrigger(ruleDeploy->getChronoTrigger());
 	_save->setCheatTurn(ruleDeploy->getCheatTurn());
