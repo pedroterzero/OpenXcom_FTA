@@ -32,7 +32,7 @@ namespace OpenXcom
 * @param type String defining the type.
 */
 RuleCovertOperation::RuleCovertOperation(const std::string& name) : _name(name), _soldierSlots(1), _optionalSoldierSlots(0),
-																	_scientistSlots(0), _engineerSlots(0), _optionalSoldierEffect(15), _scientistEffect(10), _engeneerEffect(10),
+																	_scientistSlots(0), _engineerSlots(0), _optionalSoldierEffect(15), _scientistEffect(10), _engineerEffect(10),
 																	_baseChances(50), _costs(0), _itemSpaceLimit(-1), _itemSpaceEffect(10), _danger(0), _trapChance(0), _armorEffect(20),
 																	_successScore(0), _failureScore(0), _progressEventChance(0), _repeatProgressEvent(false),
 																	_successFunds(0), _failureFunds(0), _successMusic("GMMARS"), _failureMusic("GMLOSE"),
@@ -59,7 +59,7 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	}
 	_name = node["name"].as<std::string>(_name);
 	_description = node["description"].as<std::string>(_description);
-	_sucessBackground = node["sucessBackground"].as<std::string>(_sucessBackground);
+	_successBackground = node["successBackground"].as<std::string>(_successBackground);
 	_failureBackground = node["failureBackground"].as<std::string>(_failureBackground);
 	_successDescription = node["successDescription"].as<std::string>(_successDescription);
 	_failureDescription = node["failureDescription"].as<std::string>(_failureDescription);
@@ -80,7 +80,7 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_engineerSlots = node["engineerSlots"].as<int>(_engineerSlots);
 	_optionalSoldierEffect = node["optionalSoldierEffect"].as<int>(_optionalSoldierEffect);
 	_scientistEffect = node["scientistEffect"].as<int>(_scientistEffect);
-	_engeneerEffect = node["engeneerEffect"].as<int>(_engeneerEffect);
+	_engineerEffect = node["engineerEffect"].as<int>(_engineerEffect);
 	_baseChances = node["baseChances"].as<int>(_baseChances);
 	_costs = node["costs"].as<int>(_costs);
 	_progressEventChance = node["_progressEventChance"].as<int>(_progressEventChance);

@@ -37,10 +37,10 @@ class Mod;
 class RuleCovertOperation
 {
 private:
-	std::string _name, _description, _successDescription, _failureDescription, _sucessBackground, _failureBackground, _successMusic, _failureMusic, _successEvent,  _failureEvent, _progressEvent, _specialRule;
+	std::string _name, _description, _successDescription, _failureDescription, _successBackground, _failureBackground, _successMusic, _failureMusic, _successEvent,  _failureEvent, _progressEvent, _specialRule;
 	std::vector<std::string> _requires, _canceledBy, _allowedArmor, _successResearchList, _failureResearchList;
 	RuleBaseFacilityFunctions _requiresBaseFunc;
-	int _soldierSlots, _optionalSoldierSlots, _scientistSlots, _engineerSlots, _optionalSoldierEffect, _scientistEffect, _engeneerEffect, _itemSpaceEffect, _armorEffect;
+	int _soldierSlots, _optionalSoldierSlots, _scientistSlots, _engineerSlots, _optionalSoldierEffect, _scientistEffect, _engineerEffect, _itemSpaceEffect, _armorEffect;
 	double _itemSpaceLimit;
 	int _baseChances, _costs, _successScore, _failureScore, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger;
 	bool _repeatProgressEvent;
@@ -62,13 +62,13 @@ public:
 	const std::string& getSuccessDescription() const { return _successDescription; };
 	/// Gets the operation's failure results description.
 	const std::string& getFailureDescription() const { return _failureDescription; };
-	/// Gets the operation's success results backbround image.
-	const std::string& getSuccessBackground() const { return _sucessBackground; };
-	/// Gets the operation's failure results backbround image.
+	/// Gets the operation's success results background image.
+	const std::string& getSuccessBackground() const { return _successBackground; };
+	/// Gets the operation's failure results background image.
 	const std::string& getFailureBackground() const { return _failureBackground; };
-	/// Gets the operation's success results backbround image.
+	/// Gets the operation's success results background image.
 	const std::string& getSuccessMusic() const { return _successMusic; };
-	/// Gets the operation's failure results backbround image.
+	/// Gets the operation's failure results background image.
 	const std::string& getFailureMusic() const { return _failureMusic; };
 	/// Gets the operation's requirements.
 	const std::vector<std::string>& getRequirements() const { return _requires; };
@@ -94,14 +94,14 @@ public:
 	int getOptionalSoldierSlots() const { return _optionalSoldierSlots; };
 	/// Gets the optional scientist slots for this operations.
 	int getScientistSlots() const { return _scientistSlots; };
-	/// Gets the optional engeneer slots for this operations.
+	/// Gets the optional engineer slots for this operations.
 	int getEngineerSlots() const { return _engineerSlots; };
 	/// Gets the optional soldiers slots effectiveness for this operations.
 	int getOptionalSoldierEffect() const { return _optionalSoldierEffect; };
 	/// Gets the optional scientist slots effectiveness for this operations.
 	int getScientistEffect() const { return _scientistEffect; };
-	/// Gets the optional engeneer slots effectiveness for this operations.
-	int getEngeneerEffect() const { return _engeneerEffect; };
+	/// Gets the optional engineer slots effectiveness for this operations.
+	int getEngineerEffect() const { return _engineerEffect; };
 	/// Gets the operation's base chances of success result.
 	int getBaseChances() const { return _baseChances; };
 	/// Gets the operation's time costs.
@@ -154,7 +154,7 @@ public:
 	const std::vector<std::string>& getAllowedArmor() const { return _allowedArmor; };
 	/// Gets the operation's allowed armor effect.
 	int getAllowedArmorEffect() const { return _armorEffect; };
-	/// Gets the effectivness by soldier type for this operations.
+	/// Gets the effectiveness by soldier type for this operations.
 	const std::map<std::string, int>& getSoldierTypeEffectiveness() const { return _soldierTypeEffectiveness; }
 	/// Gets the operation's special campaign rule.
 	const std::string& getSpecialRule() const { return _specialRule; };
