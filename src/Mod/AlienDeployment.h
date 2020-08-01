@@ -68,6 +68,7 @@ private:
 	std::string _customUfo;
 	std::string _enviroEffects, _startingCondition;
 	std::string _unlockedResearch, _missionBountyItem;
+	std::string _alternativeDeployment, _alternativeDeploymentResearch;
 	int _bughuntMinTurn;
 	std::vector<DeploymentData> _data;
 	int _width, _length, _height, _civilians;
@@ -113,6 +114,10 @@ public:
 	std::string getUnlockedResearch() const;
 	/// Gets the item to be recovered/given after a successful mission.
 	std::string getMissionBountyItem() const;
+	/// Gets the Alien Deployment's alternative deployment to show the player.
+	const std::string& getAlternativeDeploymentName() const { return _alternativeDeployment; };
+	/// Gets the Alien Deployment's research, that would update alien deployment to alternative.
+	const std::string& getAlternativeDeploymentResearchName() const { return _alternativeDeploymentResearch; };
 	/// Gets the bug hunt mode minimum turn requirement (default = 0 = not used).
 	int getBughuntMinTurn() const;
 	/// Gets a pointer to the data.
