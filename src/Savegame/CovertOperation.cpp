@@ -515,7 +515,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 	if (!_rule->getSpecialRule().empty())//processing of yet hardcoded fta story arc
 	{
 		std::string specRule = _rule->getSpecialRule();
-		if (specRule == "STR_REGIONAL_HQ_DICOVERY")
+		if (specRule == "STR_REGIONAL_HQ_DISCOVERY")
 		{
 			for (std::vector<OpenXcom::AlienBase*>::iterator i = save.getAlienBases()->begin(); i != save.getAlienBases()->end(); ++i)
 			{
