@@ -592,7 +592,7 @@ double CovertOperationStartState::getOperationOdds()
 	slots = (_rule->getEngineerSlots());
 	if (slots > 0)
 	{
-		int effect = _rule->getEngeneerEffect();
+		int effect = _rule->getEngineerEffect();
 		_chances = _chances - (slots * effect * 0.9) + (_engeneers * effect);
 		slots = 0;
 	}
