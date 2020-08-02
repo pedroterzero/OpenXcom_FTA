@@ -83,7 +83,7 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_engineerEffect = node["engineerEffect"].as<int>(_engineerEffect);
 	_baseChances = node["baseChances"].as<int>(_baseChances);
 	_costs = node["costs"].as<int>(_costs);
-	_progressEventChance = node["_progressEventChance"].as<int>(_progressEventChance);
+	_progressEventChance = node["progressEventChance"].as<int>(_progressEventChance);
 	_trapChance = node["trapChance"].as<int>(_trapChance);
 	_danger = node["danger"].as<int>(_danger);
 	_successScore = node["successScore"].as<int>(_successScore);
