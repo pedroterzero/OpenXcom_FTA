@@ -46,7 +46,7 @@ namespace OpenXcom
 DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base)
 {
 	_screen = false;
-	std::string interfaceName = "diplimacyMainWindow";
+	std::string interfaceName = "diplomacyMainWindow";
 
 	// Create objects
 	if (geoscape) { _window = new Window(this, 320, 200, 0, 0, POPUP_BOTH); }
@@ -323,7 +323,7 @@ void DiplomacyInfoState::btnOkClick(Action* action)
 DiplomacyChooseBaseState::DiplomacyChooseBaseState(DiplomacyFaction* faction, TradeOperation opeation) : _faction(faction), _opeation(opeation)
 {
 	_screen = false;
-	std::string interfaceName = "diplimacyMainWindow";
+	std::string interfaceName = "diplomacyMainWindow";
 	
 	setInterface(interfaceName);
 	int bCount = _game->getSavedGame()->getBases()->size();

@@ -68,6 +68,7 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_successEvent = node["successEvent"].as<std::string>(_successEvent);
 	_failureEvent = node["failureEvent"].as<std::string>(_failureEvent);
 	_progressEvent = node["progressEvent"].as<std::string>(_progressEvent);
+	_repeatProgressEvent = node["repeatProgressEvent"].as<bool>(_repeatProgressEvent);
 	_requires = node["requires"].as<std::vector<std::string>>(_requires);
 	mod->loadBaseFunction(_name, _requiresBaseFunc, node["requiresBaseFunc"]);
 	_soldierSlots = node["soldierSlots"].as<int>(_soldierSlots);

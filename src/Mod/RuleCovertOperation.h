@@ -31,7 +31,7 @@ class Mod;
 /**
  * Represents ruleset for a specific covert operation.
  * Contains constant info about a covert operation like
- * name, requirments, etc.
+ * name, requirements, etc.
  * @sa CovertOperation
  */
 class RuleCovertOperation
