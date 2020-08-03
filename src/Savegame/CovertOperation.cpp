@@ -51,6 +51,7 @@
 #include "../Mod/AlienDeployment.h"
 #include "../Mod/AlienRace.h"
 #include "../Mod/Unit.h"
+#include "../FTA/MasterMind.h"
 
 namespace OpenXcom
 {
@@ -217,8 +218,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 			{
 				if (RNG::percent(_rule->getProgressEventChance()))
 				{
-					spawnEvent(engine, _rule->getProgressEvent());
-					_progressEventSpawned = true;
+					_progressEventSpawned = engine.getMasterMind()->spawnEvent(_rule->getProgressEvent());
 				}
 			}
 		}
@@ -351,7 +351,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 
 	if (!eventName.empty())
 	{
-		spawnEvent(engine, eventName);
+		bool spawnEvent = engine.getMasterMind()->spawnEvent(eventName);
 	}
 
 	if (!researchList.empty())
@@ -574,30 +574,6 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 		engine.pushState(new FinishedCoverOperationState(this, operationResult));
 	}
 	return true;
-}
-
-/**
-* Handle generating event for Covert Operation.
-* @param Game game engine.
-* @param eventName - string with rules name of the event.
-*/
-void CovertOperation::spawnEvent(Game& engine, std::string eventName)
-{
-	const Mod& mod = *engine.getMod();
-	SavedGame& save = *engine.getSavedGame();
-
-	RuleEvent* eventRules = mod.getEvent(eventName);
-	if (eventRules == 0)
-	{
-		throw Exception("Error processing spawning of event: " + eventName + ", no such rules defined!");
-	}
-	GeoscapeEvent* newEvent = new GeoscapeEvent(*eventRules);
-	int minutes = (eventRules->getTimer() + (RNG::generate(0, eventRules->getTimerRandom()))) / 30 * 30;
-	if (minutes < 30)
-		minutes = 30; //spawn event on next game timestep
-	newEvent->setSpawnCountdown(minutes);
-	save.getGeoscapeEvents().push_back(newEvent);
-	save.addGeneratedEvent(eventRules);
 }
 
 /**

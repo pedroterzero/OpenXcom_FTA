@@ -127,6 +127,7 @@
 #include "../Engine/Exception.h"
 #include "../Mod/AlienDeployment.h"
 #include "../Mod/RuleInterface.h"
+#include "../FTA/MasterMind.h"
 #include "../fmath.h"
 #include "../fallthrough.h"
 
@@ -2547,7 +2548,7 @@ void GeoscapeState::time1Day()
 			bool process = operation->think(*_game, *_globe);
 			if (process)
 				timerReset();
-			// Remove finished operatio 
+			// Remove finished operation 
 			Collections::deleteIf(
 				_game->getSavedGame()->getGeoscapeEvents(),
 				[](GeoscapeEvent* ge)
@@ -3662,14 +3663,7 @@ void GeoscapeState::determineAlienMissions()
 			// 4. generate
 			for (auto eventRules : toBeGenerated)
 			{
-				GeoscapeEvent *newEvent = new GeoscapeEvent(*eventRules);
-				int minutes = (eventRules->getTimer() + (RNG::generate(0, eventRules->getTimerRandom()))) / 30 * 30;
-				if (minutes < 60) minutes = 60; // just in case
-				newEvent->setSpawnCountdown(minutes);
-				_game->getSavedGame()->getGeoscapeEvents().push_back(newEvent);
-
-				// remember that it has been generated
-				save->addGeneratedEvent(eventRules);
+				_game->getMasterMind()->spawnEvent(eventRules->getName());
 			}
 		}
 	}

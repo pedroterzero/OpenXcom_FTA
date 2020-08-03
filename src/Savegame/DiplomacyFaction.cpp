@@ -30,10 +30,7 @@
 #include "../Savegame/GeoscapeEvent.h"
 #include "../Savegame/AlienStrategy.h"
 #include "../fmath.h"
-
-
-
-
+#include "../FTA/MasterMind.h"
 
 namespace OpenXcom
 {
@@ -191,14 +188,7 @@ bool DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 			//spawn celebration event if faction wants it
 			if (!_rule.getDiscoverEvent().empty())
 			{
-				RuleEvent* eventRules = mod.getEvent(_rule.getDiscoverEvent());
-				GeoscapeEvent* newEvent = new GeoscapeEvent(*eventRules);
-				int minutes = (eventRules->getTimer() + (RNG::generate(0, eventRules->getTimerRandom()))) / 30 * 30;
-				if (minutes < 30) minutes = 30; // just in case
-				newEvent->setSpawnCountdown(minutes);
-				game.getGeoscapeEvents().push_back(newEvent);
-				// remember that it has been generated
-				game.addGeneratedEvent(eventRules);
+				bool success = engine.getMasterMind()->spawnEvent(_rule.getDiscoverEvent());
 			}
 			// update reputation level for just discovered fraction
 			updateReputationLevel();

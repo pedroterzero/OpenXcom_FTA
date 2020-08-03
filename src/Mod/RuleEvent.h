@@ -25,6 +25,24 @@
 
 namespace OpenXcom
 {
+/**
+ * Definition of one custom player answer to Geoscape Event.
+ */
+	struct CustomAnswer
+	{
+		std::string title;
+		std::vector<std::string> spawnEvent;
+		std::string description;
+
+		/// Loads stats from YAML.
+		void load(const YAML::Node& node)
+		{
+			title = node["title"].as<std::string>(title);
+			spawnEvent = node["spawnEvent"].as<std::vector<std::string>>(spawnEvent);
+			description = node["description"].as<std::string>(description);
+		}
+
+	};
 
 /**
  * Represents a custom Geoscape event.
@@ -43,6 +61,7 @@ private:
 	std::vector<std::string> _researchList;
 	std::string _interruptResearch;
 	int _timer, _timerRandom;
+	std::map<int, CustomAnswer> _answers;
 public:
 	/// Creates a blank RuleEvent.
 	RuleEvent(const std::string &name);
@@ -82,6 +101,8 @@ public:
 	int getTimer() const { return _timer; }
 	/// Gets value for calculation of random part of delay for this event.
 	int getTimerRandom() const { return _timerRandom; }
+	/// Gets custom player answers for this event.
+	const std::map<int, CustomAnswer>&getCustomAnswers() const { return _answers; }
 };
 
 }

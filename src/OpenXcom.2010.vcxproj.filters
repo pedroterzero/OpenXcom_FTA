@@ -1158,6 +1158,9 @@
     <ClCompile Include="Basescape\CovertOperationInfoState.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
+    <ClCompile Include="FTA\MasterMind.cpp">
+      <Filter>FTA</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2373,6 +2376,9 @@
     </ClInclude>
     <ClInclude Include="Basescape\CovertOperationInfoState.h">
       <Filter>Basescape</Filter>
+    </ClInclude>
+    <ClInclude Include="FTA\MasterMind.h">
+      <Filter>FTA</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
