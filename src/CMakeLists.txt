@@ -178,6 +178,7 @@ set ( fta_src
   FTA/DiplomacyPurchaseState.cpp
   FTA/DiplomacySellState.cpp
   FTA/DiplomacyStartState.cpp
+  FTA/MasterMind.cpp
 )
 
 set ( geoscape_src

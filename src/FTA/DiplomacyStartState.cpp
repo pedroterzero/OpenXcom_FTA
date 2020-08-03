@@ -29,7 +29,6 @@
 #include "../Interface/Frame.h"
 #include "../Savegame/SavedGame.h"
 #include "../Engine/Options.h"
-#include "../Geoscape/FundingState.h"
 #include "../Savegame/DiplomacyFaction.h"
 #include "../Mod/RuleDiplomacyFaction.h"
 #include "../Savegame/Base.h"
@@ -51,7 +50,7 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 	// Create objects
 	if (geoscape) { _window = new Window(this, 320, 200, 0, 0, POPUP_BOTH); }
 	else { _window = new Window(this, 320, 200, 0, 0, POPUP_NONE); }
-	_btnOk = new TextButton(220, 14, 50, 178); //18? 12?
+	_btnOk = new TextButton(220, 14, 50, 178);
 	_txtTitle = new Text(320, 17, 0, 8);
 
 	// Set palette
@@ -123,37 +122,14 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 	setWindowBackground(_window, interfaceName);
 
 	_btnOk->setText(tr("STR_OK"));
-	_btnOk->onMouseClick((ActionHandler)&FundingState::btnOkClick);
-	_btnOk->onKeyboardPress((ActionHandler)&FundingState::btnOkClick, Options::keyOk);
-	_btnOk->onKeyboardPress((ActionHandler)&FundingState::btnOkClick, Options::keyCancel);
+	_btnOk->onMouseClick((ActionHandler)&DiplomacyStartState::btnOkClick);
+	_btnOk->onKeyboardPress((ActionHandler)&DiplomacyStartState::btnOkClick, Options::keyOk);
+	_btnOk->onKeyboardPress((ActionHandler)&DiplomacyStartState::btnOkClick, Options::keyCancel);
 
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setBig();
 	_txtTitle->setText(tr("STR_DIPLOMACY_RELATIONS"));
 
-	/*_lstCountries->setColumns(3, 108, 100, 52);
-	_lstCountries->setDot(true);
-	for (std::vector<Country*>::iterator i = _game->getSavedGame()->getCountries()->begin(); i != _game->getSavedGame()->getCountries()->end(); ++i)
-	{
-		std::ostringstream ss, ss2;
-		ss << Unicode::TOK_COLOR_FLIP << Unicode::formatFunding((*i)->getFunding().at((*i)->getFunding().size()-1)) << Unicode::TOK_COLOR_FLIP;
-		if ((*i)->getFunding().size() > 1)
-		{
-			ss2 << Unicode::TOK_COLOR_FLIP;
-			int change = (*i)->getFunding().back() - (*i)->getFunding().at((*i)->getFunding().size()-2);
-			if (change > 0)
-				ss2 << '+';
-			ss2 << Unicode::formatFunding(change);
-			ss2 << Unicode::TOK_COLOR_FLIP;
-		}
-		else
-		{
-			ss2 << Unicode::formatFunding(0);
-		}
-		_lstCountries->addRow(3, tr((*i)->getRules()->getType()).c_str(), ss.str().c_str(), ss2.str().c_str());
-	}
-	_lstCountries->addRow(2, tr("STR_TOTAL_UC").c_str(), Unicode::formatFunding(_game->getSavedGame()->getCountryFunding()).c_str());
-	_lstCountries->setRowColor(_game->getSavedGame()->getCountries()->size(), _txtCountry->getColor());*/
 }
 
 /**
@@ -304,8 +280,9 @@ DiplomacyInfoState::DiplomacyInfoState(const DiplomacyFaction* faction)
 
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&DiplomacyInfoState::btnOkClick);
+	_btnOk->onKeyboardPress((ActionHandler)&DiplomacyInfoState::btnOkClick, Options::keyOk);
 	_btnOk->onKeyboardPress((ActionHandler)&DiplomacyInfoState::btnOkClick, Options::keyCancel);
-	_btnOk->onKeyboardPress((ActionHandler)&DiplomacyInfoState::btnOkClick, Options::keyMarkAllAsSeen);
+	
 }
 
 DiplomacyInfoState::~DiplomacyInfoState()

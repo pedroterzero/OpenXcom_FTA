@@ -115,8 +115,6 @@ public:
 	void setInBattlescape(bool inbattle) { _inBattlescape = inbattle; }
 	/// Handle covert operation logic.
 	bool think(Game& engine, const Globe& globe);
-	/// Generates event for covert operation.
-	void spawnEvent(Game& engine, std::string eventName);
 	/// Process soldier's actions results in covert operation
 	void backgroundSimulation(Game& engine, bool operationResult, bool criticalFail, int woundOdds, int deathOdds);
 	/// Converts the number of experience to the stat increase.

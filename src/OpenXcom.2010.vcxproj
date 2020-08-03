@@ -403,6 +403,7 @@
     <ClCompile Include="FTA\DiplomacyPurchaseState.cpp" />
     <ClCompile Include="FTA\DiplomacySellState.cpp" />
     <ClCompile Include="FTA\DiplomacyStartState.cpp" />
+    <ClCompile Include="FTA\MasterMind.cpp" />
     <ClCompile Include="Geoscape\AlienBaseState.cpp" />
     <ClCompile Include="Geoscape\AllocateTrainingState.cpp" />
     <ClCompile Include="Geoscape\CraftNotEnoughPilotsState.cpp" />
@@ -815,6 +816,7 @@
     <ClInclude Include="FTA\DiplomacyPurchaseState.h" />
     <ClInclude Include="FTA\DiplomacySellState.h" />
     <ClInclude Include="FTA\DiplomacyStartState.h" />
+    <ClInclude Include="FTA\MasterMind.h" />
     <ClInclude Include="Geoscape\AlienBaseState.h" />
     <ClInclude Include="Geoscape\AllocateTrainingState.h" />
     <ClInclude Include="Geoscape\Cord.h" />
