@@ -29,11 +29,13 @@
 #include "../Mod/Mod.h"
 #include "../Mod/RuleEvent.h"
 #include "../Mod/RuleRegion.h"
+#include "../Mod/RuleDiplomacyFaction.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/GeoscapeEvent.h"
 #include "../Savegame/Region.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Transfer.h"
+#include "../Savegame/DiplomacyFaction.h"
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../FTA/MasterMind.h"
 
@@ -276,6 +278,25 @@ void GeoscapeEventState::eventLogic()
 			const RuleResearch* lookupResearch = mod->getResearch(eventResearch->getLookup(), true);
 			save->addFinishedResearch(lookupResearch, mod, hq, true);
 			_researchName = lookupResearch->getName();
+		}
+	}
+
+	// 5. Add reputation
+	auto reputationScore = _eventRule.getReputationScore();
+	if (!reputationScore.empty())
+	{
+		for (std::map<std::string, int>::const_iterator i = reputationScore.begin(); i != reputationScore.end(); ++i)
+		{
+			for (std::vector<DiplomacyFaction*>::iterator j = save->getDiplomacyFactions().begin(); j != save->getDiplomacyFactions().end(); ++j)
+			{
+				std::string factionName = (*j)->getRules().getName();
+				std::string lookingName = (*i).first;
+				if (factionName == lookingName)
+				{
+					(*j)->setReputation((*j)->getReputation() + (*i).second);
+					break;
+				}
+			}
 		}
 	}
 }

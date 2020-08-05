@@ -44,6 +44,7 @@ void RuleEvent::load(const YAML::Node &node)
 	_city = node["city"].as<bool>(_city);
 	_points = node["points"].as<int>(_points);
 	_funds = node["funds"].as<int>(_funds);
+	_reputationScore = node["reputationScore"].as<std::map<std::string, int>>(_reputationScore);
 	{
 		// backwards-compatibility, FIXME: remove after 6 months
 		bool randomItem = node["randomItem"].as<bool>(false);
