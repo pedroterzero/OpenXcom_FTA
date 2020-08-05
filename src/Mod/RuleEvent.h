@@ -58,7 +58,7 @@ private:
 	int _spawnedPersons;
 	std::string _spawnedPersonType, _spawnedPersonName;
 	YAML::Node _spawnedSoldier;
-	std::map<std::string, int> _everyMultiItemList;
+	std::map<std::string, int> _everyMultiItemList, _reputationScore;
 	std::vector<std::string> _everyItemList, _randomItemList;
 	WeightedOptions _weightedItemList;
 	std::vector<std::string> _researchList;
@@ -98,6 +98,8 @@ public:
 	/// Gets the spawned soldier template.
 	const YAML::Node& getSpawnedSoldierTemplate() const { return _spawnedSoldier; }
 
+	/// Gets a list reputation score to update.
+	const std::map<std::string, int>& getReputationScore() const { return _reputationScore; }
 	/// Gets a list of items; they are all transferred to HQ stores when this event pops up.
 	const std::map<std::string, int> &getEveryMultiItemList() const { return _everyMultiItemList; }
 	/// Gets a list of items; they are all transferred to HQ stores when this event pops up.
