@@ -23,7 +23,7 @@
 #include "../Engine/Logger.h"
 #include "../Geoscape/GeoscapeEventState.h"
 #include "../Mod/Mod.h"
-#include "../Mod/RuleEvent.h"
+#include "../Mod/RuleEventScript.h"
 #include "../Mod/RuleMissionScript.h"
 #include "../Mod/RuleDiplomacyFaction.h"
 #include "../Savegame/SavedGame.h"
@@ -177,12 +177,12 @@ void DiplomacyFaction::setDiscovered(bool status)
 bool DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 {
 	const Mod& mod = *engine.getMod();
-	SavedGame& game = *engine.getSavedGame();
+	SavedGame& save = *engine.getSavedGame();
 	//lets process out daily duty
 	if (period == TIMESTEP_DAILY)
 	{
 		//check if we discover our faction
-		if (game.isResearched(mod.getResearch(_rule.getDiscoverResearch())) && !_discovered)
+		if (!_discovered && save.isResearched(mod.getResearch(_rule.getDiscoverResearch())))
 		{
 			setDiscovered(true);
 			//spawn celebration event if faction wants it
@@ -201,8 +201,9 @@ bool DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 		// let's see 
 		if (std::find(_treaties.begin(), _treaties.end(), "STR_HELP_TREATY") != _treaties.end())
 		{
-			bool generate = factionMissionGenerator(engine);
-			return generate;
+			bool generateMission = factionMissionGenerator(engine);
+			bool generateEvent = factionEventGenerator(engine);
+			return generateMission;
 		}
 	}
 	return false;
@@ -210,31 +211,35 @@ bool DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 bool DiplomacyFaction::factionMissionGenerator(Game& engine)
 {
 	const Mod& mod = *engine.getMod();
-	SavedGame& game = *engine.getSavedGame();
+	SavedGame& save = *engine.getSavedGame();
 	if (RNG::percent(_rule.getGenMissionFrequency()))
 	{
 		auto scriptType = _rule.chooseGenMissionScriptType();
 		if (!scriptType.empty())
 		{
 			const RuleMissionScript& ruleScript = *mod.getMissionScript(scriptType);
-			auto month = game.getMonthsPassed();
+			auto month = save.getMonthsPassed();
+			int loyalty = save.getLoyalty();
 			// lets process mission script with own way, first things first
 			if (ruleScript.getFirstMonth() <= month &&
 				(ruleScript.getLastMonth() >= month || ruleScript.getLastMonth() == -1) &&
 				// make sure we haven't hit our run limit, if we have one
-				(ruleScript.getMaxRuns() == -1 || ruleScript.getMaxRuns() > game.getAlienStrategy().getMissionsRun(ruleScript.getVarName())) &&
+				(ruleScript.getMaxRuns() == -1 || ruleScript.getMaxRuns() > save.getAlienStrategy().getMissionsRun(ruleScript.getVarName())) &&
 				// and make sure we satisfy the difficulty restrictions
-				(month < 1 || ruleScript.getMinScore() <= game.getCurrentScore(month)) &&
-				(month < 1 || ruleScript.getMaxScore() >= game.getCurrentScore(month)) &&
-				(month < 1 || ruleScript.getMinFunds() <= game.getFunds()) &&
-				(month < 1 || ruleScript.getMaxFunds() >= game.getFunds()) &&
-				ruleScript.getMinDifficulty() <= game.getDifficulty())
+				(month < 1 || ruleScript.getMinScore() <= save.getCurrentScore(month)) &&
+				(month < 1 || ruleScript.getMaxScore() >= save.getCurrentScore(month)) &&
+				(month < 1 || ruleScript.getMinLoyalty() <= loyalty) &&
+				(month < 1 || ruleScript.getMaxLoyalty() >= loyalty) &&
+				(month < 1 || ruleScript.getMinFunds() <= save.getFunds()) &&
+				(month < 1 || ruleScript.getMaxFunds() >= save.getFunds()) &&
+				ruleScript.getMinDifficulty() <= save.getDifficulty() &&
+				(ruleScript.getAllowedProcessor() == 0 || ruleScript.getAllowedProcessor() == 2))
 			{
 				// level two condition check: make sure we meet any research requirements, if any.
 				bool triggerHappy = true;
 				for (std::map<std::string, bool>::const_iterator j = ruleScript.getResearchTriggers().begin(); triggerHappy && j != ruleScript.getResearchTriggers().end(); ++j)
 				{
-					triggerHappy = (game.isResearched(j->first) == j->second);
+					triggerHappy = (save.isResearched(j->first) == j->second);
 					if (!triggerHappy)
 						return false;
 				}
@@ -243,7 +248,7 @@ bool DiplomacyFaction::factionMissionGenerator(Game& engine)
 					// item requirements
 					for (auto& triggerItem : ruleScript.getItemTriggers())
 					{
-						triggerHappy = (game.isItemObtained(triggerItem.first) == triggerItem.second);
+						triggerHappy = (save.isItemObtained(triggerItem.first) == triggerItem.second);
 						if (!triggerHappy)
 							return false;
 					}
@@ -253,7 +258,7 @@ bool DiplomacyFaction::factionMissionGenerator(Game& engine)
 					// facility requirements
 					for (auto& triggerFacility : ruleScript.getFacilityTriggers())
 					{
-						triggerHappy = (game.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
+						triggerHappy = (save.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
 						if (!triggerHappy)
 							return false;
 					}
@@ -270,6 +275,117 @@ bool DiplomacyFaction::factionMissionGenerator(Game& engine)
 	return false;
 }
 
+bool DiplomacyFaction::factionEventGenerator(Game& engine)
+{
+	const Mod& mod = *engine.getMod();
+	SavedGame& save = *engine.getSavedGame();
+	if (RNG::percent(_rule.getGenEventFrequency()))
+	{
+		auto scriptType = _rule.chooseGenEventScriptType();
+		if (!scriptType.empty())
+		{
+			const RuleEventScript& ruleScript = *mod.getEventScript(scriptType);
+			auto month = save.getMonthsPassed();
+			int loyalty = save.getLoyalty();
+			// lets process mission script with own way, first things first
+			if (ruleScript.getFirstMonth() <= month &&
+				(ruleScript.getLastMonth() >= month || ruleScript.getLastMonth() == -1) &&
+				// and make sure we satisfy the difficulty restrictions
+				(month < 1 || ruleScript.getMinScore() <= save.getCurrentScore(month)) &&
+				(month < 1 || ruleScript.getMaxScore() >= save.getCurrentScore(month)) &&
+				(month < 1 || ruleScript.getMinLoyalty() <= loyalty) &&
+				(month < 1 || ruleScript.getMaxLoyalty() >= loyalty) &&
+				(month < 1 || ruleScript.getMinFunds() <= save.getFunds()) &&
+				(month < 1 || ruleScript.getMaxFunds() >= save.getFunds()) &&
+				ruleScript.getMinDifficulty() <= save.getDifficulty() &&
+				(ruleScript.getAllowedProcessor() == 0 || ruleScript.getAllowedProcessor() == 2))
+			{
+				// level two condition check: make sure we meet any research requirements, if any.
+				bool triggerHappy = true;
+				for (std::map<std::string, bool>::const_iterator j = ruleScript.getResearchTriggers().begin(); triggerHappy && j != ruleScript.getResearchTriggers().end(); ++j)
+				{
+					triggerHappy = (save.isResearched(j->first) == j->second);
+					if (!triggerHappy)
+						return false;
+				}
+				if (triggerHappy)
+				{
+					// item requirements
+					for (auto& triggerItem : ruleScript.getItemTriggers())
+					{
+						triggerHappy = (save.isItemObtained(triggerItem.first) == triggerItem.second);
+						if (!triggerHappy)
+							return false;
+					}
+				}
+				if (triggerHappy)
+				{
+					// facility requirements
+					for (auto& triggerFacility : ruleScript.getFacilityTriggers())
+					{
+						triggerHappy = (save.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
+						if (!triggerHappy)
+							return false;
+					}
+				}
+				// ok, we still want event from this script, now let`s actually choose one.
+				if (triggerHappy)
+				{
+					std::vector<const RuleEvent*> toBeGenerated;
 
+					// 1. sequentially generated one-time events (cannot repeat)
+					{
+						std::vector<std::string> possibleSeqEvents;
+						for (auto& seqEvent : ruleScript.getOneTimeSequentialEvents())
+						{
+							if (!save.wasEventGenerated(seqEvent))
+								possibleSeqEvents.push_back(seqEvent); // insert
+						}
+						if (!possibleSeqEvents.empty())
+						{
+							auto eventRules = mod.getEvent(possibleSeqEvents.front(), true); // take first
+							toBeGenerated.push_back(eventRules);
+						}
+					}
+
+					// 2. randomly generated one-time events (cannot repeat)
+					{
+						WeightedOptions possibleRngEvents;
+						WeightedOptions tmp = ruleScript.getOneTimeRandomEvents(); // copy for the iterator, because of getNames()
+						possibleRngEvents = tmp; // copy for us to modify
+						for (auto& rngEvent : tmp.getNames())
+						{
+							if (save.wasEventGenerated(rngEvent))
+								possibleRngEvents.set(rngEvent, 0); // delete
+						}
+						if (!possibleRngEvents.empty())
+						{
+							auto eventRules = mod.getEvent(possibleRngEvents.choose(), true); // take random
+							toBeGenerated.push_back(eventRules);
+						}
+					}
+
+					// 3. randomly generated repeatable events
+					{
+						auto eventRules = mod.getEvent(ruleScript.generate(save.getMonthsPassed()), false);
+						if (eventRules)
+						{
+							toBeGenerated.push_back(eventRules);
+						}
+					}
+
+					// 4. generate
+					for (auto eventRules : toBeGenerated)
+					{
+						engine.getMasterMind()->spawnEvent(eventRules->getName());
+					}
+
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
 
 }

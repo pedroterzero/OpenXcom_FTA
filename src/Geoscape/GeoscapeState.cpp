@@ -1087,11 +1087,13 @@ void GeoscapeState::time5Seconds()
 		{
 			if ((*j)->isDestroyed())
 			{
+				int score = (*j)->getRules()->getScore();
+				_game->getMasterMind()->updateLoyalty(-score);
 				for (std::vector<Country*>::iterator country = _game->getSavedGame()->getCountries()->begin(); country != _game->getSavedGame()->getCountries()->end(); ++country)
 				{
 					if ((*country)->getRules()->insideCountry((*j)->getLongitude(), (*j)->getLatitude()))
 					{
-						(*country)->addActivityXcom(-(*j)->getRules()->getScore());
+						(*country)->addActivityXcom(-score);
 						break;
 					}
 				}
@@ -1099,7 +1101,7 @@ void GeoscapeState::time5Seconds()
 				{
 					if ((*region)->getRules()->insideRegion((*j)->getLongitude(), (*j)->getLatitude()))
 					{
-						(*region)->addActivityXcom(-(*j)->getRules()->getScore());
+						(*region)->addActivityXcom(-score);
 						break;
 					}
 				}
@@ -1749,6 +1751,11 @@ bool GeoscapeState::processMissionSite(MissionSite *site)
 
 	int score = removeSite ? site->getDeployment()->getDespawnPenalty() : site->getDeployment()->getPoints();
 
+	if (score)
+	{
+		_game->getMasterMind()->updateLoyalty(score, ALIEN_MISSION_DESPAWN);
+	}
+
 	Region *region = _game->getSavedGame()->locateRegion(*site);
 	if (region)
 	{
@@ -1978,6 +1985,10 @@ void GeoscapeState::time30Minutes()
 						}
 					}
 				}
+			}
+			if (ufo->getDetected())
+			{
+				_game->getMasterMind()->updateLoyalty(points, ALIEN_UFO_ACTIVITY);
 			}
 
 			break;
@@ -2374,9 +2385,12 @@ void GeoscapeState::time1Day()
 					}
 					bonus = possibilities.at(pick);
 					saveGame->addFinishedResearch(bonus, mod, base);
+					_game->getMasterMind()->updateLoyalty(bonus->getPoints(), XCOM_RESEARCH);
 					if (!bonus->getLookup().empty())
 					{
-						saveGame->addFinishedResearch(mod->getResearch(bonus->getLookup(), true), mod, base);
+						auto lookup = mod->getResearch(bonus->getLookup(), true);
+						saveGame->addFinishedResearch(lookup, mod, base);
+						_game->getMasterMind()->updateLoyalty(lookup->getPoints(), XCOM_RESEARCH);
 					}
 				}
 			}
@@ -2390,9 +2404,12 @@ void GeoscapeState::time1Day()
 			}
 			// 3e. handle core research (topic+lookup)
 			saveGame->addFinishedResearch(research, mod, base);
+			_game->getMasterMind()->updateLoyalty(research->getPoints(), XCOM_RESEARCH);
 			if (!research->getLookup().empty())
 			{
-				saveGame->addFinishedResearch(mod->getResearch(research->getLookup(), true), mod, base);
+				auto lookup = mod->getResearch(research->getLookup(), true);
+				saveGame->addFinishedResearch(lookup, mod, base);
+				_game->getMasterMind()->updateLoyalty(lookup->getPoints(), XCOM_RESEARCH);
 			}
 			// 3e. handle cutscene
 			if (!research->getCutscene().empty())
@@ -2652,11 +2669,12 @@ void GeoscapeState::time1Day()
 	// handle regional and country points for alien bases
 	for (std::vector<AlienBase*>::const_iterator b = saveGame->getAlienBases()->begin(); b != saveGame->getAlienBases()->end(); ++b)
 	{
+		int points = (*b)->getDeployment()->getPoints();
 		for (std::vector<Region*>::iterator k = saveGame->getRegions()->begin(); k != saveGame->getRegions()->end(); ++k)
 		{
 			if ((*k)->getRules()->insideRegion((*b)->getLongitude(), (*b)->getLatitude()))
 			{
-				(*k)->addActivityAlien((*b)->getDeployment()->getPoints());
+				(*k)->addActivityAlien(points);
 				break;
 			}
 		}
@@ -2664,9 +2682,13 @@ void GeoscapeState::time1Day()
 		{
 			if ((*k)->getRules()->insideCountry((*b)->getLongitude(), (*b)->getLatitude()))
 			{
-				(*k)->addActivityAlien((*b)->getDeployment()->getPoints());
+				(*k)->addActivityAlien(points);
 				break;
 			}
+		}
+		if ((*b)->isDiscovered())
+		{
+			_game->getMasterMind()->updateLoyalty(points, ALIEN_BASE);
 		}
 	}
 
@@ -3417,6 +3439,7 @@ void GeoscapeState::determineAlienMissions()
 	SavedGame *save = _game->getSavedGame();
 	AlienStrategy &strategy = save->getAlienStrategy();
 	Mod *mod = _game->getMod();
+	int loyalty = save->getLoyalty();
 	int month = _game->getSavedGame()->getMonthsPassed();
 	int currentScore = save->getCurrentScore(month); // _monthsPassed was already increased by 1
 	int performanceBonus = currentScore * mod->getPerformanceBonusFactor();
@@ -3444,6 +3467,8 @@ void GeoscapeState::determineAlienMissions()
 				// and make sure we satisfy the difficulty restrictions
 				(month < 1 || arcScript->getMinScore() <= currentScore) &&
 				(month < 1 || arcScript->getMaxScore() >= currentScore) &&
+				(month < 1 || arcScript->getMinLoyalty() <= loyalty) &&
+				(month < 1 || arcScript->getMaxLoyalty() >= loyalty) &&
 				(month < 1 || arcScript->getMinFunds() <= currentFunds) &&
 				(month < 1 || arcScript->getMaxFunds() >= currentFunds) &&
 				arcScript->getMinDifficulty() <= save->getDifficulty() &&
@@ -3570,9 +3595,12 @@ void GeoscapeState::determineAlienMissions()
 			// and make sure we satisfy the difficulty restrictions
 			(month < 1 || command->getMinScore() <= currentScore) &&
 			(month < 1 || command->getMaxScore() >= currentScore) &&
+			(month < 1 || command->getMinLoyalty() <= loyalty) &&
+			(month < 1 || command->getMaxLoyalty() >= loyalty) &&
 			(month < 1 || command->getMinFunds() <= currentFunds) &&
 			(month < 1 || command->getMaxFunds() >= currentFunds) &&
-			command->getMinDifficulty() <= save->getDifficulty())
+			command->getMinDifficulty() <= save->getDifficulty() &&
+			(command->getAllowedProcessor() == 0 || command->getAllowedProcessor() == 1))
 		{
 			// level two condition check: make sure we meet any research requirements, if any.
 			bool triggerHappy = true;
@@ -3668,10 +3696,13 @@ void GeoscapeState::determineAlienMissions()
 				// and make sure we satisfy the difficulty restrictions
 				(month < 1 || eventScript->getMinScore() <= currentScore) &&
 				(month < 1 || eventScript->getMaxScore() >= currentScore) &&
+				(month < 1 || eventScript->getMinLoyalty() <= loyalty) &&
+				(month < 1 || eventScript->getMaxLoyalty() >= loyalty) &&
 				(month < 1 || eventScript->getMinFunds() <= currentFunds) &&
 				(month < 1 || eventScript->getMaxFunds() >= currentFunds) &&
 				eventScript->getMinDifficulty() <= save->getDifficulty() &&
-				eventScript->getMaxDifficulty() >= save->getDifficulty())
+				eventScript->getMaxDifficulty() >= save->getDifficulty() &&
+				(eventScript->getAllowedProcessor() == 0 || eventScript->getAllowedProcessor() == 1))
 			{
 				// level two condition check: make sure we meet any research requirements, if any.
 				bool triggerHappy = true;

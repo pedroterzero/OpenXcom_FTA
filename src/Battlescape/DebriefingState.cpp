@@ -73,6 +73,7 @@
 #include "../Mod/RuleInterface.h"
 #include "../Savegame/MissionStatistics.h"
 #include "../Savegame/BattleUnitStatistics.h"
+#include "../FTA/MasterMind.h"
 #include "../fallthrough.h"
 
 namespace OpenXcom
@@ -425,6 +426,9 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 	{
 		_country->addActivityXcom(total);
 	}
+
+	// update FtA Loyalty
+	_game->getMasterMind()->updateLoyalty(total, XCOM_BATTLESCAPE);
 
 	// Resize (if needed)
 	if (statsY > 80) statsY = 80;

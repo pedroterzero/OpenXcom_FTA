@@ -41,9 +41,9 @@ class RuleDiplomacyFaction
 {
 private:
 	std::string _name, _description, _background, _cardBackground, _discoverResearch, _discoverEvent;
-	int _startingReputation, _genMissionFrequency;
+	int _startingReputation, _genMissionFrequency, _genEventFrequency;
 	std::map<std::string, int> _sellingSet;
-	WeightedOptions _helpTreatyMissions;
+	WeightedOptions _helpTreatyMissions, _helpTreatyEvents;
 	//std::vector<SellingSetEnitity> _sellingSet2;
 public:
 	/// Creates a blank RuleDiplomacyFaction.
@@ -73,6 +73,10 @@ public:
 	std::string chooseGenMissionScriptType() const;
 	/// Gets mission frequency for generatoting
 	int getGenMissionFrequency() const { return _genMissionFrequency; };
+	/// Gets chosen event script to run from faction generator
+	std::string chooseGenEventScriptType() const;
+	/// Gets event frequency for generatoting
+	int getGenEventFrequency() const { return _genEventFrequency; };
 
 };
 }

@@ -185,21 +185,27 @@ void GeoscapeEventState::eventLogic()
 	}
 
 	// 1. give/take score points
-	if (regionRule)
+	int points = rule.getPoints();
+	if (points != 0)
 	{
-		for (auto region : *_game->getSavedGame()->getRegions())
+		if (regionRule)
 		{
-			if (region->getRules() == regionRule)
+			for (auto region : *_game->getSavedGame()->getRegions())
 			{
-				region->addActivityXcom(rule.getPoints());
-				break;
+				if (region->getRules() == regionRule)
+				{
+					region->addActivityXcom(points);
+					break;
+				}
 			}
 		}
+		else
+		{
+			save->addResearchScore(points);
+		}
+		_game->getMasterMind()->updateLoyalty(points, XCOM_GEOSCAPE);
 	}
-	else
-	{
-		save->addResearchScore(rule.getPoints());
-	}
+	
 
 	// 2. give/take funds
 	save->setFunds(save->getFunds() + rule.getFunds());

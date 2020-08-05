@@ -81,6 +81,8 @@ public:
 	bool think(Game& engine, ThinkPeriod = TIMESTEP_DAILY);
 	/// Generates mission for the faction base on current situation in the game.
 	bool factionMissionGenerator(Game& engine);
+	/// Generates event from the faction base on current situation in the game.
+	bool factionEventGenerator(Game& engine);
 	/// Get mission script command that pass all checks to generate alien mission for that faction.
 	std::string getCommandType() const { return _generatedCommandType; };
 };

@@ -231,6 +231,8 @@ private:
 	bool _healthReplenishAfterMission = true;
 	std::string _manaUnlockResearch;
 
+	int _coefBattlescape, _coefGeoscape, _coefDogfight, _coefResearch, _coefAlienMission, _coefUfo, _coefAlienBase;
+
 	std::string _loseMoney, _loseRating, _loseDefeat;
 	int _ufoGlancingHitThreshold, _ufoBeamWidthParameter;
 	int _ufoTractorBeamSizeModifiers[5];
@@ -945,6 +947,14 @@ public:
 	RuleEvent* getEvent(const std::string& name, bool error = false) const;
 	const std::vector<std::string> *getMissionScriptList() const;
 	RuleMissionScript *getMissionScript(const std::string &name, bool error = false) const;
+	/// Get settings for loyalty
+	int getCoefBattlescape() const { return _coefBattlescape; };
+	int getCoefGeoscape() const { return _coefGeoscape; };
+	int getCoefDogfight() const { return _coefDogfight; };
+	int getCoefResearch() const { return _coefResearch; };
+	int getCoefAlienMission() const { return _coefAlienMission; };
+	int getCoefUfo() const { return _coefUfo; };
+	int getCoefAlienBase() const { return _coefAlienBase; };
 	/// Get global script data.
 	ScriptGlobal *getScriptGlobal() const;
 	RuleResearch *getFinalResearch() const;

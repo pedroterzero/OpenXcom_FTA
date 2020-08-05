@@ -23,7 +23,9 @@
 namespace OpenXcom
 {
 
-RuleDiplomacyFaction::RuleDiplomacyFaction(const std::string &name) : _name(name), _description("NONE"), _background("BACK13.SCR"), _cardBackground("BACK13.SCR"), _startingReputation(0), _genMissionFrequency(0)
+RuleDiplomacyFaction::RuleDiplomacyFaction(const std::string &name) :
+			_name(name), _description("NONE"), _background("BACK13.SCR"), _cardBackground("BACK13.SCR"),
+			_startingReputation(0), _genMissionFrequency(0), _genEventFrequency(0)
 {
 }
 
@@ -49,11 +51,21 @@ void RuleDiplomacyFaction::load(const YAML::Node &node)
 	{
 		_helpTreatyMissions.load(node["helpTreatyMissions"]);
 	}
+	if (node["helpTreatyEvents"])
+	{
+		_helpTreatyEvents.load(node["helpTreatyEvents"]);
+	}
 	_genMissionFrequency = node["genMissionFreq"].as<int>(_genMissionFrequency);
+	_genEventFrequency = node["genEventFreq"].as<int>(_genEventFrequency);
 }
 std::string RuleDiplomacyFaction::chooseGenMissionScriptType() const
 {
 	return _helpTreatyMissions.choose();
+}
+
+std::string RuleDiplomacyFaction::chooseGenEventScriptType() const
+{
+	return _helpTreatyEvents.choose();
 }
 
 }
