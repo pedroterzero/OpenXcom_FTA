@@ -338,6 +338,7 @@ Mod::Mod() :
 	_noLOSAccuracyPenaltyGlobal(-1),
 	_surrenderMode(0),
 	_ftaGame(false),
+	_coefBattlescape(100), _coefGeoscape(100), _coefDogfight(100), _coefResearch(100), _coefAlienMission(100), _coefUfo(100), _coefAlienBase(100),
 	_bughuntMinTurn(999), _bughuntMaxEnemies(2), _bughuntRank(0), _bughuntLowMorale(40), _bughuntTimeUnitsLeft(60),
 	_manaEnabled(false), _manaBattleUI(false), _manaTrainingPrimary(false), _manaTrainingSecondary(false), _manaReplenishAfterMission(true),
 	_loseMoney("loseGame"), _loseRating("loseGame"), _loseDefeat("loseGame"),
@@ -2425,6 +2426,16 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 		_healthReplenishAfterMission = nodeHealth["replenishAfterMission"].as<bool>(_healthReplenishAfterMission);
 	}
 
+	if (const YAML::Node& nodeLoyalty = doc["loyaltySettings"])
+	{
+		_coefBattlescape = nodeLoyalty["coefBattlescape"].as<int>(_coefBattlescape);
+		_coefGeoscape = nodeLoyalty["coefGeoscape"].as<int>(_coefGeoscape);
+		_coefDogfight = nodeLoyalty["coefDogfight"].as<int>(_coefDogfight);
+		_coefResearch = nodeLoyalty["coefResearch"].as<int>(_coefResearch);
+		_coefAlienMission = nodeLoyalty["coefAlienMission"].as<int>(_coefAlienMission);
+		_coefUfo = nodeLoyalty["coefUfo"].as<int>(_coefUfo);
+		_coefAlienBase = nodeLoyalty["coefAlienBase"].as<int>(_coefAlienBase);
+	}
 
 	if (const YAML::Node &nodeGameOver = doc["gameOver"])
 	{

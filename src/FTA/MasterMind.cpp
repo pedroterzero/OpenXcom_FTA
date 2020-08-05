@@ -25,6 +25,7 @@
 #include <functional>
 #include "../Engine/RNG.h"
 #include "../Engine/Game.h"
+#include "../Engine/Logger.h"
 #include "../Mod/Mod.h"
 #include "../Geoscape/Globe.h"
 #include "../Savegame/GameTime.h"
@@ -99,6 +100,41 @@ bool MasterMind::spawnEvent(std::string name)
 	_game->getSavedGame()->addGeneratedEvent(eventRules);
 
 	return true;
+}
+
+void MasterMind::updateLoyalty(int score, LoyaltySource source)
+{
+	int coef = 100;
+	switch (source)
+	{
+	case OpenXcom::XCOM_BATTLESCAPE:
+		coef = _game->getMod()->getCoefBattlescape();
+		break;
+	case OpenXcom::XCOM_DOGFIGHT:
+		coef = _game->getMod()->getCoefDogfight();
+		break;
+	case OpenXcom::XCOM_GEOSCAPE:
+		coef = _game->getMod()->getCoefGeoscape();
+		break;
+	case OpenXcom::XCOM_RESEARCH:
+		coef = _game->getMod()->getCoefResearch();
+		break;
+	case OpenXcom::ALIEN_MISSION_DESPAWN:
+		coef = _game->getMod()->getCoefAlienMission();
+		break;
+	case OpenXcom::ALIEN_UFO_ACTIVITY:
+		coef = _game->getMod()->getCoefUfo();
+		break;
+	case OpenXcom::ALIEN_BASE:
+		coef = _game->getMod()->getCoefAlienBase();
+		break;
+	default:
+		break;
+	}
+	int loyalty = _game->getSavedGame()->getLoyalty();
+	loyalty += std::round((score * coef) / 100);
+	Log(LOG_DEBUG) << "Loyalty updating to:  " << loyalty << " from coef: " << coef << " and scope value: " << score; //FtATODO remove for next release
+	_game->getSavedGame()->setLoyalty(loyalty);
 }
 
 

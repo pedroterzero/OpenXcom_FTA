@@ -332,6 +332,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 	{
 		save.addResearchScore(score);
 		_results->addScore(score);
+		engine.getMasterMind()->updateLoyalty(score, XCOM_GEOSCAPE);
 	}
 
 	if (funds != 0)

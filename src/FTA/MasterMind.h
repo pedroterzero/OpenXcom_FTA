@@ -25,6 +25,8 @@
 namespace OpenXcom
 {
 
+enum LoyaltySource {XCOM_BATTLESCAPE, XCOM_DOGFIGHT, XCOM_GEOSCAPE, XCOM_RESEARCH, ALIEN_MISSION_DESPAWN, ALIEN_UFO_ACTIVITY, ALIEN_BASE};
+
 class Game;
 
 class MasterMind
@@ -38,6 +40,8 @@ public:
 
 	/// Generate Geoscape event from it's name if everything is ok with it.
 	bool spawnEvent(std::string name);
+	/// Dayly loyalty update
+	void updateLoyalty(int score, LoyaltySource source = XCOM_GEOSCAPE);
 
 };
 
