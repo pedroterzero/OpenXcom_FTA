@@ -56,6 +56,7 @@
 #include "../Savegame/Vehicle.h"
 #include "../Savegame/BaseFacility.h"
 #include "../Savegame/CovertOperation.h"
+#include "../Savegame/DiplomacyFaction.h"
 #include <sstream>
 #include "../Menu/ErrorMessageState.h"
 #include "../Menu/MainMenuState.h"
@@ -86,7 +87,19 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 {
 	_missionStatistics = new MissionStatistics();
 
-	if (_game->getMod()->getIsFTAGame()) _showSellButton = false; //TODO diplomacy selling
+	if (_game->getMod()->getIsFTAGame())
+	{
+		_showSellButton = false;
+		for (std::vector<DiplomacyFaction*>::iterator i = _game->getSavedGame()->getDiplomacyFactions().begin();
+													  i != _game->getSavedGame()->getDiplomacyFactions().end(); ++i)
+		{
+			if ((*i)->isDiscovered())
+			{
+				_showSellButton = true;
+				break;
+			}
+		}
+	}
 
 	Options::baseXResolution = Options::baseXGeoscape;
 	Options::baseYResolution = Options::baseYGeoscape;
@@ -94,7 +107,7 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 
 	// Restore the cursor in case something weird happened
 	_game->getCursor()->setVisible(true);
-	_limitsEnforced = Options::storageLimitsEnforced ? 1 : 0;
+	_limitsEnforced = Options::containmentLimitsEnforced ? 1 : 0;
 
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
@@ -818,7 +831,14 @@ void DebriefingState::btnSellClick(Action *)
 {
 	if (!_destroyBase)
 	{
-		if (_game->getMod()->getIsFTAGame()) { _game->pushState(new DiplomacyStartState(_base, false)); } else { _game->pushState(new SellState(_base, this, OPT_BATTLESCAPE));}
+		if (_game->getMod()->getIsFTAGame())
+		{
+			_game->pushState(new DiplomacyStartState(_base, false));
+		}
+		else
+		{
+			_game->pushState(new SellState(_base, this, OPT_BATTLESCAPE));
+		}
 	}
 }
 
@@ -857,7 +877,7 @@ void DebriefingState::btnOkClick(Action *)
 	_game->getSavedGame()->setBattleGame(0);
 	_game->popState();
 	if (_game->getMod()->getIsFTAGame() && !_game->getSavedGame()->isResearched("STR_HELLO"))
-		_game->popState();
+		_game->popState(); //skip Commander log arc scripts if first mission was failed.
 	if (_game->getSavedGame()->getMonthsPassed() == -1)
 	{
 		_game->setState(new MainMenuState);

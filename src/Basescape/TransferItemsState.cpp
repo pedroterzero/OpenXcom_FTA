@@ -809,7 +809,7 @@ void TransferItemsState::increaseByValue(int change)
 		}
 		if (selItem->isAlien())
 		{
-			if (Options::storageLimitsEnforced * _aQty + 1 > _baseTo->getAvailableContainment(selItem->getPrisonType()) - Options::storageLimitsEnforced * _baseTo->getUsedContainment(selItem->getPrisonType()))
+			if (Options::containmentLimitsEnforced * _aQty + 1 > _baseTo->getAvailableContainment(selItem->getPrisonType()) - Options::containmentLimitsEnforced * _baseTo->getUsedContainment(selItem->getPrisonType()))
 			{
 				errorMessage = trAlt("STR_NO_ALIEN_CONTAINMENT_FOR_TRANSFER", selItem->getPrisonType());
 			}
@@ -841,7 +841,7 @@ void TransferItemsState::increaseByValue(int change)
 		case TRANSFER_ITEM:
 			if (selItem->isAlien())
 			{
-				int freeContainment = Options::storageLimitsEnforced ? _baseTo->getAvailableContainment(selItem->getPrisonType()) - _baseTo->getUsedContainment(selItem->getPrisonType()) - _aQty : INT_MAX;
+				int freeContainment = Options::containmentLimitsEnforced ? _baseTo->getAvailableContainment(selItem->getPrisonType()) - _baseTo->getUsedContainment(selItem->getPrisonType()) - _aQty : INT_MAX;
 				change = std::min(std::min(freeContainment, getRow().qtySrc - getRow().amount), change);
 			}
 			// both aliens and items

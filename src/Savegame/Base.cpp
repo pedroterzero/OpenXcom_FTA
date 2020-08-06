@@ -2312,7 +2312,7 @@ BasePlacementErrors Base::isAreaInUse(BaseAreaSubset area, const RuleBaseFacilit
 		if (replacement)
 		{
 			// same as like with storage, only when limits are not enforced you can upgrade full prison
-			if (!Options::storageLimitsEnforced)
+			if (!Options::containmentLimitsEnforced)
 			{
 				sumAvailablePrisons(replacement);
 			}
