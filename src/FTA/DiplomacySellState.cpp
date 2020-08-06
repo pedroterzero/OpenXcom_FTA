@@ -136,7 +136,7 @@ DiplomacySellState::DiplomacySellState(Base *base, DiplomacyFaction* faction, De
 
 	_txtFunds->setText(tr("STR_FUNDS").arg(Unicode::formatFunding(_game->getSavedGame()->getFunds())));
 
-	_txtSpaceUsed->setVisible(Options::storageLimitsEnforced);
+	_txtSpaceUsed->setVisible(true); // (Options::storageLimitsEnforced);
 
 	std::ostringstream ss;
 	ss << _base->getUsedStores() << ":" << _base->getAvailableStores();

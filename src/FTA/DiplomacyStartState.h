@@ -44,7 +44,7 @@ class DiplomacyStartState : public State
 {
 private:
 	TextButton *_btnOk;
-	std::vector<TextButton*> _btnsInfo, _btnsTalk, _btnsBuy, _btnsSell;
+	std::vector<TextButton*> _btnsInfo, _btnsTalk, _btnsPurchaise, _btnsSell;
 	Window *_window;
 	std::vector<Window*> _cards;
 	Text* _txtTitle;
@@ -62,7 +62,7 @@ public:
 	/// Handler for clicking the NEGOTIATION buttons.
 	void btnTalkClick(Action* action);
 	/// Handler for clicking the BUY buttons.
-	void btnBuyClick(Action* action);
+	void btnPurchaiseClick(Action* action);
 	/// Handler for clicking the SELL buttons.
 	void btnSellClick(Action* action);
 };

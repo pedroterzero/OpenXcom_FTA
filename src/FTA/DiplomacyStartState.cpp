@@ -74,7 +74,7 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 		TextButton* btnInfo = new TextButton(35, 14, 14 + dX, 108); //h = 18?
 		Text* txtRep = new Text(90, 9, 12 + dX, 49);
 		TextButton* btnTalk = new TextButton(86, 14, 14 + dX, 125);
-		TextButton* btnBuy = new TextButton(86, 14, 14 + dX, 140);
+		TextButton* btnPurchaise = new TextButton(86, 14, 14 + dX, 140);
 		TextButton* btnSell = new TextButton(86, 14, 14 + dX, 155);
 		if (faction->isDiscovered())
 		{
@@ -104,10 +104,10 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 			btnTalk->onMouseClick((ActionHandler)&DiplomacyStartState::btnTalkClick);
 			_btnsTalk.push_back(btnTalk);
 			//trade buttons
-			add(btnBuy, "button", interfaceName);
-			btnBuy->setText(tr("STR_BUY"));
-			btnBuy->onMouseClick((ActionHandler)&DiplomacyStartState::btnBuyClick);
-			_btnsBuy.push_back(btnBuy);
+			add(btnPurchaise, "button", interfaceName);
+			btnPurchaise->setText(tr("STR_PURCHASE"));
+			btnPurchaise->onMouseClick((ActionHandler)&DiplomacyStartState::btnPurchaiseClick);
+			_btnsPurchaise.push_back(btnPurchaise);
 			add(btnSell, "button", interfaceName);
 			btnSell->setText(tr("STR_SELL"));
 			btnSell->onMouseClick((ActionHandler)&DiplomacyStartState::btnSellClick);
@@ -188,11 +188,11 @@ void DiplomacyStartState::btnTalkClick(Action* action)
  * Displays Faction buy state.
  * @param action Pointer to an action.
  */
-void DiplomacyStartState::btnBuyClick(Action* action)
+void DiplomacyStartState::btnPurchaiseClick(Action* action)
 {
-	for (size_t i = 0; i < _btnsBuy.size(); ++i)
+	for (size_t i = 0; i < _btnsPurchaise.size(); ++i)
 	{
-		if (action->getSender() == _btnsBuy.at(i))
+		if (action->getSender() == _btnsPurchaise.at(i))
 		{
 			DiplomacyFaction* faction = _game->getSavedGame()->getDiplomacyFactions().at(i);
 			int size = _game->getSavedGame()->getBases()->size();
