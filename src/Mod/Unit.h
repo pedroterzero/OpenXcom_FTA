@@ -355,6 +355,7 @@ private:
 	std::vector<std::vector<std::string> > _builtInWeaponsNames;
 	std::vector<std::vector<const RuleItem*> > _builtInWeapons;
 	bool _capturable;
+	bool _evacuationObjective;
 	bool _canSurrender, _autoSurrender;
 	bool _isLeeroyJenkins;
 	bool _waitIfOutsideWeaponRange;
@@ -436,6 +437,8 @@ public:
 	bool getCapturable() const;
 	/// Checks if this unit can surrender.
 	bool canSurrender() const;
+	/// Gets whether unit counts as objective for evacuation mission.
+	bool getEvacuationObjective() const { return _evacuationObjective; };
 	/// Checks if this unit surrenders automatically, if all other units surrendered too.
 	bool autoSurrender() const;
 	bool isLeeroyJenkins() const { return _isLeeroyJenkins; };
