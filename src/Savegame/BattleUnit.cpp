@@ -1229,6 +1229,21 @@ UnitFaction BattleUnit::getFaction() const
 }
 
 /**
+ * Sets geoscape soldier in case we create one for this unit in debreafing.
+ * @param soldier Soldier.
+ */
+void BattleUnit::setGeoscapeSoldied(Soldier* soldier)
+{
+	_geoscapeSoldier = soldier;
+	// Set basic parameters as we would not need much of it stats.
+	_name = soldier->getName(true);
+	_id = soldier->getId();
+	_type = "SOLDIER";
+
+}
+
+
+/**
  * Gets values used for recoloring sprites.
  * @param i what value choose.
  * @return Pairs of value, where first is color group to replace and second is new color group with shade.
@@ -3442,6 +3457,13 @@ void BattleUnit::updateGeoscapeStats(Soldier *soldier) const
 bool BattleUnit::postMissionProcedures(const Mod *mod, SavedGame *geoscape, SavedBattleGame *battle, StatAdjustment &statsDiff)
 {
 	Soldier *s = geoscape->getSoldier(_id);
+	if (this->getUnitRules() != 0)
+	{
+		if (this->getUnitRules()->getEvacuationObjective())
+		{
+			s = this->getGeoscapeSoldier();
+		}
+	}
 	if (s == 0)
 	{
 		return false;

@@ -1035,6 +1035,8 @@ void DebriefingState::prepareDebriefing()
 	int playersUnconscious = 0;
 	int playersInEntryArea = 0;
 	int playersMIA = 0;
+	int vipsSaved = 0;
+	int vipsLost = 0;
 
 	_stats.push_back(new DebriefingStat("STR_ALIENS_KILLED", false));
 	_stats.push_back(new DebriefingStat("STR_ALIEN_CORPSES_RECOVERED", false));
@@ -1064,6 +1066,10 @@ void DebriefingState::prepareDebriefing()
 	_stats.push_back(new DebriefingStat("STR_CIVILIANS_KILLED_BY_ALIENS", false));
 	_stats.push_back(new DebriefingStat("STR_CIVILIANS_KILLED_BY_XCOM_OPERATIVES", false));
 	_stats.push_back(new DebriefingStat("STR_CIVILIANS_SAVED", false));
+	_stats.push_back(new DebriefingStat("STR_VIP_SAVED", false));
+	_stats.push_back(new DebriefingStat("STR_VIP_KILLED_BY_ALIENS", false));
+	_stats.push_back(new DebriefingStat("STR_VIP_KILLED_BY_XCOM_OPERATIVES", false));
+	_stats.push_back(new DebriefingStat("STR_VIP_LOST", false));
 	_stats.push_back(new DebriefingStat("STR_XCOM_OPERATIVES_KILLED", false));
 	//_stats.push_back(new DebriefingStat("STR_XCOM_OPERATIVES_RETIRED_THROUGH_INJURY", false));
 	_stats.push_back(new DebriefingStat("STR_XCOM_OPERATIVES_MISSING_IN_ACTION", false));
@@ -1449,6 +1455,11 @@ void DebriefingState::prepareDebriefing()
 		UnitFaction faction = (*j)->getFaction();
 		UnitFaction oldFaction = (*j)->getOriginalFaction();
 		int value = (*j)->getValue();
+		bool evacObj = false;
+		if ((*j)->getGeoscapeSoldier() == 0)
+		{
+			evacObj = (*j)->getUnitRules()->getEvacuationObjective();
+		}
 		Soldier *soldier = save->getSoldier((*j)->getId());
 
 		if (!(*j)->getTile())
@@ -1504,6 +1515,18 @@ void DebriefingState::prepareDebriefing()
 					(*j)->getStatistics()->KIA = true;
 					save->killSoldier(soldier); // in case we missed the soldier death on battlescape
 				}
+				else if (evacObj) //friendly vip case
+				{
+					if ((*j)->killedBy() == FACTION_PLAYER)
+					{
+						addStat("STR_VIP_KILLED_BY_XCOM_OPERATIVES", 1, -(value * 3));
+					}
+					else
+					{
+						addStat("STR_VIP_KILLED_BY_ALIENS", 1, -value);
+					}
+					vipsLost++;
+				}
 				else
 				{ // non soldier player = tank
 					addStat("STR_TANKS_DESTROYED", 1, -value);
@@ -1512,9 +1535,13 @@ void DebriefingState::prepareDebriefing()
 			else if (oldFaction == FACTION_NEUTRAL)
 			{
 				if ((*j)->killedBy() == FACTION_PLAYER)
-					addStat("STR_CIVILIANS_KILLED_BY_XCOM_OPERATIVES", 1, -(*j)->getValue() - (2 * ((*j)->getValue() / 3)));
+				{
+					addStat("STR_CIVILIANS_KILLED_BY_XCOM_OPERATIVES", 1, -value - (2 * (value / 3)));
+				}
 				else // if civilians happen to kill themselves XCOM shouldn't get penalty for it
-					addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -(*j)->getValue());
+				{
+					addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -value);
+				}
 			}
 		}
 		else
@@ -1523,72 +1550,94 @@ void DebriefingState::prepareDebriefing()
 			{
 				if ((((*j)->isInExitArea(START_POINT) || (*j)->getStatus() == STATUS_IGNORE_ME) && (battle->getMissionType() != "STR_BASE_DEFENSE" || success)) || !aborted || (aborted && (*j)->isInExitArea(END_POINT)))
 				{ // so game is not aborted or aborted and unit is on exit area
-					StatAdjustment statIncrease;
-					(*j)->postMissionProcedures(_game->getMod(), save, battle, statIncrease);
-					if ((*j)->getGeoscapeSoldier())
-						_soldierStats.push_back(std::pair<std::string, UnitStats>((*j)->getGeoscapeSoldier()->getName(), statIncrease.statGrowth));
-					playersInExitArea++;
-
-					recoverItems((*j)->getInventory(), base);
-
-					if (soldier != 0)
+					bool notOver = true;
+					if (evacObj)
 					{
-						// calculate new statString
-						soldier->calcStatString(_game->getMod()->getStatStrings(), (Options::psiStrengthEval && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements())));
-					}
-					else
-					{ // non soldier player = tank
-						addItemsToBaseStores((*j)->getType(), base, 1, false);
-
-						auto unloadWeapon = [&](BattleItem *weapon)
+						addStat("STR_VIP_SAVED", 1, value);
+						notOver = handleVipRecovery((*j), base, true);
+						vipsSaved++;
+						if (notOver)
 						{
-							if (weapon)
+							soldier = (*j)->getGeoscapeSoldier();
+						}
+					}
+					if (notOver)
+					{
+						StatAdjustment statIncrease;
+						(*j)->postMissionProcedures(_game->getMod(), save, battle, statIncrease);
+						if ((*j)->getGeoscapeSoldier())
+							_soldierStats.push_back(std::pair<std::string, UnitStats>((*j)->getGeoscapeSoldier()->getName(), statIncrease.statGrowth));
+						playersInExitArea++;
+
+						recoverItems((*j)->getInventory(), base);
+
+						if (soldier != 0)
+						{
+							// calculate new statString
+							soldier->calcStatString(_game->getMod()->getStatStrings(), (Options::psiStrengthEval && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements())));
+						}
+						else
+						{ // non soldier player = tank
+							addItemsToBaseStores((*j)->getType(), base, 1, false);
+
+							auto unloadWeapon = [&](BattleItem* weapon)
 							{
-								const RuleItem *primaryRule = weapon->getRules();
-								const BattleItem *ammoItem = weapon->getAmmoForSlot(0);
-								const auto *compatible = primaryRule->getVehicleClipAmmo();
-								if (primaryRule->getVehicleUnit() && compatible && ammoItem != 0 && ammoItem->getAmmoQuantity() > 0)
+								if (weapon)
 								{
-									int total = ammoItem->getAmmoQuantity();
-
-									if (primaryRule->getClipSize()) // meaning this tank can store multiple clips
+									const RuleItem* primaryRule = weapon->getRules();
+									const BattleItem* ammoItem = weapon->getAmmoForSlot(0);
+									const auto* compatible = primaryRule->getVehicleClipAmmo();
+									if (primaryRule->getVehicleUnit() && compatible && ammoItem != 0 && ammoItem->getAmmoQuantity() > 0)
 									{
-										total /= ammoItem->getRules()->getClipSize();
+										int total = ammoItem->getAmmoQuantity();
+
+										if (primaryRule->getClipSize()) // meaning this tank can store multiple clips
+										{
+											total /= ammoItem->getRules()->getClipSize();
+										}
+
+										addItemsToBaseStores(compatible, base, total, false);
 									}
-
-									addItemsToBaseStores(compatible, base, total, false);
 								}
-							}
-						};
+							};
 
-						unloadWeapon((*j)->getRightHandWeapon());
-						unloadWeapon((*j)->getLeftHandWeapon());
+							unloadWeapon((*j)->getRightHandWeapon());
+							unloadWeapon((*j)->getLeftHandWeapon());
+						}
 					}
 				}
 				else
 				{ // so game is aborted and unit is not on exit area
-					addStat("STR_XCOM_OPERATIVES_MISSING_IN_ACTION", 1, -value);
 					playersSurvived--;
-					if (soldier != 0)
+					if (evacObj)
 					{
-						(*j)->updateGeoscapeStats(soldier);
-
-						// starting conditions: recover armor backup
-						if (soldier->getReplacedArmor())
+						addStat("STR_VIP_LOST", 1, -value);
+						//handleVipRecovery((*j), _base, false);
+					}
+					else
+					{
+						addStat("STR_XCOM_OPERATIVES_MISSING_IN_ACTION", 1, -value);
+						if (soldier != 0)
 						{
-							if (soldier->getReplacedArmor()->getStoreItem())
-							{
-								addItemsToBaseStores(soldier->getReplacedArmor()->getStoreItem()->getType(), base, 1, false);
-							}
-							soldier->setReplacedArmor(0);
-						}
-						// transformed armor doesn't get recovered
-						soldier->setTransformedArmor(0);
-						// soldiers are buried in the default armor (...nicer stats in memorial)
-						soldier->setArmor(_game->getMod()->getArmor(soldier->getRules()->getArmor()));
+							(*j)->updateGeoscapeStats(soldier);
 
-						(*j)->getStatistics()->MIA = true;
-						save->killSoldier(soldier);
+							// starting conditions: recover armor backup
+							if (soldier->getReplacedArmor())
+							{
+								if (soldier->getReplacedArmor()->getStoreItem())
+								{
+									addItemsToBaseStores(soldier->getReplacedArmor()->getStoreItem()->getType(), base, 1, false);
+								}
+								soldier->setReplacedArmor(0);
+							}
+							// transformed armor doesn't get recovered
+							soldier->setTransformedArmor(0);
+							// soldiers are buried in the default armor (...nicer stats in memorial)
+							soldier->setArmor(_game->getMod()->getArmor(soldier->getRules()->getArmor()));
+
+							(*j)->getStatistics()->MIA = true;
+							save->killSoldier(soldier);
+						}
 					}
 				}
 			}
@@ -1632,11 +1681,11 @@ void DebriefingState::prepareDebriefing()
 				// if mission fails, all civilians die
 				if (aborted || playersSurvived == 0)
 				{
-					addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -(*j)->getValue());
+					addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -value);
 				}
 				else
 				{
-					addStat("STR_CIVILIANS_SAVED", 1, (*j)->getValue());
+					addStat("STR_CIVILIANS_SAVED", 1, value);
 					recoverCivilian(*j, base);
 				}
 			}
@@ -1794,6 +1843,22 @@ void DebriefingState::prepareDebriefing()
 			}
 		}
 	}
+	if (ruleDeploy && ruleDeploy->getExtendedObjectiveType() == "STR_EVACUATION" && (vipsLost > 0 || vipsSaved > 0))
+	{
+		if (vipsSaved == 0 || (vipsSaved * 4) < vipsLost)
+		{
+			_txtTitle->setText(tr("STR_EVACUATION_FAILED"));
+		}
+		else if (vipsLost == 0 || (vipsLost * 4) < vipsSaved)
+		{
+			_txtTitle->setText(tr("STR_EVACUATION_SUCCESSFUL"));
+		}
+		else
+		{
+			_txtTitle->setText(tr("STR_EVACUATION_COMPLETE"));
+		}
+	}
+	
 
 	// recover all our goodies
 	if (playersSurvived > 0)
@@ -2528,6 +2593,51 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 			_containmentStateInfo[ruleLiveAlienItem->getPrisonType()] = 2; // 2 = overfull
 		}
 	}
+}
+/**
+ * Handle friendly non X-COM unit recovery from the battlescape.
+ * @param from Battle unit to recover.
+ * @param base Base to add items to.
+ * @param result Case of recovery (unit dead/lost or recovered)
+ * @return true if new geoscape soldier was created
+ */
+bool DebriefingState::handleVipRecovery(BattleUnit* unit, Base* base, bool result)
+{
+	bool created = false;
+	if (result) //unit recovered safely
+	{
+		auto rules = unit->getUnitRules();
+		std::string type = rules->getCivilianRecoveryType();
+		if (type == "STR_SCIENTIST")
+		{
+			Transfer* t = new Transfer(24);
+			t->setScientists(1);
+			base->getTransfers()->push_back(t);
+		}
+		else if (type == "STR_ENGINEER")
+		{
+			Transfer* t = new Transfer(24);
+			t->setEngineers(1);
+			base->getTransfers()->push_back(t);
+		}
+		else
+		{
+			RuleSoldier* ruleSoldier = _game->getMod()->getSoldier(type);
+			if (ruleSoldier != 0)
+			{
+				Transfer* t = new Transfer(24);
+				Soldier* s = _game->getMod()->genSoldier(_game->getSavedGame(), ruleSoldier->getType());
+				unit->setGeoscapeSoldied(s);
+				created = true;
+				UnitStats* stats = rules->getStats();
+				s->setBothStats(stats);
+				auto test = unit->getGeoscapeSoldier();
+				t->setSoldier(s);
+				base->getTransfers()->push_back(t);
+			}
+		}
+	}
+	return created;
 }
 
 /**
