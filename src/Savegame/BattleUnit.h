@@ -274,6 +274,8 @@ public:
 	bool isFloating() const;
 	/// Have unit floor below?
 	bool haveNoFloorBelow() const { return _haveNoFloorBelow; }
+	/// Sets soldier ID if it was created.
+	void setGeoscapeSoldied(Soldier* soldier);
 
 	/// Aim.
 	void aim(bool aiming);
