@@ -2256,7 +2256,7 @@ void BattlescapeGame::removeSummonedPlayerUnits()
 		bool vip = false;
 		if ((*unit)->getUnitRules() != 0)
 		{
-			vip = (*unit)->getUnitRules()->getEvacuationObjective();
+			vip = (*unit)->getUnitRules()->getSpecialObjectiveType() == "STR_FRIENDLY_VIP";
 		}
 		if (!vip)
 		{
@@ -2758,7 +2758,7 @@ BattlescapeTally BattlescapeGame::tallyUnits()
 			bool vip = false;
 			if ((*j)->getGeoscapeSoldier() == 0)
 			{
-				vip = (*j)->getUnitRules()->getEvacuationObjective();
+				vip = (*j)->getUnitRules()->getSpecialObjectiveType() == "STR_FRIENDLY_VIP";
 			}
 			if ((*j)->getOriginalFaction() == FACTION_HOSTILE)
 			{

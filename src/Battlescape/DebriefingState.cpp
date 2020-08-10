@@ -1460,7 +1460,7 @@ void DebriefingState::prepareDebriefing()
 		bool evacObj = false;
 		if ((*j)->getGeoscapeSoldier() == 0)
 		{
-			evacObj = (*j)->getUnitRules()->getEvacuationObjective();
+			evacObj = (*j)->getUnitRules()->getSpecialObjectiveType() == "STR_FRIENDLY_VIP";
 		}
 		Soldier *soldier = save->getSoldier((*j)->getId());
 

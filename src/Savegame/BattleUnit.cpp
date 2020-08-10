@@ -3462,7 +3462,7 @@ bool BattleUnit::postMissionProcedures(const Mod *mod, SavedGame *geoscape, Save
 	Soldier *s = geoscape->getSoldier(_id);
 	if (this->getUnitRules() != 0)
 	{
-		if (this->getUnitRules()->getEvacuationObjective())
+		if (this->getUnitRules()->getSpecialObjectiveType() == "STR_FRIENDLY_VIP")
 		{
 			s = this->getGeoscapeSoldier();
 		}
