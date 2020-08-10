@@ -1507,7 +1507,7 @@ void GeoscapeState::time10Minutes()
 					{
 						if ((*j)->getDistance(*b) <= range)
 						{
-							if (RNG::percent(50-((*j)->getDistance(*b) / range) * 50) && !(*b)->isDiscovered())
+							if (RNG::percent(50-((*j)->getDistance(*b) / range) * 50) && (!(*b)->isDiscovered() && !(*b)->getDeployment()->isHidden()))
 							{
 								(*b)->setDiscovered(true);
 							}
@@ -2699,7 +2699,7 @@ void GeoscapeState::time1Day()
 	// Handle alien base detection (by xcom base facilities).
 	for (auto alienBase : *_game->getSavedGame()->getAlienBases())
 	{
-		if (alienBase->isDiscovered()) continue;
+		if (alienBase->isDiscovered() || alienBase->getDeployment()->isHidden()) continue;
 		for (auto xcomBase : *_game->getSavedGame()->getBases())
 		{
 			int distance = XcomDistance(xcomBase->getDistance(alienBase));
@@ -2818,7 +2818,7 @@ void GeoscapeState::time1Month()
 	{
 		for (std::vector<AlienBase*>::const_iterator b = _game->getSavedGame()->getAlienBases()->begin(); b != _game->getSavedGame()->getAlienBases()->end(); ++b)
 		{
-			if (!(*b)->isDiscovered())
+			if (!(*b)->isDiscovered()|| !(*b)->getDeployment()->isHidden())
 			{
 				(*b)->setDiscovered(true);
 				popup(new AlienBaseState(*b, this));
