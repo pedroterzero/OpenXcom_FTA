@@ -256,7 +256,7 @@ private:
 	bool _difficultyDemigod;
 	std::pair<std::string, int> _alienFuel;
 	std::string _fontName, _finalResearch, _psiUnlockResearch, _fakeUnderwaterBaseUnlockResearch, _newBaseUnlockResearch;
-	std::string _ufopaediaUnlockResearch;
+	std::string _ufopaediaUnlockResearch, _baseConstructionUnlockResearch;
 
 	std::string _destroyedFacility;
 	YAML::Node _startingBaseDefault, _startingBaseBeginner, _startingBaseExperienced, _startingBaseVeteran, _startingBaseGenius, _startingBaseSuperhuman;
@@ -772,6 +772,8 @@ public:
 	/// Gets the cutscene ID that should be played when the player loses the last base.
 	const std::string &getLoseDefeatCutscene() const { return _loseDefeat; }
 
+	/// Gets the research topic required for building XCOM bases after game starts.
+	const std::string& getBaseConstructionUnlockResearch() const { return _baseConstructionUnlockResearch; }
 	/// Gets the research topic required for building XCOM bases on fakeUnderwater globe textures.
 	const std::string &getFakeUnderwaterBaseUnlockResearch() const { return _fakeUnderwaterBaseUnlockResearch; }
 	/// Gets the research topic required for building XCOM bases.

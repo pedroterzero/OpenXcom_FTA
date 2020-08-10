@@ -1613,7 +1613,7 @@ void DebriefingState::prepareDebriefing()
 					playersSurvived--;
 					if (evacObj)
 					{
-						addStat("STR_VIP_LOST", 1, -value);
+						addStat("STR_VIP_LOST", 1, - (value * 2));
 						//handleVipRecovery((*j), _base, false);
 					}
 					else

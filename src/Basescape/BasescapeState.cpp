@@ -275,9 +275,23 @@ void BasescapeState::setBase(Base *base)
  */
 void BasescapeState::btnNewBaseClick(Action *)
 {
-	Base *base = new Base(_game->getMod());
+	auto baseResearch = _game->getMod()->getBaseConstructionUnlockResearch();
+	if (!baseResearch.empty())
+	{
+		if (!_game->getSavedGame()->isResearched(baseResearch))
+		{
+			_game->pushState(new ErrorMessageState(tr("STR_WE_CANT_BUILD_BASE"),
+				_palette,
+				_game->getMod()->getInterface("placeFacility")->getElement("errorMessage")->color,
+				"BACK01.SCR",
+				_game->getMod()->getInterface("placeFacility")->getElement("errorPalette")->color));
+			return;
+		}
+	}
+	Base* base = new Base(_game->getMod());
 	_game->popState();
 	_game->pushState(new BuildNewBaseState(base, _globe, false));
+
 }
 
 /**
