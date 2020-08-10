@@ -339,7 +339,7 @@ private:
 	std::string _race;
 	int _showFullNameInAlienInventory;
 	std::string _rank;
-	UnitStats _stats;
+	UnitStats _stats, _statsRandom;
 	std::string _armorName;
 	const Armor* _armor;
 	int _standHeight, _kneelHeight, _floatHeight;
@@ -377,6 +377,8 @@ public:
 	std::string getCivilianRecoveryType() const;
 	/// Gets the unit's stats.
 	UnitStats *getStats();
+	/// Gets the unit's random part of stats.
+	UnitStats* getRandomStats();
 	/// Gets the unit's height when standing.
 	int getStandHeight() const;
 	/// Gets the unit's height when kneeling.

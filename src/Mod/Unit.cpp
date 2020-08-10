@@ -62,6 +62,7 @@ void Unit::load(const YAML::Node &node, Mod *mod)
 	_showFullNameInAlienInventory = node["showFullNameInAlienInventory"].as<int>(_showFullNameInAlienInventory);
 	_rank = node["rank"].as<std::string>(_rank);
 	_stats.merge(node["stats"].as<UnitStats>(_stats));
+	_statsRandom.merge(node["statsRandom"].as<UnitStats>(_statsRandom));
 	_armorName = node["armor"].as<std::string>(_armorName);
 	_standHeight = node["standHeight"].as<int>(_standHeight);
 	_kneelHeight = node["kneelHeight"].as<int>(_kneelHeight);
@@ -147,6 +148,15 @@ std::string Unit::getCivilianRecoveryType() const
 UnitStats *Unit::getStats()
 {
 	return &_stats;
+}
+
+/**
+ * Returns the unit's random stats data object.
+ * @return The unit's random stats.
+ */
+UnitStats* Unit::getRandomStats()
+{
+	return &_statsRandom;
 }
 
 /**

@@ -416,6 +416,7 @@ BattleUnit::BattleUnit(const Mod *mod, Unit *unit, UnitFaction faction, int id, 
 	_rank = unit->getRank();
 	_race = unit->getRace();
 	_stats = *unit->getStats();
+	_statsRandom = *unit->getRandomStats();
 	_standHeight = _armor->getStandHeight() == -1 ? unit->getStandHeight() : _armor->getStandHeight();
 	_kneelHeight = _armor->getKneelHeight() == -1 ? unit->getKneelHeight() : _armor->getKneelHeight();
 	_floatHeight = _armor->getFloatHeight() == -1 ? unit->getFloatHeight() : _armor->getFloatHeight();
@@ -464,6 +465,21 @@ BattleUnit::BattleUnit(const Mod *mod, Unit *unit, UnitFaction faction, int id, 
 		}
 	}
 
+	UnitStats* addRandomStat = new UnitStats();
+	addRandomStat->tu = RNG::generate(-_statsRandom.tu, _statsRandom.tu);
+	addRandomStat->stamina = RNG::generate(-_statsRandom.stamina, _statsRandom.stamina);
+	addRandomStat->health = RNG::generate(-_statsRandom.health, _statsRandom.health);
+	addRandomStat->bravery = (RNG::generate(-_statsRandom.bravery / 10, _statsRandom.bravery / 10) * 10);
+	addRandomStat->reactions = RNG::generate(-_statsRandom.reactions, _statsRandom.reactions);
+	addRandomStat->firing = RNG::generate(-_statsRandom.firing, _statsRandom.firing);
+	addRandomStat->throwing = RNG::generate(-_statsRandom.throwing, _statsRandom.throwing);
+	addRandomStat->melee = RNG::generate(-_statsRandom.melee, _statsRandom.melee);
+	addRandomStat->strength = RNG::generate(-_statsRandom.strength, _statsRandom.strength);
+	addRandomStat->mana = RNG::generate(-_statsRandom.mana, _statsRandom.mana);
+	addRandomStat->psiSkill = RNG::generate(-_statsRandom.psiSkill, _statsRandom.psiSkill);
+	addRandomStat->psiStrength = RNG::generate(-_statsRandom.psiStrength, _statsRandom.psiStrength);
+
+	_stats += *addRandomStat;
 	_stats += *_armor->getStats();	// armors may modify effective stats
 	_stats = UnitStats::obeyFixedMinimum(_stats); // don't allow to go into minus!
 	_maxViewDistanceAtDark = _armor->getVisibilityAtDark() ? _armor->getVisibilityAtDark() : faction==FACTION_HOSTILE ? mod->getMaxViewDistance() : 9;
