@@ -83,7 +83,7 @@ namespace OpenXcom
  * Initializes all the elements in the Debriefing screen.
  * @param game Pointer to the core game.
  */
-DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(true), _destroyBase(false), _showSellButton(true), _pageNumber(0)
+DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(true), _destroyBase(false), _showSellButton(true), _pageNumber(0), _recoveredItemObjs(0)
 {
 	_missionStatistics = new MissionStatistics();
 
@@ -1043,6 +1043,8 @@ void DebriefingState::prepareDebriefing()
 	_stats.push_back(new DebriefingStat("STR_LIVE_ALIENS_RECOVERED", false));
 	_stats.push_back(new DebriefingStat("STR_LIVE_ALIENS_SURRENDERED", false));
 	_stats.push_back(new DebriefingStat("STR_ALIEN_ARTIFACTS_RECOVERED", false));
+	_stats.push_back(new DebriefingStat("STR_ITEMS_RECOVERED", false));
+	_stats.push_back(new DebriefingStat("STR_OBJECTIVE_SECURED", false));
 
 	std::string objectiveCompleteText, objectiveFailedText;
 	int objectiveCompleteScore = 0, objectiveFailedScore = 0;
@@ -1843,22 +1845,54 @@ void DebriefingState::prepareDebriefing()
 			}
 		}
 	}
+	// Extended mission types handling
+	int extraPoints = 0;
 	if (ruleDeploy && ruleDeploy->getExtendedObjectiveType() == "STR_EVACUATION" && (vipsLost > 0 || vipsSaved > 0))
 	{
 		if (vipsSaved == 0 || (vipsSaved * 4) < vipsLost)
 		{
 			_txtTitle->setText(tr("STR_EVACUATION_FAILED"));
+			if (!objectiveFailedText.empty())
+			{
+				addStat(objectiveFailedText, 1, objectiveFailedScore);
+			}
 		}
 		else if (vipsLost == 0 || (vipsLost * 4) < vipsSaved)
 		{
 			_txtTitle->setText(tr("STR_EVACUATION_SUCCESSFUL"));
+			if (!objectiveCompleteText.empty())
+			{
+				addStat(objectiveCompleteText, 1, objectiveCompleteScore);
+			}
 		}
 		else
 		{
 			_txtTitle->setText(tr("STR_EVACUATION_COMPLETE"));
 		}
 	}
-	
+	else if (ruleDeploy && ruleDeploy->getExtendedObjectiveType() == "STR_ITEM_EXTRACTION" && (_game->getSavedGame()->getSavedBattle()->getItemObjectivesNumber() > 0))
+	{
+		if (_recoveredItemObjs == 0)
+		{
+			_txtTitle->setText(tr("STR_ITEM_EXTRACTION_FAILED"));
+			if (!objectiveFailedText.empty())
+			{
+				addStat(objectiveFailedText, 1, objectiveFailedScore);
+			}
+		}
+		else if (_recoveredItemObjs >= _game->getSavedGame()->getSavedBattle()->getItemObjectivesNumber())
+		{
+			_txtTitle->setText(tr("STR_ALL_OBJECTIVES_SECURED"));
+			if (!objectiveCompleteText.empty())
+			{
+				addStat(objectiveCompleteText, 1, objectiveCompleteScore);
+			}
+		}
+		else
+		{
+			_txtTitle->setText(tr("STR_OBJECTIVES_PARTIALLY_RECOVERED"));
+		}
+	}
 
 	// recover all our goodies
 	if (playersSurvived > 0)
@@ -2314,30 +2348,36 @@ void DebriefingState::recoverItems(std::vector<BattleItem*> *from, Base *base)
 	for (std::vector<BattleItem*>::iterator it = from->begin(); it != from->end(); ++it)
 	{
 		const RuleItem *rule = (*it)->getRules();
+		int points = rule->getRecoveryPoints();
 		if (rule->getName() == _game->getMod()->getAlienFuelName())
 		{
 			// special case of an item counted as a stat
-			addStat(_game->getMod()->getAlienFuelName(), _game->getMod()->getAlienFuelQuantity(), rule->getRecoveryPoints());
+			addStat(_game->getMod()->getAlienFuelName(), _game->getMod()->getAlienFuelQuantity(), points);
 		}
 		else
 		{
 			if (rule->isRecoverable() && !(*it)->getXCOMProperty())
 			{
-				if (rule->getBattleType() == BT_CORPSE)
+				bool awardItemPoints = false;
+				if (rule->isMissionObjective())
 				{
-					BattleUnit *corpseUnit = (*it)->getUnit();
+					addStat("STR_OBJECTIVE_SECURED", 1, points);
+				}
+				else if (rule->getBattleType() == BT_CORPSE)
+				{
+					BattleUnit* corpseUnit = (*it)->getUnit();
 					if (corpseUnit->getStatus() == STATUS_DEAD)
 					{
 						if (rule->isCorpseRecoverable())
 						{
 							addItemsToBaseStores(corpseUnit->getArmor()->getCorpseGeoscape(), base, 1, true);
-							addStat("STR_ALIEN_CORPSES_RECOVERED", 1, (*it)->getRules()->getRecoveryPoints());
+							addStat("STR_ALIEN_CORPSES_RECOVERED", 1, points);
 						}
 					}
 					else if (corpseUnit->getStatus() == STATUS_UNCONSCIOUS ||
-							// or it's in timeout because it's unconscious from the previous stage
-							// units can be in timeout and alive, and we assume they flee.
-							(corpseUnit->getStatus() == STATUS_IGNORE_ME &&
+						// or it's in timeout because it's unconscious from the previous stage
+						// units can be in timeout and alive, and we assume they flee.
+						(corpseUnit->getStatus() == STATUS_IGNORE_ME &&
 							corpseUnit->getHealth() > 0 &&
 							corpseUnit->getHealth() < corpseUnit->getStunlevel()))
 					{
@@ -2347,14 +2387,25 @@ void DebriefingState::recoverItems(std::vector<BattleItem*> *from, Base *base)
 						}
 					}
 				}
-				// only add recovery points for unresearched items
-				else if (!_game->getSavedGame()->isResearched(rule->getRequirements()))
+				else if (!_game->getSavedGame()->isResearched(rule->getRequirements()) || _game->getMod()->getGiveScoreAlsoForResearchedArtifacts())
 				{
-					addStat("STR_ALIEN_ARTIFACTS_RECOVERED", 1, rule->getRecoveryPoints());
+					awardItemPoints = true; //only if not yet researched (vanilla behaviour) or always (modded)
 				}
-				else if (_game->getMod()->getGiveScoreAlsoForResearchedArtifacts())
+
+				if (awardItemPoints)
 				{
-					addStat("STR_ALIEN_ARTIFACTS_RECOVERED", 1, rule->getRecoveryPoints());
+					if (rule->isAlienArtifact())
+					{
+						addStat("STR_ALIEN_ARTIFACTS_RECOVERED", 1, points);
+					}
+					else
+					{
+						addStat("STR_ITEMS_RECOVERED", 1, points);
+					}
+				}
+				if (rule->isMissionObjective())
+				{
+					++_recoveredItemObjs;
 				}
 			}
 

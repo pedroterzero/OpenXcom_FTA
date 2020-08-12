@@ -81,7 +81,7 @@ private:
 	std::map<int, RecoveryItem*> _recoveryStats;
 	bool _positiveScore, _destroyBase, _showSellButton;
 	std::map<int, int>  _containmentStateInfo;
-	int _totalEvacObjs, _savedEvacObjs;
+	int _totalEvacObjs, _savedEvacObjs, _recoveredItemObjs;
 	int _limitsEnforced;
 	MissionStatistics *_missionStatistics;
 	std::vector<Soldier*> _soldiersCommended, _deadSoldiersCommended;
