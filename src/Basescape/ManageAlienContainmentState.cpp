@@ -490,7 +490,14 @@ void ManageAlienContainmentState::lstItemsMousePress(Action *action)
 		if (selectedTopic != 0)
 		{
 			_doNotReset = true;
-			_game->pushState(new TechTreeViewerState(selectedTopic, 0));
+			if (_game->getMod()->getIsResearchTreeDisabled() && !_game->getSavedGame()->getDebugMode())
+			{
+				return;
+			}
+			else
+			{
+				_game->pushState(new TechTreeViewerState(selectedTopic, 0));
+			}
 		}
 	}
 }

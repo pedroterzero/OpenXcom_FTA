@@ -920,7 +920,7 @@ void DiplomacySellState::lstItemsMousePress(Action* action)
 				std::string articleId = rule->getType();
 				const RuleResearch* selectedTopic = _game->getMod()->getResearch(articleId, false);
 				bool ctrlPressed = SDL_GetModState() & KMOD_CTRL;
-				if (selectedTopic && !ctrlPressed)
+				if (selectedTopic && ctrlPressed && _game->getMod()->getIsResearchTreeDisabled() && !_game->getSavedGame()->getDebugMode())
 				{
 					_game->pushState(new TechTreeViewerState(selectedTopic, 0));
 				}
