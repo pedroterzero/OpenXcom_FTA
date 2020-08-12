@@ -2870,6 +2870,10 @@ void GeoscapeState::btnUfoTrackerClick(Action *)
 */
 void GeoscapeState::btnTechTreeViewerClick(Action *)
 {
+	if (_game->getMod()->getIsResearchTreeDisabled() && !_game->getSavedGame()->getDebugMode())
+	{
+		return;
+	}
 	_game->pushState(new TechTreeViewerState());
 }
 

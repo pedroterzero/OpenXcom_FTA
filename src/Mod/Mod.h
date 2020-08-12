@@ -174,7 +174,6 @@ private:
 	std::map<std::string, ArticleDefinition*> _ufopaediaArticles;
 	std::map<std::string, RuleInventory*> _invs;
 	bool _inventoryOverlapsPaperdoll;
-	bool _ftaGame;
 	std::map<std::string, RuleResearch *> _research;
 	std::map<std::string, RuleManufacture *> _manufacture;
 	std::map<std::string, RuleManufactureShortcut *> _manufactureShortcut;
@@ -219,6 +218,7 @@ private:
 	bool _lessAliensDuringBaseDefense;
 	bool _allowCountriesToCancelAlienPact, _buildInfiltrationBaseCloseToTheCountry;
 	bool _allowAlienBasesOnWrongTextures;
+	bool _ftaGame, _researchTreeDisabled;
 	int _kneelBonusGlobal, _oneHandedPenaltyGlobal;
 	int _enableCloseQuartersCombat, _closeQuartersAccuracyGlobal, _closeQuartersTuCostGlobal, _closeQuartersEnergyCostGlobal;
 	int _noLOSAccuracyPenaltyGlobal;
@@ -737,8 +737,10 @@ public:
 	int getBughuntLowMorale() const { return _bughuntLowMorale; }
 	/// Gets the bug hunt mode time units % parameter (default = 60).
 	int getBughuntTimeUnitsLeft() const { return _bughuntTimeUnitsLeft; }
-	/// Gets if we are playing FTA scenario
+	/// Gets if we are playing FTA scenario.
 	bool getIsFTAGame() const { return _ftaGame; }
+	/// Gets if research tree was disabled.
+	bool getIsResearchTreeDisabled() const { return _researchTreeDisabled; }
 
 	/// Is the mana feature enabled (default false)?
 	bool isManaFeatureEnabled() const { return _manaEnabled; }
