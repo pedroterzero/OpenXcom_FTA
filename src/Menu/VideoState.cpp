@@ -462,7 +462,7 @@ void VideoState::init()
 		flcPlayer->init(videoFileName.c_str(),
 			 _useUfoAudioSequence ? &audioHandler : NULL,
 			 _game, useInternalAudio, dx, dy);
-		flcPlayer->play(_useUfoAudioSequence);
+		flcPlayer->play(true);
 		if (_useUfoAudioSequence)
 		{
 			flcPlayer->delay(10000);
