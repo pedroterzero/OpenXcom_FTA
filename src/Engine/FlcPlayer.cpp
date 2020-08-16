@@ -207,10 +207,13 @@ void FlcPlayer::play(bool skipLastFrame)
 
 	while (!shouldQuit())
 	{
-		if (_frameCallBack)
-			(*_frameCallBack)();
-		else // TODO: support both, in the case the callback is not some audio?
-			decodeAudio(2);
+		if (_hasAudio)
+		{
+			if (_frameCallBack)
+				(*_frameCallBack)();
+			else // TODO: support both, in the case the callback is not some audio?
+				decodeAudio(2);
+		}
 
 		if (!shouldQuit())
 			decodeVideo(skipLastFrame);
@@ -873,7 +876,7 @@ void FlcPlayer::stop()
 
 bool FlcPlayer::isEndOfFile(Uint8 *pos)
 {
-	return (pos - _fileBuf) == (int)(_fileSize); // should be Sint64, but let's assume the videos won't be 2gb
+	return (pos - _fileBuf) >= (int)(_fileSize); // should be Sint64, but let's assume the videos won't be 2gb
 }
 
 int FlcPlayer::getFrameCount()
