@@ -1161,6 +1161,9 @@
     <ClCompile Include="FTA\MasterMind.cpp">
       <Filter>FTA</Filter>
     </ClCompile>
+    <ClCompile Include="Mod\BattleScript.cpp">
+      <Filter>Mod</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2379,6 +2382,9 @@
     </ClInclude>
     <ClInclude Include="FTA\MasterMind.h">
       <Filter>FTA</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\BattleScript.h">
+      <Filter>Mod</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

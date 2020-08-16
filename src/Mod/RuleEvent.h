@@ -26,23 +26,23 @@
 namespace OpenXcom
 {
 /**
- * Definition of one custom player answer to Geoscape Event.
- */
-	struct CustomAnswer
+* Definition of one custom player answer to Geoscape Event.
+*/
+struct CustomAnswer
+{
+	std::string title;
+	std::vector<std::string> spawnEvent;
+	std::string description;
+
+	/// Loads stats from YAML.
+	void load(const YAML::Node& node)
 	{
-		std::string title;
-		std::vector<std::string> spawnEvent;
-		std::string description;
+		title = node["title"].as<std::string>(title);
+		spawnEvent = node["spawnEvent"].as<std::vector<std::string>>(spawnEvent);
+		description = node["description"].as<std::string>(description);
+	}
 
-		/// Loads stats from YAML.
-		void load(const YAML::Node& node)
-		{
-			title = node["title"].as<std::string>(title);
-			spawnEvent = node["spawnEvent"].as<std::vector<std::string>>(spawnEvent);
-			description = node["description"].as<std::string>(description);
-		}
-
-	};
+};
 
 /**
  * Represents a custom Geoscape event.
