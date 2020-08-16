@@ -98,7 +98,7 @@ FlcPlayer::~FlcPlayer()
  * @param dx An offset on the x axis for the video to be rendered
  * @param dy An offset on the y axis for the video to be rendered
  */
-bool FlcPlayer::init(const char *filename, void(*frameCallBack)(), Game *game, bool useInternalAudio, int dx, int dy)
+bool FlcPlayer::init(const char *filename, void(*frameCallBack)(), bool customCutscene, Game *game, bool useInternalAudio, int dx, int dy)
 {
 	if (_fileBuf != 0)
 	{
@@ -111,6 +111,7 @@ bool FlcPlayer::init(const char *filename, void(*frameCallBack)(), Game *game, b
 	_realScreen->clear();
 	_game = game;
 	_useInternalAudio = useInternalAudio;
+	_customCutscene = customCutscene;
 	_dx = dx;
 	_dy = dy;
 
@@ -207,13 +208,10 @@ void FlcPlayer::play(bool skipLastFrame)
 
 	while (!shouldQuit())
 	{
-		if (_hasAudio)
-		{
-			if (_frameCallBack)
-				(*_frameCallBack)();
-			else // TODO: support both, in the case the callback is not some audio?
-				decodeAudio(2);
-		}
+		if (_frameCallBack)
+			(*_frameCallBack)();
+		else if (!_customCutscene)// TODO: support both, in the case the callback is not some audio?
+			decodeAudio(2);
 
 		if (!shouldQuit())
 			decodeVideo(skipLastFrame);
