@@ -210,7 +210,7 @@ void FlcPlayer::play(bool skipLastFrame)
 	{
 		if (_frameCallBack)
 			(*_frameCallBack)();
-		else if (!_customCutscene)// TODO: support both, in the case the callback is not some audio?
+		else if (!_customCutscene)
 			decodeAudio(2);
 
 		if (!shouldQuit())
