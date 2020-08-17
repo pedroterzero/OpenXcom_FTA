@@ -43,8 +43,8 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param wasLetterBoxed Was the game letterboxed?
  */
-VideoState::VideoState(const std::vector<std::string> *videos, const std::vector<std::string> *tracks, bool useUfoAudioSequence)
-		: _videos(videos), _tracks(tracks), _useUfoAudioSequence(useUfoAudioSequence)
+VideoState::VideoState(const std::vector<std::string> *videos, const std::vector<std::string> *tracks, bool useUfoAudioSequence, bool customCutscene)
+		: _videos(videos), _tracks(tracks), _useUfoAudioSequence(useUfoAudioSequence), _customCutscene(customCutscene)
 {
 }
 
@@ -461,6 +461,7 @@ void VideoState::init()
 
 		flcPlayer->init(videoFileName.c_str(),
 			 _useUfoAudioSequence ? &audioHandler : NULL,
+			_customCutscene,
 			 _game, useInternalAudio, dx, dy);
 		flcPlayer->play(true);
 		if (_useUfoAudioSequence)
