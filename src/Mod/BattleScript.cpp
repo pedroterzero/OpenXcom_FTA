@@ -30,7 +30,8 @@ namespace OpenXcom
 
 BattleScript::BattleScript() :
 	_type(BSC_UNDEFINED), _canBeSkipped(true),
-	_executionChances(100), _executions(1), _cumulativeFrequency(0), _label(0), _startTurn(0), _endTurn(0)
+	_executionChances(100), _executions(1), _cumulativeFrequency(0), _label(0), _startTurn(0), _endTurn(-1), _unitSide(1),
+	_minLevel(0), _maxLevel(0), _packSize(1), _randomPackSize(false), _minDifficulty(0), _maxDifficulty(4)
 {
 }
 
@@ -49,6 +50,7 @@ BattleScript::~BattleScript()
 */
 void BattleScript::load(const YAML::Node& node)
 {
+
 	std::string command;
 	if (const YAML::Node& map = node["type"])
 	{
@@ -63,7 +65,7 @@ void BattleScript::load(const YAML::Node& node)
 			_type = BSC_ADDBLOCK;
 		else
 		{
-			throw Exception("Unknown command: " + command);
+			throw Exception("Unknown battlescritp command: " + command);
 		}
 	}
 	else
@@ -117,6 +119,7 @@ void BattleScript::load(const YAML::Node& node)
 		}
 	}*/
 
+	// map block analisys not done
 	if (const YAML::Node& map = node["groups"])
 	{
 		_groups.clear();
@@ -156,17 +159,20 @@ void BattleScript::load(const YAML::Node& node)
 	_canBeSkipped = node["canBeSkipped"].as<bool>(_canBeSkipped);
 	_executionChances = node["executionChances"].as<int>(_executionChances);
 	_executions = node["executions"].as<int>(_executions);
-	if (node["terrain"])
-	{
-		_randomTerrain.push_back(node["terrain"].as<std::string>());
-	}
 	// take no chances, don't accept negative values here.
 	_label = std::abs(node["label"].as<int>(_label));
 
 	_itemSet = node["itemSet"].as<std::vector<std::string>>(_itemSet);
 	_unitSet = node["unitSet"].as<std::vector<std::string>>(_unitSet);
+	_packSize = node["packSize"].as<int>(_packSize);
+	_randomPackSize = node["randomPackSize"].as<bool>(_randomPackSize);
+	_minLevel = node["minLevel"].as<int>(_minLevel);
+	_maxLevel = node["maxLevel"].as<int>(_maxLevel);
+	_unitSide = node["unitSide"].as<int>(_unitSide);
 	_startTurn = node["startTurn"].as<int>(_startTurn);
 	_endTurn = node["endTurn"].as<int>(_endTurn);
+	_minDifficulty = node["minDifficulty"].as<int>(_minDifficulty);
+	_maxDifficulty = node["maxDifficulty"].as<int>(_maxDifficulty);
 	if (const YAML::Node& messages = node["messages"])
 	{
 		for (YAML::const_iterator i = messages.begin(); i != messages.end(); ++i)
@@ -270,25 +276,6 @@ int BattleScript::getBlockNumber()
 		}
 	}
 	return MT_UNDEFINED;
-}
-
-/**
- * Gets a random map block from a given terrain, using either the groups or the blocks defined.
- * @param terrain the terrain to pick a block from.
- * @return Pointer to a randomly chosen map block, given the options available.
- */
-MapBlock* BattleScript::getNextBlock(RuleTerrain* terrain)
-{
-	if (_blocks.empty())
-	{
-		return terrain->getRandomMapBlock(10, 10, getGroupNumber());
-	}
-	int result = getBlockNumber();
-	if (result < (int)(terrain->getMapBlocks()->size()) && result != MT_UNDEFINED)
-	{
-		return terrain->getMapBlocks()->at((size_t)(result));
-	}
-	return 0;
 }
 
 }

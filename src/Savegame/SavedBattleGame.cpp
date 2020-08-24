@@ -38,6 +38,8 @@
 #include "../Engine/Game.h"
 #include "../Engine/Sound.h"
 #include "../Mod/RuleInventory.h"
+#include "../Mod/AlienDeployment.h"
+#include "../Savegame/Ufo.h"
 #include "../Battlescape/AIModule.h"
 #include "../Engine/RNG.h"
 #include "../Engine/Options.h"
@@ -628,6 +630,34 @@ const std::string &SavedBattleGame::getMissionType() const
 }
 
 /**
+* Returns the alienDeployment rules for this battlescape game.
+* @return Pointer to the alien deployment rules.
+*/
+AlienDeployment* SavedBattleGame::getAlienDeploymet()
+{
+	SavedGame* save = this->getGeoscapeSave();
+	AlienDeployment* ruleDeploy = _rule->getDeployment(_missionType);
+	AlienDeployment* alienCustomMission = _rule->getDeployment(_alienCustomMission);
+	if (alienCustomMission)
+	{
+		ruleDeploy = alienCustomMission;
+	}
+	if (!ruleDeploy)
+	{
+		for (std::vector<Ufo*>::iterator ufo = save->getUfos()->begin(); ufo != save->getUfos()->end(); ++ufo)
+		{
+			if ((*ufo)->isInBattlescape())
+			{
+				// Note: fake underwater UFO deployment was already considered above (via alienCustomMission)
+				ruleDeploy = _rule->getDeployment((*ufo)->getRules()->getType());
+				break;
+			}
+		}
+	}
+	return ruleDeploy;
+}
+
+/**
 * Returns the list of items in the base storage rooms BEFORE the mission.
 * Does NOT return items assigned to craft or in transfer.
 * @return Pointer to the item list.
@@ -1131,7 +1161,7 @@ void SavedBattleGame::newTurnUpdateScripts()
 /**
  * Ends the current turn and progresses to the next one.
  */
-void SavedBattleGame::endTurn()
+void SavedBattleGame::endTurn() //FINNIK TODO: Check it!
 {
 	// reset turret direction for all hostile and neutral units (as it may have been changed during reaction fire)
 	for (std::vector<BattleUnit*>::iterator i = _units.begin(); i != _units.end(); ++i)

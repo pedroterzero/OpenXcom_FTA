@@ -63,11 +63,11 @@ private:
 	std::vector<int> _groups, _blocks, _frequencies, _maxUses, _conditionals;
 	std::vector<int> _groupsTemp, _blocksTemp, _frequenciesTemp, _maxUsesTemp;
 	int _executionChances, _executions, _cumulativeFrequency, _label;
-	std::vector<std::string> _randomTerrain;
-
+	
 	std::vector<std::string> _itemSet, _unitSet;
 	std::map<int, BattleMessage> _message;
-	int _startTurn, _endTurn;
+	int _startTurn, _endTurn, _unitSide, _packSize, _minLevel, _maxLevel, _minDifficulty, _maxDifficulty;
+	bool _randomPackSize;
 
 	/// Randomly generate a group from within the array.
 	int getGroupNumber();
@@ -94,13 +94,35 @@ public:
 	int getExecutions() const { return _executions; };
 	/// Gets what conditions apply to this command.
 	const std::vector<int>* getConditionals() const { return &_conditionals; };
+
 	/// Gets the groups vector for iteration.
 	const std::vector<int>* getGroups() const { return &_groups; };
 	/// Gets the blocks vector for iteration.
 	const std::vector<int>* getBlocks() const { return &_blocks; };
-	MapBlock* getNextBlock(RuleTerrain* terrain);
-	/// Gets the alternate terrain list for this command.
-	const std::vector<std::string>& getRandomAlternateTerrain() const { return _randomTerrain; };
+
+	/// Gets the turn number that would start script execution.
+	int getStartTurn() const { return _startTurn; };
+	/// Gets the turn number that would end script execution.
+	int getEndTurn() const { return _endTurn; };
+	/// Gets the item set for command.
+	const std::vector<std::string> getItemSet() const { return _itemSet; };
+	/// Gets the unit set for command.
+	const std::vector<std::string> getUnitSet() const { return _unitSet; };
+	/// Gets the side for unit, that would be spawned with command.
+	int getSide() const { return _unitSide; };
+	/// Gets pack size for units, that would be spawned with command.
+	int getPackSide() const { return _packSize; };
+	/// Gets if pack size should be randomised with command.
+	bool getRandomPackSide() const { return _randomPackSize; };
+	/// Gets the min Z level for command.
+	int getMinLevel() const { return _minLevel; };
+	/// Gets the max Z level for command.
+	int getMaxLevel() const { return _maxLevel; };
+	/// Gets the min difficulty level for command.
+	int getMinDifficulty() const { return _minDifficulty; };
+	/// Gets the max difficulty level for command.
+	int getMaxDifficulty() const { return _maxDifficulty; };
+
 };
 
 }
