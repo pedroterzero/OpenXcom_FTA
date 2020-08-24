@@ -491,6 +491,7 @@ void BattlescapeGame::endTurn()
 	_currentAction.targeting = false;
 	_AISecondMove = false;
 	auto side = _save->getSide();
+	bool toDoScripts = scriptsToProcess();
 
 	if (_triggerProcessed.tryRun())
 	{
@@ -625,7 +626,7 @@ void BattlescapeGame::endTurn()
 	auto tally = _save->getBattleGame()->tallyUnits();
 
 	// if all units from either faction are killed - the mission is over.
-	if (_save->allObjectivesDestroyed() && _save->getObjectiveType() == MUST_DESTROY)
+	if (_save->allObjectivesDestroyed() && _save->getObjectiveType() == MUST_DESTROY && !toDoScripts)
 	{
 		_parentState->finishBattle(false, tally.liveSoldiers);
 		return;
@@ -651,7 +652,7 @@ void BattlescapeGame::endTurn()
 		}
 	}
 
-	if (tally.liveAliens > 0 && tally.liveSoldiers > 0)
+	if (tally.liveSoldiers > 0 && (tally.liveAliens > 0 || toDoScripts || _save->getObjectiveType() == MUST_DESTROY))
 	{
 		showInfoBoxQueue();
 
