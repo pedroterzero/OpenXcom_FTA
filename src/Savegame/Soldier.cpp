@@ -1369,6 +1369,8 @@ void Soldier::trainPhys(int customTrainingFactor)
 	{
 		if(_currentStats.firing < caps1.firing && RNG::generate(0, caps2.firing) > _currentStats.firing && RNG::percent(customTrainingFactor))
 			_currentStats.firing++;
+		if (_currentStats.reactions < caps1.reactions && RNG::generate(0, caps2.reactions) > _currentStats.reactions && RNG::percent(customTrainingFactor))
+			_currentStats.firing++;
 		if(_currentStats.health < caps1.health && RNG::generate(0, caps2.health) > _currentStats.health && RNG::percent(customTrainingFactor))
 			_currentStats.health++;
 		if(_currentStats.melee < caps1.melee && RNG::generate(0, caps2.melee) > _currentStats.melee && RNG::percent(customTrainingFactor))
