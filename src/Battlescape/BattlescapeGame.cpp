@@ -500,7 +500,7 @@ void BattlescapeGame::endTurn()
 			getMod()->getSoundByDepth(_save->getDepth(), Mod::SLIDING_DOOR_CLOSE)->play(); // ufo door closed
 		}
 
-		// lets process battleScripts
+		// Battle scripts processing
 		if (side == FACTION_PLAYER)
 		{
 			std::string deployBattleScript = _save->getAlienDeploymet()->getBattleScript();
@@ -651,7 +651,7 @@ void BattlescapeGame::endTurn()
 			return;
 		}
 	}
-
+	//this one should work with only tally, but without additions somehow case soldier selection bug, worth investing time to investigate 
 	if (tally.liveSoldiers > 0 && (tally.liveAliens > 0 || toDoScripts || _save->getObjectiveType() == MUST_DESTROY))
 	{
 		showInfoBoxQueue();
@@ -666,10 +666,9 @@ void BattlescapeGame::endTurn()
 	}
 
 	bool battleComplete = tally.liveAliens == 0 || tally.liveSoldiers == 0;
-
 	if (battleComplete)
 	{
-		if (scriptsToProcess())
+		if (toDoScripts)
 		{
 			battleComplete = false;
 		}

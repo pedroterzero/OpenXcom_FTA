@@ -1161,7 +1161,7 @@ void SavedBattleGame::newTurnUpdateScripts()
 /**
  * Ends the current turn and progresses to the next one.
  */
-void SavedBattleGame::endTurn() //FINNIK TODO: Check it!
+void SavedBattleGame::endTurn()
 {
 	// reset turret direction for all hostile and neutral units (as it may have been changed during reaction fire)
 	for (std::vector<BattleUnit*>::iterator i = _units.begin(); i != _units.end(); ++i)
