@@ -38,6 +38,8 @@
 #include "../Engine/Game.h"
 #include "../Engine/Sound.h"
 #include "../Mod/RuleInventory.h"
+#include "../Mod/AlienDeployment.h"
+#include "../Savegame/Ufo.h"
 #include "../Battlescape/AIModule.h"
 #include "../Engine/RNG.h"
 #include "../Engine/Options.h"
@@ -625,6 +627,34 @@ void SavedBattleGame::setMissionType(const std::string &missionType)
 const std::string &SavedBattleGame::getMissionType() const
 {
 	return _missionType;
+}
+
+/**
+* Returns the alienDeployment rules for this battlescape game.
+* @return Pointer to the alien deployment rules.
+*/
+AlienDeployment* SavedBattleGame::getAlienDeploymet()
+{
+	SavedGame* save = this->getGeoscapeSave();
+	AlienDeployment* ruleDeploy = _rule->getDeployment(_missionType);
+	AlienDeployment* alienCustomMission = _rule->getDeployment(_alienCustomMission);
+	if (alienCustomMission)
+	{
+		ruleDeploy = alienCustomMission;
+	}
+	if (!ruleDeploy)
+	{
+		for (std::vector<Ufo*>::iterator ufo = save->getUfos()->begin(); ufo != save->getUfos()->end(); ++ufo)
+		{
+			if ((*ufo)->isInBattlescape())
+			{
+				// Note: fake underwater UFO deployment was already considered above (via alienCustomMission)
+				ruleDeploy = _rule->getDeployment((*ufo)->getRules()->getType());
+				break;
+			}
+		}
+	}
+	return ruleDeploy;
 }
 
 /**

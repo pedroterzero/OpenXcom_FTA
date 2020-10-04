@@ -506,6 +506,7 @@
     <ClCompile Include="Menu\TestPaletteState.cpp" />
     <ClCompile Include="Menu\TestState.cpp" />
     <ClCompile Include="Menu\VideoState.cpp" />
+    <ClCompile Include="Mod\BattleScript.cpp" />
     <ClCompile Include="Mod\CustomPalettes.cpp" />
     <ClCompile Include="Mod\RuleArcScript.cpp" />
     <ClCompile Include="Mod\RuleCovertOperation.cpp" />
@@ -917,6 +918,7 @@
     <ClInclude Include="Menu\TestPaletteState.h" />
     <ClInclude Include="Menu\TestState.h" />
     <ClInclude Include="Menu\VideoState.h" />
+    <ClInclude Include="Mod\BattleScript.h" />
     <ClInclude Include="Mod\CustomPalettes.h" />
     <ClInclude Include="Mod\ModScript.h" />
     <ClInclude Include="Mod\RuleArcScript.h" />

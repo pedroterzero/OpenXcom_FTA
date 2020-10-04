@@ -90,6 +90,7 @@ class RuleGlobe;
 class RuleConverter;
 class SoundDefinition;
 class MapScript;
+class BattleScript;
 class ModInfo;
 class RuleVideo;
 class RuleMusic;
@@ -186,6 +187,7 @@ private:
 	std::map<std::string, RuleVideo *>_videos;
 	std::map<std::string, MCDPatch *> _MCDPatches;
 	std::map<std::string, std::vector<MapScript *> > _mapScripts;
+	std::map<std::string, std::vector<BattleScript*> > _battleScripts;
 	std::map<std::string, RuleCommendations *> _commendations;
 	std::map<std::string, RuleDiplomacyFaction*> _diplomacyFactions;
 	std::map<std::string, RuleCovertOperation*> _covertOperations;
@@ -926,6 +928,9 @@ public:
 	const std::vector<SDL_Color> *getTransparencies() const;
 	const std::vector<MapScript*> *getMapScript(const std::string& id) const;
 	const std::map<std::string, std::vector<MapScript*> > &getMapScriptsRaw() const { return _mapScripts; }
+	/// Gets battlescripts.
+	const std::vector<BattleScript*>* getBattleScript(const std::string& id) const;
+	const std::map<std::string, std::vector<BattleScript*> >& getBattleScriptsRaw() const { return _battleScripts; }
 	/// Gets a video for intro/outro etc.
 	RuleVideo *getVideo(const std::string &id, bool error = false) const;
 	const std::map<std::string, RuleMusic *> *getMusic() const;

@@ -299,6 +299,7 @@ set ( mod_src
   Mod/ExtraSounds.cpp
   Mod/ExtraSprites.cpp
   Mod/ExtraStrings.cpp
+  Mod/BattleScript.cpp
   Mod/MapBlock.cpp
   Mod/MapData.cpp
   Mod/MapDataSet.cpp

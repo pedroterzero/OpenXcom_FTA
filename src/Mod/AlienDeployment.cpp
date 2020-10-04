@@ -185,6 +185,7 @@ void AlienDeployment::load(const YAML::Node &node, Mod *mod)
 	_loseCutscene = node["loseCutscene"].as<std::string>(_loseCutscene);
 	_abortCutscene = node["abortCutscene"].as<std::string>(_abortCutscene);
 	_script = node["script"].as<std::string>(_script);
+	_battleScript = node["battleScript"].as<std::string>(_battleScript);
 	_alert = node["alert"].as<std::string>(_alert);
 	_alertBackground = node["alertBackground"].as<std::string>(_alertBackground);
 	_alertDescription = node["alertDescription"].as<std::string>(_alertDescription);
