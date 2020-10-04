@@ -64,6 +64,7 @@
 #include "RuleUfo.h"
 #include "RuleTerrain.h"
 #include "MapScript.h"
+#include "BattleScript.h"
 #include "RuleSoldier.h"
 #include "RuleSkill.h"
 #include "RuleCommendations.h"
@@ -676,6 +677,13 @@ Mod::~Mod()
 		for (std::vector<MapScript*>::iterator j = (*i).second.begin(); j != (*i).second.end(); ++j)
 		{
 			delete *j;
+		}
+	}
+	for (std::map<std::string, std::vector<BattleScript*> >::iterator i = _battleScripts.begin(); i != _battleScripts.end(); ++i)
+	{
+		for (std::vector<BattleScript*>::iterator j = (*i).second.begin(); j != (*i).second.end(); ++j)
+		{
+			delete* j;
 		}
 	}
 	for (std::map<std::string, RuleVideo *>::const_iterator i = _videos.begin(); i != _videos.end(); ++i)
@@ -2726,6 +2734,24 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 			_mapScripts[type].push_back(mapScript);
 		}
 	}
+	for (YAML::const_iterator i = doc["battleScripts"].begin(); i != doc["battleScripts"].end(); ++i)
+	{
+		std::string type = (*i)["type"].as<std::string>();
+		if ((*i)["delete"])
+		{
+			type = (*i)["delete"].as<std::string>(type);
+		}
+		if (_battleScripts.find(type) != _battleScripts.end())
+		{
+			Collections::deleteAll(_battleScripts[type]);
+		}
+		for (YAML::const_iterator j = (*i)["commands"].begin(); j != (*i)["commands"].end(); ++j)
+		{
+			BattleScript* battleScript = new BattleScript();
+			battleScript->load(*j);
+			_battleScripts[type].push_back(battleScript);
+		}
+	}
 	for (YAML::const_iterator i = doc["arcScripts"].begin(); i != doc["arcScripts"].end(); ++i)
 	{
 		RuleArcScript* rule = loadRule(*i, &_arcScripts, &_arcScriptIndex, "type");
@@ -4232,6 +4258,19 @@ const std::vector<MapScript*> *Mod::getMapScript(const std::string& id) const
 {
 	std::map<std::string, std::vector<MapScript*> >::const_iterator i = _mapScripts.find(id);
 	if (_mapScripts.end() != i)
+	{
+		return &i->second;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+const std::vector<BattleScript*>* Mod::getBattleScript(const std::string& id) const
+{
+	std::map<std::string, std::vector<BattleScript*> >::const_iterator i = _battleScripts.find(id);
+	if (_battleScripts.end() != i)
 	{
 		return &i->second;
 	}

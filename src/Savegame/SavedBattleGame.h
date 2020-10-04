@@ -42,6 +42,8 @@ class Mod;
 class State;
 class ItemContainer;
 class RuleItem;
+class AlienDeployment;
+class Ufo;
 class HitLog;
 enum HitLogEntryType : int;
 
@@ -145,6 +147,8 @@ public:
 	void setMissionCraftOrBase(const std::string& missionCraftOrBase) { _strCraftOrBase = missionCraftOrBase; }
 	/// Gets the mission craft/base.
 	const std::string& getMissionCraftOrBase() const { return _strCraftOrBase; }
+	/// Gets the deployment rules.
+	AlienDeployment* getAlienDeploymet();
 	/// Gets the base's items BEFORE the mission.
 	ItemContainer *getBaseStorageItems();
 	/// Applies the enviro effects.

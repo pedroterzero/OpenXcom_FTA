@@ -667,7 +667,7 @@ void BattlescapeGenerator::run()
 				ruleDeploy = _game->getMod()->getDeployment(ruleDeploy->getAlternativeDeploymentName());
 				if (ruleDeploy == 0)
 				{
-					throw Exception(ruleDeploy->getType() +  " is not defined in rulesets!");
+					throw Exception("Alien deployment " + ruleDeploy->getType() +  " is not defined in rulesets!");
 				}
 				++tries;
 			}
