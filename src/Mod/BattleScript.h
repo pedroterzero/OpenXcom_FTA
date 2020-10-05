@@ -111,9 +111,9 @@ public:
 	/// Gets the side for unit, that would be spawned with command.
 	int getSide() const { return _unitSide; };
 	/// Gets pack size for units, that would be spawned with command.
-	int getPackSide() const { return _packSize; };
+	int getPackSize() const { return _packSize; };
 	/// Gets if pack size should be randomised with command.
-	bool getRandomPackSide() const { return _randomPackSize; };
+	bool getRandomPackSize() const { return _randomPackSize; };
 	/// Gets the min Z level for command.
 	int getMinLevel() const { return _minLevel; };
 	/// Gets the max Z level for command.

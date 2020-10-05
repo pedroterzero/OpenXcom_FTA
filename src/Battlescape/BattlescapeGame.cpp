@@ -3264,10 +3264,10 @@ void OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 		//chosing tile inside block
 		std::pair<int, int> selBlock = validBlock.at(RNG::generate(0, validBlock.size() - 1));
 		int currentPackSize = 0;
-		int packSize = command->getPackSide();
-		if (command->getRandomPackSide())
+		int packSize = command->getPackSize();
+		if (command->getRandomPackSize())
 		{
-			packSize = RNG::generate(1, command->getPackSide());
+			packSize = RNG::generate(1, command->getPackSize());
 		}
 		int iter = 100;
 		while (iter && !placed) // now we look for fine place inside mapblock
@@ -3377,16 +3377,6 @@ void OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 					//inform the player
 					_save->setSelectedUnit(newUnit);
 					_parentState->getMap()->setCursorType(CT_NONE);
-					std::vector<int> sounds = unitRule->getDeathSounds();
-					if (!sounds.empty())
-					{
-						if (sounds.size() > 1)
-							playSound(sounds[RNG::generate(0, sounds.size() - 1)]);
-						else
-							playSound(sounds.front());
-
-						Log(LOG_DEBUG) << "playing sound!";
-					}
 					// show a little infobox with message
 					Game* game = _parentState->getGame();
 					std::string messageText;
