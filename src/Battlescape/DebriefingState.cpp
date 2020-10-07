@@ -2394,7 +2394,7 @@ void DebriefingState::recoverItems(std::vector<BattleItem*> *from, Base *base)
 
 				if (awardItemPoints)
 				{
-					if (rule->isAlienArtifact())
+					if (rule->isAlienArtifact() || !_game->getMod()->getIsFTAGame())
 					{
 						addStat("STR_ALIEN_ARTIFACTS_RECOVERED", 1, points);
 					}
