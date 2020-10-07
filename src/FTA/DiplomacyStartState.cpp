@@ -251,7 +251,7 @@ DiplomacyInfoState::DiplomacyInfoState(const DiplomacyFaction* faction)
 {
 	auto rules = faction->getRules();
 		_screen = false;
-	std::string interfaceName = "diplimacyMainWindow";
+	std::string interfaceName = "diplomacyMainWindow";
 	_window = new Window(this, 250, 160, 35, 20, POPUP_BOTH);
 	_btnOk = new TextButton(103, 14, 174, 158);
 	_txtTitle = new Text(234, 17, 43, 28);
@@ -326,7 +326,7 @@ DiplomacyChooseBaseState::DiplomacyChooseBaseState(DiplomacyFaction* faction, Tr
 	}
 
 	centerAllSurfaces();
-	setWindowBackground(_window, interfaceName); //change background, its creppy!
+	setWindowBackground(_window, interfaceName); //FINNIK TODO: change background, its creppy!
 	_txtTitle->setText(tr("STR_CHOOSE_BASE"));
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setWordWrap(true);
