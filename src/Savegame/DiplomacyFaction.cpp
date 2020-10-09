@@ -226,8 +226,8 @@ bool DiplomacyFaction::factionMissionGenerator(Game& engine)
 				// make sure we haven't hit our run limit, if we have one
 				(ruleScript.getMaxRuns() == -1 || ruleScript.getMaxRuns() > save.getAlienStrategy().getMissionsRun(ruleScript.getVarName())) &&
 				// and make sure we satisfy the difficulty restrictions
-				(month < 1 || ruleScript.getMinScore() <= save.getCurrentScore(month)) &&
-				(month < 1 || ruleScript.getMaxScore() >= save.getCurrentScore(month)) &&
+				//(month < 1 || ruleScript.getMinScore() <= save.getCurrentScore(month)) &&
+				//(month < 1 || ruleScript.getMaxScore() >= save.getCurrentScore(month)) &&
 				(month < 1 || ruleScript.getMinLoyalty() <= loyalty) &&
 				(month < 1 || ruleScript.getMaxLoyalty() >= loyalty) &&
 				(month < 1 || ruleScript.getMinFunds() <= save.getFunds()) &&
@@ -291,8 +291,8 @@ bool DiplomacyFaction::factionEventGenerator(Game& engine)
 			if (ruleScript.getFirstMonth() <= month &&
 				(ruleScript.getLastMonth() >= month || ruleScript.getLastMonth() == -1) &&
 				// and make sure we satisfy the difficulty restrictions
-				(month < 1 || ruleScript.getMinScore() <= save.getCurrentScore(month)) &&
-				(month < 1 || ruleScript.getMaxScore() >= save.getCurrentScore(month)) &&
+				//(month < 1 || ruleScript.getMinScore() <= save.getCurrentScore(month)) &&
+				//(month < 1 || ruleScript.getMaxScore() >= save.getCurrentScore(month)) &&
 				(month < 1 || ruleScript.getMinLoyalty() <= loyalty) &&
 				(month < 1 || ruleScript.getMaxLoyalty() >= loyalty) &&
 				(month < 1 || ruleScript.getMinFunds() <= save.getFunds()) &&
