@@ -127,6 +127,26 @@ void SellState::delayedInit()
 
 	centerAllSurfaces();
 
+	_timerInc = new Timer(250);
+	_timerInc->onTimer((StateHandler)&SellState::increase);
+	_timerDec = new Timer(250);
+	_timerDec->onTimer((StateHandler)&SellState::decrease);
+}
+
+/**
+ * Delayed constructor functionality.
+ */
+void SellState::delayedInit()
+{
+	if (_delayedInitDone)
+	{
+		return;
+	}
+	_delayedInitDone = true;
+
+	bool overfull = _debriefingState == 0 && Options::storageLimitsEnforced && _base->storesOverfull();
+	bool overfullCritical = overfull ? _base->storesOverfullCritical() : false;
+
 	// Set up objects
 	setWindowBackground(_window, "sellMenu");
 
