@@ -2685,13 +2685,13 @@ bool DebriefingState::handleVipRecovery(BattleUnit* unit, Base* base, bool resul
 		std::string type = rules->getCivilianRecoveryType();
 		if (type == "STR_SCIENTIST")
 		{
-			Transfer* t = new Transfer(24);
+			Transfer* t = new Transfer(12);
 			t->setScientists(1);
 			base->getTransfers()->push_back(t);
 		}
 		else if (type == "STR_ENGINEER")
 		{
-			Transfer* t = new Transfer(24);
+			Transfer* t = new Transfer(12);
 			t->setEngineers(1);
 			base->getTransfers()->push_back(t);
 		}
@@ -2700,7 +2700,7 @@ bool DebriefingState::handleVipRecovery(BattleUnit* unit, Base* base, bool resul
 			RuleSoldier* ruleSoldier = _game->getMod()->getSoldier(type);
 			if (ruleSoldier != 0)
 			{
-				Transfer* t = new Transfer(24);
+				Transfer* t = new Transfer(12);
 				Soldier* s = _game->getMod()->genSoldier(_game->getSavedGame(), ruleSoldier->getType());
 				unit->setGeoscapeSoldied(s);
 				created = true;
