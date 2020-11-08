@@ -1118,6 +1118,7 @@
     </ClCompile>
     <ClCompile Include="Menu\NotesState.cpp">
       <Filter>Menu</Filter>
+    </ClCompile>
     <ClCompile Include="FTA\DiplomacyStartState.cpp">
       <Filter>FTA</Filter>
     </ClCompile>
@@ -2357,6 +2358,7 @@
     </ClInclude>
     <ClInclude Include="Menu\NotesState.h">
       <Filter>Menu</Filter>
+    </ClInclude>
     <ClInclude Include="FTA\DiplomacyStartState.h">
       <Filter>FTA</Filter>
     </ClInclude>

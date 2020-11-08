@@ -71,6 +71,24 @@ DiplomacySellState::DiplomacySellState(Base *base, DiplomacyFaction* faction, De
 		_base(base), _faction(faction), _debriefingState(debriefingState), _sel(0), _total(0), _spaceChange(0), _origin(origin),
 		_reset(false), _sellAllButOne(false), _delayedInitDone(false)
 {
+
+	_timerInc = new Timer(250);
+	_timerInc->onTimer((StateHandler)&DiplomacySellState::increase);
+	_timerDec = new Timer(250);
+	_timerDec->onTimer((StateHandler)&DiplomacySellState::decrease);
+}
+
+/**
+ * Delayed constructor functionality.
+ */
+void DiplomacySellState::delayedInit()
+{
+	if (_delayedInitDone)
+	{
+		return;
+	}
+	_delayedInitDone = true;
+
 	bool overfull = _debriefingState == 0 && Options::storageLimitsEnforced && _base->storesOverfull();
 	bool overfullCritical = overfull ? _base->storesOverfullCritical() : false;
 
@@ -112,26 +130,6 @@ DiplomacySellState::DiplomacySellState(Base *base, DiplomacyFaction* faction, De
 	add(_cbxCategory, "text", "sellMenu");
 
 	centerAllSurfaces();
-
-	_timerInc = new Timer(250);
-	_timerInc->onTimer((StateHandler)&DiplomacySellState::increase);
-	_timerDec = new Timer(250);
-	_timerDec->onTimer((StateHandler)&DiplomacySellState::decrease);
-}
-
-/**
- * Delayed constructor functionality.
- */
-void DiplomacySellState::delayedInit()
-{
-	if (_delayedInitDone)
-	{
-		return;
-	}
-	_delayedInitDone = true;
-
-	bool overfull = _debriefingState == 0 && Options::storageLimitsEnforced && _base->storesOverfull();
-	bool overfullCritical = overfull ? _base->storesOverfullCritical() : false;
 
 	// Set up objects		// Set up objects
 	setWindowBackground(_window, "sellMenu");
@@ -795,7 +793,7 @@ void DiplomacySellState::btnTransferClick(Action*)
 void DiplomacySellState::btnSellAllClick(Action*)
 {
 	bool allItemsSelected = true;
-	for (size_t i = 0; i < _lstItems->getRows(); ++i)
+	for (size_t i = 0; i < _lstItems->getTexts(); ++i)
 	{
 		if (_items[_rows[i]].qtySrc > _items[_rows[i]].amount)
 		{
@@ -806,7 +804,7 @@ void DiplomacySellState::btnSellAllClick(Action*)
 	int dir = allItemsSelected ? -1 : 1;
 
 	size_t backup = _sel;
-	for (size_t i = 0; i < _lstItems->getRows(); ++i)
+	for (size_t i = 0; i < _lstItems->getTexts(); ++i)
 	{
 		_sel = i;
 		changeByValue(INT_MAX, dir);

@@ -58,34 +58,21 @@ class BattleScript
 {
 private:
 	BattleScriptCommand _type;
-	bool _canBeSkipped;
-	std::vector<SDL_Rect*> _rects;
-	std::vector<int> _groups, _blocks, _frequencies, _maxUses, _conditionals;
-	std::vector<int> _groupsTemp, _blocksTemp, _frequenciesTemp, _maxUsesTemp;
+	std::vector<int> _groups, _conditionals;
 	int _executionChances, _executions, _cumulativeFrequency, _label;
-	
+	std::vector<std::string> _spawnBlocks;
+
 	std::vector<std::string> _itemSet, _unitSet;
 	std::map<int, BattleMessage> _message;
 	int _startTurn, _endTurn, _unitSide, _packSize, _minLevel, _maxLevel, _minDifficulty, _maxDifficulty;
 	bool _randomPackSize;
-
-	/// Randomly generate a group from within the array.
-	int getGroupNumber();
-	/// Randomly generate a block number from within the array.
-	int getBlockNumber();
 public:
 	BattleScript();
 	~BattleScript();
 	/// Loads information from a ruleset file.
 	void load(const YAML::Node& node);
-	/// Initializes all the variables and junk for a mapscript command.
-	void init();
 	/// Gets what type of command this is.
 	BattleScriptCommand getType() const { return _type; };
-	/// Can this command be skipped if unsuccessful?
-	bool canBeSkipped() const { return _canBeSkipped; };
-	/// Gets the rects, describing the areas this command applies to.
-	const std::vector<SDL_Rect*>* getRects() const { return &_rects; };
 	/// Get the chances of this command executing.
 	int getChancesOfExecution() const { return _executionChances; };
 	/// Gets the label for this command.
@@ -98,7 +85,7 @@ public:
 	/// Gets the groups vector for iteration.
 	const std::vector<int>* getGroups() const { return &_groups; };
 	/// Gets the blocks vector for iteration.
-	const std::vector<int>* getBlocks() const { return &_blocks; };
+	std::vector<std::string> getSpawnBlocks() const { return  _spawnBlocks; };
 
 	/// Gets the turn number that would start script execution.
 	int getStartTurn() const { return _startTurn; };
@@ -122,7 +109,6 @@ public:
 	int getMinDifficulty() const { return _minDifficulty; };
 	/// Gets the max difficulty level for command.
 	int getMaxDifficulty() const { return _maxDifficulty; };
-
 };
 
 }

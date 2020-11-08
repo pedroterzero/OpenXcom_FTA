@@ -51,6 +51,7 @@
 #include "../Mod/RuleItem.h"
 #include "../Mod/RuleInventory.h"
 #include "../Mod/RuleSoldier.h"
+#include "../Mod/RuleTerrain.h"
 #include "../Mod/Armor.h"
 #include "../Engine/Options.h"
 #include "../Engine/RNG.h"
@@ -3151,7 +3152,6 @@ void BattlescapeGame::autoEndBattle()
  */
 void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* script)
 {
-	Log(LOG_INFO) << "And now battleScripts are processing!";
 	// create an array to track command success/failure
 	std::map<int, bool> conditionals;
 	int mapsize_x = _save->getMapSizeX();
@@ -3223,6 +3223,10 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 				int x = 0, y = 0;
 				std::vector<SDL_Rect*> available;
 				std::vector<std::pair<int, int> > validBlocks;
+				std::vector<std::vector<bool>> compliantBlocksMap;
+				int sizeX = (mapsize_x / 10);
+				int sizeY = (mapsize_x / 10);
+				bool checkGroups = !command->getGroups()->empty();
 				switch (command->getType())
 				{
 				case BSC_SPAWN_ITEM:
@@ -3230,43 +3234,96 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 					break;
 				case BSC_SPAWN_UNIT:					
 					//finding a spot
-					SDL_Rect wholeMap;
-					wholeMap.x = 0;
-					wholeMap.y = 0;
-					wholeMap.w = (mapsize_x / 10);
-					wholeMap.h = (mapsize_y / 10);
-					if (command->getRects()->empty())
+					compliantBlocksMap.resize((sizeX), std::vector<bool>((sizeY), false)); // start with all false
+
+					if (!command->getSpawnBlocks().empty())
 					{
-						available.push_back(&wholeMap);
+						for (auto& dir : command->getSpawnBlocks())
+						{
+							if (dir == "N")
+								for (int x = 0; x < sizeX; ++x) compliantBlocksMap[x][0] = true;
+							else if (dir == "W")
+								for (int y = 0; y < sizeY; ++y) compliantBlocksMap[0][y] = true;
+							else if (dir == "S")
+								for (int x = 0; x < sizeX; ++x) compliantBlocksMap[x][sizeY - 1] = true;
+							else if (dir == "E")
+								for (int y = 0; y < sizeY; ++y) compliantBlocksMap[sizeX - 1][y] = true;
+							else if (dir == "NW")
+								compliantBlocksMap[0][0] = true;
+							else if (dir == "NE")
+								compliantBlocksMap[sizeX - 1][0] = true;
+							else if (dir == "SW")
+								compliantBlocksMap[0][sizeY - 1] = true;
+							else if (dir == "SE")
+								compliantBlocksMap[sizeX - 1][sizeY - 1] = true;
+						}
 					}
 					else
 					{
-						available = *command->getRects();
+						compliantBlocksMap.resize((sizeX), std::vector<bool>((sizeY), true)); //whole map
 					}
 
-					for (std::vector<SDL_Rect*>::const_iterator i = available.begin(); i != available.end(); ++i)
+					validBlocks.reserve(sizeX * sizeY);
+
+					for (x = 0; x < sizeX; ++x)
 					{
-						int x0 = (*i)->x;
-						int y0 = (*i)->y;
-						int w = (*i)->w;
-						int h = (*i)->h;
-						for (x = x0; x + 1 <= x0 + w && x + 1 <= wholeMap.w; ++x)
+						for (y = 0; y < sizeY; ++y)
 						{
-							for (y = y0; y + 1 <= y0 + h && y + 1 <= wholeMap.h; ++y)
+							if (compliantBlocksMap[x][y])
 							{
-								if (std::find(validBlocks.begin(), validBlocks.end(), std::make_pair(x, y)) == validBlocks.end())
+								if (checkGroups)
 								{
-									validBlocks.push_back(std::make_pair(x, y));
+									auto terrain = _save->getBattleGame()->getMod()->getTerrain(_save->getFlattenedMapTerrainNames()[x][y], false);
+									if (!terrain)
+									{
+										auto craft = _save->getBattleGame()->getMod()->getCraft(_save->getFlattenedMapTerrainNames()[x][y], false);
+										if (craft)
+										{
+											terrain = craft->getBattlescapeTerrainData();
+										}
+									}
+									if (!terrain)
+									{
+										auto ufo = _save->getBattleGame()->getMod()->getUfo(_save->getFlattenedMapTerrainNames()[x][y], false);
+										if (ufo)
+										{
+											terrain = ufo->getBattlescapeTerrainData();
+										}
+									}
+									if (terrain)
+									{
+										auto mapblock = terrain->getMapBlock(_save->getFlattenedMapBlockNames()[x][y]);
+										if (mapblock)
+										{
+											bool groupMatched = false;
+											for (auto group : *command->getGroups())
+											{
+												if (mapblock->isInGroup(group))
+												{
+													groupMatched = true;
+													break;
+												}
+											}
+											if (!groupMatched)
+											{
+												continue; // don't add this map block into compliantBlocksList
+											}
+										}
+									}
 								}
+								validBlocks.push_back(std::make_pair(x, y));
 							}
 						}
 					}
+					
 					if (validBlocks.empty())
 					{
 						Log(LOG_DEBUG) << "No valid location for the unit spawning with battlScript.";
 						continue;
 					}
+
 					scriptSpawnUnit(command, validBlocks);
+
 					break;
 				case BSC_SHOW_MESSAGE:
 					Log(LOG_ERROR) << "Sorry, there is no support of processing showMessage command yet! :] ";
@@ -3283,7 +3340,6 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 	}
 }
 
-
 void OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock)
 {
 	auto units = command->getUnitSet();
@@ -3291,8 +3347,6 @@ void OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 	{
 		throw Exception("BattleScript generator encountered an error: no units defined for: " + command->getType());
 	}
-	//int zMin = command->getLevels().first;
-	//int zMax = command->getLevels().second;
 	int zMin = command->getMinLevel();
 	int zMax = command->getMaxLevel();
 	int z = 0;

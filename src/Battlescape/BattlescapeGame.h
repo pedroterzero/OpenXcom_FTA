@@ -40,6 +40,7 @@ class InfoboxOKState;
 class SoldierDiary;
 class RuleSkill;
 class BattleScript;
+class RuleTerrain;
 
 enum BattleActionMove { BAM_NORMAL = 0, BAM_RUN = 1, BAM_STRAFE = 2 };
 
