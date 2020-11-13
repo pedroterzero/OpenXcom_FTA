@@ -34,6 +34,7 @@
 #include "../Interface/TextButton.h"
 #include "../Interface/TextList.h"
 #include "../Mod/RuleInterface.h"
+#include "../Savegame/SavedGame.h"
 #include "../Savegame/Soldier.h"
 
 namespace OpenXcom
@@ -149,7 +150,15 @@ namespace OpenXcom
 			ItemDamageType dt = (ItemDamageType)i;
 			int percentage = (int)Round(armor->getDamageModifier(dt) * 100.0f);
 			std::string damage = getDamageTypeText(dt);
-			if (percentage != 100 && damage != "STR_UNKNOWN")
+			bool unlocked = true;
+			if (_game->getMod()->getIsFTAGame())
+			{
+				if (!_game->getSavedGame()->isResearched(damage))
+				{
+					unlocked = false; //hide unresearched damage types 
+				}
+			}
+			if (percentage != 100 && damage != "STR_UNKNOWN" && unlocked)
 			{
 				addStat(damage, Unicode::formatPercentage(percentage));
 			}
