@@ -279,6 +279,12 @@ public:
 	void setResearchRuleStatus(const std::string &researchRule, int newStatus);
 	/// Sets the item as hidden or unhidden
 	void setHiddenPurchaseItemsStatus(const std::string &itemName, bool hidden);
+	/// Add covert operation to the "performed operation" list
+	void addPerformedCovertOperation(const std::string& operation) { _performedOperations.push_back(operation); };
+	/// Remove covert operation from the "performed operation" list
+	void removePerformedCovertOperation(const std::string& operation);
+	/// Get list of performed operations
+	const std::vector<std::string>& getPerformedCovertOperations() { return _performedOperations; };
 	/// Selects a "getOneFree" topic for the given research rule.
 	const RuleResearch* selectGetOneFree(const RuleResearch* research);
 	/// Remove a research from the "already discovered" list

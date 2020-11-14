@@ -477,9 +477,12 @@ void NextTurnState::close()
 	bool killingAllAliensIsNotEnough = _battleGame->getObjectiveType() == MUST_DESTROY || (_battleGame->getVIPSurvivalPercentage() > 0 && _battleGame->getVIPEscapeType() != ESCAPE_NONE);
 	bool toDoScripts = _battleGame->getBattleGame()->scriptsToProcess();
 
-	if (((!killingAllAliensIsNotEnough || !toDoScripts) && tally.liveAliens == 0) || tally.liveSoldiers == 0)
+	if ((!killingAllAliensIsNotEnough && tally.liveAliens == 0) || tally.liveSoldiers == 0)
 	{
-		_state->finishBattle(false, tally.liveSoldiers);
+		if (!toDoScripts)
+		{
+			_state->finishBattle(false, tally.liveSoldiers);
+		}
 	}
 	else
 	{
