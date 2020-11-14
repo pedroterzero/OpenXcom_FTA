@@ -380,6 +380,26 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 				save.addFinishedResearch(lookupResearch, &mod, _base, true);
 				_researchName = lookupResearch->getName();
 			}
+			if (auto bonus = save.selectGetOneFree(eventResearch))
+			{
+				save.addFinishedResearch(bonus, &mod, _base, true);
+				if (!bonus->getLookup().empty())
+				{
+					save.addFinishedResearch(mod.getResearch(bonus->getLookup(), true), &mod, _base, true);
+				}
+			}
+			// check and interrupt alien missions if necessary (based on unlocked research)
+			for (auto am : save.getAlienMissions())
+			{
+				auto interruptResearchName = am->getRules().getInterruptResearch();
+				if (!interruptResearchName.empty())
+				{
+					if (interruptResearchName == eventResearch->getName())
+					{
+						am->setInterrupted(true);
+					}
+				}
+			}
 		}
 	}
 	
