@@ -76,7 +76,7 @@ BattlescapeGenerator::BattlescapeGenerator(Game *game) :
 	_craft(0), _craftRules(0), _ufo(0), _base(0), _mission(0), _alienBase(0), _covertOperation(0), _terrain(0), _baseTerrain(0), _globeTerrain(0), _alternateTerrain(0),
 	_mapsize_x(0), _mapsize_y(0), _mapsize_z(0), _missionTexture(0), _globeTexture(0), _worldShade(0),
 	_unitSequence(0), _craftInventoryTile(0), _alienCustomDeploy(0), _alienCustomMission(0), _alienItemLevel(0), _ufoDamagePercentage(0),
-	_baseInventory(false), _generateFuel(true), _craftDeployed(false), _ufoDeployed(false), _craftZ(0), _craftPos(), _markAsReinforcementsBlock(false), _blocksToDo(0), _dummy(0)
+	_baseInventory(false), _generateFuel(true), _craftDeployed(false), _ufoDeployed(false), _craftZ(0), _craftPos(), _markAsReinforcementsBlock(0), _blocksToDo(0), _dummy(0)
 {
 	_allowAutoLoadout = !Options::disableAutoEquip;
 	if (_game->getSavedGame()->getDisableSoldierEquipment())
@@ -107,9 +107,9 @@ void BattlescapeGenerator::init(bool resetTerrain)
 	_loadedTerrains.clear();
 	_verticalLevelSegments.clear();
 
-	_markAsReinforcementsBlock = false;
+	_markAsReinforcementsBlock = 0;
 	_save->getReinforcementsBlocks().clear();
-	_save->getReinforcementsBlocks().resize((_mapsize_x / 10), std::vector<bool>((_mapsize_y / 10), false));
+	_save->getReinforcementsBlocks().resize((_mapsize_x / 10), std::vector<int>((_mapsize_y / 10), 0));
 
 	_save->getFlattenedMapTerrainNames().clear();
 	_save->getFlattenedMapTerrainNames().resize((_mapsize_x / 10), std::vector<std::string>((_mapsize_y / 10), ""));
@@ -610,14 +610,15 @@ void BattlescapeGenerator::nextStage()
 	}
 
 	int civilianSpawnNodeRank = ruleDeploy->getCivilianSpawnNodeRank();
+	bool markCiviliansAsVIP = ruleDeploy->getMarkCiviliansAsVIP();
 
 	// Special case: deploy civilians before aliens
 	if (civilianSpawnNodeRank > 0)
 	{
-		deployCivilians(civilianSpawnNodeRank, ruleDeploy->getCivilians());
+		deployCivilians(markCiviliansAsVIP, civilianSpawnNodeRank, ruleDeploy->getCivilians());
 		for (std::map<std::string, int>::const_iterator i = ruleDeploy->getCiviliansByType().begin(); i != ruleDeploy->getCiviliansByType().end(); ++i)
 		{
-			deployCivilians(civilianSpawnNodeRank, i->second, true, i->first);
+			deployCivilians(markCiviliansAsVIP, civilianSpawnNodeRank, i->second, true, i->first);
 		}
 	}
 
@@ -633,10 +634,10 @@ void BattlescapeGenerator::nextStage()
 	// Normal case: deploy civilians after aliens
 	if (civilianSpawnNodeRank == 0)
 	{
-		deployCivilians(civilianSpawnNodeRank, ruleDeploy->getCivilians());
+		deployCivilians(markCiviliansAsVIP, civilianSpawnNodeRank, ruleDeploy->getCivilians());
 		for (std::map<std::string, int>::const_iterator i = ruleDeploy->getCiviliansByType().begin(); i != ruleDeploy->getCiviliansByType().end(); ++i)
 		{
-			deployCivilians(civilianSpawnNodeRank, i->second, true, i->first);
+			deployCivilians(markCiviliansAsVIP, civilianSpawnNodeRank, i->second, true, i->first);
 		}
 	}
 
@@ -758,14 +759,15 @@ void BattlescapeGenerator::run()
 	deployXCOM(startingCondition, enviro);
 
 	int civilianSpawnNodeRank = ruleDeploy->getCivilianSpawnNodeRank();
+	bool markCiviliansAsVIP = ruleDeploy->getMarkCiviliansAsVIP();
 
 	// Special case: deploy civilians before aliens
 	if (civilianSpawnNodeRank > 0)
 	{
-		deployCivilians(civilianSpawnNodeRank, ruleDeploy->getCivilians());
+		deployCivilians(markCiviliansAsVIP, civilianSpawnNodeRank, ruleDeploy->getCivilians());
 		for (std::map<std::string, int>::const_iterator i = ruleDeploy->getCiviliansByType().begin(); i != ruleDeploy->getCiviliansByType().end(); ++i)
 		{
-			deployCivilians(civilianSpawnNodeRank, i->second, true, i->first);
+			deployCivilians(markCiviliansAsVIP, civilianSpawnNodeRank, i->second, true, i->first);
 		}
 	}
 
@@ -781,10 +783,10 @@ void BattlescapeGenerator::run()
 	// Normal case: deploy civilians after aliens
 	if (civilianSpawnNodeRank == 0)
 	{
-		deployCivilians(civilianSpawnNodeRank, ruleDeploy->getCivilians());
+		deployCivilians(markCiviliansAsVIP, civilianSpawnNodeRank, ruleDeploy->getCivilians());
 		for (std::map<std::string, int>::const_iterator i = ruleDeploy->getCiviliansByType().begin(); i != ruleDeploy->getCiviliansByType().end(); ++i)
 		{
-			deployCivilians(civilianSpawnNodeRank, i->second, true, i->first);
+			deployCivilians(markCiviliansAsVIP, civilianSpawnNodeRank, i->second, true, i->first);
 		}
 	}
 
@@ -2091,7 +2093,7 @@ void BattlescapeGenerator::explodePowerSources()
  * Spawns civilians on a terror mission.
  * @param max Maximum number of civilians to spawn.
  */
-void BattlescapeGenerator::deployCivilians(int nodeRank, int max, bool roundUp, const std::string &civilianType)
+void BattlescapeGenerator::deployCivilians(bool markAsVIP, int nodeRank, int max, bool roundUp, const std::string &civilianType)
 {
 	if (max)
 	{
@@ -2130,6 +2132,7 @@ void BattlescapeGenerator::deployCivilians(int nodeRank, int max, bool roundUp, 
 				BattleUnit* civ = addCivilian(rule, nodeRank);
 				if (civ)
 				{
+					if (markAsVIP) civ->markAsVIP();
 					size_t itemLevel = (size_t)(_game->getMod()->getAlienItemLevels().at(month).at(RNG::generate(0,9)));
 					// Built in weapons: civilians may have levelled item lists with randomized distribution
 					// following the same basic rules as the alien item levels.
@@ -2424,7 +2427,7 @@ void BattlescapeGenerator::generateMap(const std::vector<MapScript*> *script, co
 					terrain = currentLevel->levelTerrain == "" ? terrain : pickTerrain(currentLevel->levelTerrain);
 				}
 
-				_markAsReinforcementsBlock = command->markAsReinforcementsBlock();
+				_markAsReinforcementsBlock = command->markAsReinforcementsBlock() ? 1 : 0;
 
 				switch (command->getType())
 				{
@@ -2826,7 +2829,7 @@ void BattlescapeGenerator::generateBaseMap()
 				// Get the vertical levels from the facility ruleset and create a list according to map size
 				_verticalLevels.clear();
 				_verticalLevels = (*i)->getRules()->getVerticalLevels();
-				command.setVerticalLevels(_verticalLevels);
+				command.setVerticalLevels(_verticalLevels, (*i)->getRules()->getSize());
 				populateVerticalLevels(&command);
 
 				std::vector<VerticalLevel>::iterator currentLevel = _verticalLevels.begin();
@@ -4101,7 +4104,7 @@ bool BattlescapeGenerator::removeBlocks(MapScript *command)
 		{
 			for (int dy = y; dy != y + dely; ++dy)
 			{
-				_save->getReinforcementsBlocks()[dx][dy] = false;
+				_save->getReinforcementsBlocks()[dx][dy] = 0;
 				_save->getFlattenedMapTerrainNames()[dx][dy] = "";
 				_save->getFlattenedMapBlockNames()[dx][dy] = "";
 				_blocks[dx][dy] = 0;
@@ -4153,6 +4156,10 @@ void BattlescapeGenerator::setupObjectives(const AlienDeployment *ruleDeploy)
 	{
 		_save->setBughuntMinTurn(ruleDeploy->getBughuntMinTurn());
 	}
+
+	// used for "escort the VIPs" and "protect the VIPs" missions
+	_save->setVIPSurvivalPercentage(ruleDeploy->getVIPSurvivalPercentage());
+	_save->setVIPEscapeType(ruleDeploy->getEscapeType());
 
 	int targetType = ruleDeploy->getObjectiveType();
 

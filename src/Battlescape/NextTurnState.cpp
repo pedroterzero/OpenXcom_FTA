@@ -473,9 +473,11 @@ void NextTurnState::close()
 		_battleGame->getBattleGame()->resetAllEnemiesNeutralized();
 	}
 
-	if (((_battleGame->getObjectiveType() != MUST_DESTROY && tally.liveAliens == 0) // not the final mission and all aliens dead.
-		|| tally.liveSoldiers == 0) //we failed
-		&& !_battleGame->getBattleGame()->scriptsToProcess()) //nothing to be processed	
+	// not "escort the VIPs" missions, unprocessed battleScripts, not the final mission and all aliens dead.
+	bool killingAllAliensIsNotEnough = _battleGame->getObjectiveType() == MUST_DESTROY || (_battleGame->getVIPSurvivalPercentage() > 0 && _battleGame->getVIPEscapeType() != ESCAPE_NONE);
+	bool toDoScripts = _battleGame->getBattleGame()->scriptsToProcess();
+
+	if (((!killingAllAliensIsNotEnough || !toDoScripts) && tally.liveAliens == 0) || tally.liveSoldiers == 0)
 	{
 		_state->finishBattle(false, tally.liveSoldiers);
 	}
@@ -577,11 +579,11 @@ bool NextTurnState::determineReinforcements()
 			}
 			else if (wave.mapBlockFilterType == MFT_BY_REINFORCEMENTS || wave.mapBlockFilterType == MFT_BY_BOTH_UNION || wave.mapBlockFilterType == MFT_BY_BOTH_INTERSECTION)
 			{
-				_compliantBlocksMap.resize((sizeX), std::vector<bool>((sizeY), false)); // start with all false
+				_compliantBlocksMap.resize((sizeX), std::vector<int>((sizeY), 0)); // start with all false
 			}
 			else //if (wave.mapBlockFilterType == MFT_NONE)
 			{
-				_compliantBlocksMap.resize((sizeX), std::vector<bool>((sizeY), true)); // all true (and we're done)
+				_compliantBlocksMap.resize((sizeX), std::vector<int>((sizeY), 1)); // all true (and we're done)
 			}
 
 			if (wave.mapBlockFilterType == MFT_BY_REINFORCEMENTS || wave.mapBlockFilterType == MFT_BY_BOTH_UNION || wave.mapBlockFilterType == MFT_BY_BOTH_INTERSECTION)
@@ -590,22 +592,30 @@ bool NextTurnState::determineReinforcements()
 				{
 					for (auto& dir : wave.spawnBlocks)
 					{
-						if (dir == "N")
-							for (int x = 0; x < sizeX; ++x) _compliantBlocksMap[x][0] = true;
-						else if (dir == "W")
-							for (int y = 0; y < sizeY; ++y) _compliantBlocksMap[0][y] = true;
-						else if (dir == "S")
-							for (int x = 0; x < sizeX; ++x) _compliantBlocksMap[x][sizeY - 1] = true;
-						else if (dir == "E")
-							for (int y = 0; y < sizeY; ++y) _compliantBlocksMap[sizeX - 1][y] = true;
+						if (dir == "EDGES")
+						{
+							for (int x = 0; x < sizeX; ++x) _compliantBlocksMap[x][0] = 1;
+							for (int y = 0; y < sizeY; ++y) _compliantBlocksMap[0][y] = 1;
+							for (int x = 0; x < sizeX; ++x) _compliantBlocksMap[x][sizeY - 1] = 1;
+							for (int y = 0; y < sizeY; ++y) _compliantBlocksMap[sizeX - 1][y] = 1;
+							break;
+						}
+						if (dir == "NORTH")
+							for (int x = 0; x < sizeX; ++x) _compliantBlocksMap[x][0] = 1;
+						else if (dir == "WEST")
+							for (int y = 0; y < sizeY; ++y) _compliantBlocksMap[0][y] = 1;
+						else if (dir == "SOUTH")
+							for (int x = 0; x < sizeX; ++x) _compliantBlocksMap[x][sizeY - 1] = 1;
+						else if (dir == "EAST")
+							for (int y = 0; y < sizeY; ++y) _compliantBlocksMap[sizeX - 1][y] = 1;
 						else if (dir == "NW")
-							_compliantBlocksMap[0][0] = true;
+							_compliantBlocksMap[0][0] = 1;
 						else if (dir == "NE")
-							_compliantBlocksMap[sizeX - 1][0] = true;
+							_compliantBlocksMap[sizeX - 1][0] = 1;
 						else if (dir == "SW")
-							_compliantBlocksMap[0][sizeY - 1] = true;
+							_compliantBlocksMap[0][sizeY - 1] = 1;
 						else if (dir == "SE")
-							_compliantBlocksMap[sizeX - 1][sizeY - 1] = true;
+							_compliantBlocksMap[sizeX - 1][sizeY - 1] = 1;
 					}
 				}
 
@@ -614,14 +624,14 @@ bool NextTurnState::determineReinforcements()
 					auto& toMerge = _battleGame->getReinforcementsBlocks();
 					for (int x = 0; x < sizeX; ++x)
 						for (int y = 0; y < sizeY; ++y)
-							_compliantBlocksMap[x][y] = _compliantBlocksMap[x][y] || toMerge[x][y];
+							_compliantBlocksMap[x][y] = _compliantBlocksMap[x][y] + toMerge[x][y];
 				}
 				else if (wave.mapBlockFilterType == MFT_BY_BOTH_INTERSECTION)
 				{
 					auto& toMerge = _battleGame->getReinforcementsBlocks();
 					for (int x = 0; x < sizeX; ++x)
 						for (int y = 0; y < sizeY; ++y)
-							_compliantBlocksMap[x][y] = _compliantBlocksMap[x][y] && toMerge[x][y];
+							_compliantBlocksMap[x][y] = _compliantBlocksMap[x][y] * toMerge[x][y];
 				}
 			}
 
@@ -633,7 +643,7 @@ bool NextTurnState::determineReinforcements()
 			{
 				for (int y = 0; y < sizeY; ++y)
 				{
-					if (_compliantBlocksMap[x][y])
+					if (_compliantBlocksMap[x][y] > 0)
 					{
 						if (checkGroups)
 						{
@@ -705,7 +715,7 @@ bool NextTurnState::determineReinforcements()
 				{
 					continue;
 				}
-				if (checkBlocks && !_compliantBlocksMap[node->getPosition().x / 10][node->getPosition().y / 10])
+				if (checkBlocks && _compliantBlocksMap[node->getPosition().x / 10][node->getPosition().y / 10] == 0)
 				{
 					continue;
 				}

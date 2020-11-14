@@ -180,13 +180,13 @@ namespace OpenXcom
  * @param type String defining the type.
  */
 AlienDeployment::AlienDeployment(const std::string &type) :
-	_type(type), _bughuntMinTurn(0), _width(0), _length(0), _height(0), _civilians(0), _civilianSpawnNodeRank(0),
+	_type(type), _bughuntMinTurn(0), _width(0), _length(0), _height(0), _civilians(0), _markCiviliansAsVIP(false), _civilianSpawnNodeRank(0),
 	_shade(-1), _minShade(-1), _maxShade(-1), _finalDestination(false), _isAlienBase(false), _isHidden(false), _fakeUnderwaterSpawnChance(0),
 	_alert("STR_ALIENS_TERRORISE"), _alertBackground("BACK03.SCR"), _alertDescription(""), _alertSound(-1),
 	_markerName("STR_TERROR_SITE"), _markerIcon(-1), _durationMin(0), _durationMax(0), _minDepth(0), _maxDepth(0),
 	_genMissionFrequency(0), _genMissionLimit(1000),
 	_objectiveType(-1), _objectivesRequired(0), _objectiveCompleteScore(0), _objectiveFailedScore(0), _despawnPenalty(0), _abortPenalty(0), _points(0),
-	_turnLimit(0), _cheatTurn(20), _chronoTrigger(FORCE_LOSE), _keepCraftAfterFailedMission(false), _allowObjectiveRecovery(false), _escapeType(ESCAPE_NONE),
+	_turnLimit(0), _cheatTurn(20), _chronoTrigger(FORCE_LOSE), _keepCraftAfterFailedMission(false), _allowObjectiveRecovery(false), _escapeType(ESCAPE_NONE), _vipSurvivalPercentage(0),
 	_baseDetectionRange(0), _baseDetectionChance(100), _huntMissionMaxFrequency(60)
 {
 }
@@ -233,6 +233,7 @@ void AlienDeployment::load(const YAML::Node &node, Mod *mod)
 	_length = node["length"].as<int>(_length);
 	_height = node["height"].as<int>(_height);
 	_civilians = node["civilians"].as<int>(_civilians);
+	_markCiviliansAsVIP = node["markCiviliansAsVIP"].as<bool>(_markCiviliansAsVIP);
 	_civilianSpawnNodeRank = node["civilianSpawnNodeRank"].as<int>(_civilianSpawnNodeRank);
 	mod->loadUnorderedNamesToInt(_type, _civiliansByType, node["civiliansByType"]);
 	_terrains = node["terrains"].as<std::vector<std::string> >(_terrains);
@@ -283,6 +284,8 @@ void AlienDeployment::load(const YAML::Node &node, Mod *mod)
 		_objectiveFailedText = node["objectiveFailed"][0].as<std::string>(_objectiveFailedText);
 		_objectiveFailedScore = node["objectiveFailed"][1].as<int>(_objectiveFailedScore);
 	}
+	_missionCompleteText = node["missionCompleteText"].as<std::string>(_missionCompleteText);
+	_missionFailedText = node["missionFailedText"].as<std::string>(_missionFailedText);
 	_despawnPenalty = node["despawnPenalty"].as<int>(_despawnPenalty);
 	_abortPenalty = node["abortPenalty"].as<int>(_abortPenalty);
 	_points = node["points"].as<int>(_points);
@@ -295,6 +298,7 @@ void AlienDeployment::load(const YAML::Node &node, Mod *mod)
 	_keepCraftAfterFailedMission = node["keepCraftAfterFailedMission"].as<bool>(_keepCraftAfterFailedMission);
 	_allowObjectiveRecovery = node["allowObjectiveRecovery"].as<bool>(_allowObjectiveRecovery);
 	_escapeType = EscapeType(node["escapeType"].as<int>(_escapeType));
+	_vipSurvivalPercentage = node["vipSurvivalPercentage"].as<int>(_vipSurvivalPercentage);
 	if (node["genMission"])
 	{
 		_genMission.load(node["genMission"]);
@@ -687,12 +691,14 @@ const std::string &AlienDeployment::getObjectivePopup() const
  * Fills out the variables associated with mission success, and returns if those variables actually contain anything.
  * @param &text a reference to the text we wish to alter.
  * @param &score a reference to the score we wish to alter.
+ * @param &missionText a reference to the custom mission text we wish to alter.
  * @return if there is anything worthwhile processing.
  */
-bool AlienDeployment::getObjectiveCompleteInfo(std::string &text, int &score) const
+bool AlienDeployment::getObjectiveCompleteInfo(std::string &text, int &score, std::string &missionText) const
 {
 	text = _objectiveCompleteText;
 	score = _objectiveCompleteScore;
+	missionText = _missionCompleteText;
 	return !text.empty();
 }
 
@@ -700,12 +706,14 @@ bool AlienDeployment::getObjectiveCompleteInfo(std::string &text, int &score) co
  * Fills out the variables associated with mission failure, and returns if those variables actually contain anything.
  * @param &text a reference to the text we wish to alter.
  * @param &score a reference to the score we wish to alter.
+ * @param &missionText a reference to the custom mission text we wish to alter.
  * @return if there is anything worthwhile processing.
  */
-bool AlienDeployment::getObjectiveFailedInfo(std::string &text, int &score) const
+bool AlienDeployment::getObjectiveFailedInfo(std::string &text, int &score, std::string &missionText) const
 {
 	text = _objectiveFailedText;
 	score = _objectiveFailedScore;
+	missionText = _missionFailedText;
 	return !text.empty();
 }
 
