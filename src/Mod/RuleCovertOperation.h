@@ -54,6 +54,8 @@ public:
 	~RuleCovertOperation();
 	/// Loads craft data from YAML.
 	void load(const YAML::Node& node, Mod* mod, int listOrder);
+	/// Cross link with other rules.
+	void afterLoad(const Mod* mod);
 	/// Gets the operation's name.
 	const std::string& getName() const { return _name; };
 	/// Gets the operation's description.

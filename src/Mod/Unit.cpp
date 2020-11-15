@@ -129,13 +129,7 @@ void Unit::afterLoad(const Mod* mod)
 	mod->linkRule(_armor, _armorName);
 	mod->linkRule(_spawnUnit, _spawnUnitName);
 	mod->linkRule(_builtInWeapons, _builtInWeaponsNames);
-	mod->linkRule(_altUnit, _altRecoveredUnit);
-
-	/*if (!_altRecoveredUnit.empty() && !mod->getUnit(_altRecoveredUnit))
-	{
-		throw Exception("Unit type: '" + this->getType() + "' has broken link in altRecoveredUnit: '" + _altRecoveredUnit +"'!");
-	}*/
-	
+	mod->linkRule(_altUnit, _altRecoveredUnit);	
 }
 
 /**

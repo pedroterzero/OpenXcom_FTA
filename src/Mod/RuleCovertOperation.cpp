@@ -84,6 +84,10 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_engineerEffect = node["engineerEffect"].as<int>(_engineerEffect);
 	_baseChances = node["baseChances"].as<int>(_baseChances);
 	_costs = node["costs"].as<int>(_costs);
+	if (_costs < 0)
+	{
+		throw Exception("Error in loading operation '" + _name + "'! Costs is less than 0, this is not allowed.");
+	}
 	_progressEventChance = node["progressEventChance"].as<int>(_progressEventChance);
 	_trapChance = node["trapChance"].as<int>(_trapChance);
 	_danger = node["danger"].as<int>(_danger);
@@ -133,6 +137,25 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	if (!_listOrder)
 	{
 		_listOrder = listOrder;
+	}
+}
+
+/**
+ * Cross link with other rules
+ */
+void RuleCovertOperation::afterLoad(const Mod* mod)
+{
+	if (!_successEvent.empty() && !mod->getEvent(_successEvent))
+	{
+		throw Exception("Cover operation named: '" + this->getName() + "' has broken link in successEvent: '" + _successEvent +"' is not found!");
+	}
+	if (!_failureEvent.empty() && !mod->getEvent(_failureEvent))
+	{
+		throw Exception("Cover operation named: '" + this->getName() + "' has broken link in failureEvent: '" + _failureEvent + "' is not found!");
+	}
+	if (!_progressEvent.empty() && !mod->getEvent(_progressEvent))
+	{
+		throw Exception("Cover operation named: '" + this->getName() + "' has broken link in progressEvent: '" + _progressEvent + "' is not found!");
 	}
 }
 
