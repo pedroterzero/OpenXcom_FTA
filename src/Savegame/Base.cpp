@@ -2278,7 +2278,7 @@ BasePlacementErrors Base::isAreaInUse(BaseAreaSubset area, const RuleBaseFacilit
 				auto find = std::find(prisonBegin, prisonCurr, type);
 				if (find != prisonCurr)
 				{
-					availablePrisonTypes[find - prisonBegin] = prisonSize;
+					availablePrisonTypes[find - prisonBegin] += prisonSize;
 				}
 			}
 		};
