@@ -1693,14 +1693,14 @@ void DebriefingState::prepareDebriefing()
 				{
 					if (!(*j)->isResummonedFakeCivilian())
 					{
-						addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -(*j)->getValue());
+						addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -value);
 					}
 				}
 				else
 				{
 					if (!(*j)->isResummonedFakeCivilian())
 					{
-						addStat("STR_CIVILIANS_SAVED", 1, (*j)->getValue());
+						addStat("STR_CIVILIANS_SAVED", 1, value);
 					}
 					recoverCivilian(*j, base);
 				}

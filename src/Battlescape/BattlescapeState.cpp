@@ -1269,7 +1269,12 @@ void BattlescapeState::btnShowLayersClick(Action *)
  */
 void BattlescapeState::btnUfopaediaClick(Action *)
 {
-	if (allowButtons())
+	bool ftaUnlocked = true;
+	if (!_game->getMod()->getUfopaediaUnlockResearch().empty())
+	{
+		ftaUnlocked = _game->getSavedGame()->isResearched(_game->getMod()->getUfopaediaUnlockResearch());
+	}
+	if (allowButtons() && ftaUnlocked)
 	{
 		Ufopaedia::open(_game);
 	}

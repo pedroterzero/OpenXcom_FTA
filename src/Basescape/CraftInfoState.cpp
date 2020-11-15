@@ -390,7 +390,12 @@ void CraftInfoState::btnOkClick(Action *)
  */
 void CraftInfoState::btnUfopediaClick(Action *)
 {
-	if (_craft)
+	bool ftaUnlocked = true;
+	if (!_game->getMod()->getUfopaediaUnlockResearch().empty())
+	{
+		ftaUnlocked = _game->getSavedGame()->isResearched(_game->getMod()->getUfopaediaUnlockResearch());
+	}
+	if (_craft && ftaUnlocked)
 	{
 		std::string articleId = _craft->getRules()->getType();
 		Ufopaedia::openArticle(_game, articleId);

@@ -949,8 +949,14 @@ void InventoryState::btnInventorySaveClick(Action *)
  */
 void InventoryState::btnUfopaediaClick(Action *)
 {
-	// don't accept clicks when moving items
-	if (_inv->getSelectedItem() != 0)
+	bool ftaUnlocked = true;
+	if (!_game->getMod()->getUfopaediaUnlockResearch().empty())
+	{
+		ftaUnlocked = _game->getSavedGame()->isResearched(_game->getMod()->getUfopaediaUnlockResearch());
+	}
+
+	// don't accept clicks when moving items or pedia loked
+	if (_inv->getSelectedItem() != 0 || !ftaUnlocked)
 	{
 		return;
 	}
