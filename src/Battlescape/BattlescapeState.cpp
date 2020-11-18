@@ -1889,7 +1889,11 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 					ss.str("");
 					ss << look;
 					ss << ".SPK";
-					surf = _game->getMod()->getSurface(ss.str(), true);
+					surf = _game->getMod()->getSurface(ss.str(), false);
+				}
+				if (!surf)
+				{
+					surf = _game->getMod()->getSurface(look, true);
 				}
 
 				// crop

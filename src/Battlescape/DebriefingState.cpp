@@ -2192,18 +2192,23 @@ void DebriefingState::prepareDebriefing()
 		const RuleResearch *research = _game->getMod()->getResearch(ruleDeploy->getUnlockedResearch());
 		if (research)
 		{
+			std::vector<const RuleResearch*> researchVec;
+			researchVec.push_back(research);
 			_game->getSavedGame()->addFinishedResearch(research, _game->getMod(), base, true);
 			if (!research->getLookup().empty())
 			{
-				_game->getSavedGame()->addFinishedResearch(_game->getMod()->getResearch(research->getLookup(), true), _game->getMod(), base, true);
+				researchVec.push_back(_game->getMod()->getResearch(research->getLookup(), true));
+				_game->getSavedGame()->addFinishedResearch(researchVec.back(), _game->getMod(), base, true);
 			}
 
 			if (auto bonus = _game->getSavedGame()->selectGetOneFree(research))
 			{
+				researchVec.push_back(bonus);
 				_game->getSavedGame()->addFinishedResearch(bonus, _game->getMod(), base, true);
 				if (!bonus->getLookup().empty())
 				{
-					_game->getSavedGame()->addFinishedResearch(_game->getMod()->getResearch(bonus->getLookup(), true), _game->getMod(), base, true);
+					researchVec.push_back(_game->getMod()->getResearch(bonus->getLookup(), true));
+					_game->getSavedGame()->addFinishedResearch(researchVec.back(), _game->getMod(), base, true);
 				}
 			}
 
@@ -2213,7 +2218,8 @@ void DebriefingState::prepareDebriefing()
 				auto interruptResearchName = am->getRules().getInterruptResearch();
 				if (!interruptResearchName.empty())
 				{
-					if (interruptResearchName == research->getName())
+					auto interruptResearch = _game->getMod()->getResearch(interruptResearchName, true);
+					if (std::find(researchVec.begin(), researchVec.end(), interruptResearch) != researchVec.end())
 					{
 						am->setInterrupted(true);
 					}
