@@ -90,7 +90,7 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 			_txtsName.push_back(txtName);
 			add(txtRep, "name", interfaceName);
 			txtRep->setAlign(ALIGN_CENTER);
-			int rep = faction->getReputation();
+			int rep = faction->getReputationLevel();
 			txtRep->setText(tr(faction->getReputationName()));
 			txtRep->setAlign(ALIGN_CENTER);
 			//Info, Negation
@@ -326,7 +326,7 @@ DiplomacyChooseBaseState::DiplomacyChooseBaseState(DiplomacyFaction* faction, Tr
 	}
 
 	centerAllSurfaces();
-	setWindowBackground(_window, interfaceName); //FINNIK TODO: change background, its creppy!
+	setWindowBackground(_window, interfaceName); //#FINNIKTODO: change background, its creppy!
 	_txtTitle->setText(tr("STR_CHOOSE_BASE"));
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setWordWrap(true);

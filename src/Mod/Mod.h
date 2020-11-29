@@ -233,7 +233,7 @@ private:
 	bool _healthReplenishAfterMission = true;
 	std::string _manaUnlockResearch;
 
-	int _coefBattlescape, _coefGeoscape, _coefDogfight, _coefResearch, _coefAlienMission, _coefUfo, _coefAlienBase;
+	int _coefBattlescape, _coefGeoscape, _coefDogfight, _coefResearch, _coefAlienMission, _coefUfo, _coefAlienBase, _noFundsPenalty, _noFundsValue;
 
 	std::string _loseMoney, _loseRating, _loseDefeat;
 	int _ufoGlancingHitThreshold, _ufoBeamWidthParameter;
@@ -267,7 +267,7 @@ private:
 	GameTime _startingTime;
 	int _startingDifficulty;
 	int _baseDefenseMapFromLocation;
-	std::map<int, std::string> _missionRatings, _monthlyRatings;
+	std::map<int, std::string> _missionRatings, _monthlyRatings, _loyaltyRatings, _reputationLevels;
 	std::map<std::string, std::string> _fixedUserOptions, _recommendedUserOptions;
 	std::vector<std::string> _hiddenMovementBackgrounds;
 	std::vector<std::string> _baseNamesFirst, _baseNamesMiddle, _baseNamesLast;
@@ -893,6 +893,8 @@ public:
 	const GameTime &getStartingTime() const;
 	/// Gets the game starting difficulty.
 	int getStartingDifficulty() const { return _startingDifficulty; }
+	/// Gets initial funding.
+	int getInitialFunding() const { return _initialFunding; }
 	/// Gets an MCDPatch.
 	MCDPatch *getMCDPatch(const std::string &id) const;
 	/// Gets the list of external Sprites.
@@ -963,12 +965,17 @@ public:
 	int getCoefAlienMission() const { return _coefAlienMission; };
 	int getCoefUfo() const { return _coefUfo; };
 	int getCoefAlienBase() const { return _coefAlienBase; };
+	int getNoFundsPenalty() const { return _noFundsPenalty; };
+	int getNoFundsValue() const { return _noFundsValue; };
 	/// Get global script data.
 	ScriptGlobal *getScriptGlobal() const;
 	RuleResearch *getFinalResearch() const;
 	RuleBaseFacility *getDestroyedFacility() const;
+	/// Get custom ratings
 	const std::map<int, std::string> *getMissionRatings() const;
 	const std::map<int, std::string> *getMonthlyRatings() const;
+	const std::map<int, std::string>* getLoyaltyRatings() const;
+	const std::map<int, std::string>* getReputationLevels() const;
 	const std::map<std::string, std::string> &getFixedUserOptions() const { return _fixedUserOptions; }
 	const std::map<std::string, std::string> &getRecommendedUserOptions() const { return _recommendedUserOptions; }
 	const std::vector<std::string> &getHiddenMovementBackgrounds() const;

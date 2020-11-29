@@ -73,6 +73,7 @@
 #include "FundingState.h"
 #include "../FTA/DiplomacyStartState.h"
 #include "MonthlyReportState.h"
+#include "AltMonthlyReportState.h"
 #include "ProductionCompleteState.h"
 #include "UfoDetectedState.h"
 #include "GeoscapeCraftState.h"
@@ -2701,7 +2702,7 @@ void GeoscapeState::time1Day()
 	}
 
 	// pay attention to your maintenance player!
-	if (_game->getSavedGame()->getTime()->isLastDayOfMonth())
+	if (_game->getSavedGame()->getTime()->isLastDayOfMonth() && !_game->getMod()->getIsFTAGame()) //not for FtA for now, sorry #FINNIKTODO
 	{
 		int month = _game->getSavedGame()->getMonthsPassed();
 		int currentScore = _game->getSavedGame()->getCurrentScore(month + 1);
@@ -2762,15 +2763,30 @@ void GeoscapeState::time1Month()
 
 	// Handle funding
 	timerReset();
-	_game->getSavedGame()->monthlyFunding();
-	if (_game->getMod()->getIsFTAGame()) { 	popup(new AlphaGameVersionEnds());	} else { popup(new MonthlyReportState(_globe)); } //temp for alpha FTA release
+	if (_game->getMod()->getIsFTAGame())
+	{
+		_game->getSavedGame()->monthlyScoring();
+		if (_game->getSavedGame()->getMonthsPassed() > 3)
+		{
+			popup(new AlphaGameVersionEnds()); //temp alpha 1 blocker
+		}
+		else
+		{
+			popup(new AltMonthlyReportState(_globe));
+		}
+	}
+	else
+	{
+		_game->getSavedGame()->monthlyFunding();
+		popup(new MonthlyReportState(_globe));
+	}
 
 	// Handle Xcom Operatives discovering bases
-	if (!_game->getSavedGame()->getAlienBases()->empty() && RNG::percent(20))
+	if (!_game->getSavedGame()->getAlienBases()->empty() && RNG::percent(20) && !_game->getMod()->getIsFTAGame()) // #FINNIKTODO for now let's disable it in FtA
 	{
 		for (std::vector<AlienBase*>::const_iterator b = _game->getSavedGame()->getAlienBases()->begin(); b != _game->getSavedGame()->getAlienBases()->end(); ++b)
 		{
-			if (!(*b)->isDiscovered()|| !(*b)->getDeployment()->isHidden())
+			if (!(*b)->isDiscovered())
 			{
 				(*b)->setDiscovered(true);
 				popup(new AlienBaseState(*b, this));

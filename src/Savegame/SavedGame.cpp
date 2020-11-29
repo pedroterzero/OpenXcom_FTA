@@ -146,7 +146,7 @@ bool haveReserchVector(const std::vector<const RuleResearch*> &vec,  const std::
 SavedGame::SavedGame() : _difficulty(DIFF_BEGINNER), _end(END_NONE), _ironman(false), _globeLon(0.0),
 						 _globeLat(0.0), _globeZoom(0), _battleGame(0), _debug(false),
 						 _warned(false), _monthsPassed(-1), _selectedBase(0), _autosales(), _disableSoldierEquipment(false), _alienContainmentChecked(false),
-						 _loyalty(0)
+						 _loyalty(0), _lastMonthsLoyalty(0)
 {
 	_time = new GameTime(6, 1, 1, 1999, 12, 0, 0);
 	_alienStrategy = new AlienStrategy();
@@ -430,6 +430,7 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 	_graphCountryToggles = doc["graphCountryToggles"].as<std::string>(_graphCountryToggles);
 	_graphFinanceToggles = doc["graphFinanceToggles"].as<std::string>(_graphFinanceToggles);
 	_loyalty = doc["loyalty"].as<int>(_loyalty);
+	_lastMonthsLoyalty = doc["lastMonthsLoyalty"].as<int>(_lastMonthsLoyalty);
 	_funds = doc["funds"].as< std::vector<int64_t> >(_funds);
 	_maintenance = doc["maintenance"].as< std::vector<int64_t> >(_maintenance);
 	_userNotes = doc["userNotes"].as< std::vector<std::string> >(_userNotes);
@@ -865,6 +866,7 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 	node["graphFinanceToggles"] = _graphFinanceToggles;
 	node["rng"] = RNG::getSeed();
 	node["loyalty"] = _loyalty;
+	node["lastMonthsLoyalty"] = _lastMonthsLoyalty;
 	node["funds"] = _funds;
 	node["maintenance"] = _maintenance;
 	node["userNotes"] = _userNotes;
@@ -1196,6 +1198,33 @@ void SavedGame::monthlyFunding()
 	_maintenance.back() = baseMaintenance;
 	_maintenance.push_back(0);
 	_incomes.push_back(countryFunding);
+	_expenditures.push_back(baseMaintenance);
+	_researchScores.push_back(0);
+
+	if (_incomes.size() > 12)
+		_incomes.erase(_incomes.begin());
+	if (_expenditures.size() > 12)
+		_expenditures.erase(_expenditures.begin());
+	if (_researchScores.size() > 12)
+		_researchScores.erase(_researchScores.begin());
+	if (_funds.size() > 12)
+		_funds.erase(_funds.begin());
+	if (_maintenance.size() > 12)
+		_maintenance.erase(_maintenance.begin());
+}
+
+/**
+ * Calculate monthly score and calcualte funds
+ * for FtA Game
+ */
+void SavedGame::monthlyScoring()
+{
+	auto baseMaintenance = getBaseMaintenance();
+	_funds.back() -= baseMaintenance;
+	_funds.push_back(_funds.back());
+	_maintenance.back() = baseMaintenance;
+	_maintenance.push_back(0);
+	_incomes.push_back(0);
 	_expenditures.push_back(baseMaintenance);
 	_researchScores.push_back(0);
 
