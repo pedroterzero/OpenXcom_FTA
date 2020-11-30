@@ -34,8 +34,8 @@ namespace OpenXcom
 RuleCovertOperation::RuleCovertOperation(const std::string& name) : _name(name), _soldierSlots(1), _optionalSoldierSlots(0),
 																	_scientistSlots(0), _engineerSlots(0), _optionalSoldierEffect(15), _scientistEffect(10), _engineerEffect(10),
 																	_baseChances(50), _costs(0), _itemSpaceLimit(-1), _itemSpaceEffect(10), _danger(0), _trapChance(0), _armorEffect(20),
-																	_successScore(0), _failureScore(0), _progressEventChance(0), _repeatProgressEvent(false),
-																	_successFunds(0), _failureFunds(0), _successMusic("GMMARS"), _failureMusic("GMLOSE"),
+																	_successScore(0), _failureScore(0), _progressEventChance(0), _repeatProgressEvent(false), _allowAllEquipment(false),
+																	_concealedItemsBonus(4), _requiredItemsEffect(5), _successFunds(0), _failureFunds(0), _successMusic("GMMARS"), _failureMusic("GMLOSE"),
 																	_listOrder(0) 
 {
 }
@@ -67,7 +67,10 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_failureMusic = node["failureMusic"].as<std::string>(_failureMusic);
 	_successEvent = node["successEvent"].as<std::string>(_successEvent);
 	_failureEvent = node["failureEvent"].as<std::string>(_failureEvent);
-	_progressEvent = node["progressEvent"].as<std::string>(_progressEvent);
+	if (node["progressEvent"])
+	{
+		_progressEvent.load(node["progressEvent"]);
+	}
 	_repeatProgressEvent = node["repeatProgressEvent"].as<bool>(_repeatProgressEvent);
 	_requires = node["requires"].as<std::vector<std::string>>(_requires);
 	mod->loadBaseFunction(_name, _requiresBaseFunc, node["requiresBaseFunc"]);
@@ -129,6 +132,9 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_itemSpaceLimit = node["itemSpaceLimit"].as<double>(_itemSpaceLimit);
 	_itemSpaceEffect = node["itemSpaceEffect"].as<double>(_itemSpaceEffect);
 	_requiredItems = node["requiredItems"].as<std::map<std::string, int>>(_requiredItems);
+	_requiredItemsEffect = node["requiredItemsEffect"].as<int>(_requiredItemsEffect);
+	_allowAllEquipment = node["allowAllEquipment"].as<bool>(_allowAllEquipment);
+	_concealedItemsBonus = node["concealedItemsBonus"].as<int>(_concealedItemsBonus);
 	_allowedArmor = node["allowedArmor"].as<std::vector<std::string>>(_allowedArmor);
 	_armorEffect = node["armorEffect"].as<int>(_armorEffect);
 	_soldierTypeEffectiveness = node["soldierTypeEffectiveness"].as<std::map<std::string, int>>(_soldierTypeEffectiveness);
@@ -153,10 +159,6 @@ void RuleCovertOperation::afterLoad(const Mod* mod)
 	{
 		throw Exception("Cover operation named: '" + this->getName() + "' has broken link in failureEvent: '" + _failureEvent + "' is not found!");
 	}
-	if (!_progressEvent.empty() && !mod->getEvent(_progressEvent))
-	{
-		throw Exception("Cover operation named: '" + this->getName() + "' has broken link in progressEvent: '" + _progressEvent + "' is not found!");
-	}
 }
 
 std::string RuleCovertOperation::chooseGenSuccessMissionType() const
@@ -179,6 +181,10 @@ std::string RuleCovertOperation::chooseGenInstantSuccessDeploumentType() const
 	return _instantSuccessDeployment.choose();
 }
 
+std::string RuleCovertOperation::chooseProgressEvent() const
+{
+	return _progressEvent.choose();
+}
 
 }
 

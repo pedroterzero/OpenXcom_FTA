@@ -2161,6 +2161,25 @@ void GeoscapeState::time1Hour()
 		}
 	}
 
+	//handle covert operations logic and updates
+	for (std::vector<Base*>::iterator i = _game->getSavedGame()->getBases()->begin(); i != _game->getSavedGame()->getBases()->end(); ++i)
+	{
+		for (auto operation : (*i)->getCovertOperations())
+		{
+			bool process = operation->think(*_game, *_globe);
+			if (process)
+				timerReset();
+			// Remove finished operation 
+			Collections::deleteIf(
+				_game->getSavedGame()->getGeoscapeEvents(),
+				[](GeoscapeEvent* ge)
+				{
+					return ge->isOver();
+				}
+			);
+		}
+	}
+
 	updateSlackingIndicator();
 }
 
@@ -2559,24 +2578,6 @@ void GeoscapeState::time1Day()
 		if (answer)
 		{
 			bool success = processCommand(mod->getMissionScript(faction->getCommandType()));
-		}
-	}
-	//handle daily covert operations logic
-	for (std::vector<Base*>::iterator i = _game->getSavedGame()->getBases()->begin(); i != _game->getSavedGame()->getBases()->end(); ++i)
-	{
-		for (auto operation : (*i)->getCovertOperations())
-		{
-			bool process = operation->think(*_game, *_globe);
-			if (process)
-				timerReset();
-			// Remove finished operation 
-			Collections::deleteIf(
-				_game->getSavedGame()->getGeoscapeEvents(),
-				[](GeoscapeEvent* ge)
-				{
-					return ge->isOver();
-				}
-			);
 		}
 	}
 
