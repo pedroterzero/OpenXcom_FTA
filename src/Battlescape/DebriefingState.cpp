@@ -1944,9 +1944,11 @@ void DebriefingState::prepareDebriefing()
 	int extraPoints = 0;
 	if (ruleDeploy && ruleDeploy->getExtendedObjectiveType() == "STR_EVACUATION" && (vipsLost > 0 || vipsSaved > 0))
 	{
+		success = true;
 		if (vipsSaved == 0 || (vipsSaved * 4) < vipsLost)
 		{
 			_txtTitle->setText(tr("STR_EVACUATION_FAILED"));
+			success = false;
 			if (!objectiveFailedText.empty())
 			{
 				addStat(objectiveFailedText, 1, objectiveFailedScore);
@@ -1967,9 +1969,11 @@ void DebriefingState::prepareDebriefing()
 	}
 	else if (ruleDeploy && ruleDeploy->getExtendedObjectiveType() == "STR_ITEM_EXTRACTION" && (_game->getSavedGame()->getSavedBattle()->getItemObjectivesNumber() > 0))
 	{
+		success = true;
 		if (_recoveredItemObjs == 0)
 		{
 			_txtTitle->setText(tr("STR_ITEM_EXTRACTION_FAILED"));
+			success = false;
 			if (!objectiveFailedText.empty())
 			{
 				addStat(objectiveFailedText, 1, objectiveFailedScore);
@@ -2241,6 +2245,13 @@ void DebriefingState::prepareDebriefing()
 				}
 			}
 		}
+
+		// Generate success event after mission
+		_game->getMasterMind()->spawnEvent(ruleDeploy->chooseSuccessEvent());
+	}
+	else if (!success)
+	{
+		_game->getMasterMind()->spawnEvent(ruleDeploy->chooseFailureEvent());
 	}
 
 	// remember the base for later use (of course only if it's not lost already (in that case base=0))
