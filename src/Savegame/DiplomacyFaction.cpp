@@ -53,6 +53,7 @@ void DiplomacyFaction::load(const YAML::Node &node)
 {
 	_reputationScore = node["reputationScore"].as<int>(_reputationScore);
 	_reputationLvL = node["reputationLvL"].as<int>(_reputationLvL);
+	_reputationName = node["reputationName"].as<std::string>(_reputationName);
 	_discovered = node["discovered"].as<bool>(_discovered);
 	_thisMonthDiscovered = node["thisMonthDiscovered"].as<bool>(_thisMonthDiscovered);
 	_treaties = node["treaties"].as<std::vector<std::string>>(_treaties);
@@ -68,6 +69,7 @@ YAML::Node DiplomacyFaction::save() const
 	node["name"] = _rule.getName();
 	node["reputationScore"] = _reputationScore;
 	node["reputationLvL"] = _reputationLvL;
+	node["reputationName"] = _reputationName;
 	if (_discovered)
 	{
 		node["discovered"] = _discovered;
