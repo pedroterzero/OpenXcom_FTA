@@ -2247,11 +2247,19 @@ void DebriefingState::prepareDebriefing()
 		}
 
 		// Generate success event after mission
-		_game->getMasterMind()->spawnEvent(ruleDeploy->chooseSuccessEvent());
+		auto eventName = ruleDeploy->chooseSuccessEvent();
+		if (!eventName.empty())
+		{
+			_game->getMasterMind()->spawnEvent(eventName);
+		}
 	}
 	else if (!success)
 	{
-		_game->getMasterMind()->spawnEvent(ruleDeploy->chooseFailureEvent());
+		auto eventName = ruleDeploy->chooseFailureEvent();
+		if (!eventName.empty())
+		{
+			_game->getMasterMind()->spawnEvent(eventName);
+		}
 	}
 
 	// remember the base for later use (of course only if it's not lost already (in that case base=0))

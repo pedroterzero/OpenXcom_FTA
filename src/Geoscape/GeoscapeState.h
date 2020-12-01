@@ -186,6 +186,7 @@ private:
 	bool processCommand(RuleMissionScript *command);
 	bool buttonsDisabled();
 	void updateSlackingIndicator();
+	void handleResearch(Base *base);
 };
 
 }
