@@ -2465,6 +2465,8 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 		_coefAlienBase = nodeLoyalty["coefAlienBase"].as<int>(_coefAlienBase);
 		_noFundsPenalty = nodeLoyalty["noFundsPenalty"].as<int>(_noFundsPenalty);
 		_noFundsValue = nodeLoyalty["noFundsValue"].as<int>(_noFundsValue);
+		_performanceCap = nodeLoyalty["performanceCap"].as<int>(_performanceCap);
+		_performanceFactor = nodeLoyalty["performanceFactor"].as<int>(_performanceFactor);
 	}
 
 	if (const YAML::Node &nodeGameOver = doc["gameOver"])

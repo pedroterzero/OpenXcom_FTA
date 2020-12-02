@@ -2061,9 +2061,10 @@ void GeoscapeState::time1Hour()
 	{
 		for (std::vector<Craft*>::iterator j = (*i)->getCrafts()->begin(); j != (*i)->getCrafts()->end(); ++j)
 		{
+			int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
 			if ((*j)->getStatus() == "STR_REPAIRS")
 			{
-				(*j)->repair();
+				(*j)->repair(bonus);
 			}
 			else if ((*j)->getStatus() == "STR_REARMING")
 			{
@@ -2108,7 +2109,8 @@ void GeoscapeState::time1Hour()
 		std::map<Production*, productionProgress_e> toRemove;
 		for (std::vector<Production*>::const_iterator j = (*i)->getProductions().begin(); j != (*i)->getProductions().end(); ++j)
 		{
-			toRemove[(*j)] = (*j)->step((*i), _game->getSavedGame(), _game->getMod(), _game->getLanguage());
+			int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
+			toRemove[(*j)] = (*j)->step((*i), _game->getSavedGame(), _game->getMod(), _game->getLanguage(), bonus);
 		}
 		for (std::map<Production*, productionProgress_e>::iterator j = toRemove.begin(); j != toRemove.end(); ++j)
 		{
@@ -4076,7 +4078,8 @@ void GeoscapeState::handleResearch(Base* base)
 	std::vector<ResearchProject*> finished;
 	for (ResearchProject* project : base->getResearch())
 	{
-		if (project->step())
+		int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
+		if (project->step(bonus))
 		{
 			finished.push_back(project);
 		}

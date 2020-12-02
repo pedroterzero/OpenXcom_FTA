@@ -1169,9 +1169,9 @@ unsigned int Craft::calcRearmTime()
  * Repairs the craft's damage every hour
  * while it's docked in the base.
  */
-void Craft::repair()
+void Craft::repair(int bonus)
 {
-	setDamage(_damage - _rules->getRepairRate());
+	setDamage(_damage - ((_rules->getRepairRate() * bonus) / 100));
 	if (_damage <= 0)
 	{
 		_status = "STR_REARMING";

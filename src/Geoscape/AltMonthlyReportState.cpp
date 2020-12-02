@@ -468,10 +468,10 @@ std::string AltMonthlyReportState::calculateUpdates()
 	int funds = save->getFunds();
 	if (funds < 0)
 	{
-		int noFundsV = _game->getMod()->getNoFundsValue();
+		int noFundsV = _game->getMod()->getLoyaltyNoFundsValue();
 		if (funds < noFundsV)
 		{
-			int	discontent = _game->getMod()->getNoFundsPenalty() * _game->getSavedGame()->getDifficultyCoefficient();
+			int	discontent = _game->getMod()->getLoyaltyNoFundsPenalty() * _game->getSavedGame()->getDifficultyCoefficient();
 			auto stuffMessage = tr("STR_STUFF_NO_MONEY1");
 
 			if (funds < noFundsV * 2)

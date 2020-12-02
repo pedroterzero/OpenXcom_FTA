@@ -233,7 +233,7 @@ private:
 	bool _healthReplenishAfterMission = true;
 	std::string _manaUnlockResearch;
 
-	int _coefBattlescape, _coefGeoscape, _coefDogfight, _coefResearch, _coefAlienMission, _coefUfo, _coefAlienBase, _noFundsPenalty, _noFundsValue;
+	int _coefBattlescape, _coefGeoscape, _coefDogfight, _coefResearch, _coefAlienMission, _coefUfo, _coefAlienBase, _noFundsPenalty, _noFundsValue, _performanceCap, _performanceFactor;
 
 	std::string _loseMoney, _loseRating, _loseDefeat;
 	int _ufoGlancingHitThreshold, _ufoBeamWidthParameter;
@@ -960,15 +960,17 @@ public:
 	const std::vector<std::string> *getMissionScriptList() const;
 	RuleMissionScript *getMissionScript(const std::string &name, bool error = false) const;
 	/// Get settings for loyalty
-	int getCoefBattlescape() const { return _coefBattlescape; };
-	int getCoefGeoscape() const { return _coefGeoscape; };
-	int getCoefDogfight() const { return _coefDogfight; };
-	int getCoefResearch() const { return _coefResearch; };
-	int getCoefAlienMission() const { return _coefAlienMission; };
-	int getCoefUfo() const { return _coefUfo; };
-	int getCoefAlienBase() const { return _coefAlienBase; };
-	int getNoFundsPenalty() const { return _noFundsPenalty; };
-	int getNoFundsValue() const { return _noFundsValue; };
+	int getLoyaltyCoefBattlescape() const { return _coefBattlescape; };
+	int getLoyaltyCoefGeoscape() const { return _coefGeoscape; };
+	int getLoyaltyCoefDogfight() const { return _coefDogfight; };
+	int getLoyaltyCoefResearch() const { return _coefResearch; };
+	int getLoyaltyCoefAlienMission() const { return _coefAlienMission; };
+	int getLoyaltyCoefUfo() const { return _coefUfo; };
+	int getLoyaltyCoefAlienBase() const { return _coefAlienBase; };
+	int getLoyaltyNoFundsPenalty() const { return _noFundsPenalty; };
+	int getLoyaltyNoFundsValue() const { return _noFundsValue; };
+	int getLoyaltyPerformanceCap() const { return _performanceCap; };
+	int getLoyaltyPerformanceFactor() const { return _performanceFactor; };
 	/// Get global script data.
 	ScriptGlobal *getScriptGlobal() const;
 	RuleResearch *getFinalResearch() const;

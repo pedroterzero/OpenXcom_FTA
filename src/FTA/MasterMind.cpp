@@ -178,31 +178,31 @@ void MasterMind::updateLoyalty(int score, LoyaltySource source)
 	switch (source)
 	{
 	case OpenXcom::XCOM_BATTLESCAPE:
-		coef = _game->getMod()->getCoefBattlescape();
+		coef = _game->getMod()->getLoyaltyCoefBattlescape();
 		reason = "XCOM_BATTLESCAPE";
 		break;
 	case OpenXcom::XCOM_DOGFIGHT:
-		coef = _game->getMod()->getCoefDogfight();
+		coef = _game->getMod()->getLoyaltyCoefDogfight();
 		reason = "XCOM_DOGFIGHT";
 		break;
 	case OpenXcom::XCOM_GEOSCAPE:
-		coef = _game->getMod()->getCoefGeoscape();
+		coef = _game->getMod()->getLoyaltyCoefGeoscape();
 		reason = "XCOM_GEOSCAPE";
 		break;
 	case OpenXcom::XCOM_RESEARCH:
-		coef = _game->getMod()->getCoefResearch();
+		coef = _game->getMod()->getLoyaltyCoefResearch();
 		reason = "XCOM_RESEARCH";
 		break;
 	case OpenXcom::ALIEN_MISSION_DESPAWN:
-		coef = _game->getMod()->getCoefAlienMission() * (-1);
+		coef = _game->getMod()->getLoyaltyCoefAlienMission() * (-1);
 		reason = "ALIEN_MISSION_DESPAWN";
 		break;
 	case OpenXcom::ALIEN_UFO_ACTIVITY:
-		coef = _game->getMod()->getCoefUfo() * (-1);
+		coef = _game->getMod()->getLoyaltyCoefUfo() * (-1);
 		reason = "ALIEN_UFO_ACTIVITY";
 		break;
 	case OpenXcom::ALIEN_BASE:
-		coef = _game->getMod()->getCoefAlienBase() * (-1);
+		coef = _game->getMod()->getLoyaltyCoefAlienBase() * (-1);
 		reason = "ALIEN_BASE";
 		break;
 	default:
@@ -212,6 +212,62 @@ void MasterMind::updateLoyalty(int score, LoyaltySource source)
 	loyalty += std::round((score * coef) / 100);
 	Log(LOG_DEBUG) << "Loyalty updating to:  " << loyalty << " from coef: " << coef << " and score value: " << score << " with reason: " << reason; //#FINNIKTODO #CLEARLOGS remove for next release
 	_game->getSavedGame()->setLoyalty(loyalty);
+}
+
+/**
+* Handle calculation of base services (manufacture, labs and craft repair) performance bonus caused bu loyalty score.
+* @return value of performance bonus.
+*/
+int MasterMind::getLoyaltyPerformanceBonus()
+{
+	int bonus = 100;
+	int loyalty = _game->getSavedGame()->getLoyalty();
+	int cap = _game->getMod()->getLoyaltyPerformanceCap();
+	int factor = _game->getMod()->getLoyaltyPerformanceFactor();
+	int chance = 0;
+
+	if (loyalty > 0)
+	{
+		if (loyalty > cap)
+		{
+			if (RNG::percent(factor / 3))
+			{
+				bonus = 240;
+				return bonus;
+			}
+			chance = factor;
+		}
+		else
+		{
+			chance = (loyalty * factor) / cap;
+		}
+
+		if (RNG::percent(chance))
+		{
+			bonus = 200;
+		}
+	}
+	else
+	{
+		chance = (-loyalty * factor * 1.5) / cap;
+
+		if (RNG::percent(chance))
+		{
+			bonus = 50;
+		}
+		else
+		{
+			chance = (-loyalty * factor) / cap;
+
+			if (RNG::percent(chance))
+			{
+				bonus = 0;
+			}
+		}
+	}
+
+	Log(LOG_DEBUG) << "Repformace bonus is " << bonus << " because of loyalty score " << loyalty << " and chance equal " << chance;
+	return bonus;
 }
 
 /**

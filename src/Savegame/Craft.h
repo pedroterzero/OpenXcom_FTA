@@ -200,7 +200,7 @@ public:
 	/// Calculates the time to rearm
 	unsigned int calcRearmTime();
 	/// Repairs the craft.
-	void repair();
+	void repair(int bonus = 100);
 	/// Refuels the craft.
 	void refuel();
 	/// Rearms the craft.
