@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 OpenXcom Developers.
+ * Copyright 2010-2020 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "../FTA/DiplomacySellState.h"
-#include "../Basescape/ManufactureDependenciesTreeState.h"
+#include "DisposeState.h"
+#include "ManufactureDependenciesTreeState.h"
 #include <algorithm>
 #include <locale>
 #include <sstream>
@@ -39,8 +39,8 @@
 #include "../Savegame/Base.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/Craft.h"
-#include "../Savegame/Vehicle.h"
 #include "../Savegame/ItemContainer.h"
+#include "../Savegame/Vehicle.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/Armor.h"
 #include "../Mod/RuleCraft.h"
@@ -52,36 +52,32 @@
 #include "../Engine/Unicode.h"
 #include "../Mod/RuleInterface.h"
 #include "../Battlescape/DebriefingState.h"
-#include "../Basescape/TransferBaseState.h"
-#include "../Basescape/TechTreeViewerState.h"
+#include "TransferBaseState.h"
+#include "TechTreeViewerState.h"
 #include "../Ufopaedia/Ufopaedia.h"
-#include "../Savegame/DiplomacyFaction.h"
-#include "../Mod/RuleDiplomacyFaction.h"
 
 namespace OpenXcom
 {
 
 /**
- * Initializes all the elements in the Sell/Sack screen.
- * @param game Pointer to the core game.
- * @param base Pointer to the base to get info from.
- * @param origin Game section that originated this state.
- */
-DiplomacySellState::DiplomacySellState(Base *base, DiplomacyFaction* faction, DebriefingState *debriefingState, OptionsOrigin origin) :
-		_base(base), _faction(faction), _debriefingState(debriefingState), _sel(0), _total(0), _spaceChange(0), _origin(origin),
-		_reset(false), _sellAllButOne(false), _delayedInitDone(false)
+* Initializes all the elements in the Sell/Sack screen.
+* @param game Pointer to the core game.
+* @param base Pointer to the base to get info from.
+* @param origin Game section that originated this state.
+*/
+	DisposeState::DisposeState(Base* base, DebriefingState* debriefingState, OptionsOrigin origin) : _base(base), _debriefingState(debriefingState), _sel(0), _total(0), _spaceChange(0), _origin(origin),
+	_reset(false), _sellAllButOne(false), _delayedInitDone(false)
 {
-
 	_timerInc = new Timer(250);
-	_timerInc->onTimer((StateHandler)&DiplomacySellState::increase);
+	_timerInc->onTimer((StateHandler)&DisposeState::increase);
 	_timerDec = new Timer(250);
-	_timerDec->onTimer((StateHandler)&DiplomacySellState::decrease);
+	_timerDec->onTimer((StateHandler)&DisposeState::decrease);
 }
 
 /**
- * Delayed constructor functionality.
- */
-void DiplomacySellState::delayedInit()
+* Delayed constructor functionality.
+*/
+void DisposeState::delayedInit()
 {
 	if (_delayedInitDone)
 	{
@@ -110,40 +106,40 @@ void DiplomacySellState::delayedInit()
 	_lstItems = new TextList(287, 120, 8, 54);
 
 	// Set palette
-	setInterface("sellMenu");
+	setInterface("disposeState");
 
-	_ammoColor = _game->getMod()->getInterface("sellMenu")->getElement("ammoColor")->color;
+	_ammoColor = _game->getMod()->getInterface("disposeState")->getElement("ammoColor")->color;
 
-	add(_window, "window", "sellMenu");
-	add(_btnQuickSearch, "button", "sellMenu");
-	add(_btnOk, "button", "sellMenu");
-	add(_btnCancel, "button", "sellMenu");
-	add(_btnTransfer, "button", "sellMenu");
-	add(_txtTitle, "text", "sellMenu");
-	add(_txtSales, "text", "sellMenu");
-	add(_txtFunds, "text", "sellMenu");
-	add(_txtSpaceUsed, "text", "sellMenu");
-	add(_txtQuantity, "text", "sellMenu");
-	add(_txtSell, "text", "sellMenu");
-	add(_txtValue, "text", "sellMenu");
-	add(_lstItems, "list", "sellMenu");
-	add(_cbxCategory, "text", "sellMenu");
+	add(_window, "window", "disposeState");
+	add(_btnQuickSearch, "button", "disposeState");
+	add(_btnOk, "button", "disposeState");
+	add(_btnCancel, "button", "disposeState");
+	add(_btnTransfer, "button", "disposeState");
+	add(_txtTitle, "text", "disposeState");
+	add(_txtSales, "text", "disposeState");
+	add(_txtFunds, "text", "disposeState");
+	add(_txtSpaceUsed, "text", "disposeState");
+	add(_txtQuantity, "text", "disposeState");
+	add(_txtSell, "text", "disposeState");
+	add(_txtValue, "text", "disposeState");
+	add(_lstItems, "list", "disposeState");
+	add(_cbxCategory, "text", "disposeState");
 
 	centerAllSurfaces();
 
-	// Set up objects		// Set up objects
-	setWindowBackground(_window, "sellMenu");
+	// Set up objects
+	setWindowBackground(_window, "disposeState");
 
-	_btnOk->setText(tr("STR_SELL_SACK"));
-	_btnOk->onMouseClick((ActionHandler)&DiplomacySellState::btnOkClick);
-	_btnOk->onKeyboardPress((ActionHandler)&DiplomacySellState::btnOkClick, Options::keyOk);
+	_btnOk->setText(tr("STR_DISPOSE_DISMISS"));
+	_btnOk->onMouseClick((ActionHandler)&DisposeState::btnOkClick);
+	_btnOk->onKeyboardPress((ActionHandler)&DisposeState::btnOkClick, Options::keyOk);
 
 	_btnCancel->setText(tr("STR_CANCEL"));
-	_btnCancel->onMouseClick((ActionHandler)&DiplomacySellState::btnCancelClick);
-	_btnCancel->onKeyboardPress((ActionHandler)&DiplomacySellState::btnCancelClick, Options::keyCancel);
+	_btnCancel->onMouseClick((ActionHandler)&DisposeState::btnCancelClick);
+	_btnCancel->onKeyboardPress((ActionHandler)&DisposeState::btnCancelClick, Options::keyCancel);
 
 	_btnTransfer->setText(tr("STR_GO_TO_TRANSFERS"));
-	_btnTransfer->onMouseClick((ActionHandler)&DiplomacySellState::btnTransferClick);
+	_btnTransfer->onMouseClick((ActionHandler)&DisposeState::btnTransferClick);
 
 	_btnCancel->setVisible(!overfull);
 	_btnOk->setVisible(!overfull);
@@ -151,20 +147,20 @@ void DiplomacySellState::delayedInit()
 
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
-	_txtTitle->setText(tr("STR_SELL_ITEMS_SACK_PERSONNEL"));
+	_txtTitle->setText(tr("STR_DISPOSE_ITEMS_DISMISS_PERSONNEL"));
 
 	_txtFunds->setText(tr("STR_FUNDS").arg(Unicode::formatFunding(_game->getSavedGame()->getFunds())));
 
-	_txtSpaceUsed->setVisible(true); // (Options::storageLimitsEnforced);
+	_txtSpaceUsed->setVisible(true); //Options::storageLimitsEnforced);
 
 	std::ostringstream ss;
 	ss << _base->getUsedStores() << ":" << _base->getAvailableStores();
 	_txtSpaceUsed->setText(ss.str());
 	_txtSpaceUsed->setText(tr("STR_SPACE_USED").arg(ss.str()));
 
-	_txtQuantity->setText(tr("STR_QUANTITY_UC"));
+	_txtQuantity->setText(tr("STR_QUANTITY"));
 
-	_txtSell->setText(tr("STR_SELL_SACK"));
+	_txtSell->setText(tr("STR_DISPOSE_DISMISS"));
 
 	_txtValue->setText(tr("STR_VALUE"));
 
@@ -173,36 +169,22 @@ void DiplomacySellState::delayedInit()
 	_lstItems->setSelectable(true);
 	_lstItems->setBackground(_window);
 	_lstItems->setMargin(2);
-	_lstItems->onLeftArrowPress((ActionHandler)&DiplomacySellState::lstItemsLeftArrowPress);
-	_lstItems->onLeftArrowRelease((ActionHandler)&DiplomacySellState::lstItemsLeftArrowRelease);
-	_lstItems->onLeftArrowClick((ActionHandler)&DiplomacySellState::lstItemsLeftArrowClick);
-	_lstItems->onRightArrowPress((ActionHandler)&DiplomacySellState::lstItemsRightArrowPress);
-	_lstItems->onRightArrowRelease((ActionHandler)&DiplomacySellState::lstItemsRightArrowRelease);
-	_lstItems->onRightArrowClick((ActionHandler)&DiplomacySellState::lstItemsRightArrowClick);
-	_lstItems->onMousePress((ActionHandler)&DiplomacySellState::lstItemsMousePress);
+	_lstItems->onLeftArrowPress((ActionHandler)&DisposeState::lstItemsLeftArrowPress);
+	_lstItems->onLeftArrowRelease((ActionHandler)&DisposeState::lstItemsLeftArrowRelease);
+	_lstItems->onLeftArrowClick((ActionHandler)&DisposeState::lstItemsLeftArrowClick);
+	_lstItems->onRightArrowPress((ActionHandler)&DisposeState::lstItemsRightArrowPress);
+	_lstItems->onRightArrowRelease((ActionHandler)&DisposeState::lstItemsRightArrowRelease);
+	_lstItems->onRightArrowClick((ActionHandler)&DisposeState::lstItemsRightArrowClick);
+	_lstItems->onMousePress((ActionHandler)&DisposeState::lstItemsMousePress);
 
 	_cats.push_back("STR_ALL_ITEMS");
 
-	//for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
-	//{
-	//	if (_debriefingState) break;
-	//	if ((*i)->getCraft() == 0 && (*i)->getCovertOperation() == 0)
-	//	{
-	//		TransferRow row = { TRANSFER_SOLDIER, (*i), (*i)->getName(true), 0, 1, 0, 0 };
-	//		_items.push_back(row);
-	//		std::string cat = getCategory(_items.size() - 1);
-	//		if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-	//		{
-	//			_cats.push_back(cat);
-	//		}
-	//	}
-	//}
-	for (std::vector<Craft*>::iterator i = _base->getCrafts()->begin(); i != _base->getCrafts()->end(); ++i)
+	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 	{
 		if (_debriefingState) break;
-		if ((*i)->getStatus() != "STR_OUT")
+		if ((*i)->getCraft() == 0 && (*i)->getCovertOperation() == 0)
 		{
-			TransferRow row = { TRANSFER_CRAFT, (*i), (*i)->getName(_game->getLanguage()), (*i)->getRules()->getSellCost(), 1, 0, 0 };
+			TransferRow row = { TRANSFER_SOLDIER, (*i), (*i)->getName(true), 0, 1, 0, 0 };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -211,26 +193,40 @@ void DiplomacySellState::delayedInit()
 			}
 		}
 	}
-	//if (_base->getAvailableScientists() > 0 && _debriefingState == 0)
-	//{
-	//	TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), 0, _base->getAvailableScientists(), 0, 0 };
-	//	_items.push_back(row);
-	//	std::string cat = getCategory(_items.size() - 1);
-	//	if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-	//	{
-	//		_cats.push_back(cat);
-	//	}
-	//}
-	//if (_base->getAvailableEngineers() > 0 && _debriefingState == 0)
-	//{
-	//	TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), 0, _base->getAvailableEngineers(), 0, 0 };
-	//	_items.push_back(row);
-	//	std::string cat = getCategory(_items.size() - 1);
-	//	if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-	//	{
-	//		_cats.push_back(cat);
-	//	}
-	//}
+	for (std::vector<Craft*>::iterator i = _base->getCrafts()->begin(); i != _base->getCrafts()->end(); ++i)
+	{
+		if (_debriefingState) break;
+		if ((*i)->getStatus() != "STR_OUT")
+		{
+			TransferRow row = { TRANSFER_CRAFT, (*i), (*i)->getName(_game->getLanguage()), (*i)->getRules()->getDisposeCost(), 1, 0, 0 };
+			_items.push_back(row);
+			std::string cat = getCategory(_items.size() - 1);
+			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
+			{
+				_cats.push_back(cat);
+			}
+		}
+	}
+	if (_base->getAvailableScientists() > 0 && _debriefingState == 0)
+	{
+		TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), 0, _base->getAvailableScientists(), 0, 0 };
+		_items.push_back(row);
+		std::string cat = getCategory(_items.size() - 1);
+		if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
+		{
+			_cats.push_back(cat);
+		}
+	}
+	if (_base->getAvailableEngineers() > 0 && _debriefingState == 0)
+	{
+		TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), 0, _base->getAvailableEngineers(), 0, 0 };
+		_items.push_back(row);
+		std::string cat = getCategory(_items.size() - 1);
+		if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
+		{
+			_cats.push_back(cat);
+		}
+	}
 	const std::vector<std::string>& items = _game->getMod()->getItemsList();
 	for (std::vector<std::string>::const_iterator i = items.begin(); i != items.end(); ++i)
 	{
@@ -264,7 +260,7 @@ void DiplomacySellState::delayedInit()
 		}
 		if (qty > 0 && (Options::canSellLiveAliens || !rule->isAlien()))
 		{
-			TransferRow row = { TRANSFER_ITEM, rule, tr(*i), rule->getSellCost(), qty, 0, 0 };
+			TransferRow row = { TRANSFER_ITEM, rule, tr(*i), rule->getDisposeCost(), qty, 0, 0 };
 			if ((_debriefingState != 0) && (_game->getSavedGame()->getAutosell(rule)))
 			{
 				row.amount = qty;
@@ -291,7 +287,7 @@ void DiplomacySellState::delayedInit()
 		{
 			if ((*i).type == TRANSFER_ITEM)
 			{
-				RuleItem *rule = (RuleItem*)((*i).rule);
+				RuleItem* rule = (RuleItem*)((*i).rule);
 				if (rule->getCategories().empty())
 				{
 					hasUnassigned = true;
@@ -312,7 +308,7 @@ void DiplomacySellState::delayedInit()
 			_cats.push_back("STR_ALL_ITEMS");
 			_vanillaCategories = _cats.size();
 		}
-		const std::vector<std::string> &categories = _game->getMod()->getItemCategoriesList();
+		const std::vector<std::string>& categories = _game->getMod()->getItemCategoriesList();
 		for (std::vector<std::string>::const_iterator k = categories.begin(); k != categories.end(); ++k)
 		{
 			if (std::find(tempCats.begin(), tempCats.end(), (*k)) != tempCats.end())
@@ -326,27 +322,27 @@ void DiplomacySellState::delayedInit()
 		}
 	}
 
-	_txtSales->setText(tr("STR_VALUE_OF_SALES").arg(Unicode::formatFunding(_total)));
+	_txtSales->setText(tr("STR_DISPOSAL_VALUE").arg(Unicode::formatFunding(_total)));
 
 	_cbxCategory->setOptions(_cats, true);
-	_cbxCategory->onChange((ActionHandler)&DiplomacySellState::cbxCategoryChange);
-	_cbxCategory->onKeyboardPress((ActionHandler)&DiplomacySellState::btnSellAllClick, Options::keySellAll);
-	_cbxCategory->onKeyboardPress((ActionHandler)&DiplomacySellState::btnSellAllButOneClick, Options::keySellAllButOne);
+	_cbxCategory->onChange((ActionHandler)&DisposeState::cbxCategoryChange);
+	_cbxCategory->onKeyboardPress((ActionHandler)&DisposeState::btnSellAllClick, Options::keySellAll);
+	_cbxCategory->onKeyboardPress((ActionHandler)&DisposeState::btnSellAllButOneClick, Options::keySellAllButOne);
 
 	_btnQuickSearch->setText(""); // redraw
-	_btnQuickSearch->onEnter((ActionHandler)&DiplomacySellState::btnQuickSearchApply);
+	_btnQuickSearch->onEnter((ActionHandler)&DisposeState::btnQuickSearchApply);
 	_btnQuickSearch->setVisible(false);
 
 	// OK button is not always visible, so bind it here
-	_cbxCategory->onKeyboardRelease((ActionHandler)&DiplomacySellState::btnQuickSearchToggle, Options::keyToggleQuickSearch);
+	_cbxCategory->onKeyboardRelease((ActionHandler)&DisposeState::btnQuickSearchToggle, Options::keyToggleQuickSearch);
 
 	updateList();
 }
 
 /**
- *
- */
-DiplomacySellState::~DiplomacySellState()
+*
+*/
+DisposeState::~DisposeState()
 {
 	delete _timerInc;
 	delete _timerDec;
@@ -355,7 +351,7 @@ DiplomacySellState::~DiplomacySellState()
 /**
 * Resets stuff when coming back from other screens.
 */
-void DiplomacySellState::init()
+void DisposeState::init()
 {
 	delayedInit();
 
@@ -364,14 +360,14 @@ void DiplomacySellState::init()
 	if (_reset)
 	{
 		_game->popState();
-		_game->pushState(new DiplomacySellState(_base, _faction, _debriefingState, _origin));
+		_game->pushState(new DisposeState(_base, _debriefingState, _origin));
 	}
 }
 
 /**
- * Runs the arrow timers.
- */
-void DiplomacySellState::think()
+* Runs the arrow timers.
+*/
+void DisposeState::think()
 {
 	State::think();
 
@@ -380,11 +376,11 @@ void DiplomacySellState::think()
 }
 
 /**
- * Determines the category a row item belongs in.
- * @param sel Selected row.
- * @returns Item category.
- */
-std::string DiplomacySellState::getCategory(int sel) const
+* Determines the category a row item belongs in.
+* @param sel Selected row.
+* @returns Item category.
+*/
+std::string DisposeState::getCategory(int sel) const
 {
 	RuleItem* rule = 0;
 	switch (_items[sel].type)
@@ -400,25 +396,17 @@ std::string DiplomacySellState::getCategory(int sel) const
 		if (rule->getBattleType() == BT_CORPSE || rule->isAlien())
 		{
 			if (rule->getVehicleUnit())
-			{
 				return "STR_PERSONNEL"; // OXCE: critters fighting for us
-			}
 			if (rule->isAlien())
-			{
 				return "STR_PRISONERS"; // OXCE: live aliens
-			}
 			return "STR_ALIENS";
 		}
 		if (rule->getBattleType() == BT_NONE)
 		{
 			if (_game->getMod()->isCraftWeaponStorageItem(rule))
-			{
 				return "STR_CRAFT_ARMAMENT";
-			}
 			if (_game->getMod()->isArmorStorageItem(rule))
-			{
 				return "STR_ARMORS"; // OXCE: armors
-			}
 			return "STR_COMPONENTS";
 		}
 		return "STR_EQUIPMENT";
@@ -427,12 +415,12 @@ std::string DiplomacySellState::getCategory(int sel) const
 }
 
 /**
- * Determines if a row item belongs to a given category.
- * @param sel Selected row.
- * @param cat Category.
- * @returns True if row item belongs to given category, otherwise False.
- */
-bool DiplomacySellState::belongsToCategory(int sel, const std::string& cat) const
+* Determines if a row item belongs to a given category.
+* @param sel Selected row.
+* @param cat Category.
+* @returns True if row item belongs to given category, otherwise False.
+*/
+bool DisposeState::belongsToCategory(int sel, const std::string& cat) const
 {
 	switch (_items[sel].type)
 	{
@@ -452,7 +440,7 @@ bool DiplomacySellState::belongsToCategory(int sel, const std::string& cat) cons
 * Quick search toggle.
 * @param action Pointer to an action.
 */
-void DiplomacySellState::btnQuickSearchToggle(Action* action)
+void DisposeState::btnQuickSearchToggle(Action* action)
 {
 	if (_btnQuickSearch->getVisible())
 	{
@@ -471,15 +459,15 @@ void DiplomacySellState::btnQuickSearchToggle(Action* action)
 * Quick search.
 * @param action Pointer to an action.
 */
-void DiplomacySellState::btnQuickSearchApply(Action*)
+void DisposeState::btnQuickSearchApply(Action*)
 {
 	updateList();
 }
 
 /**
- * Filters the current list of items.
- */
-void DiplomacySellState::updateList()
+* Filters the current list of items.
+*/
+void DisposeState::updateList()
 {
 	std::string searchString = _btnQuickSearch->getText();
 	Unicode::upperCase(searchString);
@@ -557,10 +545,10 @@ void DiplomacySellState::updateList()
 }
 
 /**
- * Sells the selected items.
- * @param action Pointer to an action.
- */
-void DiplomacySellState::btnOkClick(Action*)
+* Sells the selected items.
+* @param action Pointer to an action.
+*/
+void DisposeState::btnOkClick(Action*)
 {
 	_game->getSavedGame()->setFunds(_game->getSavedGame()->getFunds() + _total);
 	Soldier* soldier;
@@ -735,16 +723,16 @@ void DiplomacySellState::btnOkClick(Action*)
 							++j;
 						}
 					}
+				}
 
-					// Note: this only updates a helper map, it doesn't affect real item recovery (that has already happened and all items are already in the base)
-					if (_debriefingState != 0)
-					{
-						// remember the decreased amount for next sell/transfer
-						_debriefingState->decreaseRecoveredItemCount(item, i->amount);
+				// Note: this only updates a helper map, it doesn't affect real item recovery (that has already happened and all items are already in the base)
+				if (_debriefingState != 0)
+				{
+					// remember the decreased amount for next sell/transfer
+					_debriefingState->decreaseRecoveredItemCount(item, i->amount);
 
-						// set autosell status if we sold all of the item
-						_game->getSavedGame()->setAutosell(item, (i->qtySrc == i->amount));
-					}
+					// set autosell status if we sold all of the item
+					_game->getSavedGame()->setAutosell(item, (i->qtySrc == i->amount));
 				}
 
 				break;
@@ -767,10 +755,10 @@ void DiplomacySellState::btnOkClick(Action*)
 }
 
 /**
- * Returns to the previous screen.
- * @param action Pointer to an action.
- */
-void DiplomacySellState::btnCancelClick(Action*)
+* Returns to the previous screen.
+* @param action Pointer to an action.
+*/
+void DisposeState::btnCancelClick(Action*)
 {
 	_game->popState();
 }
@@ -780,7 +768,7 @@ void DiplomacySellState::btnCancelClick(Action*)
 * Returns back to this screen when finished.
 * @param action Pointer to an action.
 */
-void DiplomacySellState::btnTransferClick(Action*)
+void DisposeState::btnTransferClick(Action*)
 {
 	_reset = true;
 	_game->pushState(new TransferBaseState(_base, nullptr));
@@ -790,7 +778,7 @@ void DiplomacySellState::btnTransferClick(Action*)
 * Increase all items to max, i.e. sell everything.
 * @param action Pointer to an action.
 */
-void DiplomacySellState::btnSellAllClick(Action*)
+void DisposeState::btnSellAllClick(Action*)
 {
 	bool allItemsSelected = true;
 	for (size_t i = 0; i < _lstItems->getTexts(); ++i)
@@ -816,7 +804,7 @@ void DiplomacySellState::btnSellAllClick(Action*)
 * Increase all items to max - 1, i.e. sell everything but one.
 * @param action Pointer to an action.
 */
-void DiplomacySellState::btnSellAllButOneClick(Action*)
+void DisposeState::btnSellAllButOneClick(Action*)
 {
 	_sellAllButOne = true;
 	btnSellAllClick(nullptr);
@@ -824,20 +812,20 @@ void DiplomacySellState::btnSellAllButOneClick(Action*)
 }
 
 /**
- * Starts increasing the item.
- * @param action Pointer to an action.
- */
-void DiplomacySellState::lstItemsLeftArrowPress(Action* action)
+	* Starts increasing the item.
+	* @param action Pointer to an action.
+	*/
+void DisposeState::lstItemsLeftArrowPress(Action* action)
 {
 	_sel = _lstItems->getSelectedRow();
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT && !_timerInc->isRunning()) _timerInc->start();
 }
 
 /**
- * Stops increasing the item.
- * @param action Pointer to an action.
- */
-void DiplomacySellState::lstItemsLeftArrowRelease(Action* action)
+* Stops increasing the item.
+* @param action Pointer to an action.
+*/
+void DisposeState::lstItemsLeftArrowRelease(Action* action)
 {
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
@@ -846,11 +834,11 @@ void DiplomacySellState::lstItemsLeftArrowRelease(Action* action)
 }
 
 /**
- * Increases the selected item;
- * by one on left-click, to max on right-click.
- * @param action Pointer to an action.
- */
-void DiplomacySellState::lstItemsLeftArrowClick(Action* action)
+* Increases the selected item;
+* by one on left-click, to max on right-click.
+* @param action Pointer to an action.
+*/
+void DisposeState::lstItemsLeftArrowClick(Action* action)
 {
 	if (action->getDetails()->button.button == SDL_BUTTON_RIGHT) changeByValue(INT_MAX, 1);
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
@@ -862,20 +850,20 @@ void DiplomacySellState::lstItemsLeftArrowClick(Action* action)
 }
 
 /**
- * Starts decreasing the item.
- * @param action Pointer to an action.
- */
-void DiplomacySellState::lstItemsRightArrowPress(Action* action)
+* Starts decreasing the item.
+* @param action Pointer to an action.
+*/
+void DisposeState::lstItemsRightArrowPress(Action* action)
 {
 	_sel = _lstItems->getSelectedRow();
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT && !_timerDec->isRunning()) _timerDec->start();
 }
 
 /**
- * Stops decreasing the item.
- * @param action Pointer to an action.
- */
-void DiplomacySellState::lstItemsRightArrowRelease(Action* action)
+* Stops decreasing the item.
+* @param action Pointer to an action.
+*/
+void DisposeState::lstItemsRightArrowRelease(Action* action)
 {
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
@@ -884,11 +872,11 @@ void DiplomacySellState::lstItemsRightArrowRelease(Action* action)
 }
 
 /**
- * Decreases the selected item;
- * by one on left-click, to 0 on right-click.
- * @param action Pointer to an action.
- */
-void DiplomacySellState::lstItemsRightArrowClick(Action* action)
+* Decreases the selected item;
+* by one on left-click, to 0 on right-click.
+* @param action Pointer to an action.
+*/
+void DisposeState::lstItemsRightArrowClick(Action* action)
 {
 	if (action->getDetails()->button.button == SDL_BUTTON_RIGHT) changeByValue(INT_MAX, -1);
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
@@ -900,10 +888,10 @@ void DiplomacySellState::lstItemsRightArrowClick(Action* action)
 }
 
 /**
- * Handles the mouse-wheels on the arrow-buttons.
- * @param action Pointer to an action.
- */
-void DiplomacySellState::lstItemsMousePress(Action* action)
+* Handles the mouse-wheels on the arrow-buttons.
+* @param action Pointer to an action.
+*/
+void DisposeState::lstItemsMousePress(Action* action)
 {
 	_sel = _lstItems->getSelectedRow();
 	if (action->getDetails()->button.button == SDL_BUTTON_WHEELUP)
@@ -975,9 +963,9 @@ void DiplomacySellState::lstItemsMousePress(Action* action)
 }
 
 /**
- * Increases the quantity of the selected item to sell by one.
- */
-void DiplomacySellState::increase()
+* Increases the quantity of the selected item to sell by one.
+*/
+void DisposeState::increase()
 {
 	_timerDec->setInterval(50);
 	_timerInc->setInterval(50);
@@ -985,11 +973,11 @@ void DiplomacySellState::increase()
 }
 
 /**
- * Increases or decreases the quantity of the selected item to sell.
- * @param change How much we want to add or remove.
- * @param dir Direction to change, +1 to increase or -1 to decrease.
- */
-void DiplomacySellState::changeByValue(int change, int dir)
+* Increases or decreases the quantity of the selected item to sell.
+* @param change How much we want to add or remove.
+* @param dir Direction to change, +1 to increase or -1 to decrease.
+*/
+void DisposeState::changeByValue(int change, int dir)
 {
 	if (dir > 0)
 	{
@@ -1021,7 +1009,7 @@ void DiplomacySellState::changeByValue(int change, int dir)
 		}
 		break;
 	case TRANSFER_CRAFT:
-		// Note: in OXCE, there is no storage space change, everything on the craft is already included in the base storage space calculations;
+		// Note: in OXCE, there is no storage space change, everything on the craft is already included in the base storage space calculations
 		break;
 	case TRANSFER_ITEM:
 		item = (const RuleItem*)getRow().rule;
@@ -1036,9 +1024,9 @@ void DiplomacySellState::changeByValue(int change, int dir)
 }
 
 /**
- * Decreases the quantity of the selected item to sell by one.
- */
-void DiplomacySellState::decrease()
+* Decreases the quantity of the selected item to sell by one.
+*/
+void DisposeState::decrease()
 {
 	_timerInc->setInterval(50);
 	_timerDec->setInterval(50);
@@ -1046,16 +1034,16 @@ void DiplomacySellState::decrease()
 }
 
 /**
- * Updates the quantity-strings of the selected item.
- */
-void DiplomacySellState::updateItemStrings()
+* Updates the quantity-strings of the selected item.
+*/
+void DisposeState::updateItemStrings()
 {
 	std::ostringstream ss, ss2, ss3;
 	ss << getRow().amount;
 	_lstItems->setCellText(_sel, 2, ss.str());
 	ss2 << getRow().qtySrc - getRow().amount;
 	_lstItems->setCellText(_sel, 1, ss2.str());
-	_txtSales->setText(tr("STR_VALUE_OF_SALES").arg(Unicode::formatFunding(_total)));
+	_txtSales->setText(tr("STR_DISPOSAL_VALUE").arg(Unicode::formatFunding(_total)));
 
 	if (getRow().amount > 0)
 	{
@@ -1093,7 +1081,7 @@ void DiplomacySellState::updateItemStrings()
 /**
 * Updates the production list to match the category filter.
 */
-void DiplomacySellState::cbxCategoryChange(Action*)
+void DisposeState::cbxCategoryChange(Action*)
 {
 	updateList();
 }

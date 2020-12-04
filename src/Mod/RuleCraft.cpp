@@ -32,7 +32,7 @@ namespace OpenXcom
  */
 RuleCraft::RuleCraft(const std::string &type) :
 	_type(type), _sprite(-1), _marker(-1), _weapons(0), _soldiers(0), _pilots(0), _vehicles(0),
-	_costBuy(0), _costRent(0), _costSell(0), _repairRate(1), _refuelRate(1),
+	_costBuy(0), _costRent(0), _costSell(0), _costDispose(0), _repairRate(1), _refuelRate(1),
 	_transferTime(24), _score(0), _battlescapeTerrainData(0), _maxSkinIndex(0),
 	_keepCraftAfterFailedMission(false), _allowLanding(true), _spacecraft(false), _notifyWhenRefueled(false), _autoPatrol(false), _undetectable(false),
 	_listOrder(0), _maxItems(0), _maxAltitude(-1), _maxStorageSpace(0.0), _stats(),
@@ -110,6 +110,7 @@ void RuleCraft::load(const YAML::Node &node, Mod *mod, int listOrder)
 	_costBuy = node["costBuy"].as<int>(_costBuy);
 	_costRent = node["costRent"].as<int>(_costRent);
 	_costSell = node["costSell"].as<int>(_costSell);
+	_costDispose = node["costDispose"].as<int>(_costDispose);
 	_refuelItem = node["refuelItem"].as<std::string>(_refuelItem);
 	_repairRate = node["repairRate"].as<int>(_repairRate);
 	_refuelRate = node["refuelRate"].as<int>(_refuelRate);

@@ -297,7 +297,7 @@ private:
 
 	Unit* _vehicleUnit;
 	double _size;
-	int _costBuy, _costSell, _transferTime, _weight;
+	int _costBuy, _costSell, _transferTime, _weight, _costDispose;
 	int _throwRange, _underwaterThrowRange;
 	int _bigSprite;
 	int _floorSprite;
@@ -438,6 +438,8 @@ public:
 	int getBuyCost() const;
 	/// Gets the item's sale cost.
 	int getSellCost() const;
+	/// Gets the item's dispose cost.
+	int getDisposeCost() const { return _costDispose; };
 	/// Gets the item's transfer time.
 	int getTransferTime() const;
 	/// Gets the item's weight.

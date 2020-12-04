@@ -152,7 +152,7 @@ private:
 	RuleBaseFacilityFunctions _requiresBuyBaseFunc;
 	int _sprite, _marker;
 	std::vector<int> _skinSprites;
-	int _weapons, _soldiers, _pilots, _vehicles, _costBuy, _costRent, _costSell;
+	int _weapons, _soldiers, _pilots, _vehicles, _costBuy, _costRent, _costSell, _costDispose;
 	char _weaponTypes[WeaponMax][WeaponTypeMax];
 	std::string _refuelItem;
 	std::string _weaponStrings[WeaponMax];
@@ -207,6 +207,8 @@ public:
 	int getRentCost() const;
 	/// Gets the craft's value.
 	int getSellCost() const;
+	/// Gets the craft's disposal cost.
+	int getDisposeCost() const { return _costDispose; };
 	/// Gets the craft's refuel item.
 	const std::string &getRefuelItem() const;
 	/// Gets the craft's repair rate.
