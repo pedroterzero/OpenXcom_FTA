@@ -82,7 +82,6 @@ void BattleScript::load(const YAML::Node& node)
 
 	_executionChances = node["executionChances"].as<int>(_executionChances);
 	_executions = node["executions"].as<int>(_executions);
-	// take no chances, don't accept negative values here.
 	_label = std::abs(node["label"].as<int>(_label));
 	_itemSet = node["itemSet"].as<std::vector<std::string>>(_itemSet);
 	_unitSet = node["unitSet"].as<std::vector<std::string>>(_unitSet);
@@ -101,7 +100,6 @@ void BattleScript::load(const YAML::Node& node)
 	{
 		for (YAML::const_iterator i = messages.begin(); i != messages.end(); ++i)
 		{
-
 			_message[i->first.as<int>()].load(i->second);
 		}
 	}

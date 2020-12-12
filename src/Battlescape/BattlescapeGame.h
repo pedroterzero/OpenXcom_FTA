@@ -37,6 +37,7 @@ class TileEngine;
 class Pathfinding;
 class Mod;
 class InfoboxOKState;
+class CustomBattleMessageState;
 class SoldierDiary;
 class RuleSkill;
 class BattleScript;
@@ -228,7 +229,6 @@ public:
 	/// Spawns a new unit in the middle of battle.
 	void spawnNewUnit(BattleItem *item);
 	void spawnNewUnit(BattleActionAttack attack, Position position);
-	void scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock);
 	/// Spawns units from items that explode before battle
 	void spawnFromPrimedItems();
 	/// Removes spawned units that belong to the player to avoid dealing with recovery
@@ -321,6 +321,12 @@ public:
 	void resetAllEnemiesNeutralized() { _allEnemiesNeutralized = false; }
 	/// Process battlescripts.
 	void processBattleScripts(const std::vector<BattleScript*>* script);
+	/// Gets valid blocks to process the battlescript command.
+	std::vector<std::pair<int, int>> getValidBlocks(BattleScript* command);
+	/// Spawn units as part of battlescript commands.
+	void scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock);
+	/// Display message fro the battlescript
+	void displayScriptMessage(BattleScript* command);
 };
 
 }

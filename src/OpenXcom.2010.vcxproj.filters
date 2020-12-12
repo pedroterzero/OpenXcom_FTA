@@ -1184,6 +1184,9 @@
     <ClCompile Include="Basescape\DisposeState.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
+    <ClCompile Include="Battlescape\CustomBattleMessageState.cpp">
+      <Filter>Battlescape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2431,6 +2434,9 @@
     </ClInclude>
     <ClInclude Include="Basescape\DisposeState.h">
       <Filter>Basescape</Filter>
+    </ClInclude>
+    <ClInclude Include="Battlescape\CustomBattleMessageState.h">
+      <Filter>Battlescape</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

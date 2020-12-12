@@ -136,6 +136,12 @@ NewGameState::NewGameState()
 	_txtIronman->setWordWrap(true);
 	_txtIronman->setVerticalAlign(ALIGN_MIDDLE);
 	_txtIronman->setText(tr("STR_IRONMAN_DESC"));
+
+	if (_game->getMod()->getIsFTAGame()) // #FINNIKTODO remove on beta
+	{
+		_btnIronman->setVisible(false);
+		_txtIronman->setText(tr("STR_IRONMAN_ALPHA_DESC"));
+	}
 }
 
 /**

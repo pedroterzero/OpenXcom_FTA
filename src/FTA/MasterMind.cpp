@@ -266,7 +266,6 @@ int MasterMind::getLoyaltyPerformanceBonus()
 		}
 	}
 
-	Log(LOG_DEBUG) << "Repformace bonus is " << bonus << " because of loyalty score " << loyalty << " and chance equal " << chance;
 	return bonus;
 }
 

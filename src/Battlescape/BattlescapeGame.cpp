@@ -57,6 +57,7 @@
 #include "../Engine/RNG.h"
 #include "InfoboxState.h"
 #include "InfoboxOKState.h"
+#include "CustomBattleMessageState.h"
 #include "UnitFallBState.h"
 #include "../Engine/Logger.h"
 #include "../Savegame/BattleUnitStatistics.h"
@@ -3287,13 +3288,7 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 			// each command can be attempted multiple times, as randomization within the rects may occur
 			for (int j = 0; j < command->getExecutions(); ++j)
 			{
-				int x = 0, y = 0;
-				std::vector<SDL_Rect*> available;
 				std::vector<std::pair<int, int> > validBlocks;
-				std::vector<std::vector<bool>> compliantBlocksMap;
-				int sizeX = (mapsize_x / 10);
-				int sizeY = (mapsize_x / 10);
-				bool checkGroups = !command->getGroups()->empty();
 				switch (command->getType())
 				{
 				case BSC_SPAWN_ITEM:
@@ -3301,99 +3296,17 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 					break;
 				case BSC_SPAWN_UNIT:					
 					//finding a spot
-					compliantBlocksMap.resize((sizeX), std::vector<bool>((sizeY), false)); // start with all false
-
-					if (!command->getSpawnBlocks().empty())
-					{
-						for (auto& dir : command->getSpawnBlocks())
-						{
-							if (dir == "N")
-								for (int x = 0; x < sizeX; ++x) compliantBlocksMap[x][0] = true;
-							else if (dir == "W")
-								for (int y = 0; y < sizeY; ++y) compliantBlocksMap[0][y] = true;
-							else if (dir == "S")
-								for (int x = 0; x < sizeX; ++x) compliantBlocksMap[x][sizeY - 1] = true;
-							else if (dir == "E")
-								for (int y = 0; y < sizeY; ++y) compliantBlocksMap[sizeX - 1][y] = true;
-							else if (dir == "NW")
-								compliantBlocksMap[0][0] = true;
-							else if (dir == "NE")
-								compliantBlocksMap[sizeX - 1][0] = true;
-							else if (dir == "SW")
-								compliantBlocksMap[0][sizeY - 1] = true;
-							else if (dir == "SE")
-								compliantBlocksMap[sizeX - 1][sizeY - 1] = true;
-						}
-					}
-					else
-					{
-						compliantBlocksMap.resize((sizeX), std::vector<bool>((sizeY), true)); //whole map
-					}
-
-					validBlocks.reserve(sizeX * sizeY);
-
-					for (x = 0; x < sizeX; ++x)
-					{
-						for (y = 0; y < sizeY; ++y)
-						{
-							if (compliantBlocksMap[x][y])
-							{
-								if (checkGroups)
-								{
-									auto terrain = _save->getBattleGame()->getMod()->getTerrain(_save->getFlattenedMapTerrainNames()[x][y], false);
-									if (!terrain)
-									{
-										auto craft = _save->getBattleGame()->getMod()->getCraft(_save->getFlattenedMapTerrainNames()[x][y], false);
-										if (craft)
-										{
-											terrain = craft->getBattlescapeTerrainData();
-										}
-									}
-									if (!terrain)
-									{
-										auto ufo = _save->getBattleGame()->getMod()->getUfo(_save->getFlattenedMapTerrainNames()[x][y], false);
-										if (ufo)
-										{
-											terrain = ufo->getBattlescapeTerrainData();
-										}
-									}
-									if (terrain)
-									{
-										auto mapblock = terrain->getMapBlock(_save->getFlattenedMapBlockNames()[x][y]);
-										if (mapblock)
-										{
-											bool groupMatched = false;
-											for (auto group : *command->getGroups())
-											{
-												if (mapblock->isInGroup(group))
-												{
-													groupMatched = true;
-													break;
-												}
-											}
-											if (!groupMatched)
-											{
-												continue; // don't add this map block into compliantBlocksList
-											}
-										}
-									}
-								}
-								validBlocks.push_back(std::make_pair(x, y));
-							}
-						}
-					}
-					
+					validBlocks = getValidBlocks(command);		
 					if (validBlocks.empty())
 					{
 						Log(LOG_DEBUG) << "No valid location for the unit spawning with battlScript.";
 						continue;
 					}
-
+					//spawn units
 					scriptSpawnUnit(command, validBlocks);
-
 					break;
 				case BSC_SHOW_MESSAGE:
-					Log(LOG_ERROR) << "Sorry, there is no support of processing showMessage command yet! :] ";
+					displayScriptMessage(command);
 					break;
 				case BSC_ADDBLOCK:
 					Log(LOG_ERROR) << "Sorry, there is no support of processing addBlock command yet! :] ";
@@ -3405,6 +3318,116 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 			}
 		}
 	}
+}
+
+void OpenXcom::BattlescapeGame::displayScriptMessage(BattleScript* command)
+{
+	auto messageList = command->getBattleMessages();
+	if (!messageList.empty())
+	{
+		int roll = RNG::generate(0, messageList.size() - 1);
+		auto message = messageList.at(roll);
+		_parentState->getGame()->pushState(new CustomBattleMessageState(message));
+	}
+	else
+	{
+		Log(LOG_ERROR) << "No battle messages to display";
+	}
+}
+
+std::vector<std::pair<int, int>> OpenXcom::BattlescapeGame::getValidBlocks(BattleScript* command)
+{
+	int x = 0, y = 0;
+	std::vector<SDL_Rect*> available;
+	std::vector<std::pair<int, int> > validBlocks;
+	std::vector<std::vector<bool>> compliantBlocksMap;
+	int sizeX = (_save->getMapSizeX() / 10);
+	int sizeY = (_save->getMapSizeY() / 10);
+	bool checkGroups = !command->getGroups()->empty();
+
+	compliantBlocksMap.resize((sizeX), std::vector<bool>((sizeY), false)); // start with all false
+
+	if (!command->getSpawnBlocks().empty())
+	{
+		for (auto& dir : command->getSpawnBlocks())
+		{
+			if (dir == "North")
+				for (int x = 0; x < sizeX; ++x) compliantBlocksMap[x][0] = true;
+			else if (dir == "West")
+				for (int y = 0; y < sizeY; ++y) compliantBlocksMap[0][y] = true;
+			else if (dir == "South")
+				for (int x = 0; x < sizeX; ++x) compliantBlocksMap[x][sizeY - 1] = true;
+			else if (dir == "East")
+				for (int y = 0; y < sizeY; ++y) compliantBlocksMap[sizeX - 1][y] = true;
+			else if (dir == "NW")
+				compliantBlocksMap[0][0] = true;
+			else if (dir == "NE")
+				compliantBlocksMap[sizeX - 1][0] = true;
+			else if (dir == "SW")
+				compliantBlocksMap[0][sizeY - 1] = true;
+			else if (dir == "SE")
+				compliantBlocksMap[sizeX - 1][sizeY - 1] = true;
+		}
+	}
+	else
+	{
+		compliantBlocksMap.resize((sizeX), std::vector<bool>((sizeY), true)); //whole map
+	}
+
+	validBlocks.reserve(sizeX * sizeY);
+
+	for (x = 0; x < sizeX; ++x)
+	{
+		for (y = 0; y < sizeY; ++y)
+		{
+			if (compliantBlocksMap[x][y])
+			{
+				if (checkGroups)
+				{
+					auto terrain = _save->getBattleGame()->getMod()->getTerrain(_save->getFlattenedMapTerrainNames()[x][y], false);
+					if (!terrain)
+					{
+						auto craft = _save->getBattleGame()->getMod()->getCraft(_save->getFlattenedMapTerrainNames()[x][y], false);
+						if (craft)
+						{
+							terrain = craft->getBattlescapeTerrainData();
+						}
+					}
+					if (!terrain)
+					{
+						auto ufo = _save->getBattleGame()->getMod()->getUfo(_save->getFlattenedMapTerrainNames()[x][y], false);
+						if (ufo)
+						{
+							terrain = ufo->getBattlescapeTerrainData();
+						}
+					}
+					if (terrain)
+					{
+						auto mapblock = terrain->getMapBlock(_save->getFlattenedMapBlockNames()[x][y]);
+						if (mapblock)
+						{
+							bool groupMatched = false;
+							for (auto group : *command->getGroups())
+							{
+								if (mapblock->isInGroup(group))
+								{
+									groupMatched = true;
+									break;
+								}
+							}
+							if (!groupMatched)
+							{
+								continue; // don't add this map block into compliantBlocksList
+							}
+						}
+					}
+				}
+				validBlocks.push_back(std::make_pair(x, y));
+			}
+		}
+	}
+
+	return validBlocks;
 }
 
 void OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock)
@@ -3551,7 +3574,6 @@ void OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 					_save->setSelectedUnit(newUnit);
 					_parentState->getMap()->setCursorType(CT_NONE);
 					// show a little infobox with message
-					Game* game = _parentState->getGame();
 					std::string messageText;
 					if (faction == FACTION_PLAYER)
 					{
@@ -3565,7 +3587,8 @@ void OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 					{
 						messageText = "STR_INCOMING_ENEMY_REINFORCEMENTS";
 					}
-					game->pushState(new InfoboxState(game->getLanguage()->getString(messageText), 4000));
+					//_parentState->getGame()->pushState(new InfoboxState(_parentState->getGame()->getLanguage()->getString(messageText), 4000));
+					_parentState->getGame()->pushState(new InfoboxOKState(_parentState->getGame()->getLanguage()->getString(messageText)));
 
 				}
 			}

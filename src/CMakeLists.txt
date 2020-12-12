@@ -26,6 +26,7 @@ set ( basescape_src
   Basescape/CraftSoldiersState.cpp
   Basescape/CraftsState.cpp
   Basescape/CraftWeaponsState.cpp
+  Basescape/CustomBattleMessage.cpp
   Basescape/DismantleFacilityState.cpp
   Basescape/DisposeState.cpp
   Basescape/GlobalManufactureState.cpp
@@ -89,6 +90,7 @@ set ( battlescape_src
   Battlescape/CommendationLateState.cpp
   Battlescape/CommendationState.cpp
   Battlescape/ConfirmEndMissionState.cpp
+  Battlescape/CustomBattleMessageState.cpp
   Battlescape/DebriefingState.cpp
   Battlescape/Explosion.cpp
   Battlescape/ExplosionBState.cpp
