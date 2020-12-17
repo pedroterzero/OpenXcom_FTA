@@ -35,6 +35,7 @@ private:
 	int _minScore, _maxScore;
 	int _minLoyalty, _maxLoyalty;
 	int _allowedProcessor;
+	int _spawnGap, _randomSpawnGap;
 	int64_t _minFunds, _maxFunds;
 	std::vector<int> _conditionals;
 	std::vector<std::pair<size_t, WeightedOptions*> > _regionWeights, _missionWeights, _raceWeights;
@@ -77,6 +78,10 @@ public:
 	int getRepeatAvoidance() const;
 	/// Gets the number of minutes to delay spawning of the first wave of this mission, overrides the spawn delay defined in the mission waves.
 	int getDelay() const;
+	/// Gets interval in what the mission script command should not be processed.
+	int getSpawnGap() const { return _spawnGap; }
+	/// Gets random ammount of gap for mission script command.
+	int getRandomSpawnGap() const { return _randomSpawnGap; }
 	/// Gets the minimum score (from last month) for this command to run.
 	int getMinScore() const { return _minScore; }
 	/// Gets the maximum score (from last month) for this command to run.

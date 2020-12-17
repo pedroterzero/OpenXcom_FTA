@@ -2395,6 +2395,9 @@ void GeoscapeState::time1Day()
 		}
 	}
 
+	// Handle mission scripts gap timers
+	_game->getSavedGame()->handleMissionScriptTimers();
+
 	//handle daily Faction logic
 	for (auto faction : saveGame->getDiplomacyFactions())
 	{
@@ -3397,7 +3400,8 @@ void GeoscapeState::determineAlienMissions()
 			(month < 1 || command->getMinFunds() <= currentFunds) &&
 			(month < 1 || command->getMaxFunds() >= currentFunds) &&
 			command->getMinDifficulty() <= save->getDifficulty() &&
-			(command->getAllowedProcessor() == 0 || command->getAllowedProcessor() == 1))
+			(command->getAllowedProcessor() == 0 || command->getAllowedProcessor() == 1) &&
+			!save->getMissionScriptGapped(command->getType()))
 		{
 			// level two condition check: make sure we meet any research requirements, if any.
 			bool triggerHappy = true;
@@ -3949,6 +3953,14 @@ bool GeoscapeState::processCommand(RuleMissionScript *command)
 	if (command->getUseTable())
 	{
 		strategy.removeMission(targetRegion, missionType);
+	}
+
+	// if needed, canlculate gap value for this command and save it
+	int timer = command->getSpawnGap();
+	timer += RNG::generate(0, command->getRandomSpawnGap());
+	if (timer > 0)
+	{
+		_game->getSavedGame()->setMissionScriptGapTimer(command->getType(), timer);
 	}
 
 	// we did it, we can go home now.

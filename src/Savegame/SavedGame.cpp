@@ -624,7 +624,7 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 			Log(LOG_ERROR) << "Failed to load covert operation " << operation;
 		}
 	}
-
+	_missionScriptsTimers = doc["missionScriptsTimers"].as< std::map<std::string, int> >(_missionScriptsTimers);
 	_generatedEvents = doc["generatedEvents"].as< std::map<std::string, int> >(_generatedEvents);
 	_ufopediaRuleStatus = doc["ufopediaRuleStatus"].as< std::map<std::string, int> >(_ufopediaRuleStatus);
 	_manufactureRuleStatus = doc["manufactureRuleStatus"].as< std::map<std::string, int> >(_manufactureRuleStatus);
@@ -933,6 +933,7 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 	{
 		node["performedCovertOperations"].push_back((*i));
 	}
+	node["missionScriptsTimers"] = _missionScriptsTimers;
 	node["generatedEvents"] = _generatedEvents;
 	node["ufopediaRuleStatus"] = _ufopediaRuleStatus;
 	node["manufactureRuleStatus"] = _manufactureRuleStatus;
@@ -2798,6 +2799,58 @@ void SavedGame::addGeneratedEvent(const RuleEvent* event)
 bool SavedGame::wasEventGenerated(const std::string& eventName)
 {
 	return (_generatedEvents.find(eventName) != _generatedEvents.end());
+}
+
+/*
+ * Remembers that this mission script command should not be spawned before timer would drop
+ * @param name is the mission script command we want to remember
+ */
+void SavedGame::setMissionScriptGapTimer(const std::string& name, int timer)
+{
+	if (timer > 0)
+	{
+		_missionScriptsTimers[name] += timer;
+	}
+}
+
+/*
+ * Checks if this mission script command has positive gap timer
+ * @param name is the mission script command name we are checking for
+ * @return whether or not it is in the list of timed commands.
+ */
+bool SavedGame::getMissionScriptGapped(const std::string& name)
+{
+	return (_missionScriptsTimers.find(name) != _missionScriptsTimers.end());
+}
+
+/*
+ * Reducing mission script timers and cleans missionScriptsTimers list if needed.
+ */
+void SavedGame::handleMissionScriptTimers()
+{
+	if (!_missionScriptsTimers.empty())
+	{
+		// reducing timers
+		for (auto timers : _missionScriptsTimers)
+		{
+			if (timers.second > 0)
+			{
+				_missionScriptsTimers.at(timers.first) --;
+			}
+		}
+		// lets remove empty timers
+		for (auto it = _missionScriptsTimers.cbegin(); it != _missionScriptsTimers.cend();)
+		{
+			if ((*it).second <= 0)
+			{
+				it = _missionScriptsTimers.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
 }
 
 /**

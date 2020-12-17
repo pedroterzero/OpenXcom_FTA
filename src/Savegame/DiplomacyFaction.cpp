@@ -138,17 +138,16 @@ bool DiplomacyFaction::factionMissionGenerator(Game& engine)
 			// lets process mission script with own way, first things first
 			if (ruleScript.getFirstMonth() <= month &&
 				(ruleScript.getLastMonth() >= month || ruleScript.getLastMonth() == -1) &&
-				// make sure we haven't hit our run limit, if we have one
 				(ruleScript.getMaxRuns() == -1 || ruleScript.getMaxRuns() > save.getAlienStrategy().getMissionsRun(ruleScript.getVarName())) &&
-				// and make sure we satisfy the difficulty restrictions
-				//(month < 1 || ruleScript.getMinScore() <= save.getCurrentScore(month)) &&
-				//(month < 1 || ruleScript.getMaxScore() >= save.getCurrentScore(month)) &&
+				(month < 1 || ruleScript.getMinScore() <= save.getCurrentScore(month)) &&
+				(month < 1 || ruleScript.getMaxScore() >= save.getCurrentScore(month)) &&
 				(month < 1 || ruleScript.getMinLoyalty() <= loyalty) &&
 				(month < 1 || ruleScript.getMaxLoyalty() >= loyalty) &&
 				(month < 1 || ruleScript.getMinFunds() <= save.getFunds()) &&
 				(month < 1 || ruleScript.getMaxFunds() >= save.getFunds()) &&
 				ruleScript.getMinDifficulty() <= save.getDifficulty() &&
-				(ruleScript.getAllowedProcessor() == 0 || ruleScript.getAllowedProcessor() == 2))
+				(ruleScript.getAllowedProcessor() == 0 || ruleScript.getAllowedProcessor() == 2) &&
+				!save.getMissionScriptGapped(ruleScript.getType()))
 			{
 				// level two condition check: make sure we meet any research requirements, if any.
 				bool triggerHappy = true;
