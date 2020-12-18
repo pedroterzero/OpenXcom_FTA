@@ -373,6 +373,7 @@ void TileEngine::calculateUnitLighting(MapSubset gs)
 		}
 
 		auto currLight = 0;
+		int coneSize = 0;
 		// add lighting of soldiers
 		if (_personalLighting && unit->getFaction() == FACTION_PLAYER)
 		{
@@ -384,6 +385,10 @@ void TileEngine::calculateUnitLighting(MapSubset gs)
 			if (w && w->getGlow())
 			{
 				currLight = std::max(currLight, w->getGlowRange());
+			}
+			if (w && w->getItemConeSize())
+			{
+				coneSize = std::max(coneSize, w->getItemConeSize());
 			}
 		}
 		// add lighting of units on fire
@@ -402,7 +407,15 @@ void TileEngine::calculateUnitLighting(MapSubset gs)
 		{
 			for (int y = 0; y < size; ++y)
 			{
-				addLight(gs, pos + Position(x, y, 0), currLight, LL_UNITS);
+				if (coneSize)
+				{
+					addLight(gs, pos + Position(x, y, 0), currLight, LL_UNITS, coneSize, unit->getDirection());
+				}
+				else
+				{
+					addLight(gs, pos + Position(x, y, 0), currLight, LL_UNITS, -1, -1);
+				}
+				
 			}
 		}
 	}
@@ -511,8 +524,10 @@ void TileEngine::calculateLighting(LightLayers layer, Position position, int eve
  * @param center Center.
  * @param power Power.
  * @param layer Light is separated in 4 layers: Ambient, Tiles, Items, Units.
+ * @param cone coneSize of cone of light, 1 means 45°, 4 means 360°
+ * @param direction - cone direction.
  */
-void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers layer)
+void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers layer, int coneSize, int direction)
 	{
 	if (power <= 0)
 	{
@@ -533,6 +548,7 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 	const auto topCenterVoxel = static_cast<Sint16>((_blockVisibility[_save->getTileIndex(center)].blockUp ? (center.z + 1) : _save->getMapSizeZ()) * accuracy.z - 1);
 	const auto maxFirePower = std::min(15, getMaxStaticLightDistance() - 1);
 
+	
 	iterateTiles(
 		_save,
 		MapSubset::intersection(gs, mapArea(center, power - 1)),
@@ -577,7 +593,7 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 			startVoxel.z = std::min(startVoxel.z, topCenterVoxel);
 			endVoxel.z = std::min(endVoxel.z, topTargetVoxel);
 
-			auto calculateBlock = [&](Position point, Position &lastPoint, int &light, int &steps)
+			auto calculateBlock = [&](Position point, Position &lastPoint, int &light, int &steps, int &unitFacing)
 			{
 				auto height = (point.z % accuracy.z) * divide;
 				point = point / accuracy;
@@ -594,6 +610,21 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 				auto result = false;
 				auto& cache = _blockVisibility[_save->getTileIndex(lastPoint)];
 				Pathfinding::vectorToDirection(difference, dir);
+				if (unitFacing > -1)
+				{
+					if ((unitFacing == 0 && dir != 7 && dir != 0 && dir != 1) ||
+						(unitFacing == 1 && dir != 0 && dir != 1 && dir != 2) ||
+						(unitFacing == 2 && dir != 1 && dir != 2 && dir != 3) ||
+						(unitFacing == 3 && dir != 2 && dir != 3 && dir != 4) ||
+						(unitFacing == 4 && dir != 3 && dir != 4 && dir != 5) ||
+						(unitFacing == 5 && dir != 4 && dir != 5 && dir != 6) ||
+						(unitFacing == 6 && dir != 5 && dir != 6 && dir != 8) ||
+						(unitFacing == 7 && dir != 6 && dir != 7 && dir != 0))
+						{
+							light = 0;
+							return false;
+						}
+				}
 				if (difference.z > 0)
 				{
 					if (dir != -1)
@@ -656,8 +687,8 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 			calculateLineHitHelper(startVoxel, endVoxel,
 				[&](Position voxel)
 				{
-					auto resultA = calculateBlock(voxel, lastTileA, lightA, stepsA);
-					auto resultB = calculateBlock(voxel + offsetB, lastTileB, lightB, stepsB);
+					auto resultA = calculateBlock(voxel, lastTileA, lightA, stepsA, direction);
+					auto resultB = calculateBlock(voxel + offsetB, lastTileB, lightB, stepsB, direction);
 					return resultA && resultB;
 				},
 				[&](Position voxel)

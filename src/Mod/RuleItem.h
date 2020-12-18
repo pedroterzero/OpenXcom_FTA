@@ -320,6 +320,7 @@ private:
 	bool _hidePower;
 	float _powerRangeReduction;
 	float _powerRangeThreshold;
+	int _coneSize;
 	std::vector<std::vector<std::string>> _compatibleAmmoNames = std::vector<std::vector<std::string>>(AmmoSlotMax);
 	std::vector<const RuleItem*> _compatibleAmmo[AmmoSlotMax];
 	RuleDamageType _damageType, _meleeType;
@@ -540,6 +541,10 @@ public:
 	float getPowerRangeReduction(float range) const;
 	float getPowerRangeReductionRaw() const { return _powerRangeReduction; }
 	float getPowerRangeThresholdRaw() const { return _powerRangeThreshold; }
+
+	/// Gets the item's cone size.
+	int getConeSize() const { return _coneSize; }
+
 	/// Gets amount of psi accuracy dropped for range in voxels.
 	float getPsiAccuracyRangeReduction(float range) const;
 

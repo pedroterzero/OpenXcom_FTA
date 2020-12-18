@@ -112,7 +112,7 @@ private:
 	BattleUnit* _movingUnit = nullptr;
 
 	/// Add light source.
-	void addLight(MapSubset gs, Position center, int power, LightLayers layer);
+	void addLight(MapSubset gs, Position center, int power, LightLayers layer, int coneSize = 4, int direction = 0);
 	/// Calculate blockage amount.
 	int blockage(Tile *tile, const TilePart part, ItemDamageType type, int direction = -1, bool checkingFromOrigin = false);
 	/// Get max distance that fire light can reach.
