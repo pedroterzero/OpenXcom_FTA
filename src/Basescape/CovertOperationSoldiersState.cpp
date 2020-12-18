@@ -102,7 +102,7 @@ CovertOperationSoldiersState::CovertOperationSoldiersState(Base* base, CovertOpe
 
 	_txtRank->setText(tr("STR_RANK"));
 
-	_txtCraft->setText(tr("STR_CRAFT"));
+	_txtCraft->setText(tr("STR_ASSIGNMENT"));
 
 	// populate sort options
 	std::vector<std::string> sortOptions;

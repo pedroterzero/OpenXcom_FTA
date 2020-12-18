@@ -2828,27 +2828,16 @@ bool SavedGame::getMissionScriptGapped(const std::string& name)
  */
 void SavedGame::handleMissionScriptTimers()
 {
-	if (!_missionScriptsTimers.empty())
+	for (auto it = _missionScriptsTimers.cbegin(); it != _missionScriptsTimers.cend();)
 	{
-		// reducing timers
-		for (auto timers : _missionScriptsTimers)
+		if ((*it).second < 1)
 		{
-			if (timers.second > 0)
-			{
-				_missionScriptsTimers.at(timers.first) --;
-			}
+			it = _missionScriptsTimers.erase(it);
 		}
-		// lets remove empty timers
-		for (auto it = _missionScriptsTimers.cbegin(); it != _missionScriptsTimers.cend();)
+		else
 		{
-			if ((*it).second <= 0)
-			{
-				it = _missionScriptsTimers.erase(it);
-			}
-			else
-			{
-				++it;
-			}
+			_missionScriptsTimers.at((*it).first) -= 1;
+			++it;
 		}
 	}
 }

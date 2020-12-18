@@ -99,8 +99,15 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 
 	_txtRank->setText(tr("STR_RANK"));
 
-	_txtCraft->setText(tr("STR_CRAFT"));
-
+	if (_game->getMod()->getIsFTAGame())
+	{
+		_txtCraft->setText(tr("STR_ASSIGNMENT")); 
+	}
+	else
+	{
+		_txtCraft->setText(tr("STR_CRAFT"));
+	}
+	
 	// populate sort options
 	std::vector<std::string> sortOptions;
 	sortOptions.push_back(tr("STR_ORIGINAL_ORDER"));

@@ -2401,10 +2401,13 @@ void GeoscapeState::time1Day()
 	//handle daily Faction logic
 	for (auto faction : saveGame->getDiplomacyFactions())
 	{
-		bool answer = faction->think(*_game,TIMESTEP_DAILY);
-		if (answer)
+		faction->think(*_game,TIMESTEP_DAILY);
+		if (!faction->getAvalibleMissionScripts().empty())
 		{
-			bool success = processCommand(mod->getMissionScript(faction->getCommandType()));
+			for (auto missionScript : faction->getAvalibleMissionScripts())
+			{
+				bool success = processCommand(missionScript);
+			}
 		}
 	}
 

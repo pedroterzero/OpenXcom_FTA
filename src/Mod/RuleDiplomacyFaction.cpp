@@ -47,25 +47,10 @@ void RuleDiplomacyFaction::load(const YAML::Node &node)
 	_discoverResearch = node["discoverResearch"].as<std::string>(_discoverResearch);
 	_discoverEvent = node["discoverEvent"].as<std::string>(_discoverEvent);
 	_startingReputation = node["startingReputation"].as<int>(_startingReputation);
-	if (node["helpTreatyMissions"])
-	{
-		_helpTreatyMissions.load(node["helpTreatyMissions"]);
-	}
-	if (node["helpTreatyEvents"])
-	{
-		_helpTreatyEvents.load(node["helpTreatyEvents"]);
-	}
+	_helpTreatyMissions = node["helpTreatyMissions"].as<std::vector<std::string>>(_helpTreatyMissions);
+	_helpTreatyEvents = node["helpTreatyEvents"].as<std::vector<std::string>>(_helpTreatyEvents);
 	_genMissionFrequency = node["genMissionFreq"].as<int>(_genMissionFrequency);
 	_genEventFrequency = node["genEventFreq"].as<int>(_genEventFrequency);
-}
-std::string RuleDiplomacyFaction::chooseGenMissionScriptType() const
-{
-	return _helpTreatyMissions.choose();
-}
-
-std::string RuleDiplomacyFaction::chooseGenEventScriptType() const
-{
-	return _helpTreatyEvents.choose();
 }
 
 }

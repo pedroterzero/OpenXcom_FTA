@@ -25,6 +25,7 @@
 
 namespace OpenXcom
 {
+
 //struct SellingSetEnitity
 //{
 //	std::string name;
@@ -43,7 +44,7 @@ private:
 	std::string _name, _description, _background, _cardBackground, _discoverResearch, _discoverEvent;
 	int _startingReputation, _genMissionFrequency, _genEventFrequency;
 	std::map<std::string, int> _sellingSet;
-	WeightedOptions _helpTreatyMissions, _helpTreatyEvents;
+	std::vector<std::string> _helpTreatyMissions, _helpTreatyEvents;
 	//std::vector<SellingSetEnitity> _sellingSet2;
 public:
 	/// Creates a blank RuleDiplomacyFaction.
@@ -69,12 +70,13 @@ public:
 	const std::string& getDiscoverEvent() const { return _discoverEvent; }
 	/// Gets the Faction's starting reputation.
 	const int& getStartingReputation() const { return _startingReputation; }
-	/// Gets chosen mission script to run from faction mission generator
-	std::string chooseGenMissionScriptType() const;
+
+	/// Gets help treaty mission scripts for the faction
+	const std::vector<std::string>& getHelpTreatyMissions() const { return _helpTreatyMissions; }
 	/// Gets mission frequency for generatoting
 	int getGenMissionFrequency() const { return _genMissionFrequency; };
-	/// Gets chosen event script to run from faction generator
-	std::string chooseGenEventScriptType() const;
+	/// Gets event scripts to run from faction generator
+	const std::vector<std::string>& getHelpTreatyEvents() const { return _helpTreatyEvents; }
 	/// Gets event frequency for generatoting
 	int getGenEventFrequency() const { return _genEventFrequency; };
 

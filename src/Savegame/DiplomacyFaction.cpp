@@ -83,14 +83,16 @@ YAML::Node DiplomacyFaction::save() const
 }
 
 /**
- * Handle Faction logic..
+ * Handle Faction logic.
  * @param Game game engine.
  * @param ThinkPeriond - timestep to determine think process
  */
-bool DiplomacyFaction::think(Game& engine, ThinkPeriod period)
+void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 {
 	const Mod& mod = *engine.getMod();
 	SavedGame& save = *engine.getSavedGame();
+	_commandsToProcess.clear();
+	_eventsToProcess.clear();
 	//lets process out daily duty
 	if (period == TIMESTEP_DAILY)
 	{
@@ -113,193 +115,203 @@ bool DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 				_treaties.push_back("STR_HELP_TREATY");
 			}
 		}
-		// let's see 
+		//process treaty logic
 		if (std::find(_treaties.begin(), _treaties.end(), "STR_HELP_TREATY") != _treaties.end())
 		{
-			bool generateMission = factionMissionGenerator(engine);
-			bool generateEvent = factionEventGenerator(engine);
-			return generateMission;
+			//load treaty rules
+			_commandsToProcess = _rule.getHelpTreatyMissions();
+			_eventsToProcess = _rule.getHelpTreatyEvents();
 		}
+
+		//generate missions and events
+		factionMissionGenerator(engine);
+		factionEventGenerator(engine);
+
 	}
-	return false;
 }
-bool DiplomacyFaction::factionMissionGenerator(Game& engine)
+
+/**
+ * Handle initial processing of factional missions and stores succes cases.
+ * @param Game game engine.
+ */
+void DiplomacyFaction::factionMissionGenerator(Game& engine)
 {
-	const Mod& mod = *engine.getMod();
-	SavedGame& save = *engine.getSavedGame();
-	if (RNG::percent(_rule.getGenMissionFrequency()))
+	if (!_commandsToProcess.empty())
 	{
-		auto scriptType = _rule.chooseGenMissionScriptType();
-		if (!scriptType.empty())
+		const Mod& mod = *engine.getMod();
+		SavedGame& save = *engine.getSavedGame();
+		if (RNG::percent(_rule.getGenMissionFrequency()))
 		{
-			const RuleMissionScript& ruleScript = *mod.getMissionScript(scriptType);
-			auto month = save.getMonthsPassed();
-			int loyalty = save.getLoyalty();
-			// lets process mission script with own way, first things first
-			if (ruleScript.getFirstMonth() <= month &&
-				(ruleScript.getLastMonth() >= month || ruleScript.getLastMonth() == -1) &&
-				(ruleScript.getMaxRuns() == -1 || ruleScript.getMaxRuns() > save.getAlienStrategy().getMissionsRun(ruleScript.getVarName())) &&
-				(month < 1 || ruleScript.getMinScore() <= save.getCurrentScore(month)) &&
-				(month < 1 || ruleScript.getMaxScore() >= save.getCurrentScore(month)) &&
-				(month < 1 || ruleScript.getMinLoyalty() <= loyalty) &&
-				(month < 1 || ruleScript.getMaxLoyalty() >= loyalty) &&
-				(month < 1 || ruleScript.getMinFunds() <= save.getFunds()) &&
-				(month < 1 || ruleScript.getMaxFunds() >= save.getFunds()) &&
-				ruleScript.getMinDifficulty() <= save.getDifficulty() &&
-				(ruleScript.getAllowedProcessor() == 0 || ruleScript.getAllowedProcessor() == 2) &&
-				!save.getMissionScriptGapped(ruleScript.getType()))
+			for (auto name : _commandsToProcess)
 			{
-				// level two condition check: make sure we meet any research requirements, if any.
-				bool triggerHappy = true;
-				for (std::map<std::string, bool>::const_iterator j = ruleScript.getResearchTriggers().begin(); triggerHappy && j != ruleScript.getResearchTriggers().end(); ++j)
+				auto ruleScript = mod.getMissionScript(name);
+				auto month = save.getMonthsPassed();
+				int loyalty = save.getLoyalty();
+				// lets process mission script with own way, first things first
+				if (ruleScript->getFirstMonth() <= month &&
+					(ruleScript->getLastMonth() >= month || ruleScript->getLastMonth() == -1) &&
+					(ruleScript->getMaxRuns() == -1 || ruleScript->getMaxRuns() > save.getAlienStrategy().getMissionsRun(ruleScript->getVarName())) &&
+					(month < 1 || ruleScript->getMinScore() <= save.getCurrentScore(month)) &&
+					(month < 1 || ruleScript->getMaxScore() >= save.getCurrentScore(month)) &&
+					(month < 1 || ruleScript->getMinLoyalty() <= loyalty) &&
+					(month < 1 || ruleScript->getMaxLoyalty() >= loyalty) &&
+					(month < 1 || ruleScript->getMinFunds() <= save.getFunds()) &&
+					(month < 1 || ruleScript->getMaxFunds() >= save.getFunds()) &&
+					ruleScript->getMinDifficulty() <= save.getDifficulty() &&
+					(ruleScript->getAllowedProcessor() == 0 || ruleScript->getAllowedProcessor() == 2) &&
+					!save.getMissionScriptGapped(ruleScript->getType()))
 				{
-					triggerHappy = (save.isResearched(j->first) == j->second);
-					if (!triggerHappy)
-						return false;
-				}
-				if (triggerHappy)
-				{
-					// item requirements
-					for (auto& triggerItem : ruleScript.getItemTriggers())
+					// level two condition check: make sure we meet any research requirements, if any.
+					bool triggerHappy = true;
+					for (std::map<std::string, bool>::const_iterator j = ruleScript->getResearchTriggers().begin(); triggerHappy && j != ruleScript->getResearchTriggers().end(); ++j)
 					{
-						triggerHappy = (save.isItemObtained(triggerItem.first) == triggerItem.second);
+						triggerHappy = (save.isResearched(j->first) == j->second);
 						if (!triggerHappy)
-							return false;
+							continue;
 					}
-				}
-				if (triggerHappy)
-				{
-					// facility requirements
-					for (auto& triggerFacility : ruleScript.getFacilityTriggers())
+					if (triggerHappy)
 					{
-						triggerHappy = (save.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
-						if (!triggerHappy)
-							return false;
+						// item requirements
+						for (auto& triggerItem : ruleScript->getItemTriggers())
+						{
+							triggerHappy = (save.isItemObtained(triggerItem.first) == triggerItem.second);
+							if (!triggerHappy)
+								continue;
+						}
 					}
-				}
-				// levels one and two passed: insert this command into the array.
-				if (triggerHappy)
-				{
-					_generatedCommandType = ruleScript.getType();
-					return true;
+					if (triggerHappy)
+					{
+						// facility requirements
+						for (auto& triggerFacility : ruleScript->getFacilityTriggers())
+						{
+							triggerHappy = (save.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
+							if (!triggerHappy)
+								continue;
+						}
+					}
+					// levels one and two passed: insert this command into the array.
+					if (triggerHappy)
+					{
+						_availableMissionScripts.push_back(ruleScript);
+					}
 				}
 			}
 		}
 	}
-	return false;
 }
 
-bool DiplomacyFaction::factionEventGenerator(Game& engine)
+/**
+ * Handle factional events processing.
+ * @param Game game engine.
+ */
+void DiplomacyFaction::factionEventGenerator(Game& engine)
 {
-	const Mod& mod = *engine.getMod();
-	SavedGame& save = *engine.getSavedGame();
-	if (RNG::percent(_rule.getGenEventFrequency()))
+	if (!_eventsToProcess.empty())
 	{
-		auto scriptType = _rule.chooseGenEventScriptType();
-		if (!scriptType.empty())
+		const Mod& mod = *engine.getMod();
+		SavedGame& save = *engine.getSavedGame();
+		if (RNG::percent(_rule.getGenEventFrequency()))
 		{
-			const RuleEventScript& ruleScript = *mod.getEventScript(scriptType);
-			auto month = save.getMonthsPassed();
-			int loyalty = save.getLoyalty();
-			// lets process mission script with own way, first things first
-			if (ruleScript.getFirstMonth() <= month &&
-				(ruleScript.getLastMonth() >= month || ruleScript.getLastMonth() == -1) &&
-				// and make sure we satisfy the difficulty restrictions
-				//(month < 1 || ruleScript.getMinScore() <= save.getCurrentScore(month)) &&
-				//(month < 1 || ruleScript.getMaxScore() >= save.getCurrentScore(month)) &&
-				(month < 1 || ruleScript.getMinLoyalty() <= loyalty) &&
-				(month < 1 || ruleScript.getMaxLoyalty() >= loyalty) &&
-				(month < 1 || ruleScript.getMinFunds() <= save.getFunds()) &&
-				(month < 1 || ruleScript.getMaxFunds() >= save.getFunds()) &&
-				ruleScript.getMinDifficulty() <= save.getDifficulty() &&
-				(ruleScript.getAllowedProcessor() == 0 || ruleScript.getAllowedProcessor() == 2))
+			for (auto name : _eventsToProcess)
 			{
-				// level two condition check: make sure we meet any research requirements, if any.
-				bool triggerHappy = true;
-				for (std::map<std::string, bool>::const_iterator j = ruleScript.getResearchTriggers().begin(); triggerHappy && j != ruleScript.getResearchTriggers().end(); ++j)
+				auto ruleScript = mod.getEventScript(name);
+				auto month = save.getMonthsPassed();
+				int loyalty = save.getLoyalty();
+				if (ruleScript->getFirstMonth() <= month &&
+					(ruleScript->getLastMonth() >= month || ruleScript->getLastMonth() == -1) &&
+					(month < 1 || ruleScript->getMinScore() <= save.getCurrentScore(month)) &&
+					(month < 1 || ruleScript->getMaxScore() >= save.getCurrentScore(month)) &&
+					(month < 1 || ruleScript->getMinLoyalty() <= loyalty) &&
+					(month < 1 || ruleScript->getMaxLoyalty() >= loyalty) &&
+					(month < 1 || ruleScript->getMinFunds() <= save.getFunds()) &&
+					(month < 1 || ruleScript->getMaxFunds() >= save.getFunds()) &&
+					ruleScript->getMinDifficulty() <= save.getDifficulty() &&
+					(ruleScript->getAllowedProcessor() == 0 || ruleScript->getAllowedProcessor() == 2))
 				{
-					triggerHappy = (save.isResearched(j->first) == j->second);
-					if (!triggerHappy)
-						return false;
-				}
-				if (triggerHappy)
-				{
-					// item requirements
-					for (auto& triggerItem : ruleScript.getItemTriggers())
+					// level two condition check: make sure we meet any research requirements, if any.
+					bool triggerHappy = true;
+					for (std::map<std::string, bool>::const_iterator j = ruleScript->getResearchTriggers().begin(); triggerHappy && j != ruleScript->getResearchTriggers().end(); ++j)
 					{
-						triggerHappy = (save.isItemObtained(triggerItem.first) == triggerItem.second);
+						triggerHappy = (save.isResearched(j->first) == j->second);
 						if (!triggerHappy)
-							return false;
+							continue;
 					}
-				}
-				if (triggerHappy)
-				{
-					// facility requirements
-					for (auto& triggerFacility : ruleScript.getFacilityTriggers())
+					if (triggerHappy)
 					{
-						triggerHappy = (save.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
-						if (!triggerHappy)
-							return false;
-					}
-				}
-				// ok, we still want event from this script, now let`s actually choose one.
-				if (triggerHappy)
-				{
-					std::vector<const RuleEvent*> toBeGenerated;
-
-					// 1. sequentially generated one-time events (cannot repeat)
-					{
-						std::vector<std::string> possibleSeqEvents;
-						for (auto& seqEvent : ruleScript.getOneTimeSequentialEvents())
+						// item requirements
+						for (auto& triggerItem : ruleScript->getItemTriggers())
 						{
-							if (!save.wasEventGenerated(seqEvent))
-								possibleSeqEvents.push_back(seqEvent); // insert
-						}
-						if (!possibleSeqEvents.empty())
-						{
-							auto eventRules = mod.getEvent(possibleSeqEvents.front(), true); // take first
-							toBeGenerated.push_back(eventRules);
+							triggerHappy = (save.isItemObtained(triggerItem.first) == triggerItem.second);
+							if (!triggerHappy)
+								continue;
 						}
 					}
-
-					// 2. randomly generated one-time events (cannot repeat)
+					if (triggerHappy)
 					{
-						WeightedOptions possibleRngEvents;
-						WeightedOptions tmp = ruleScript.getOneTimeRandomEvents(); // copy for the iterator, because of getNames()
-						possibleRngEvents = tmp; // copy for us to modify
-						for (auto& rngEvent : tmp.getNames())
+						// facility requirements
+						for (auto& triggerFacility : ruleScript->getFacilityTriggers())
 						{
-							if (save.wasEventGenerated(rngEvent))
-								possibleRngEvents.set(rngEvent, 0); // delete
-						}
-						if (!possibleRngEvents.empty())
-						{
-							auto eventRules = mod.getEvent(possibleRngEvents.choose(), true); // take random
-							toBeGenerated.push_back(eventRules);
+							triggerHappy = (save.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
+							if (!triggerHappy)
+								continue;
 						}
 					}
-
-					// 3. randomly generated repeatable events
+					// ok, we still want event from this script, now let`s actually choose one.
+					if (triggerHappy)
 					{
-						auto eventRules = mod.getEvent(ruleScript.generate(save.getMonthsPassed()), false);
-						if (eventRules)
+						std::vector<const RuleEvent*> toBeGenerated;
+
+						// 1. sequentially generated one-time events (cannot repeat)
 						{
-							toBeGenerated.push_back(eventRules);
+							std::vector<std::string> possibleSeqEvents;
+							for (auto& seqEvent : ruleScript->getOneTimeSequentialEvents())
+							{
+								if (!save.wasEventGenerated(seqEvent))
+									possibleSeqEvents.push_back(seqEvent); // insert
+							}
+							if (!possibleSeqEvents.empty())
+							{
+								auto eventRules = mod.getEvent(possibleSeqEvents.front(), true); // take first
+								toBeGenerated.push_back(eventRules);
+							}
+						}
+
+						// 2. randomly generated one-time events (cannot repeat)
+						{
+							WeightedOptions possibleRngEvents;
+							WeightedOptions tmp = ruleScript->getOneTimeRandomEvents(); // copy for the iterator, because of getNames()
+							possibleRngEvents = tmp; // copy for us to modify
+							for (auto& rngEvent : tmp.getNames())
+							{
+								if (save.wasEventGenerated(rngEvent))
+									possibleRngEvents.set(rngEvent, 0); // delete
+							}
+							if (!possibleRngEvents.empty())
+							{
+								auto eventRules = mod.getEvent(possibleRngEvents.choose(), true); // take random
+								toBeGenerated.push_back(eventRules);
+							}
+						}
+
+						// 3. randomly generated repeatable events
+						{
+							auto eventRules = mod.getEvent(ruleScript->generate(save.getMonthsPassed()), false);
+							if (eventRules)
+							{
+								toBeGenerated.push_back(eventRules);
+							}
+						}
+
+						// 4. generate
+						for (auto eventRules : toBeGenerated)
+						{
+							engine.getMasterMind()->spawnEvent(eventRules->getName());
 						}
 					}
-
-					// 4. generate
-					for (auto eventRules : toBeGenerated)
-					{
-						engine.getMasterMind()->spawnEvent(eventRules->getName());
-					}
-
-					return true;
 				}
 			}
 		}
 	}
-	return false;
 }
 
 }

@@ -181,7 +181,14 @@ SoldiersState::SoldiersState(Base *base) : _base(base), _origSoldierOrder(*_base
 
 	_txtRank->setText(tr("STR_RANK"));
 
-	_txtCraft->setText(tr("STR_CRAFT"));
+	if (_game->getMod()->getIsFTAGame())
+	{
+		_txtCraft->setText(tr("STR_ASSIGNMENT"));
+	}
+	else
+	{
+		_txtCraft->setText(tr("STR_CRAFT"));
+	}
 
 	// populate sort options
 	std::vector<std::string> sortOptions;

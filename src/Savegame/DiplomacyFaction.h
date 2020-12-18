@@ -52,7 +52,9 @@ private:
 	int _reputationScore, _reputationLvL;
 	bool _discovered, _thisMonthDiscovered;
 	std::vector<std::string> _treaties;
-	std::string _reputationName, _generatedCommandType;
+	std::string _reputationName;
+	std::vector<std::string> _commandsToProcess, _eventsToProcess;
+	std::vector<RuleMissionScript*> _availableMissionScripts;
 public:
 	/// Creates a blank Diplomacy Faction.
 	DiplomacyFaction(const RuleDiplomacyFaction &rule);
@@ -85,12 +87,12 @@ public:
 	/// Sets Faction's this month discovered status.
 	void setThisMonthDiscovered(bool status) { _thisMonthDiscovered = status; };
 	/// Handle Faction logic.
-	bool think(Game& engine, ThinkPeriod = TIMESTEP_DAILY);
+	void think(Game& engine, ThinkPeriod = TIMESTEP_DAILY);
 	/// Generates mission for the faction base on current situation in the game.
-	bool factionMissionGenerator(Game& engine);
+	void factionMissionGenerator(Game& engine);
 	/// Generates event from the faction base on current situation in the game.
-	bool factionEventGenerator(Game& engine);
-	/// Get mission script command that pass all checks to generate alien mission for that faction.
-	std::string getCommandType() const { return _generatedCommandType; };
+	void factionEventGenerator(Game& engine);
+	/// Get mission script commands that pass all checks to generate alien mission for that faction.
+	const std::vector<RuleMissionScript*> &getAvalibleMissionScripts() const { return _availableMissionScripts; };
 };
 }
