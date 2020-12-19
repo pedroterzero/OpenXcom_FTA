@@ -553,7 +553,6 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 	const auto topCenterVoxel = static_cast<Sint16>((_blockVisibility[_save->getTileIndex(center)].blockUp ? (center.z + 1) : _save->getMapSizeZ()) * accuracy.z - 1);
 	const auto maxFirePower = std::min(15, getMaxStaticLightDistance() - 1);
 
-	
 	iterateTiles(
 		_save,
 		MapSubset::intersection(gs, mapArea(center, power - 1)),
