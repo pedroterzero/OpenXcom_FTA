@@ -524,7 +524,7 @@ void TileEngine::calculateLighting(LightLayers layer, Position position, int eve
  * @param center Center.
  * @param power Power.
  * @param layer Light is separated in 4 layers: Ambient, Tiles, Items, Units.
- * @param cone coneSize of cone of light, 1 means 45°, 4 means 360°
+ * @param cone coneSize of cone of light, 1 means 45ï¿½, 4 means 360ï¿½
  * @param direction - cone direction.
  */
 void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers layer, int coneSize, int direction)
@@ -562,6 +562,19 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 
 			if (currLight <= targetLight)
 			{
+				return;
+			}
+			if (direction > -1)
+			{
+				int tileDir = getDirectionTo(center.toVoxel(), target.toVoxel());
+				int arc = getArcDirection(direction, tileDir);
+				// Log(LOG_DEBUG) << "direction: " << direction << " tileDir: " << tileDir << " arc: " << arc;
+
+				if (arc < coneSize) {
+					// Log(LOG_DEBUG) << "adding light, " << arc << "<" << coneSize;
+					tile->addLight(currLight, layer);
+				}
+
 				return;
 			}
 			if (clasicLighting)
@@ -610,21 +623,6 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 				auto result = false;
 				auto& cache = _blockVisibility[_save->getTileIndex(lastPoint)];
 				Pathfinding::vectorToDirection(difference, dir);
-				if (unitFacing > -1)
-				{
-					if ((unitFacing == 0 && dir != 7 && dir != 0 && dir != 1) ||
-						(unitFacing == 1 && dir != 0 && dir != 1 && dir != 2) ||
-						(unitFacing == 2 && dir != 1 && dir != 2 && dir != 3) ||
-						(unitFacing == 3 && dir != 2 && dir != 3 && dir != 4) ||
-						(unitFacing == 4 && dir != 3 && dir != 4 && dir != 5) ||
-						(unitFacing == 5 && dir != 4 && dir != 5 && dir != 6) ||
-						(unitFacing == 6 && dir != 5 && dir != 6 && dir != 8) ||
-						(unitFacing == 7 && dir != 6 && dir != 7 && dir != 0))
-						{
-							light = 0;
-							return false;
-						}
-				}
 				if (difference.z > 0)
 				{
 					if (dir != -1)

@@ -80,3 +80,5 @@ bin/user
 /makefile
 /.kdev4/
 /*.kdev4
+# history
+.history
