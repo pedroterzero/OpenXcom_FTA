@@ -373,7 +373,6 @@ void TileEngine::calculateUnitLighting(MapSubset gs)
 		}
 
 		auto currLight = 0;
-		int coneSize = 0;
 		// add lighting of soldiers
 		if (_personalLighting && unit->getFaction() == FACTION_PLAYER)
 		{
@@ -382,13 +381,13 @@ void TileEngine::calculateUnitLighting(MapSubset gs)
 		BattleItem *handWeapons[] = { unit->getLeftHandWeapon(), unit->getRightHandWeapon() };
 		for (BattleItem *w : handWeapons)
 		{
-			if (w && w->getGlow())
+			if (w && w->getItemConeSize() && w->getGlow() && w->getGlowRange() > currLight)
+			{
+				calculateUnitDirectionalLighting(gs, unit, w);
+			}
+			else if (w && w->getGlow())
 			{
 				currLight = std::max(currLight, w->getGlowRange());
-			}
-			if (w && w->getItemConeSize())
-			{
-				coneSize = std::max(coneSize, w->getItemConeSize());
 			}
 		}
 		// add lighting of units on fire
@@ -407,16 +406,22 @@ void TileEngine::calculateUnitLighting(MapSubset gs)
 		{
 			for (int y = 0; y < size; ++y)
 			{
-				if (coneSize)
-				{
-					addLight(gs, pos + Position(x, y, 0), currLight, LL_UNITS, coneSize, unit->getDirection());
-				}
-				else
-				{
-					addLight(gs, pos + Position(x, y, 0), currLight, LL_UNITS, -1, -1);
-				}
-				
+				addLight(gs, pos + Position(x, y, 0), currLight, LL_UNITS);
 			}
+		}
+	}
+}
+
+void TileEngine::calculateUnitDirectionalLighting(MapSubset gs, BattleUnit *unit, BattleItem *w)
+{
+	const auto size = unit->getArmor()->getSize();
+	const auto pos = unit->getPosition();
+
+	for (int x = 0; x < size; ++x)
+	{
+		for (int y = 0; y < size; ++y)
+		{
+			addLight(gs, pos + Position(x, y, 0), w->getGlowRange(), LL_UNITS, w->getItemConeSize(), unit->getDirection());
 		}
 	}
 }
@@ -564,14 +569,12 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 			{
 				return;
 			}
-			if (direction > -1)
+			if (coneSize > 0)
 			{
 				int tileDir = getDirectionTo(center.toVoxel(), target.toVoxel());
 				int arc = getArcDirection(direction, tileDir);
-				// Log(LOG_DEBUG) << "direction: " << direction << " tileDir: " << tileDir << " arc: " << arc;
 
 				if (arc < coneSize) {
-					// Log(LOG_DEBUG) << "adding light, " << arc << "<" << coneSize;
 					tile->addLight(currLight, layer);
 				}
 

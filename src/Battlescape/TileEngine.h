@@ -167,6 +167,8 @@ public:
 	bool checkReactionFire(BattleUnit *unit, const BattleAction &originalAction);
 	/// Recalculate all lighting in some area.
 	void calculateLighting(LightLayers layer, Position position = invalid, int eventRadius = 0, bool terrianChanged = false);
+	/// Adds unit directional lighting
+	void calculateUnitDirectionalLighting(MapSubset gs, BattleUnit *unit, BattleItem *w);
 	/// Handles tile hit.
 	int hitTile(Tile *tile, int damage, const RuleDamageType* type);
 	/// Handles experience training.
