@@ -292,7 +292,7 @@ void CraftSoldiersState::initList(size_t scrl)
 		{
 			color = _lstSoldiers->getSecondaryColor();
 		}
-		else if ((*i)->getCraft() != 0 || (*i)->getCovertOperation() != 0)
+		else if ((*i)->getCraft() != 0 || (*i)->getCovertOperation() != 0 || (*i)->hasPendingTransformation())
 		{
 			color = _otherCraftColor;
 		}
@@ -449,7 +449,7 @@ void CraftSoldiersState::lstSoldiersClick(Action *action)
 			s->setCraft(0);
 			_lstSoldiers->setCellText(row, 2, tr("STR_NONE_UC"));
 		}
-		else if ((s->getCraft() && s->getCraft()->getStatus() == "STR_OUT") || s->getCovertOperation() != 0)
+		else if ((s->getCraft() && s->getCraft()->getStatus() == "STR_OUT") || s->getCovertOperation() != 0 || s->hasPendingTransformation())
 		{
 			color = _otherCraftColor;
 		}

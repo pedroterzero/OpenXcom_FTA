@@ -84,6 +84,7 @@
 #include "MultipleTargetsState.h"
 #include "ConfirmLandingState.h"
 #include "ItemsArrivingState.h"
+#include "TransformationFinishedState.h"
 #include "CraftErrorState.h"
 #include "DogfightErrorState.h"
 #include "DogfightExperienceState.h"
@@ -2162,6 +2163,37 @@ void GeoscapeState::time1Hour()
 			}
 		}
 	}
+
+	// Handle pending transformations
+	for (std::vector<Base*>::iterator i = _game->getSavedGame()->getBases()->begin(); i != _game->getSavedGame()->getBases()->end(); ++i)
+	{
+		std::vector<std::pair<Soldier*, RuleSoldierTransformation*>> trainingFinishedList;
+		for (std::vector<Soldier*>::iterator j = (*i)->getSoldiers()->begin(); j != (*i)->getSoldiers()->end(); ++j)
+		{
+			if ((*j)->hasPendingTransformation())
+			{
+				auto rules = _game->getMod()->getSoldierTransformation((*j)->getPendingTransformation());
+				if ((*j)->handlePendingTransformation())
+				{
+					if (rules)
+					{
+						(*j)->transform(_game->getMod(), rules, (*j));
+						trainingFinishedList.push_back(std::make_pair(*j, rules));
+					}
+					else
+					{
+						throw Exception("Attempting to transform soldier " + (*j)->getName() + ". ERROR! No rules found for transformation!");
+					}				
+				}
+			}
+		}
+		if (!trainingFinishedList.empty())
+		{
+			popup(new TransformationFinishedState((*i), std::move(trainingFinishedList)));
+			//popup(new TransformationFinishedState((*i), trainingFinishedList));
+		}
+	}
+
 	for (std::vector<MissionSite*>::iterator i = _game->getSavedGame()->getMissionSites()->begin(); i != _game->getSavedGame()->getMissionSites()->end(); ++i)
 	{
 		if (!(*i)->getDetected())

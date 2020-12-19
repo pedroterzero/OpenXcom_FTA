@@ -89,7 +89,7 @@ private:
 	SoldierDiary *_diary;
 	std::string _statString;
 	bool _corpseRecovered;
-	std::map<std::string, int> _previousTransformations, _transformationBonuses;
+	std::map<std::string, int> _previousTransformations, _transformationBonuses, _pendingTransformations;
 	std::vector<const RuleSoldierBonus*> _bonusCache;
 	ScriptValues<Soldier> _scriptValues;
 public:
@@ -284,6 +284,14 @@ public:
 	bool isEligibleForTransformation(RuleSoldierTransformation *transformationRule);
 	/// Performs a transformation on this soldier
 	void transform(const Mod *mod, RuleSoldierTransformation *transformationRule, Soldier *sourceSoldier);
+	/// Create pending transformation on this soldier
+	void postponeTransformation(RuleSoldierTransformation* transformationRule);
+	/// Handles pending transformation - reducing timer, performing transformation once finished
+	bool handlePendingTransformation();
+	/// Gets if this soldier has pending transformation
+	bool hasPendingTransformation() const { return !_pendingTransformations.empty() ;}
+	/// Gets pending transformation name
+	const std::string &getPendingTransformation() const { return _pendingTransformations.begin()->first; };
 	/// Calculates how this project changes the soldier's stats
 	UnitStats calculateStatChanges(const Mod *mod, RuleSoldierTransformation *transformationRule, Soldier *sourceSoldier, int mode, const RuleSoldier *sourceSoldierType);
 	/// Gets all the soldier bonuses

@@ -1187,6 +1187,9 @@
     <ClCompile Include="Battlescape\CustomBattleMessageState.cpp">
       <Filter>Battlescape</Filter>
     </ClCompile>
+    <ClCompile Include="Geoscape\TransformationFinishedState.cpp">
+      <Filter>Geoscape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2437,6 +2440,9 @@
     </ClInclude>
     <ClInclude Include="Battlescape\CustomBattleMessageState.h">
       <Filter>Battlescape</Filter>
+    </ClInclude>
+    <ClInclude Include="Geoscape\TransformationFinishedState.h">
+      <Filter>Geoscape</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

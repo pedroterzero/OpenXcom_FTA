@@ -44,6 +44,7 @@ private:
 	std::map<std::string, int> _requiredItems;
 	std::map<std::string, int> _requiredCommendations;
 	int _listOrder, _cost, _transferTime, _recoveryTime;
+	int _transformationTime;
 	int _minRank;
 	bool _includeBonusesForMinStats;
 	UnitStats _requiredMinStats, _flatOverallStatChange, _percentOverallStatChange, _percentGainedStatChange;
@@ -106,6 +107,8 @@ public:
 	int getTransferTime() const;
 	/// Gets how long the transformed soldier should take to recover after completion
 	int getRecoveryTime() const;
+	/// Gets how long the transformating would be in process before applyes
+	int getTransformationTime() const { return _transformationTime; };
 	/// Gets the minimum rank a soldier needs to be eligible for this project
 	int getMinRank() const;
 	/// Gets the flat change to a soldier's overall stats when undergoing this project

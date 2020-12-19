@@ -31,7 +31,7 @@ RuleSoldierTransformation::RuleSoldierTransformation(const std::string &name) :
 	_name(name),
 	_keepSoldierArmor(false), _createsClone(false), _needsCorpseRecovered(true),
 	_allowsDeadSoldiers(false), _allowsLiveSoldiers(false), _allowsWoundedSoldiers(false),
-	_listOrder(0), _cost(0), _transferTime(0), _recoveryTime(0), _minRank(0), _includeBonusesForMinStats(false),
+	_listOrder(0), _cost(0), _transferTime(0), _recoveryTime(0), _transformationTime(0), _minRank(0), _includeBonusesForMinStats(false),
 	_showMinMax(false), _lowerBoundAtMinStats(true), _upperBoundAtMaxStats(false), _upperBoundAtStatCaps(false), _upperBoundType(0),
 	_reset(false)
 {
@@ -75,6 +75,7 @@ void RuleSoldierTransformation::load(const YAML::Node &node, Mod* mod, int listO
 	_cost = node["cost"].as<int>(_cost);
 	_transferTime = node["transferTime"].as<int>(_transferTime);
 	_recoveryTime = node["recoveryTime"].as<int>(_recoveryTime);
+	_transformationTime = node["transformationTime"].as<int>(_transformationTime);
 	_minRank = node["minRank"].as<int>(_minRank);
 	_flatOverallStatChange = node["flatOverallStatChange"].as<UnitStats >(_flatOverallStatChange);
 	_percentOverallStatChange = node["percentOverallStatChange"].as<UnitStats >(_percentOverallStatChange);

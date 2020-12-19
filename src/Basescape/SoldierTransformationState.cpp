@@ -209,8 +209,25 @@ void SoldierTransformationState::initTransformationData()
 	{
 		transferTime = _transformationRule->getTransferTime() > 0 ? _transformationRule->getTransferTime() : 24;
 	}
-	_txtTransferTime->setText(tr("STR_TRANSFER_TIME").arg(tr("STR_HOUR", transferTime)));
+	if (_transformationRule->getTransformationTime() > 0)
+	{
+		_txtTransferTime->setText(tr("STR_TRANSFORMATION_TIME").arg(tr("STR_HOUR", _transformationRule->getTransformationTime())));
+	}
+	else
+	{
+		_txtTransferTime->setText(tr("STR_TRANSFER_TIME").arg(tr("STR_HOUR", transferTime)));
+	}
 	_txtRecoveryTime->setText(tr("STR_RECOVERY_TIME").arg(tr("STR_DAY", _transformationRule->getRecoveryTime())));
+
+	if (_transformationRule->getRecoveryTime() == 0)
+	{
+		_txtRecoveryTime->setVisible(false);
+	}
+	if (_transformationRule->getCost() == 0)
+	{
+		_txtCost->setVisible(false);
+		_txtTransferTime->setY(30);
+	}
 
 	const std::map<std::string, int> & requiredItems(_transformationRule->getRequiredItems());
 
@@ -464,6 +481,7 @@ void SoldierTransformationState::btnStartClick(Action *action)
 void SoldierTransformationState::performTransformation()
 {
 	Soldier *destinationSoldier = 0;
+	bool toTransfer = false;
 
 	if (_transformationRule->isCreatingClone())
 	{
@@ -512,11 +530,12 @@ void SoldierTransformationState::performTransformation()
 			if (it != _base->getSoldiers()->end())
 			{
 				_base->getSoldiers()->erase(it);
+				toTransfer = true;
 			}
 		}
 	}
 
-	if (_transformationRule->getTransferTime() > 0 || _transformationRule->isCreatingClone() || _sourceSoldier->getDeath())
+	if ((_transformationRule->getTransferTime() > 0 && toTransfer) || _transformationRule->isCreatingClone() || _sourceSoldier->getDeath())
 	{
 		int transferTime = _transformationRule->getTransferTime() > 0 ? _transformationRule->getTransferTime() : 24;
 		Transfer *transfer = new Transfer(transferTime);
@@ -524,7 +543,14 @@ void SoldierTransformationState::performTransformation()
 		_base->getTransfers()->push_back(transfer);
 	}
 
-	destinationSoldier->transform(_game->getMod(), _transformationRule, _sourceSoldier);
+	if (_transformationRule->getTransformationTime() > 0)
+	{
+		_sourceSoldier->postponeTransformation(_transformationRule);
+	}
+	else
+	{
+		destinationSoldier->transform(_game->getMod(), _transformationRule, _sourceSoldier);
+	}
 }
 
 void SoldierTransformationState::retire()

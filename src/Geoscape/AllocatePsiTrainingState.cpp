@@ -327,7 +327,7 @@ void AllocatePsiTrainingState::initList(size_t scrl)
 			_lstSoldiers->addRow(4, (*s)->getName(true).c_str(), ssStr.str().c_str(), ssSkl.str().c_str(), tr("STR_YES").c_str());
 			_lstSoldiers->setRowColor(row, _lstSoldiers->getSecondaryColor());
 		}
-		else if ((*s)->getCovertOperation() != 0)
+		else if ((*s)->getCovertOperation() != 0 || (*s)->hasPendingTransformation())
 		{
 			_lstSoldiers->addRow(4, (*s)->getName(true).c_str(), ssStr.str().c_str(), ssSkl.str().c_str(), tr("STR_UNAVAILABLE_TRAINING").c_str());
 			_lstSoldiers->setRowColor(row, _lstSoldiers->getColor());
@@ -466,9 +466,13 @@ void AllocatePsiTrainingState::lstSoldiersClick(Action *action)
 	Soldier* selected = _base->getSoldiers()->at(_sel);
 	if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
 	{
+		if ((selected->getCovertOperation() != 0) || selected->hasPendingTransformation())
+		{
+			return;
+		}
 		if (!selected->isInPsiTraining())
 		{
-			if ((_base->getUsedPsiLabs() < _base->getAvailablePsiLabs()) && (selected->getCovertOperation() != 0))
+			if (_base->getUsedPsiLabs() < _base->getAvailablePsiLabs())
 			{
 				_lstSoldiers->setCellText(_sel, 3, tr("STR_YES"));
 				_lstSoldiers->setRowColor(_sel, _lstSoldiers->getSecondaryColor());

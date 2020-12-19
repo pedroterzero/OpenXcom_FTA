@@ -238,6 +238,7 @@ void Soldier::load(const YAML::Node& node, const Mod *mod, SavedGame *save, cons
 	_corpseRecovered = node["corpseRecovered"].as<bool>(_corpseRecovered);
 	_previousTransformations = node["previousTransformations"].as<std::map<std::string, int > >(_previousTransformations);
 	_transformationBonuses = node["transformationBonuses"].as<std::map<std::string, int > >(_transformationBonuses);
+	_pendingTransformations = node["pendingTransformations"].as<std::map<std::string, int > >(_pendingTransformations);
 	_scriptValues.load(node, shared);
 }
 
@@ -323,6 +324,8 @@ YAML::Node Soldier::save(const ScriptGlobal *shared) const
 		node["previousTransformations"] = _previousTransformations;
 	if (!_transformationBonuses.empty())
 		node["transformationBonuses"] = _transformationBonuses;
+	if (!_pendingTransformations.empty())
+		node["pendingTransformations"] = _pendingTransformations;
 
 	_scriptValues.save(node, shared);
 
@@ -491,13 +494,20 @@ std::string Soldier::getCraftString(Language *lang, const BaseSumDailyRecovery& 
 		}
 		s = ss.str();
 	}
-	else if (_craft == 0 && _covertOperation == 0)
+	else if (_craft == 0 && _covertOperation == 0 && !hasPendingTransformation())
 	{
 		s = lang->getString("STR_NONE_UC");
 	}
 	else if (_craft == 0)
 	{
-		s = lang->getString("STR_COVERT_OPERATION_UC");
+		if (hasPendingTransformation())
+		{
+			s = lang->getString("STR_IN_TRANSFORMATION_UC");
+		}
+		else
+		{
+			s = lang->getString("STR_COVERT_OPERATION_UC");
+		}
 	}
 	else
 	{
@@ -1544,6 +1554,9 @@ bool Soldier::isEligibleForTransformation(RuleSoldierTransformation *transformat
 			return false;
 	}
 
+	if(!_pendingTransformations.empty())
+		return false;
+
 	// Does this soldier meet the minimum stat requirements for the project?
 	UnitStats currentStats = transformationRule->getIncludeBonusesForMinStats() ? _tmpStatsWithSoldierBonuses: _currentStats;
 	UnitStats minStats = transformationRule->getRequiredMinStats();
@@ -1732,6 +1745,46 @@ void Soldier::transform(const Mod *mod, RuleSoldierTransformation *transformatio
 		}
 	}
 }
+
+/**
+ * Saves info about pending transformation for this soldier.
+ * @param transformationRule RuleSoldierTransformation pointer.
+ */
+void Soldier::postponeTransformation(RuleSoldierTransformation* transformationRule)
+{
+	_training = false;
+	_returnToTrainingWhenHealed = false;
+	_psiTraining = false;
+	_craft = 0;
+
+	int time = transformationRule->getTransformationTime();
+	//time += RNG::generate(time * (-0.2), time * 0.2); // let's see how it goes first
+	_pendingTransformations[transformationRule->getName()] = time;
+}
+
+/**
+ * Handles pending transformation - reducing timer, performing transformation once finished.
+ * @param transformationRule RuleSoldierTransformation pointer
+ */
+bool Soldier::handlePendingTransformation()
+{
+	bool finished = false;
+	for (auto it = _pendingTransformations.cbegin(); it != _pendingTransformations.cend();)
+	{
+		if ((*it).second < 1)
+		{
+			it = _pendingTransformations.erase(it);
+			finished = true;
+		}
+		else
+		{
+			_pendingTransformations.at((*it).first) -= 1;
+			++it;
+		}
+	}
+	return finished;
+}
+
 
 /**
  * Calculates the stat changes a soldier undergoes from this project

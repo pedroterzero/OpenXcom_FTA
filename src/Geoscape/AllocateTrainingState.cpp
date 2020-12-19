@@ -331,6 +331,7 @@ void AllocateTrainingState::initList(size_t scrl)
 		bool isQueued = isWounded && (*s)->getReturnToTrainingWhenHealed();
 		bool isTraining = (*s)->isInTraining();
 		bool isOut = (*s)->getCovertOperation() != 0;
+		bool isTransforming = (*s)->hasPendingTransformation();
 
 		std::string status;
 		if (isDone)
@@ -339,6 +340,8 @@ void AllocateTrainingState::initList(size_t scrl)
 			status = tr("STR_NO_QUEUED");
 		else if (isWounded)
 			status = tr("STR_NO_WOUNDED");
+		else if (isTransforming)
+			status = tr("STR_NO_TRANSFORMATION");
 		else if (isOut)
 			status = tr("STR_NO_OUT");
 		else if (isTraining)
@@ -491,6 +494,9 @@ void AllocateTrainingState::lstSoldiersClick(Action *action)
 
 		// can't put soldier that is on covert operation
 		if (soldier->getCovertOperation() != 0) return;
+
+		// can't put soldier that has pending transformation
+		if (soldier->hasPendingTransformation()) return;
 
 		// wounded soldiers can be queued/dequeued
 		if (soldier->isWounded())

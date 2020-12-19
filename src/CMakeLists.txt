@@ -229,6 +229,7 @@ set ( geoscape_src
   Geoscape/SelectMusicTrackState.cpp
   Geoscape/TargetInfoState.cpp
   Geoscape/TrainingFinishedState.cpp
+  Geoscape/TransformationFinishedState.cpp
   Geoscape/TrainingState.cpp
   Geoscape/UfoDetectedState.cpp
   Geoscape/UfoLostState.cpp

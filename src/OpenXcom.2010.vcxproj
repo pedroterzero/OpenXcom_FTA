@@ -436,6 +436,7 @@
     <ClCompile Include="Geoscape\TargetInfoState.cpp" />
     <ClCompile Include="Geoscape\TrainingFinishedState.cpp" />
     <ClCompile Include="Geoscape\TrainingState.cpp" />
+    <ClCompile Include="Geoscape\TransformationFinishedState.cpp" />
     <ClCompile Include="Geoscape\UfoDetectedState.cpp" />
     <ClCompile Include="Geoscape\UfoLostState.cpp" />
     <ClCompile Include="Geoscape\UfoTrackerState.cpp" />
@@ -848,6 +849,7 @@
     <ClInclude Include="Geoscape\TargetInfoState.h" />
     <ClInclude Include="Geoscape\TrainingFinishedState.h" />
     <ClInclude Include="Geoscape\TrainingState.h" />
+    <ClInclude Include="Geoscape\TransformationFinishedState.h" />
     <ClInclude Include="Geoscape\UfoDetectedState.h" />
     <ClInclude Include="Geoscape\UfoLostState.h" />
     <ClInclude Include="Geoscape\UfoTrackerState.h" />

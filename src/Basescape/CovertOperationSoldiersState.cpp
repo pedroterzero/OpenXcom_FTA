@@ -294,6 +294,7 @@ void CovertOperationSoldiersState::initList(size_t scrl)
 			{
 				psiUnavalible = true;
 				_lstSoldiers->setCellText(row, 2, tr("STR_IN_PSI_TRAINING_UC"));
+				color = _otherCraftColor;
 			}
 		}
 
@@ -302,7 +303,7 @@ void CovertOperationSoldiersState::initList(size_t scrl)
 			color = _lstSoldiers->getSecondaryColor();
 			_lstSoldiers->setCellText(row, 2, tr("STR_ASSIGNED_UC"));
 		}
-		else if ((*i)->getCraft() != 0 || (*i)->getCovertOperation() != 0 || psiUnavalible)
+		else if ((*i)->getCraft() != 0 || (*i)->getCovertOperation() != 0 || psiUnavalible || (*i)->hasPendingTransformation())
 		{
 			color = _otherCraftColor;
 		}
@@ -366,7 +367,7 @@ void CovertOperationSoldiersState::lstSoldiersClick(Action* action)
 		auto opSoldiers = _operation->getSoldiers();
 		bool matched = false;
 		auto iter = std::find(std::begin(opSoldiers), std::end(opSoldiers), s);
-		bool busy = ((s->getCraft() && s->getCraft()->getStatus() == "STR_OUT") || s->getCovertOperation() );
+		bool busy = ((s->getCraft() && s->getCraft()->getStatus() == "STR_OUT") || s->getCovertOperation() || s->hasPendingTransformation());
 		bool psiUnavalible = false;
 		if (!Options::anytimePsiTraining && s->isInPsiTraining())
 		{
