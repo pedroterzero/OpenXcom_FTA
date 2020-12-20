@@ -346,6 +346,10 @@ void TileEngine::calculateTerrainItems(MapSubset gs)
 				if (it->getGlow())
 				{
 					currLight = std::max(currLight, it->getGlowRange());
+					if (it->getItemConeSize() > 0)
+					{
+						return;
+					}
 				}
 			}
 
@@ -529,7 +533,7 @@ void TileEngine::calculateLighting(LightLayers layer, Position position, int eve
  * @param center Center.
  * @param power Power.
  * @param layer Light is separated in 4 layers: Ambient, Tiles, Items, Units.
- * @param cone coneSize of cone of light, 1 means 45�, 4 means 360�
+ * @param cone coneSize of cone of light, 1 means 45 degrees, 4 means 360 degrees
  * @param direction - cone direction.
  */
 void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers layer, int coneSize, int direction)
@@ -568,17 +572,49 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 			{
 				return;
 			}
-			if (coneSize > 0)
+			/*if (coneSize > 0)
 			{
 				int tileDir = getDirectionTo(center.toVoxel(), target.toVoxel());
 				int arc = getArcDirection(direction, tileDir);
-
-				if (arc < coneSize) {
-					tile->addLight(currLight, layer);
+				if (distance == 0)
+				{
+					if (power > 9)
+					{
+						currLight = 9;
+					}
+					else
+					{
+						currLight = power;
+					}
 				}
+				else if (arc >= coneSize)
+				{
+					currLight = 0;
+				}
+			}*/
 
-				return;
+			if (coneSize > 0)
+			{
+				auto o = { Position(6, 6, 0), Position(-6,-6, 0), Position(-6, 6, 0), Position(6, -6, 0) };
+				const int hitsMax = 2 * std::size(o);
+				int hits = hitsMax;
+				for (const auto& offset : o)
+				{
+					auto centerTemp = center.toVoxel() + offset;
+					int tileDir = getDirectionTo(centerTemp, target.toVoxel());
+					int arc = getArcDirection(direction, tileDir);
+					if (distance == 0)
+					{
+						hits -= 1;
+					}
+					else if (arc >= coneSize)
+					{
+						hits -= 2;
+					}
+				}
+				currLight = currLight * hits / hitsMax;
 			}
+
 			if (clasicLighting)
 			{
 				tile->addLight(currLight, layer);
