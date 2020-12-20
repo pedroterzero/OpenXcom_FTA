@@ -142,7 +142,7 @@ AbortMissionState::AbortMissionState(SavedBattleGame *battleGame, BattlescapeSta
 	_txtOutside->setText(tr("STR_UNITS_OUTSIDE", _outside + tally.vipInField));
 
 
-	if (_battleGame->getMissionType() == "STR_BASE_DEFENSE" || (!exit && !entry))
+	if (_battleGame->getMissionType() == "STR_BASE_DEFENSE")
 	{
 		_txtInEntrance->setVisible(false);
 		_txtInExit->setVisible(false);

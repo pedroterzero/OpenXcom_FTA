@@ -877,8 +877,12 @@ void DebriefingState::btnOkClick(Action *)
 	}
 	_game->getSavedGame()->setBattleGame(0);
 	_game->popState();
+
 	if (_game->getMod()->getIsFTAGame() && !_game->getSavedGame()->isResearched("STR_HELLO"))
-		_game->popState(); //skip Commander log arc scripts if first mission was failed.
+	{
+		_game->popState(); //we need this to skip Commander log arc script if the first mission was failed.
+	}
+		
 	if (_game->getSavedGame()->getMonthsPassed() == -1)
 	{
 		_game->setState(new MainMenuState);
@@ -1078,6 +1082,9 @@ void DebriefingState::prepareDebriefing()
 	_stats.push_back(new DebriefingStat("STR_VIP_SAVED", false));
 	_stats.push_back(new DebriefingStat("STR_VIP_KILLED_BY_ALIENS", false));
 	_stats.push_back(new DebriefingStat("STR_VIP_KILLED_BY_XCOM_OPERATIVES", false));
+	_stats.push_back(new DebriefingStat("STR_SCIENTIST_JOINED_XCOM", false));
+	_stats.push_back(new DebriefingStat("STR_ENGINEER_JOINED_XCOM", false));
+	_stats.push_back(new DebriefingStat("STR_SOLDIER_JOINED_XCOM", false));
 	_stats.push_back(new DebriefingStat("STR_VIP_LOST", false));
 	_stats.push_back(new DebriefingStat("STR_XCOM_OPERATIVES_KILLED", false));
 	//_stats.push_back(new DebriefingStat("STR_XCOM_OPERATIVES_RETIRED_THROUGH_INJURY", false));
@@ -2828,22 +2835,24 @@ bool DebriefingState::handleVipRecovery(BattleUnit* unit, Base* base, bool resul
 		std::string type = rules->getCivilianRecoveryType();
 		if (type == "STR_SCIENTIST")
 		{
-			Transfer* t = new Transfer(12);
+			Transfer* t = new Transfer(4);
 			t->setScientists(1);
 			base->getTransfers()->push_back(t);
+			addStat("STR_SCIENTIST_JOINED_XCOM", 1, rules->getValue() / 3);
 		}
 		else if (type == "STR_ENGINEER")
 		{
-			Transfer* t = new Transfer(12);
+			Transfer* t = new Transfer(4);
 			t->setEngineers(1);
 			base->getTransfers()->push_back(t);
+			addStat("STR_ENGINEER_JOINED_XCOM", 1, rules->getValue() / 3);
 		}
 		else
 		{
 			RuleSoldier* ruleSoldier = _game->getMod()->getSoldier(type);
 			if (ruleSoldier != 0)
 			{
-				Transfer* t = new Transfer(12);
+				Transfer* t = new Transfer(4);
 				Soldier* s = _game->getMod()->genSoldier(_game->getSavedGame(), ruleSoldier->getType());
 				unit->setGeoscapeSoldied(s);
 				created = true;
@@ -2852,6 +2861,7 @@ bool DebriefingState::handleVipRecovery(BattleUnit* unit, Base* base, bool resul
 				auto test = unit->getGeoscapeSoldier();
 				t->setSoldier(s);
 				base->getTransfers()->push_back(t);
+				addStat("STR_SOLDIER_JOINED_XCOM", 1, rules->getValue() / 3);
 			}
 		}
 	}
