@@ -132,7 +132,7 @@ void Base::load(const YAML::Node &node, SavedGame *save, bool newGame, bool newB
 		if (_mod->getCraft(type))
 		{
 			Craft *c = new Craft(_mod->getCraft(type), this);
-			c->load(*i, _mod, save);
+			c->load(*i, _mod->getScriptGlobal(), _mod, save);
 			_crafts.push_back(c);
 		}
 		else
@@ -364,7 +364,7 @@ YAML::Node Base::save() const
 	}
 	for (std::vector<Craft*>::const_iterator i = _crafts.begin(); i != _crafts.end(); ++i)
 	{
-		node["crafts"].push_back((*i)->save());
+		node["crafts"].push_back((*i)->save(_mod->getScriptGlobal()));
 	}
 	for (std::vector<CovertOperation*>::const_iterator i = _covertOperations.begin(); i != _covertOperations.end(); ++i)
 	{

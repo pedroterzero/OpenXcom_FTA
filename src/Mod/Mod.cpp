@@ -1771,6 +1771,7 @@ void Mod::loadAll()
 	afterLoadHelper("commendations", this, _commendations, &RuleCommendations::afterLoad);
 	afterLoadHelper("skills", this, _skills, &RuleSkill::afterLoad);
 	afterLoadHelper("craftWeapons", this, _craftWeapons, &RuleCraftWeapon::afterLoad);
+	afterLoadHelper("countries", this, _countries, &RuleCountry::afterLoad);
 
 	for (auto& a : _armors)
 	{
@@ -2115,7 +2116,7 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 		if (rule != 0)
 		{
 			_craftListOrder += 100;
-			rule->load(*i, this, _craftListOrder);
+			rule->load(*i, this, _craftListOrder, parsers);
 		}
 	}
 	for (YAML::const_iterator i = doc["craftWeapons"].begin(); i != doc["craftWeapons"].end(); ++i)
