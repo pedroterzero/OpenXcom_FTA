@@ -572,26 +572,6 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 			{
 				return;
 			}
-			/*if (coneSize > 0)
-			{
-				int tileDir = getDirectionTo(center.toVoxel(), target.toVoxel());
-				int arc = getArcDirection(direction, tileDir);
-				if (distance == 0)
-				{
-					if (power > 9)
-					{
-						currLight = 9;
-					}
-					else
-					{
-						currLight = power;
-					}
-				}
-				else if (arc >= coneSize)
-				{
-					currLight = 0;
-				}
-			}*/
 
 			if (coneSize > 0)
 			{
@@ -644,7 +624,7 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 			startVoxel.z = std::min(startVoxel.z, topCenterVoxel);
 			endVoxel.z = std::min(endVoxel.z, topTargetVoxel);
 
-			auto calculateBlock = [&](Position point, Position &lastPoint, int &light, int &steps, int &unitFacing)
+			auto calculateBlock = [&](Position point, Position &lastPoint, int &light, int &steps)
 			{
 				auto height = (point.z % accuracy.z) * divide;
 				point = point / accuracy;
@@ -723,8 +703,8 @@ void TileEngine::addLight(MapSubset gs, Position center, int power, LightLayers 
 			calculateLineHitHelper(startVoxel, endVoxel,
 				[&](Position voxel)
 				{
-					auto resultA = calculateBlock(voxel, lastTileA, lightA, stepsA, direction);
-					auto resultB = calculateBlock(voxel + offsetB, lastTileB, lightB, stepsB, direction);
+					auto resultA = calculateBlock(voxel, lastTileA, lightA, stepsA);
+					auto resultB = calculateBlock(voxel + offsetB, lastTileB, lightB, stepsB);
 					return resultA && resultB;
 				},
 				[&](Position voxel)
