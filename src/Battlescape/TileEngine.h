@@ -112,7 +112,7 @@ private:
 	BattleUnit* _movingUnit = nullptr;
 
 	/// Add light source.
-	void addLight(MapSubset gs, Position center, int power, LightLayers layer);
+	void addLight(MapSubset gs, Position center, int power, LightLayers layer, int coneSize = 0, int direction = 0);
 	/// Calculate blockage amount.
 	int blockage(Tile *tile, const TilePart part, ItemDamageType type, int direction = -1, bool checkingFromOrigin = false);
 	/// Get max distance that fire light can reach.
@@ -167,6 +167,8 @@ public:
 	bool checkReactionFire(BattleUnit *unit, const BattleAction &originalAction);
 	/// Recalculate all lighting in some area.
 	void calculateLighting(LightLayers layer, Position position = invalid, int eventRadius = 0, bool terrianChanged = false);
+	/// Adds unit directional lighting
+	void calculateUnitDirectionalLighting(MapSubset gs, BattleUnit *unit, BattleItem *w);
 	/// Handles tile hit.
 	int hitTile(Tile *tile, int damage, const RuleDamageType* type);
 	/// Handles experience training.
