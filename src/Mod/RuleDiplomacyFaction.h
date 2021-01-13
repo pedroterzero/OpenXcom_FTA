@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Copyright 2010-2019 OpenXcom Developers.
+ * Copyright 2010-2021 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -26,14 +26,6 @@
 namespace OpenXcom
 {
 
-//struct SellingSetEnitity
-//{
-//	std::string name;
-//	int reqReputationLvl;
-//	int priceMod;
-//
-//	SellingSetEnitity() : name(0), reqReputationLvl(0), priceMod(0) { }
-//};
 /**
  * Represents a custom Geoscape event.
  * Events are spawned using Event Script ruleset.
@@ -41,11 +33,13 @@ namespace OpenXcom
 class RuleDiplomacyFaction
 {
 private:
-	std::string _name, _description, _background, _cardBackground, _discoverResearch, _discoverEvent;
-	int _startingReputation, _genMissionFrequency, _genEventFrequency;
-	std::map<std::string, int> _sellingSet;
-	std::vector<std::string> _helpTreatyMissions, _helpTreatyEvents;
-	//std::vector<SellingSetEnitity> _sellingSet2;
+	std::string _name, _description, _background, _cardBackground, _discoverResearch, _discoverEvent, _startingResearch;
+	int _genMissionFrequency, _genEventFrequency;
+	int _sellPriceFactor, _buyPriceFactor, _repPriceFactor, _stockMod, _powerHungry, _scienceBaseCost;
+	int _startingReputation, _startingFunds, _startingPower;
+	std::map<std::string, int> _startingItems, _startingStaff;
+	std::map<std::string, double> _wishList;
+	std::vector<std::string> _helpTreatyMissions, _helpTreatyEvents, _happyEvents, _angryEvents, _startingResearches;
 public:
 	/// Creates a blank RuleDiplomacyFaction.
 	RuleDiplomacyFaction(const std::string &name);
@@ -61,51 +55,51 @@ public:
 	const std::string &getBackground() const { return _background; }
 	/// Gets the sprite name, that uses to render diplomacy card.
 	const std::string &getCardBackground() const { return _cardBackground; }
-	/// Gets the Faction's selling list for purchase state.
-	const std::map<std::string, int>&getSellingSet() const { return _sellingSet; }
-	//const std::vector<SellingSetEnitity>& getSellingSet2() const { return _sellingSet2; }
+
 	/// Gets the reseach name, that opens the Faction.
 	const std::string& getDiscoverResearch() const { return _discoverResearch; }
 	/// Gets the event name, that will spawn when Faction was discovered.
 	const std::string& getDiscoverEvent() const { return _discoverEvent; }
 	/// Gets the Faction's starting reputation.
 	const int& getStartingReputation() const { return _startingReputation; }
+	/// Gets the Faction's starting funds.
+	int getStartingFunds() const { return _startingFunds; };
+	/// Gets the Faction's starting power.
+	int getStartingPower() const { return _startingPower; };
+	/// Gets the set of Faction's starting items.
+	const std::map<std::string, int>& getStartingItems() const { return _startingItems; }
+	/// Gets the set of Faction's starting non-item property and personell.
+	const std::map<std::string, int>& getStartingStaff() const { return _startingStaff; }
+	/// Gets the research project names that are discovered by the faction from very start.
+	const std::vector<std::string>& getStartingResearches() const { return _startingResearches; }
 
-	/// Gets help treaty mission scripts for the faction
+
+	/// Gets help treaty mission scripts for the faction.
 	const std::vector<std::string>& getHelpTreatyMissions() const { return _helpTreatyMissions; }
-	/// Gets mission frequency for generatoting
+	/// Gets mission frequency for generatoting.
 	int getGenMissionFrequency() const { return _genMissionFrequency; };
-	/// Gets event scripts to run from faction generator
+	/// Gets event scripts to run from faction generator.
 	const std::vector<std::string>& getHelpTreatyEvents() const { return _helpTreatyEvents; }
-	/// Gets event frequency for generatoting
+	/// Gets event frequency for generator.
 	int getGenEventFrequency() const { return _genEventFrequency; };
+	/// Gets events to spawn when faction is super happy with player's actions.
+	const std::vector<std::string>& getHappyEvents() const { return _happyEvents; }
+	/// Gets events to spawn when faction is super angry on player.
+	const std::vector<std::string>& getAngryEvents() const { return _angryEvents; }
+	/// Gets power hungry value.
+	int getPowerHungry() const { return _powerHungry; };
+	/// Gets base cost to do science.
+	int getScienceBaseCost() const { return _scienceBaseCost; };
+
+	/// Getters for faction market data.
+	int getSellPriceFactor() const { return _sellPriceFactor; };
+	int getBuyPriceFactor() const { return _buyPriceFactor; };
+	int getRepPriceFactor() const { return _repPriceFactor; };
+	int getStockMod() const { return _stockMod; };
+	const std::map<std::string, double>& getWishList() const { return _wishList; }
+
+
+
 
 };
 }
-
-//namespace YAML
-//{
-//	template<>
-//	struct convert<OpenXcom::SellingSetEnitity>
-//	{
-//		static Node encode(const OpenXcom::SellingSetEnitity& rhs)
-//		{
-//			Node node;
-//			node.push_back(rhs.name);
-//			node.push_back(rhs.reqReputationLvl);
-//			node.push_back(rhs.priceMod);
-//			return node;
-//		}
-//
-//		static bool decode(const Node& node, OpenXcom::SellingSetEnitity& rhs)
-//		{
-//			if (!node.IsSequence() || node.size() != 3)
-//				return false;
-//
-//			rhs.name = node[0].as<std::string>();
-//			rhs.reqReputationLvl = node[1].as<int>();
-//			rhs.priceMod = node[2].as<int>();
-//			return true;
-//		}
-//	};
-//}

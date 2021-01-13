@@ -74,7 +74,7 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 		TextButton* btnInfo = new TextButton(35, 14, 14 + dX, 108); //h = 18?
 		Text* txtRep = new Text(90, 9, 12 + dX, 49);
 		TextButton* btnTalk = new TextButton(86, 14, 14 + dX, 125);
-		TextButton* btnPurchaise = new TextButton(86, 14, 14 + dX, 140);
+		TextButton* btnPurchase = new TextButton(86, 14, 14 + dX, 140);
 		TextButton* btnSell = new TextButton(86, 14, 14 + dX, 155);
 		if (faction->isDiscovered())
 		{
@@ -104,10 +104,10 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 			btnTalk->onMouseClick((ActionHandler)&DiplomacyStartState::btnTalkClick);
 			_btnsTalk.push_back(btnTalk);
 			//trade buttons
-			add(btnPurchaise, "button", interfaceName);
-			btnPurchaise->setText(tr("STR_PURCHASE"));
-			btnPurchaise->onMouseClick((ActionHandler)&DiplomacyStartState::btnPurchaiseClick);
-			_btnsPurchaise.push_back(btnPurchaise);
+			add(btnPurchase, "button", interfaceName);
+			btnPurchase->setText(tr("STR_PURCHASE"));
+			btnPurchase->onMouseClick((ActionHandler)&DiplomacyStartState::btnPurchaseClick);
+			_btnsPurchase.push_back(btnPurchase);
 			add(btnSell, "button", interfaceName);
 			btnSell->setText(tr("STR_SELL"));
 			btnSell->onMouseClick((ActionHandler)&DiplomacyStartState::btnSellClick);
@@ -188,11 +188,11 @@ void DiplomacyStartState::btnTalkClick(Action* action)
  * Displays Faction buy state.
  * @param action Pointer to an action.
  */
-void DiplomacyStartState::btnPurchaiseClick(Action* action)
+void DiplomacyStartState::btnPurchaseClick(Action* action)
 {
-	for (size_t i = 0; i < _btnsPurchaise.size(); ++i)
+	for (size_t i = 0; i < _btnsPurchase.size(); ++i)
 	{
-		if (action->getSender() == _btnsPurchaise.at(i))
+		if (action->getSender() == _btnsPurchase.at(i))
 		{
 			DiplomacyFaction* faction = _game->getSavedGame()->getDiplomacyFactions().at(i);
 			int size = _game->getSavedGame()->getBases()->size();
@@ -297,7 +297,7 @@ void DiplomacyInfoState::btnOkClick(Action* action)
 	_game->popState();
 }
 
-DiplomacyChooseBaseState::DiplomacyChooseBaseState(DiplomacyFaction* faction, TradeOperation opeation) : _faction(faction), _opeation(opeation)
+DiplomacyChooseBaseState::DiplomacyChooseBaseState(DiplomacyFaction* faction, TradeOperation operation) : _faction(faction), _operation(operation)
 {
 	_screen = false;
 	std::string interfaceName = "diplomacyMainWindow";
@@ -326,7 +326,7 @@ DiplomacyChooseBaseState::DiplomacyChooseBaseState(DiplomacyFaction* faction, Tr
 	}
 
 	centerAllSurfaces();
-	setWindowBackground(_window, interfaceName); //#FINNIKTODO: change background, its creppy!
+	setWindowBackground(_window, interfaceName); //#FINNIKTODO: change background, its creepy!
 	_txtTitle->setText(tr("STR_CHOOSE_BASE"));
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setWordWrap(true);
@@ -349,7 +349,7 @@ void DiplomacyChooseBaseState::btnBaseClick(Action* action)
 		{
 			Base* base = _game->getSavedGame()->getBases()->at(i);
 			_game->popState();
-			switch (_opeation)
+			switch (_operation)
 			{
 			case OpenXcom::OPERATION_BUYING:
 				_game->pushState(new DiplomacyPurchaseState(base, _faction));

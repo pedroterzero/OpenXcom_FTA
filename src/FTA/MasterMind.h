@@ -49,7 +49,7 @@ public:
 	void updateLoyalty(int score, LoyaltySource source = XCOM_GEOSCAPE);
 	/// Return bonus that would be applied to base service performance because of loyalty level.
 	int getLoyaltyPerformanceBonus();
-	/// Update reputations level based on its current reputation score
+	/// Update reputations level based on its current reputation score.
 	bool updateReputationLvl(DiplomacyFaction* faction, bool initial = false);
 
 };

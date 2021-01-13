@@ -62,6 +62,7 @@
 #include "../Savegame/AlienMission.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/GeoscapeEvent.h"
+#include "../Savegame/ItemContainer.h"
 #include "../Geoscape/GeoscapeState.h"
 #include "../Geoscape/Globe.h"
 #include "../Battlescape/BattlescapeGenerator.h"
@@ -82,7 +83,7 @@ MasterMind::~MasterMind()
 }
 
 /**
-* Handle additional operations and functions .
+* Handle additional operations in new FTA game generation.
 * @param eventName - string with rules name of the event.
 * @return true is event was generater successfully.
 */
@@ -105,7 +106,7 @@ void MasterMind::newGameHelper(int diff, GeoscapeState* gs)
 		(*i)->setLongitude(lon);
 		(*i)->setLatitude(lat);
 	}
-	//spawn regional ADVENT center
+	//spawn regional MIB HQ
 	AlienDeployment* aBaseDeployment = mod->getDeployment("STR_INITIAL_REGIONAL_HQ");
 	AlienBase* aBase = new AlienBase(aBaseDeployment, 0);
 	aBase->setId(save->getId(aBaseDeployment->getMarkerName()));
@@ -122,15 +123,47 @@ void MasterMind::newGameHelper(int diff, GeoscapeState* gs)
 	for (std::vector<std::string>::const_iterator i = mod->getDiplomacyFactionList()->begin(); i != mod->getDiplomacyFactionList()->end(); ++i)
 	{
 		RuleDiplomacyFaction* factionRules = mod->getDiplomacyFaction(*i);
-		DiplomacyFaction* faction = new DiplomacyFaction(*factionRules);
+		DiplomacyFaction* faction = new DiplomacyFaction(mod, *factionRules);
+
 		if (factionRules->getDiscoverResearch().empty() || save->isResearched(mod->getResearch(factionRules->getDiscoverResearch())))
 		{
 			faction->setDiscovered(true);
 		}
+
+		// set up starting values
 		faction->setReputationScore(factionRules->getStartingReputation());
 		updateReputationLvl(faction);
+		faction->setFunds(factionRules->getStartingFunds());
+		faction->setPower(factionRules->getStartingPower()); //we always start with 0 vigilance
+		for (auto research : factionRules->getStartingResearches())
+		{
+			faction->unlockResearch(research);
+		}
+
+		// populate faction item stores and staff
+		auto items = faction->getItems();
+		for (auto item : factionRules->getStartingItems())
+		{
+			RuleItem* itemRule = _game->getMod()->getItem(item.first);
+			if (itemRule)
+			{
+				items->addItem(itemRule, item.second);
+			}
+			else
+			{
+				throw Exception("Error in FTA game initialization process: fails to add item " + item.first + " for faction " + factionRules->getName() +
+					" ; no item ruleset defined!");
+			}
+		}
+		for (auto staff : factionRules->getStartingStaff())
+		{
+			faction->getStaffContainer()->addItem(staff.first, staff.second);
+		}
+
+		// finish faction initialization process
 		save->getDiplomacyFactions().push_back(faction);
 	}
+
 	//adjust funding
 	int funds = mod->getInitialFunding();
 	funds = funds * 1000 + static_cast<int>(RNG::generate(-1258, 6365)); 
@@ -210,7 +243,7 @@ void MasterMind::updateLoyalty(int score, LoyaltySource source)
 	}
 	int loyalty = _game->getSavedGame()->getLoyalty();
 	loyalty += std::round((score * coef) / 100);
-	Log(LOG_DEBUG) << "Loyalty updating to:  " << loyalty << " from coef: " << coef << " and score value: " << score << " with reason: " << reason; //#FINNIKTODO #CLEARLOGS remove for next release
+	Log(LOG_DEBUG) << "Loyalty updating to:  " << loyalty << " from coef: " << coef << " and score value: " << score << " with reason: " << reason; //#CLEARLOGS remove for next release
 	_game->getSavedGame()->setLoyalty(loyalty);
 }
 
@@ -272,7 +305,7 @@ int MasterMind::getLoyaltyPerformanceBonus()
 /**
 * Handle updating of faction reputation level based on current score, rules and other conditions.
 * @param faction - DiplomacyFaction we are updating.
-* @paran initial - to define if we are performing updating of reputation due to new game initialisation (default false).
+* @param initial - to define if we are performing updating of reputation due to new game initialisation (default false).
 * @return true if reputation level was updated.
 */
 bool MasterMind::updateReputationLvl(DiplomacyFaction* faction, bool initial)

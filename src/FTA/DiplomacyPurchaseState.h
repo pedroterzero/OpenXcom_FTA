@@ -113,7 +113,7 @@ public:
 	/// Handler for changing the category filter.
 	void cbxCategoryChange(Action *action);
 	/// Returns true if current Faction allowes to purchase that item at current reputation level.
-	bool isEntityAllowedByFaction(std::string entityName);
+	int getFactionItemStock(std::string entityName);
 };
 
 }

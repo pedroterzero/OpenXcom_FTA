@@ -133,9 +133,9 @@ public:
 	/// Gets chosen alien mission to run as failure resolve of covert operation.
 	std::string chooseGenFailureMissionType() const;
 	/// Gets chosen deployment that would run as failure resolve of covert operation.
-	std::string chooseGenInstantTrapDeploumentType() const;
+	std::string chooseGenInstantTrapDeploymentType() const;
 	/// Gets chosen deployment that would run as success resolve of covert operation.
-	std::string chooseGenInstantSuccessDeploumentType() const;
+	std::string chooseGenInstantSuccessDeploymentType() const;
 	/// Gets chosen geoscape event that would run in progress of covert operation.
 	std::string chooseProgressEvent() const;
 	/// Gets the faction's required reputation list for this operation.

@@ -350,7 +350,7 @@ void CovertOperationStartState::btnStartClick(Action*)
 	newOperation->setAssignedEngineers(_engeneers);
 
 	if (_hasPsionics && _hasPsiItems && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements()))
-	{ //operation that we are about to start has psionic offencive potential
+	{ //operation that we are about to start has psionic offensive potential
 		newOperation->setIsPsi(true);
 	}
 	// now we add this operation to list of performed operations to not let run this operation second time.
@@ -570,7 +570,7 @@ double CovertOperationStartState::getOperationOdds()
 	int startOdds = _rule->getBaseChances();
 	_chances = startOdds;
 
-	int requierdSoldiers = _rule->getSoldierSlots();
+	int requiredSoldiers = _rule->getSoldierSlots();
 	int assignedSoldiersN = _soldiers.size();
 	// lets process staff effectiveness
 	int slots = 0;
@@ -578,7 +578,7 @@ double CovertOperationStartState::getOperationOdds()
 	if (slots > 0)
 	{
 		_chances = _chances - (slots * static_cast<double>(_rule->getOptionalSoldierEffect()) * 0.9);
-		int optionalSoldiers = assignedSoldiersN - requierdSoldiers;
+		int optionalSoldiers = assignedSoldiersN - requiredSoldiers;
 		_chances = _chances + optionalSoldiers * static_cast<double>(_rule->getOptionalSoldierEffect());
 		slots = 0;
 	}
@@ -604,10 +604,10 @@ double CovertOperationStartState::getOperationOdds()
 		for (std::map<std::string, int>::iterator it = reqItems.begin(); it != reqItems.end(); ++it)
 		{
 			reqItemsN = reqItemsN + it->second;
-			std::string itmeName = it->first;
+			std::string itemName = it->first;
 			for (std::map<std::string, int>::iterator j = _items->getContents()->begin(); j != _items->getContents()->end(); ++j)
 			{
-				if (j->first == itmeName)
+				if (j->first == itemName)
 				{
 					reqItemsN = reqItemsN - j->second;
 				}
@@ -646,8 +646,8 @@ double CovertOperationStartState::getOperationOdds()
 		//extract soldier stats we need for processing
 		for (auto& solIt : _soldiers) 
 		{
-			//lets get soldier effectivness first, if any
-			int solEffectivness = 100;
+			//lets get soldier effectiveness first, if any
+			int solEffectiveness = 100;
 			if (!_rule->getSoldierTypeEffectiveness().empty())
 			{
 				std::string solType = solIt->getRules()->getType();
@@ -657,22 +657,22 @@ double CovertOperationStartState::getOperationOdds()
 					std::string ruleTypeName = t->first;
 					if (ruleTypeName == solType)
 					{
-						solEffectivness = t->second;
+						solEffectiveness = t->second;
 					}
 				}
 			}
-			_chances = _chances * (solEffectivness / 100);
+			_chances = _chances * (solEffectiveness / 100);
 			//lets make a bonus for having officer for field command and avg ranking
 			int rank = solIt->getRank();
 			if (rank > soldierMaxRank) soldierMaxRank = rank;
 			soldiersTotalRank = soldiersTotalRank + rank;
 			//now lets handle soldier stats
 			double reacCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->reactions, 2000, 2, 16, -9) ;
-			soldierReactions = soldierReactions + reacCalc * (solEffectivness / 100);
+			soldierReactions = soldierReactions + reacCalc * (solEffectiveness / 100);
 			int brav = solIt->getStatsWithAllBonuses()->bravery / 10;
-			soldierBrav = soldierBrav + (static_cast<double>(brav) * (solEffectivness / 100)) - 3;
+			soldierBrav = soldierBrav + (static_cast<double>(brav) * (solEffectiveness / 100)) - 3;
 			int psi = solIt->getStatsWithAllBonuses()->psiSkill;
-			if (psi > 0 && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements())) //psi offencive bonus
+			if (psi > 0 && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements())) //psi offensive bonus
 			{
 				float manaFactor = 1;
 				if (_game->getMod()->isManaFeatureEnabled())
@@ -680,16 +680,16 @@ double CovertOperationStartState::getOperationOdds()
 					int mana = solIt->getStatsWithAllBonuses()->mana;
 					manaFactor = (mana - solIt->getManaMissing()) / mana;
 				}
-				soldiersPsi = ((statEffectCalc(psi, 8000, 2.2, 8, 0) + statEffectCalc(solIt->getStatsWithAllBonuses()->psiStrength, 8000, 2.2, 8, 0)) / 2) * manaFactor * (solEffectivness / 100);
+				soldiersPsi = ((statEffectCalc(psi, 8000, 2.2, 8, 0) + statEffectCalc(solIt->getStatsWithAllBonuses()->psiStrength, 8000, 2.2, 8, 0)) / 2) * manaFactor * (solEffectiveness / 100);
 			}
 			else
 			{
-				soldiersPsi = statEffectCalc(solIt->getStatsWithAllBonuses()->psiStrength, 8000, 2.2, 8, 0) / 3; //as soldier still has psi defence and some extrasence capabilities
+				soldiersPsi = statEffectCalc(solIt->getStatsWithAllBonuses()->psiStrength, 8000, 2.2, 8, 0) / 3; //as soldier still has psi defence and some excrescence capabilities
 			}
 			double tuCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->tu, 1400, 1.8, 15, -10);
-			soldiersTU = soldiersTU + tuCalc * (solEffectivness / 100);
+			soldiersTU = soldiersTU + tuCalc * (solEffectiveness / 100);
 			double staCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->stamina, 1600, 1.8, 10, -6);
-			soldiersSta = soldiersSta + staCalc * (solEffectivness / 100);
+			soldiersSta = soldiersSta + staCalc * (solEffectiveness / 100);
 		}
 
 		double officerEffect = -0.2321 * (pow(soldierMaxRank, 2)) + 2.5036 * soldierMaxRank + 0.0357; // cute nonlinear function for field officer + avg rank bonus

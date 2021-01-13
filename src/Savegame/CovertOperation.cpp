@@ -193,7 +193,7 @@ std::string CovertOperation::getTimeLeftName()
 /**
 * Handle Covert Operation daily logic.
 * @param Game game engine.
-* @param ThinkPeriond - timestep to determine think process
+* @param ThinkPeriod - timestep to determine think process
 */
 bool CovertOperation::think(Game& engine, const Globe& globe)
 {
@@ -282,7 +282,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 		eventName = _rule->getSuccessEvent();
 		reputationScore = _rule->getSuccessReputationScoreList();
 		missionName = _rule->chooseGenSuccessMissionType();
-		deploymentName = _rule->chooseGenInstantSuccessDeploumentType();
+		deploymentName = _rule->chooseGenInstantSuccessDeploymentType();
 		for (auto& pair : _rule->getSuccessEveryItemList())
 		{
 			const RuleItem* itemRule = mod.getItem(pair.first, true);
@@ -309,7 +309,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 		eventName = _rule->getFailureEvent();
 		reputationScore = _rule->getFailureReputationScoreList();
 		missionName = _rule->chooseGenFailureMissionType();
-		deploymentName = _rule->chooseGenInstantTrapDeploumentType();
+		deploymentName = _rule->chooseGenInstantTrapDeploymentType();
 		for (auto& pair : _rule->getFailureEveryItemList())
 		{
 			const RuleItem* itemRule = mod.getItem(pair.first, true);
@@ -413,7 +413,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 				std::string lookingName = (*i).first;
 				if (factionName == lookingName)
 				{
-					(*j)->setReputationScore((*j)->getReputationScore() + (*i).second);
+					(*j)->updateReputationScore((*i).second);
 					_results->addReputation(factionName, (*i).second);
 					break;
 				}
@@ -561,7 +561,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 			process = RNG::generate(0, 99) < trapRoll;
 		}
 		if (process) 
-		{//oh, boy, we are going to generate battlescape to resolve our covert opration!
+		{//oh, boy, we are going to generate battlescape to resolve our covert operation!
 			AlienDeployment* deployment = mod.getDeployment(deploymentName);
 			if (deployment != 0)
 			{
@@ -598,7 +598,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 }
 
 /**
-* Handle backgound simulation for Covert Operation.
+* Handle background simulation for Covert Operation.
 * Award exp to soldiers, simulate critical fail repercussion.
 * @param Game game engine.
 * @param operationResult and criticalFail operation results.
@@ -609,7 +609,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	const Mod& mod = *engine.getMod();
 	SavedGame& save = *engine.getSavedGame();
 
-	//first, we calculate how much expirience we can award for the operation (expRolls)
+	//first, we calculate how much experience we can award for the operation (expRolls)
 	int ruleCost = this->getRules()->getCosts();
 	int danger = this->getRules()->getDanger();
 	int effCost = 1;
@@ -620,7 +620,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	else effCost = ceil(ruleCost / 12.52);
 
 	int expRolls = 1 + effCost + ceil(danger / 3);
-	//limit expirience gain
+	//limit experience gain
 	if (expRolls > 10 && expRolls <= 13) expRolls = 10;
 	if (expRolls > 13 && expRolls <= 16) expRolls = 11;
 	if (expRolls > 16) expRolls = 12;
@@ -628,7 +628,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	if (save.getMonthsPassed() > 10) expRolls++; //bonus for lategame
 	int expRollsRandom = RNG::generate(-3, 3);
 	expRolls += expRollsRandom; //add more random
-	//expirience is reduced for fail and critical fail
+	//experience is reduced for fail and critical fail
 	if (!operationResult && !criticalFail) expRolls = round(expRolls / 3);
 	else if (criticalFail) expRolls = round(expRolls / 4) - 2;
 
@@ -647,7 +647,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 		const UnitStats caps = (*i)->getRules()->getStatCaps();
 		UnitStats* improvement = new UnitStats();
 		int tuExp = 0, staminaExp = 0;
-		int healthExp = 0, braveryExp = 0, reactionsExp = 0, firingExp = 0, throwingExp = 0, meleeExp = 0, streingthExp = 0;
+		int healthExp = 0, braveryExp = 0, reactionsExp = 0, firingExp = 0, throwingExp = 0, meleeExp = 0, strengthExp = 0;
 		int psiSkillExp = 0, psiStrExp = 0, manaExp = 0;
 		//our dudes did something very wrong, so we hurt them back
 		if (criticalFail && danger > 0)
@@ -706,7 +706,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 				}
 			}
 		}
-		//soldiers can improve stats based on virtual expirience they take
+		//soldiers can improve stats based on virtual experience they take
 		
 		if (!dead && expRolls > 0)
 		{
@@ -731,7 +731,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			for (size_t j = 0; j < expRolls; j++)
 			{
 				statID = RNG::generate(1, 8); //choose stat
-				expGain = RNG::generate(1, 4); //choose how many expirience it would be
+				expGain = RNG::generate(1, 4); //choose how many experience it would be
 				if (expGain == 4)
 					expGain = 1;
 				switch (statID)
@@ -772,7 +772,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 					break;
 				case 6:
 					if (stats->strength < caps.strength)
-						streingthExp += expGain;
+						strengthExp += expGain;
 					break;
 				case 7:
 					if (stats->psiSkill < caps.psiSkill && trainPsiSkill)
@@ -783,7 +783,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 						if (stats->mana < caps.mana && trainingManaPri)
 							manaExp += expGain;
 					}
-					else if (!trainPsiSkill) ++expRolls; //re-roll as we assume soldier used other tools to achieave his or her goals
+					else if (!trainPsiSkill) ++expRolls; //re-roll as we assume soldier used other tools to achieve his or her goals
 					break;
 				case 8: //special case for separate non-psi mana using, like XCF
 					if (stats->mana < caps.mana && trainingManaSec)
@@ -810,7 +810,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 		improvement->firing = improveStat(firingExp);
 		improvement->throwing = improveStat(throwingExp);
 		improvement->melee = improveStat(meleeExp);
-		improvement->strength = improveStat(streingthExp);
+		improvement->strength = improveStat(strengthExp);
 		improvement->psiSkill = improveStat(psiSkillExp);
 		improvement->psiStrength = improveStat(psiStrExp);
 		improvement->mana = improveStat(manaExp);
@@ -838,7 +838,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 		int killN = soldiersToKill.size();
 		bool loneSaved = false;
 		int chosenID = 0;
-		if (killN == operationSoldierN) //we want to keep at least one soldier alive, that would say operation filure results
+		if (killN == operationSoldierN) //we want to keep at least one soldier alive, that would say operation failure results
 		{
 			loneSaved = true;
 			chosenID = RNG::generate(0, killN - 1);
@@ -886,7 +886,7 @@ void CovertOperation::finishOperation()
 		//remove soldier from operation
 		(*i)->setCovertOperation(0);
 
-		//if soldier was not hurt we return him or her to trainig, if settings allows it
+		//if soldier was not hurt we return him or her to training, if settings allows it
 		if ((*i)->getHealthMissing() == 0)
 		{
 			ReturnToTrainings trainings = (*i)->getReturnToTrainingsWhenOperationOver();

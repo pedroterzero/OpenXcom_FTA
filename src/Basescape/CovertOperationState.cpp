@@ -297,19 +297,19 @@ void CovertOperationsListState::fillOperationList()
 		{
 			if (!save->isResearched(mod->getResearch(rule->getRequirements())))	happy = false;
 		}
-		//or one that can close opprtunity for this operation?
+		//or one that can close opportunity for this operation?
 		if (happy && !rule->getCanceledBy().empty())
 		{
 			if (save->isResearched(mod->getResearch(rule->getCanceledBy()))) happy = false;
 		}
-		//lets see if our base fits requirments
+		//lets see if our base fits requirements
 		if (happy)
 		{
 			auto providedBaseFunc = _base->getProvidedBaseFunc({});
 			auto ruleReqBaseFunc = rule->getRequiresBaseFunc();
 			if (!((~providedBaseFunc & ruleReqBaseFunc).none())) happy = false;
 		}
-		//finally, reputation requirments
+		//finally, reputation requirements
 		if (happy && !rule->getRequiredReputationLvlList().empty())
 		{
 			for (std::map<std::string, int>::const_iterator i = rule->getRequiredReputationLvlList().begin(); i != rule->getRequiredReputationLvlList().end(); ++i)

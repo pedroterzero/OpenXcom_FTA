@@ -254,6 +254,7 @@ private:
 	int _tuRecoveryWakeUpNewTurn;
 	int _shortRadarRange;
 	int _buildTimeReductionScaling;
+	int _defaultFactionPowerCost;
 	int _defeatScore, _defeatFunds;
 	bool _difficultyDemigod;
 	std::pair<std::string, int> _alienFuel;
@@ -999,6 +1000,7 @@ public:
 	const std::map<std::string, std::vector<int> > &getAnnoyedSounds() const { return _annoyedSound; }
 	const std::vector<int> &getFlagByKills() const;
 	StatAdjustment *getStatAdjustment(int difficulty);
+	int getDefaultFactionPowerCost() const { return _defaultFactionPowerCost; };
 	int getDefeatScore() const;
 	int getDefeatFunds() const;
 	bool isDemigod() const;

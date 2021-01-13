@@ -342,7 +342,7 @@ Mod::Mod() :
 	_enableCloseQuartersCombat(0), _closeQuartersAccuracyGlobal(100), _closeQuartersTuCostGlobal(12), _closeQuartersEnergyCostGlobal(8), _closeQuartersSneakUpGlobal(0),
 	_noLOSAccuracyPenaltyGlobal(-1),
 	_surrenderMode(0),
-	_ftaGame(false), _researchTreeDisabled(false),
+	_ftaGame(false), _researchTreeDisabled(false), _defaultFactionPowerCost(300000),
 	_coefBattlescape(100), _coefGeoscape(100), _coefDogfight(100), _coefResearch(100), _coefAlienMission(100), _coefUfo(100), _coefAlienBase(100), _noFundsPenalty(200), _noFundsValue(-100000),
 	_bughuntMinTurn(999), _bughuntMaxEnemies(2), _bughuntRank(0), _bughuntLowMorale(40), _bughuntTimeUnitsLeft(60),
 	_manaEnabled(false), _manaBattleUI(false), _manaTrainingPrimary(false), _manaTrainingSecondary(false), _manaReplenishAfterMission(true),
@@ -2435,6 +2435,7 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	_bughuntLowMorale = doc["bughuntLowMorale"].as<int>(_bughuntLowMorale);
 	_bughuntTimeUnitsLeft = doc["bughuntTimeUnitsLeft"].as<int>(_bughuntTimeUnitsLeft);
 	_ftaGame = doc["ftaGame"].as<bool>(_ftaGame);
+	_defaultFactionPowerCost = doc["defaultFactionPowerCost"].as<int>(_defaultFactionPowerCost);
 	_researchTreeDisabled = doc["researchTreeDisabled"].as<bool>(_researchTreeDisabled);
 
 
