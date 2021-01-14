@@ -32,18 +32,6 @@ enum ThinkPeriod { TIMESTEP_DAILY, TIMESTEP_MONTHLY };
 */
 enum TreatyName { HELP_TREATY, RESEARCH_TREATY };
 
-/**
-* Define faction's ongoing research project.
-*/
-struct researchProject
-{
-	std::string _name;
-	int _time;
-	int _scientists;
-	researchProject(std::string name, int time, int scientists) : _name(name), _time(time), _scientists(scientists) { }
-
-};
-
 class RuleDiplomacyFaction;
 class Game;
 class SavedGame;
@@ -66,7 +54,7 @@ class DiplomacyFaction
 {
 private:
 	const Mod* _mod;
-	const RuleDiplomacyFaction &_rule;
+	const RuleDiplomacyFaction* _rule;
 	int _reputationScore, _reputationLvL, _power, _vigilance;
 	int64_t _funds;
 	std::vector<int> _dailyRepScore;
@@ -102,7 +90,7 @@ private:
 
 public:
 	/// Creates a blank Diplomacy Faction.
-	DiplomacyFaction(const Mod* mod, const RuleDiplomacyFaction &rule);
+	DiplomacyFaction(const Mod* mod, const std::string& name);
 	/// Cleans up the Faction info.
 	~DiplomacyFaction();
 	/// Loads the Faction from YAML.
@@ -110,7 +98,7 @@ public:
 	/// Saves the Faction to YAML.
 	YAML::Node save() const;
 	/// Gets the Faction's ruleset.
-	const RuleDiplomacyFaction &getRules() const { return _rule; };
+	const RuleDiplomacyFaction* getRules() const { return _rule; };
 	/// Gets current player's reputation in this Faction.
 	int getReputationScore() const { return _reputationScore; }
 	/// Sets current player's reputation in this Faction.
@@ -124,7 +112,7 @@ public:
 	/// Sets new reputation level of the faction.
 	void setReputationLevel(int level) { _reputationLvL = level; };
 	/// Sets new reputation level of the faction.
-	void setReputationName(const std::string& reputationName ) { _reputationName = reputationName; };
+	void setReputationName(const std::string& reputationName) { _reputationName = reputationName; };
 	/// Adds research projet's name to a faction's list of unlocked researches.
 	void unlockResearch(const std::string& research) { _unlockedResearches.push_back(research); };
 	/// Removes research projet's name to a faction's list of unlocked researches.
@@ -159,62 +147,5 @@ public:
 	/// The main handler of Faction logic.
 	void think(Game& engine, ThinkPeriod = TIMESTEP_DAILY);
 };
-
-/**
- * Represents ongoing factional research.
- * Handles data and methods requierd to process research.
- */
-class FactionalResearch
-{
-private:
-	const RuleResearch* _rule;
-	DiplomacyFaction* _faction;
-	int _scientists;
-	int _timeLeft;
-public:
-	/// Creates a blank Factional Research.
-	FactionalResearch(RuleResearch* rule, DiplomacyFaction* faction);
-	/// Cleans up the Factional Research info.
-	~FactionalResearch();
-	/// Loads the FactionalResearch from YAML.
-	void load(const YAML::Node& node);
-	/// Saves the FactionalResearch to YAML.
-	YAML::Node save() const;
-
-
-
-
-};
-
-
-
-/**
- * Represents non-item game entities, like faction personell, crafts, property, etc.
- * Handles all necessary methods to manipulate container.
- */
-class FactionalContainer
-{
-private:
-	std::map<std::string, int> _qty;
-public:
-	/// Creates an empty item container.
-	FactionalContainer();
-	/// Cleans up the item container.
-	~FactionalContainer();
-	/// Loads the item container from YAML.
-	void load(const YAML::Node& node);
-	/// Saves the item container to YAML.
-	YAML::Node save() const;
-	/// Adds an item to the container.
-	void addItem(const std::string& id, int qty = 1);
-	/// Removes an item from the container.
-	void removeItem(const std::string& id, int qty = 1);
-	/// Gets an item in the container.
-	int getItem(const std::string& id) const;
-	/// Gets all the items in the container.
-	std::map<std::string, int>* getContents() { return &_qty; };
-};
-
-
 
 }

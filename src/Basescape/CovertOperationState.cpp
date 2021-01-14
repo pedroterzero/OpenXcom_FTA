@@ -316,7 +316,7 @@ void CovertOperationsListState::fillOperationList()
 			{
 				for (std::vector<DiplomacyFaction*>::iterator j = save->getDiplomacyFactions().begin(); j != save->getDiplomacyFactions().end(); ++j)
 				{
-					if ((*j)->getRules().getName() == (*i).first)
+					if ((*j)->getRules()->getName() == (*i).first)
 					{
 						if ((*j)->getReputationLevel() < (*i).second || !(*j)->isDiscovered()) happy = false;
 					}

@@ -569,6 +569,8 @@
     <ClCompile Include="Savegame\CraftWeaponProjectile.cpp" />
     <ClCompile Include="Savegame\DiplomacyFaction.cpp" />
     <ClCompile Include="Savegame\EquipmentLayoutItem.cpp" />
+    <ClCompile Include="Savegame\FactionalContainer.cpp" />
+    <ClCompile Include="Savegame\FactionalResearch.cpp" />
     <ClCompile Include="Savegame\GameTime.cpp" />
     <ClCompile Include="Savegame\GeoscapeEvent.cpp" />
     <ClCompile Include="Savegame\HitLog.cpp" />
@@ -985,6 +987,8 @@
     <ClInclude Include="Savegame\CraftWeaponProjectile.h" />
     <ClInclude Include="Savegame\DiplomacyFaction.h" />
     <ClInclude Include="Savegame\EquipmentLayoutItem.h" />
+    <ClInclude Include="Savegame\FactionalContainer.h" />
+    <ClInclude Include="Savegame\FactionalResearch.h" />
     <ClInclude Include="Savegame\GameTime.h" />
     <ClInclude Include="Savegame\GeoscapeEvent.h" />
     <ClInclude Include="Savegame\HitLog.h" />

@@ -63,6 +63,7 @@
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/GeoscapeEvent.h"
 #include "../Savegame/ItemContainer.h"
+#include "../Savegame/FactionalContainer.h"
 #include "../Geoscape/GeoscapeState.h"
 #include "../Geoscape/Globe.h"
 #include "../Battlescape/BattlescapeGenerator.h"
@@ -123,7 +124,7 @@ void MasterMind::newGameHelper(int diff, GeoscapeState* gs)
 	for (std::vector<std::string>::const_iterator i = mod->getDiplomacyFactionList()->begin(); i != mod->getDiplomacyFactionList()->end(); ++i)
 	{
 		RuleDiplomacyFaction* factionRules = mod->getDiplomacyFaction(*i);
-		DiplomacyFaction* faction = new DiplomacyFaction(mod, *factionRules);
+		DiplomacyFaction* faction = new DiplomacyFaction(mod, factionRules->getName());
 
 		if (factionRules->getDiscoverResearch().empty() || save->isResearched(mod->getResearch(factionRules->getDiscoverResearch())))
 		{

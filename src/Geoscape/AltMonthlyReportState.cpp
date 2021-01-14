@@ -443,7 +443,7 @@ std::string AltMonthlyReportState::calculateUpdates()
 			if ((*k)->isThisMonthDiscovered())
 			{
 				ss << tr("STR_WE_DISCOVERED_FACTION");
-				ss << tr((*k)->getRules().getName());
+				ss << tr((*k)->getRules()->getName());
 				ss << ". ";
 				ss << tr("STR_THEIR_ATTITUDE_TO_US");
 				ss <<  tr((*k)->getReputationName());
@@ -452,7 +452,7 @@ std::string AltMonthlyReportState::calculateUpdates()
 			}
 			else if (changed || prevChanged && (*k)->isDiscovered())
 			{
-				ss << tr((*k)->getRules().getName());
+				ss << tr((*k)->getRules()->getName());
 				ss << tr("STR_ATTITUDE_BECOME");
 				ss << tr((*k)->getReputationName());
 				ss << ". ";

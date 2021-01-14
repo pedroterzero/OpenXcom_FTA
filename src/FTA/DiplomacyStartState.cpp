@@ -79,14 +79,14 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 		if (faction->isDiscovered())
 		{
 			add(card, "window", interfaceName);
-			card->setBackground(_game->getMod()->getSurface(faction->getRules().getCardBackground()));
+			card->setBackground(_game->getMod()->getSurface(faction->getRules()->getCardBackground()));
 			card->setVeryThinBorder();
 			_cards.push_back(card);
 			//name, reputation
 			add(txtName, "name", interfaceName);
 			txtName->setAlign(ALIGN_CENTER);
 			txtName->setBig();
-			txtName->setText(tr(faction->getRules().getName()));
+			txtName->setText(tr(faction->getRules()->getName()));
 			_txtsName.push_back(txtName);
 			add(txtRep, "name", interfaceName);
 			txtRep->setAlign(ALIGN_CENTER);
@@ -177,7 +177,7 @@ void DiplomacyStartState::btnTalkClick(Action* action)
 		if (action->getSender() == _btnsTalk.at(i))
 		{
 			auto faction = _game->getSavedGame()->getDiplomacyFactions().at(i);
-			Log(LOG_INFO) << "You clicked NEGOTIATION button of " << tr(faction->getRules().getName()) << " faction! Sorry, it's not implemented yet!";
+			Log(LOG_INFO) << "You clicked NEGOTIATION button of " << tr(faction->getRules()->getName()) << " faction! Sorry, it's not implemented yet!";
 			//_game->pushState(new UfopaediaSelectState(_cats[_offset + i], _heightOffset, _windowOffset));
 			break;
 		}
@@ -269,12 +269,12 @@ DiplomacyInfoState::DiplomacyInfoState(const DiplomacyFaction* faction)
 
 	// Set up objects
 	setWindowBackground(_window, interfaceName);
-	_window->setBackground(_game->getMod()->getSurface(rules.getBackground()));
-	_txtTitle->setText(tr(rules.getName()));
+	_window->setBackground(_game->getMod()->getSurface(rules->getBackground()));
+	_txtTitle->setText(tr(rules->getName()));
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setBig();
 
-	_txtDesc->setText(tr(rules.getDescription()));
+	_txtDesc->setText(tr(rules->getDescription()));
 	_txtDesc->setWordWrap(true);
 
 

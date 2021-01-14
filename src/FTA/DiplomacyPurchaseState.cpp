@@ -50,6 +50,7 @@
 #include "../Mod/Armor.h"
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Savegame/DiplomacyFaction.h"
+#include "../Savegame/FactionalContainer.h"
 #include "../Mod/RuleDiplomacyFaction.h"
 #include "../Engine/Logger.h"
 

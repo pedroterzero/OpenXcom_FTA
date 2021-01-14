@@ -372,6 +372,8 @@ set ( savegame_src
   Savegame/CraftWeaponProjectile.cpp
   Savegame/DiplomacyFaction.cpp
   Savegame/EquipmentLayoutItem.cpp
+  Savegame/FactionalContainer.cpp
+  Savegame/FactionalResearch.cpp
   Savegame/GameTime.cpp
   Savegame/GeoscapeEvent.cpp
   Savegame/HitLog.cpp
