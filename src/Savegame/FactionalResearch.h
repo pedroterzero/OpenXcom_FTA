@@ -47,7 +47,8 @@ public:
 	void load(const YAML::Node& node);
 	/// Saves the FactionalResearch to YAML.
 	YAML::Node save() const;
-	bool think();
+	/// Process ongoing research project, decreasing timer and returns true if it is over.
+	bool step();
 	int getScientists() { return _scientists; };
 	void setScientists(int scientists) { _scientists = scientists; };
 	int getTimeLeft() { return _timeLeft; };
@@ -55,11 +56,6 @@ public:
 	int getPriority() { return _priority; };
 	void setPriority(int priority) { _priority = priority; }
 	const std::string& getName();
-
-
-
-
-
+	const RuleResearch* getRules() const { return _rule; };
 };
-
 }

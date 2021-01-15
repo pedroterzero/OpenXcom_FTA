@@ -208,7 +208,7 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 		handleRestock();
 		manageStaff();
 		auto reqFunds = managePower(save.getMonthsPassed(), _mod->getDefaultFactionPowerCost());
-		handleResearch(reqFunds);
+		handleResearch(engine, reqFunds);
 
 		//process treaty logic
 		if (std::find(_treaties.begin(), _treaties.end(), "STR_HELP_TREATY") != _treaties.end())
@@ -715,22 +715,96 @@ int64_t DiplomacyFaction::managePower(int month, int baseCost)
  * Handle managing of Faction's staff and non-item equipment.
  * @param mod rulesets to get constant data.
  */
-void DiplomacyFaction::handleResearch(int64_t reqFunds)
+void DiplomacyFaction::handleResearch(Game& engine,int64_t reqFunds)
 {
+	SavedGame& save = *engine.getSavedGame();
+	MasterMind& mind = *engine.getMasterMind();
+
 	bool hasResearch = !_research.empty();
 
 	if (hasResearch)
 	{
 		for (auto p = _research.begin(); p != _research.end(); ++p)
 		{
-			if ((*p)->think())
+			if ((*p)->step())
 			{
+				//project finished
+				const RuleResearch* bonus = 0;
+				const RuleResearch* research = (*p)->getRules();
+
+				// core research
+				unlockResearch(research->getName());
+				Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " finished research : " << (*p)->getName(); //#CLEARLOGS
+
+				// spawn item
+				RuleItem* spawnedItem = _mod->getItem(research->getSpawnedItem());
+				if (spawnedItem)
+				{
+					_items->addItem(spawnedItem, 1);
+				}
+
+				// spawn event
+				auto researchEvent = research->getSpawnedEvent();
+				if (!researchEvent.empty())
+				{
+					mind.spawnEvent(researchEvent);
+				}
+
+				// process getOneFree
+				if ((bonus = save.selectGetOneFree(research)))
+				{
+					unlockResearch(bonus->getName());
+				}
+
+				//clear research project
+				_staff->addItem("STR_SCIENTIST", (*p)->getScientists());
+
+				Collections::deleteIf(_research, 1,
+					[&](FactionalResearch* r)
+					{
+						return r == (*p);
+					}
+				);
+			}
+			else // project still in development
+			{
+				// handle low funds case
+				if (_funds < reqFunds / 4)
+				{
+					if ((*p)->getScientists() > 1) // we can keep lone guy doing his stuff
+					{
+						Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " has too low funds: " << _funds << " < required / 4 = " << reqFunds / 4
+							<< " and project: " << (*p)->getName() << " was reduced in funding!"; //#CLEARLOGS
+						int qty = ceil((*p)->getScientists() / 2);
+						_staff->addItem("STR_SCIENTIST", qty);
+						(*p)->setScientists((*p)->getScientists() - qty);
+					}
+				}
+				else if (_staff->getItem("STR_SCIENTIST") > 0 && RNG::percent(40)) // we choose to rise funding on this project
+				{
+					int qty = floor(RNG::generate(0, _staff->getItem("STR_SCIENTIST") / 4));
+					_staff->removeItem("STR_SCIENTIST", qty);
+					(*p)->setScientists((*p)->getScientists() + qty);
+				}
 
 			}
 		}
 	}
 
-	if (_staff->getItem("STR_SCIENTIST") > 0 || _funds > reqFunds)
+	// let's count how many research project teams we can potentially have
+	int totalScientists = _staff->getItem("STR_SCIENTIST");
+	if (hasResearch)
+	{
+		for (auto y : _research)
+		{
+			totalScientists += (*y).getScientists();
+		}
+	}
+
+	int projectSpots = floor(totalScientists / 10);
+
+	// now we should choose to start a new project
+	if (_staff->getItem("STR_SCIENTIST") > 0 && _funds > reqFunds && projectSpots > (_research.size() + 1) && RNG::percent(70)) // if we have scientists, money and process was not canceled because of internal reasons
 	{
 		std::vector<std::pair<int, RuleResearch*>> researchList;
 
@@ -738,7 +812,7 @@ void DiplomacyFaction::handleResearch(int64_t reqFunds)
 		{
 			RuleResearch* rRule = _mod->getResearch((*i));
 
-			if (isResearched(rRule->getDependencies()))// this one effectively splits xcom and factional research trees.
+			if (isResearched(rRule->getDependencies()))// this one effectively splits xcom and factional research trees
 			{
 				if (rRule->needItem())
 				{
@@ -785,9 +859,10 @@ void DiplomacyFaction::handleResearch(int64_t reqFunds)
 				choice = (*j).second; // our potential choice
 				int priority = (*j).first;
 				bool promising = true;
-				int64_t factionCost = choice->getCost() / 24 * 10; //counts FTA is loaded, so we turn hours to days and say, that faction's research is 10 times slower, than player's
+				int64_t factionCost = choice->getCost();
+				factionCost = (reqFunds * 2 / 3) - (factionCost / 24 * 10) * _rule->getScienceBaseCost(); //counts FTA is loaded, so we turn hours to days and say, that faction's research is 10 times slower, than player's
 
-				if (_funds > ((reqFunds * 2 / 3) - (factionCost) * _rule->getScienceBaseCost())) // looks like we would manage to deal with this one.
+				if (_funds > factionCost) // looks like we would manage to deal with this one.
 				{
 					// now let's if this research is more valuable than already processed researches
 					if (hasResearch)
@@ -826,18 +901,12 @@ void DiplomacyFaction::handleResearch(int64_t reqFunds)
 					qty = RNG::generate(qty * 0.5, qty * 0.9); // FINNIKTODO: think more about how many scientists faction should assign on a new project
 					newResearch->setScientists(qty);
 					_staff->removeItem("STR_SCIENTIST", qty);
-
-
+					_funds -= factionCost / 10;
 
 					Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " has chosen research : " << choice->getName()
 						<< " with priority: " << priority; //#CLEARLOGS
 				}
-
-
-				
 			}
-
-
 		}
 	}
 }
