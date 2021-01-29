@@ -1,18 +1,16 @@
-# OpenXcom [![Build Status][travis-badge]][travis-url] [![Workflow Status][workflow-badge]][actions-url]
+# OpenXcom From the Ashes [![Build Status][travis-badge]][travis-url] [![Workflow Status][workflow-badge]][actions-url]
 
 [travis-badge]: https://travis-ci.org/OpenXcom/OpenXcom.svg
 [travis-url]: https://travis-ci.org/OpenXcom/OpenXcom
 [workflow-badge]: https://github.com/OpenXcom/OpenXcom/workflows/ci/badge.svg
 [actions-url]: https://github.com/OpenXcom/OpenXcom/actions
 
-OpenXcom is an open-source clone of the popular "UFO: Enemy Unknown" ("X-COM:
+This is a fork of [OpenXcom project](https://openxcom.org) - an open-source clone of the popular "UFO: Enemy Unknown" ("X-COM:
 UFO Defense" in the USA release) and "X-COM: Terror From the Deep" videogames
 by Microprose, licensed under the GPL and written in C++ / SDL.
 
-See more info at the [website](https://openxcom.org)
-and the [wiki](https://www.ufopaedia.org/index.php/OpenXcom).
-
-Uses modified code from SDL\_gfx (LGPL) with permission from author.
+Current fork of the game engine inherits all features from OXC and OXCE ongoing development and 
+provides several exclusive game mechanics. See [project's wiki](https://github.com/723Studio/OpenXcom_FTA/wiki) for more details.
 
 ## Installation
 
