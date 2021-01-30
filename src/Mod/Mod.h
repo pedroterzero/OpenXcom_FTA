@@ -95,6 +95,7 @@ class ModInfo;
 class RuleVideo;
 class RuleMusic;
 class RuleDiplomacyFaction;
+class RuleDiplomacyFactionEvent;
 class RuleCovertOperation;
 class RuleArcScript;
 class RuleEventScript;
@@ -190,6 +191,7 @@ private:
 	std::map<std::string, std::vector<BattleScript*> > _battleScripts;
 	std::map<std::string, RuleCommendations *> _commendations;
 	std::map<std::string, RuleDiplomacyFaction*> _diplomacyFactions;
+	std::map<std::string, RuleDiplomacyFactionEvent*> _diplomacyFactionEvents;
 	std::map<std::string, RuleCovertOperation*> _covertOperations;
 	std::map<std::string, RuleArcScript*> _arcScripts;
 	std::map<std::string, RuleEventScript*> _eventScripts;
@@ -286,6 +288,7 @@ private:
 	std::vector<std::string> _skillsIndex, _soldiersIndex, _soldierTransformationIndex, _soldierBonusIndex;
 	std::vector<std::string> _alienMissionsIndex, _terrainIndex, _customPalettesIndex, _arcScriptIndex, _eventScriptIndex, _eventIndex, _missionScriptIndex;
 	std::vector<std::string> _diplomacyFactionIndex;
+	std::vector<std::string> _diplomacyFactionEventIndex;
 	std::vector<std::string> _covertOperationIndex;
 	std::vector<std::vector<int> > _alienItemLevels;
 	std::vector<SDL_Color> _transparencies;
@@ -950,11 +953,14 @@ public:
 	/// Gets a video for intro/outro etc.
 	RuleVideo *getVideo(const std::string &id, bool error = false) const;
 	const std::map<std::string, RuleMusic *> *getMusic() const;
-	/// Gets diplomacy Faction rules for FTA game
+	/// Gets Diplomacy Faction rules for FTA game
 	RuleDiplomacyFaction* getDiplomacyFaction(const std::string& name, bool error = false) const;
-	/// Gets covert Operation rules for FTA game
+	/// Gets Diplomacy Factions Event rules for FTA game
+	RuleDiplomacyFactionEvent* getDiplomacyFactionEvent(const std::string& name, bool error = false) const;
+	/// Gets Covert Operation rules for FTA game
 	RuleCovertOperation* getCovertOperation(const std::string& name, bool error = false) const;
 	const std::vector<std::string>* getDiplomacyFactionList() const;
+	const std::vector<std::string>* getDiplomacyFactionEventList() const;
 	const std::vector<std::string>* getCovertOperationList() const;
 	const std::vector<std::string>* getArcScriptList() const;
 	RuleArcScript* getArcScript(const std::string& name, bool error = false) const;

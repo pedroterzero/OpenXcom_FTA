@@ -46,6 +46,7 @@ class RuleCraft;
 class ItemContainer;
 class FactionalContainer;
 class FactionalResearch;
+class RuleDiplomacyFactionEvent;
 
 /**
  * Represents a custom Diplomacy Faction, spawned at the game start and waiting to be discovered.
@@ -70,16 +71,20 @@ private:
 
 	/// Handle daily reputation change and immidiate reaction to it.
 	void processDailyReputation(Game& engine);
+	/// Handle factional specific events.
+	void processFactionalEvents(Game& engine);
 	/// Generates mission for the faction base on current situation in the game.
 	void factionMissionGenerator(Game& engine);
 	/// Generates event from the faction base on current situation in the game.
 	void factionEventGenerator(Game& engine);
-	/// Handle balancing of Faction's items, buying or selling based on current situation.
+	/// Handle purshaising of Faction's items, based on current situation.
 	void handleRestock();
+	/// Handle selling of faction's items, if they don't need them anymore.
+	void handleSelling();
 	/// Handle managing of Faction's staff and non-item equipment.
 	void manageStaff();
 	/// Process Faction's power management and returns required funds for further use.
-	int64_t managePower(int month, int baseCost);
+	int64_t managePower(int64_t month, int64_t baseCost);
 	/// Handle researching.
 	void handleResearch(Game& engine, int64_t reqFunds);
 	/// Get if research article is unlocked by faction.

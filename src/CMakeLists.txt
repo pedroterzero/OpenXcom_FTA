@@ -325,6 +325,7 @@ set ( mod_src
   Mod/RuleCraftWeapon.cpp
   Mod/RuleDamageType.cpp
   Mod/RuleDiplomacyFaction.cpp
+  Mod/RuleDiplomacyFactionEvent.cpp
   Mod/RuleEnviroEffects.cpp
   Mod/RuleEvent.cpp
   Mod/RuleEventScript.cpp

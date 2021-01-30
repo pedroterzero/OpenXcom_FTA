@@ -81,6 +81,7 @@
 #include "ExtraStrings.h"
 #include "RuleInterface.h"
 #include "RuleDiplomacyFaction.h"
+#include "RuleDiplomacyFactionEvent.h"
 #include "RuleCovertOperation.h"
 #include "RuleArcScript.h"
 #include "RuleEventScript.h"
@@ -698,6 +699,12 @@ Mod::~Mod()
 	{
 		delete i->second;
 	}
+
+	for (std::map<std::string, RuleDiplomacyFactionEvent*>::const_iterator i = _diplomacyFactionEvents.begin(); i != _diplomacyFactionEvents.end(); ++i)
+	{
+		delete i->second;
+	}
+
 	for (std::map<std::string, RuleCovertOperation*>::const_iterator i = _covertOperations.begin(); i != _covertOperations.end(); ++i)
 	{
 		delete i->second;
@@ -2678,6 +2685,15 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 		}
 	}
 
+	for (YAML::const_iterator i = doc["diplomacyFactionEvents"].begin(); i != doc["diplomacyFactionEvents"].end(); ++i)
+	{
+		RuleDiplomacyFactionEvent* rule = loadRule(*i, &_diplomacyFactionEvents, &_diplomacyFactionEventIndex, "type");
+		if (rule != 0)
+		{
+			rule->load(*i);
+		}
+	}
+
 	for (YAML::const_iterator i = doc["covertOperations"].begin(); i != doc["covertOperations"].end(); ++i)
 	{
 		RuleCovertOperation* rule = loadRule(*i, &_covertOperations, &_covertOperationIndex, "name");
@@ -4310,9 +4326,19 @@ RuleDiplomacyFaction* Mod::getDiplomacyFaction(const std::string& name, bool err
 	return getRule(name, "Diplomacy Faction", _diplomacyFactions, error);
 }
 
+RuleDiplomacyFactionEvent* Mod::getDiplomacyFactionEvent(const std::string& name, bool error) const
+{
+	return getRule(name, "Diplomacy Faction Event", _diplomacyFactionEvents, error);
+}
+
 const std::vector<std::string>* Mod::getDiplomacyFactionList() const
 {
 	return &_diplomacyFactionIndex;
+}
+
+const std::vector<std::string>* Mod::getDiplomacyFactionEventList() const
+{
+	return &_diplomacyFactionEventIndex;
 }
 
 RuleCovertOperation* Mod::getCovertOperation(const std::string& name, bool error) const

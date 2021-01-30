@@ -1,4 +1,13 @@
 research:
+#Resistance tech tree
+  - name: STR_RESISTANCE_TECH_TREE_START
+    dependencies:
+      - STR_TROLLIUM
+  - name: STR_RESISTANCE_DUTY
+    cost: 15
+    points: 15
+    dependencies:
+      - STR_RESISTANCE_TECH_TREE_START
   - name: STR_LASER_WEAPONS
     cost: 50
     points: 10

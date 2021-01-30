@@ -28,7 +28,7 @@ class RuleResearch;
 
 /**
 * Represents ongoing factional research.
-* Handles data and methods requierd to process research.
+* Handles data and methods required to process research.
 */
 class FactionalResearch
 {

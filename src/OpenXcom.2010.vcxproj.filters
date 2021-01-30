@@ -1196,6 +1196,9 @@
     <ClCompile Include="Savegame\FactionalResearch.cpp">
       <Filter>Savegame</Filter>
     </ClCompile>
+    <ClCompile Include="Mod\RuleDiplomacyFactionEvent.cpp">
+      <Filter>Mod</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2455,6 +2458,9 @@
     </ClInclude>
     <ClInclude Include="Savegame\FactionalResearch.h">
       <Filter>Savegame</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\RuleDiplomacyFactionEvent.h">
+      <Filter>Mod</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

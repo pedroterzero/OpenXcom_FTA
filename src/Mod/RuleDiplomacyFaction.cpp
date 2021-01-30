@@ -20,36 +20,13 @@
 #include "../Engine/RNG.h"
 #include "../fmath.h"
 
-//namespace YAML
-//{
-//	template<>
-//	struct convert<OpenXcom::FactionMarketList>
-//	{
-//		static Node encode(const OpenXcom::FactionMarketList& rhs)
-//		{
-//			Node node;
-//			node = rhs.reputationList;
-//			return node;
-//		}
-//
-//		static bool decode(const Node& node, OpenXcom::FactionMarketList& rhs)
-//		{
-//			if (!node.IsSequence())
-//				return false;
-//
-//			rhs.reputationList = node.as< std::map<std::string, int> >(rhs.reputationList);
-//			return true;
-//		}
-//	};
-//}
-
 namespace OpenXcom
 {
 
 RuleDiplomacyFaction::RuleDiplomacyFaction(const std::string &name) :
 			_name(name), _description("NONE"), _background("BACK13.SCR"), _cardBackground("BACK13.SCR"),
 			_genMissionFrequency(0), _genEventFrequency(0),
-			_sellPriceFactor(0), _buyPriceFactor(0), _repPriceFactor(0), _stockMod(0.1),
+			_sellPriceFactor(0), _buyPriceFactor(0), _repPriceFactor(0), _stockMod(100),
 			_startingReputation(0), _startingFunds(0), _startingPower(0), _powerHungry(10000), _scienceBaseCost(2000)
 {
 }
@@ -77,11 +54,11 @@ void RuleDiplomacyFaction::load(const YAML::Node &node)
 
 	_happyEvents = node["happyEvents"].as<std::vector<std::string>>(_happyEvents);
 	_angryEvents = node["angryEvents"].as<std::vector<std::string>>(_angryEvents);
+	_factionalEvents = node["factionalEvents"].as<std::vector<std::string>>(_factionalEvents);
 
 	_sellPriceFactor = node["sellPriceFactor"].as<int>(_sellPriceFactor);
 	_buyPriceFactor = node["buyPriceFactor"].as<int>(_buyPriceFactor);
 	_repPriceFactor = node["repPriceFactor"].as<int>(_repPriceFactor);
-	_stockMod = node["stockMod"].as<int>(_stockMod);
 	_stockMod = node["stockMod"].as<int>(_stockMod);
 	_wishList = node["wishList"].as<std::map<std::string, double>>(_wishList);
 	_powerHungry = node["powerHungry"].as<int>(_powerHungry);

@@ -502,6 +502,7 @@
     <ClCompile Include="Mod\RuleCovertOperation.cpp" />
     <ClCompile Include="Mod\RuleDamageType.cpp" />
     <ClCompile Include="Mod\RuleDiplomacyFaction.cpp" />
+    <ClCompile Include="Mod\RuleDiplomacyFactionEvent.cpp" />
     <ClCompile Include="Mod\RuleEnviroEffects.cpp" />
     <ClCompile Include="Mod\RuleEvent.cpp" />
     <ClCompile Include="Mod\RuleEventScript.cpp" />
@@ -918,6 +919,7 @@
     <ClInclude Include="Mod\RuleCovertOperation.h" />
     <ClInclude Include="Mod\RuleDamageType.h" />
     <ClInclude Include="Mod\RuleDiplomacyFaction.h" />
+    <ClInclude Include="Mod\RuleDiplomacyFactionEvent.h" />
     <ClInclude Include="Mod\RuleEnviroEffects.h" />
     <ClInclude Include="Mod\RuleEvent.h" />
     <ClInclude Include="Mod\RuleEventScript.h" />

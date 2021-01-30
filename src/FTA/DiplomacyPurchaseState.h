@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Copyright 2010-2016 OpenXcom Developers.
+ * Copyright 2010-2021 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -70,6 +70,8 @@ private:
 	bool isHidden(int sel) const;
 	/// Gets the row of the current selection.
 	TransferRow &getRow() { return _items[_rows[_sel]]; }
+	/// Calculate price adjustment.
+	int64_t getCostAdjustment(int64_t baseCost);
 public:
 	/// Creates the Purchase state.
 	DiplomacyPurchaseState(Base *base, DiplomacyFaction* faction);

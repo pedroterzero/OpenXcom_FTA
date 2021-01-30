@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 OpenXcom Developers.
+ * Copyright 2010-2021 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -57,7 +57,6 @@
 
 namespace OpenXcom
 {
-
 /**
  * Initializes all the elements in the Purchase/Hire screen.
  * @param game Pointer to the core game.
@@ -156,7 +155,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 			&& (~providedBaseFunc & purchaseBaseFunc).none()
 			&& stock > 0)
 		{
-			TransferRow row = { TRANSFER_SOLDIER, rule, tr(rule->getType()), rule->getBuyCost(), _base->getSoldierCountAndSalary(rule->getType()).first, 0, 0, stock };
+			TransferRow row = { TRANSFER_SOLDIER, rule, tr(rule->getType()), getCostAdjustment(rule->getBuyCost()), _base->getSoldierCountAndSalary(rule->getType()).first, 0, 0, stock };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -169,7 +168,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 		int stock = getFactionItemStock("STR_SCIENTIST");
 		if (stock > 0)
 		{
-			TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), _game->getMod()->getHireScientistCost(), _base->getTotalScientists(), 0, 0, stock };
+			TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), getCostAdjustment(_game->getMod()->getHireScientistCost()), _base->getTotalScientists(), 0, 0, stock };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -182,7 +181,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 		int stock = getFactionItemStock("STR_ENGINEER");
 		if (stock > 0)
 		{
-			TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), _game->getMod()->getHireEngineerCost(), _base->getTotalEngineers(), 0, 0, stock };
+			TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), getCostAdjustment(_game->getMod()->getHireEngineerCost()), _base->getTotalEngineers(), 0, 0, stock };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -203,7 +202,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 			&& (~providedBaseFunc & purchaseBaseFunc).none()
 			&& stock > 0)
 		{
-			TransferRow row = { TRANSFER_CRAFT, rule, tr(rule->getType()), rule->getBuyCost(), _base->getCraftCount(rule), 0, 0, stock };
+			TransferRow row = { TRANSFER_CRAFT, rule, tr(rule->getType()), getCostAdjustment(rule->getBuyCost()), _base->getCraftCount(rule), 0, 0, stock };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -224,7 +223,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 			&& (~providedBaseFunc & purchaseBaseFunc).none()
 			&& stock > 0)
 		{
-			TransferRow row = { TRANSFER_ITEM, rule, tr(rule->getType()), rule->getBuyCost(), _base->getStorageItems()->getItem(rule), 0, 0, stock };
+			TransferRow row = { TRANSFER_ITEM, rule, tr(rule->getType()), getCostAdjustment(rule->getBuyCost()), _base->getStorageItems()->getItem(rule), 0, 0, stock };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -316,6 +315,20 @@ void DiplomacyPurchaseState::think()
 
 	_timerInc->think(this, 0);
 	_timerDec->think(this, 0);
+}
+
+/**
+ * Calculates price adjustment based on faction's stats and other factors.
+ * @param baseCost price for row from rules.
+ * @returns corrected value.
+ */
+int64_t DiplomacyPurchaseState::getCostAdjustment(int64_t baseCost)
+{
+	int priceFactor = _faction->getRules()->getBuyPriceFactor();
+	int repFactor = _faction->getRules()->getRepPriceFactor();
+	int normalizedRep = _faction->getReputationLevel() - 3;
+	baseCost += (baseCost * priceFactor / 100) + (baseCost * (repFactor * normalizedRep / 100));
+	return baseCost;
 }
 
 /**
@@ -567,6 +580,7 @@ void DiplomacyPurchaseState::updateList()
 void DiplomacyPurchaseState::btnOkClick(Action *)
 {
 	_game->getSavedGame()->setFunds(_game->getSavedGame()->getFunds() - _total);
+	_faction->setFunds(_faction->getFunds() + _total);
 	for (std::vector<TransferRow>::const_iterator i = _items.begin(); i != _items.end(); ++i)
 	{
 		if (i->amount > 0)
@@ -584,17 +598,20 @@ void DiplomacyPurchaseState::btnOkClick(Action *)
 					t = new Transfer(time);
 					t->setSoldier(_game->getMod()->genSoldier(_game->getSavedGame(), rule->getType()));
 					_base->getTransfers()->push_back(t);
+					_faction->getStaffContainer()->removeItem(rule->getType());
 				}
 				break;
 			case TRANSFER_SCIENTIST:
 				t = new Transfer(_game->getMod()->getPersonnelTime());
 				t->setScientists(i->amount);
 				_base->getTransfers()->push_back(t);
+				_faction->getStaffContainer()->removeItem("STR_SCIENTIST", i->amount);
 				break;
 			case TRANSFER_ENGINEER:
 				t = new Transfer(_game->getMod()->getPersonnelTime());
 				t->setEngineers(i->amount);
 				_base->getTransfers()->push_back(t);
+				_faction->getStaffContainer()->removeItem("STR_ENGINEER", i->amount);
 				break;
 			case TRANSFER_CRAFT:
 				for (int c = 0; c < i->amount; c++)
@@ -605,6 +622,7 @@ void DiplomacyPurchaseState::btnOkClick(Action *)
 					craft->setStatus("STR_REFUELLING");
 					t->setCraft(craft);
 					_base->getTransfers()->push_back(t);
+					_faction->getStaffContainer()->removeItem(rule->getType());
 				}
 				break;
 			case TRANSFER_ITEM:
@@ -613,6 +631,8 @@ void DiplomacyPurchaseState::btnOkClick(Action *)
 					t = new Transfer(rule->getTransferTime());
 					t->setItems(rule->getType(), i->amount);
 					_base->getTransfers()->push_back(t);
+
+					_faction->getItems()->removeItem(rule, i->amount);
 				}
 				break;
 			}
@@ -1036,7 +1056,19 @@ int DiplomacyPurchaseState::getFactionItemStock(std::string entityName)
 		int iQty = _faction->getItems()->getItem(itemRule);
 		if (iQty > 0)
 		{
-			// FINNIKTODO: reputation check here pls
+			if (!itemRule->getReputationRequirements().empty())
+			{
+				for (auto i : itemRule->getReputationRequirements())
+				{
+					if (i.first == _faction->getRules()->getName())
+					{
+						if (_faction->getReputationLevel() < i.second)
+						{
+							return 0;
+						}
+					}
+				}
+			}
 			return iQty;
 		}
 		else
@@ -1050,7 +1082,6 @@ int DiplomacyPurchaseState::getFactionItemStock(std::string entityName)
 		int sQty = _faction->getStaffContainer()->getItem(entityName);
 		if (sQty > 0)
 		{
-			// FINNIKTODO: Add staff busy and other logic checks pls
 			return sQty;
 		}
 		else

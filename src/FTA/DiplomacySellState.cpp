@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 OpenXcom Developers.
+ * Copyright 2010-2021 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -34,6 +34,7 @@
 #include "../Interface/TextEdit.h"
 #include "../Interface/TextList.h"
 #include "../Interface/ComboBox.h"
+#include "../Menu/ErrorMessageState.h"
 #include "../Savegame/BaseFacility.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Base.h"
@@ -41,11 +42,13 @@
 #include "../Savegame/Craft.h"
 #include "../Savegame/Vehicle.h"
 #include "../Savegame/ItemContainer.h"
+#include "../Savegame/FactionalContainer.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/Armor.h"
 #include "../Mod/RuleCraft.h"
 #include "../Savegame/CraftWeapon.h"
 #include "../Mod/RuleCraftWeapon.h"
+#include "../Mod/RuleSoldier.h"
 #include "../Engine/Timer.h"
 #include "../Engine/Options.h"
 #include "../Engine/CrossPlatform.h"
@@ -153,7 +156,7 @@ void DiplomacySellState::delayedInit()
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtTitle->setText(tr("STR_SELL_ITEMS_SACK_PERSONNEL"));
 
-	_txtFunds->setText(tr("STR_FUNDS").arg(Unicode::formatFunding(_game->getSavedGame()->getFunds())));
+	_txtFunds->setText(tr("STR_FACTION_FUNDS").arg(Unicode::formatFunding(_faction->getFunds())));
 
 	_txtSpaceUsed->setVisible(true); // (Options::storageLimitsEnforced);
 
@@ -164,7 +167,7 @@ void DiplomacySellState::delayedInit()
 
 	_txtQuantity->setText(tr("STR_QUANTITY_UC"));
 
-	_txtSell->setText(tr("STR_SELL_SACK"));
+	_txtSell->setText(tr("STR_SELL"));
 
 	_txtValue->setText(tr("STR_VALUE"));
 
@@ -202,7 +205,7 @@ void DiplomacySellState::delayedInit()
 		if (_debriefingState) break;
 		if ((*i)->getStatus() != "STR_OUT")
 		{
-			TransferRow row = { TRANSFER_CRAFT, (*i), (*i)->getName(_game->getLanguage()), (*i)->getRules()->getSellCost(), 1, 0, 0 };
+			TransferRow row = { TRANSFER_CRAFT, (*i), (*i)->getName(_game->getLanguage()), getCostAdjustment((*i)->getRules()->getSellCost()), 1, 0, 0 };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -264,7 +267,7 @@ void DiplomacySellState::delayedInit()
 		}
 		if (qty > 0 && (Options::canSellLiveAliens || !rule->isAlien()))
 		{
-			TransferRow row = { TRANSFER_ITEM, rule, tr(*i), rule->getSellCost(), qty, 0, 0 };
+			TransferRow row = { TRANSFER_ITEM, rule, tr(*i), getCostAdjustment(rule->getSellCost()), qty, 0, 0 };
 			if ((_debriefingState != 0) && (_game->getSavedGame()->getAutosell(rule)))
 			{
 				row.amount = qty;
@@ -377,6 +380,20 @@ void DiplomacySellState::think()
 
 	_timerInc->think(this, 0);
 	_timerDec->think(this, 0);
+}
+
+/**
+ * Calculates price adjustment based on faction's stats and other factors.
+ * @param baseCost price for row from rules.
+ * @returns corrected value.
+ */
+int64_t DiplomacySellState::getCostAdjustment(int64_t baseCost)
+{
+	int priceFactor = _faction->getRules()->getBuyPriceFactor();
+	int repFactor = _faction->getRules()->getRepPriceFactor();
+	int normalizedRep = _faction->getReputationLevel() - 3;
+	baseCost += (baseCost * priceFactor / 100) + (baseCost * (repFactor * normalizedRep / 100));
+	return baseCost;
 }
 
 /**
@@ -563,6 +580,7 @@ void DiplomacySellState::updateList()
 void DiplomacySellState::btnOkClick(Action*)
 {
 	_game->getSavedGame()->setFunds(_game->getSavedGame()->getFunds() + _total);
+	_faction->setFunds(_faction->getFunds() - _total);
 	Soldier* soldier;
 	Craft* craft;
 
@@ -673,6 +691,7 @@ void DiplomacySellState::btnOkClick(Action*)
 							_base->getStorageItems()->addItem((*s)->getArmor()->getStoreItem()->getType());
 						}
 						_base->getSoldiers()->erase(s);
+						_faction->getStaffContainer()->addItem((*s)->getRules()->getType());
 						break;
 					}
 				}
@@ -681,17 +700,21 @@ void DiplomacySellState::btnOkClick(Action*)
 			case TRANSFER_CRAFT:
 				craft = (Craft*)i->rule;
 				_base->removeCraft(craft, true);
+				_faction->getStaffContainer()->addItem(craft->getRules()->getType());
 				delete craft;
 				break;
 			case TRANSFER_SCIENTIST:
 				_base->setScientists(_base->getScientists() - i->amount);
+				_faction->getStaffContainer()->addItem("STR_SCIENTIST", i->amount);
 				break;
 			case TRANSFER_ENGINEER:
 				_base->setEngineers(_base->getEngineers() - i->amount);
+				_faction->getStaffContainer()->addItem("STR_ENGINEER", i->amount);
 				break;
 			case TRANSFER_ITEM:
 				RuleItem* item = (RuleItem*)i->rule;
 				{
+					_faction->getItems()->addItem(item, i->amount);
 					// remove all of said items from base
 					int toRemove = cleanUpContainer(_base->getStorageItems(), item, i->amount);
 
@@ -993,7 +1016,13 @@ void DiplomacySellState::changeByValue(int change, int dir)
 {
 	if (dir > 0)
 	{
-		if (0 >= change || getRow().qtySrc <= getRow().amount) return;
+		int i = getRow().qtySrc;
+		int y = getRow().amount;
+		if (change <= 0 || getRow().qtySrc <= getRow().amount)
+		{
+			return;
+		}
+
 		change = std::min(getRow().qtySrc - getRow().amount, change);
 		if (_sellAllButOne && change > 0)
 		{
@@ -1002,37 +1031,63 @@ void DiplomacySellState::changeByValue(int change, int dir)
 	}
 	else
 	{
-		if (0 >= change || 0 >= getRow().amount) return;
+		if (change <= 0 || getRow().amount <= 0)
+		{
+			return;
+		}
+		
 		change = std::min(getRow().amount, change);
 	}
+	int oldAmmount = getRow().amount;
 	getRow().amount += dir * change;
-	_total += dir * getRow().cost * change;
+	int64_t increase = dir * getRow().cost * change;
+	_total += increase;
 
-	// Calculate the change in storage space.
-	Soldier* soldier;
-	const RuleItem* item;
-	switch (getRow().type)
+	std::string errorMessage;
+	auto test = getRow().cost;
+	auto testA = _total + test;
+	auto testB = _faction->getFunds();
+	if (_total > _faction->getFunds())
 	{
-	case TRANSFER_SOLDIER:
-		soldier = (Soldier*)getRow().rule;
-		if (soldier->getArmor()->getStoreItem())
-		{
-			_spaceChange += dir * soldier->getArmor()->getStoreItem()->getSize();
-		}
-		break;
-	case TRANSFER_CRAFT:
-		// Note: in OXCE, there is no storage space change, everything on the craft is already included in the base storage space calculations;
-		break;
-	case TRANSFER_ITEM:
-		item = (const RuleItem*)getRow().rule;
-		_spaceChange -= dir * change * item->getSize();
-		break;
-	default:
-		//TRANSFER_SCIENTIST and TRANSFER_ENGINEER do not own anything that takes storage
-		break;
+		errorMessage = tr("STR_NOT_ENOUGH_MONEY_FACTION");
 	}
 
-	updateItemStrings();
+	if (errorMessage.empty())
+	{
+		// Calculate the change in storage space.
+		Soldier* soldier;
+		const RuleItem* item;
+		switch (getRow().type)
+		{
+		case TRANSFER_SOLDIER:
+			soldier = (Soldier*)getRow().rule;
+			if (soldier->getArmor()->getStoreItem())
+			{
+				_spaceChange += dir * soldier->getArmor()->getStoreItem()->getSize();
+			}
+			break;
+		case TRANSFER_CRAFT:
+			// Note: in OXCE, there is no storage space change, everything on the craft is already included in the base storage space calculations;
+			break;
+		case TRANSFER_ITEM:
+			item = (const RuleItem*)getRow().rule;
+			_spaceChange -= dir * change * item->getSize();
+			break;
+		default:
+			//TRANSFER_SCIENTIST and TRANSFER_ENGINEER do not own anything that takes storage
+			break;
+		}
+
+		updateItemStrings();
+	}
+	else
+	{
+		_timerInc->stop();
+		_total -= increase;
+		getRow().amount = oldAmmount;
+		RuleInterface* menuInterface = _game->getMod()->getInterface("buyMenu");
+		_game->pushState(new ErrorMessageState(errorMessage, _palette, menuInterface->getElement("errorMessage")->color, "BACK13.SCR", menuInterface->getElement("errorPalette")->color));
+	}
 }
 
 /**

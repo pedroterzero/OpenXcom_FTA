@@ -294,6 +294,7 @@ private:
 	std::map<std::string, std::vector<int> > _recoveryTransformationsName;
 	std::map<const RuleItem*, std::vector<int> > _recoveryTransformations;
 	std::vector<std::string> _categories;
+	std::map<std::string, int> _reputationRequirements;
 
 	Unit* _vehicleUnit;
 	double _size;
@@ -435,6 +436,8 @@ public:
 	Unit* getVehicleUnit() const;
 	/// Gets the item's size.
 	double getSize() const;
+	/// Gets the item's reputation requirments.
+	const std::map<std::string, int>& getReputationRequirements() const { return _reputationRequirements; };
 	/// Gets the item's purchase cost.
 	int getBuyCost() const;
 	/// Gets the item's sale cost.

@@ -39,7 +39,7 @@ private:
 	int _startingReputation, _startingFunds, _startingPower;
 	std::map<std::string, int> _startingItems, _startingStaff;
 	std::map<std::string, double> _wishList;
-	std::vector<std::string> _helpTreatyMissions, _helpTreatyEvents, _happyEvents, _angryEvents, _startingResearches;
+	std::vector<std::string> _helpTreatyMissions, _helpTreatyEvents, _happyEvents, _angryEvents, _startingResearches, _factionalEvents;
 public:
 	/// Creates a blank RuleDiplomacyFaction.
 	RuleDiplomacyFaction(const std::string &name);
@@ -78,14 +78,16 @@ public:
 	const std::vector<std::string>& getHelpTreatyMissions() const { return _helpTreatyMissions; }
 	/// Gets mission frequency for generatoting.
 	int getGenMissionFrequency() const { return _genMissionFrequency; };
-	/// Gets event scripts to run from faction generator.
+	/// Gets geoscape event scripts to run from faction generator.
 	const std::vector<std::string>& getHelpTreatyEvents() const { return _helpTreatyEvents; }
-	/// Gets event frequency for generator.
+	/// Gets geoscape event frequency for generator.
 	int getGenEventFrequency() const { return _genEventFrequency; };
-	/// Gets events to spawn when faction is super happy with player's actions.
+	/// Gets geoscape events to spawn when faction is super happy with player's actions.
 	const std::vector<std::string>& getHappyEvents() const { return _happyEvents; }
-	/// Gets events to spawn when faction is super angry on player.
+	/// Gets geoscape events to spawn when faction is super angry on player.
 	const std::vector<std::string>& getAngryEvents() const { return _angryEvents; }
+	/// Gets internal factional events to process.
+	const std::vector<std::string>& getFactionalEvents() const { return _factionalEvents; }
 	/// Gets power hungry value.
 	int getPowerHungry() const { return _powerHungry; };
 	/// Gets base cost to do science.

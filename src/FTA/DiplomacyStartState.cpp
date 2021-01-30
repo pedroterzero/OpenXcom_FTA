@@ -109,7 +109,7 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 			btnPurchase->onMouseClick((ActionHandler)&DiplomacyStartState::btnPurchaseClick);
 			_btnsPurchase.push_back(btnPurchase);
 			add(btnSell, "button", interfaceName);
-			btnSell->setText(tr("STR_SELL"));
+			btnSell->setText(tr("STR_SELL_UC"));
 			btnSell->onMouseClick((ActionHandler)&DiplomacyStartState::btnSellClick);
 			_btnsSell.push_back(btnSell);
 		}
