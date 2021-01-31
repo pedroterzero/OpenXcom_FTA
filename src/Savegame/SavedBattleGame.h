@@ -110,6 +110,7 @@ private:
 	std::string _music;
 	int _turnLimit, _cheatTurn;
 	ChronoTrigger _chronoTrigger;
+	int _alarmLvl;
 	bool _beforeGame;
 	std::string _hiddenMovementBackground;
 	HitLog *_hitLog;
@@ -118,6 +119,8 @@ private:
 	BattleUnit *selectPlayerUnit(int dir, bool checkReselect = false, bool setReselect = false, bool checkInventory = false);
 	/// Run newTurnUnit and newTurnItem scripts
 	void newTurnUpdateScripts();
+	/// Updates alarm level on the battlescape.
+	void updateAlarm();
 public:
 	/// Creates a new battle save, based on the current generic save.
 	SavedBattleGame(Mod *rule, Language *lang);
@@ -153,6 +156,8 @@ public:
 	AlienDeployment* getAlienDeploymet();
 	/// Gets the base's items BEFORE the mission.
 	ItemContainer *getBaseStorageItems();
+	/// Gets the alarm level of the battle game.
+	int getAlarmLevel() const { return _alarmLvl; };
 	/// Applies the enviro effects.
 	void applyEnviroEffects(const RuleEnviroEffects* enviroEffects);
 	/// Gets the enviro effects.

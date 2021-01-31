@@ -114,6 +114,7 @@ private:
 	int _motionPoints;
 	int _scannedTurn;
 	int _kills;
+	int _alarmed;
 	int _faceDirection; // used only during strafing moves
 	std::vector<int> _meleeAttackedBy;
 	bool _hitByFire, _hitByAnything, _alreadyExploded;
@@ -242,6 +243,10 @@ public:
 	bool isSurrendering() const;
 	/// Mark the unit as surrendering this turn.
 	void setSurrendering(bool isSurrendering);
+	/// Sets the unit's alarmed status.
+	void setAlarmed(bool isAlarmed) { _alarmed = isAlarmed; };
+	/// Gets the unit's alarmed status.
+	bool getAlarmed() const { return _alarmed; };
 	/// Start the walkingPhase
 	void startWalking(int direction, Position destination, SavedBattleGame *savedBattleGame);
 	/// Increase the walkingPhase
@@ -276,6 +281,7 @@ public:
 	bool haveNoFloorBelow() const { return _haveNoFloorBelow; }
 	/// Sets soldier ID if it was created.
 	void setGeoscapeSoldied(Soldier* soldier);
+	int getKills() const { return _kills; };
 
 	/// Aim.
 	void aim(bool aiming);

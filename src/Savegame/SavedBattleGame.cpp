@@ -69,7 +69,7 @@ SavedBattleGame::SavedBattleGame(Mod *rule, Language *lang) :
 	_objectiveType(-1), _objectivesDestroyed(0), _objectivesNeeded(0),
 	_unitsFalling(false), _cheating(false), _tuReserved(BA_NONE), _kneelReserved(false), _depth(0),
 	_ambience(-1), _ambientVolume(0.5), _minAmbienceRandomDelay(20), _maxAmbienceRandomDelay(60), _currentAmbienceDelay(0),
-	_turnLimit(0), _cheatTurn(20), _chronoTrigger(FORCE_LOSE), _beforeGame(true)
+	_turnLimit(0), _cheatTurn(20), _chronoTrigger(FORCE_LOSE), _alarmLvl(0), _beforeGame(true)
 {
 	_tileSearch.resize(11*11);
 	for (int i = 0; i < 121; ++i)
@@ -162,6 +162,7 @@ void SavedBattleGame::load(const YAML::Node &node, Mod *mod, SavedGame* savedGam
 	_flattenedMapBlockNames = node["flattenedMapBlockNames"].as< std::vector< std::vector<std::string> > >(_flattenedMapBlockNames);
 	_globalShade = node["globalshade"].as<int>(_globalShade);
 	_turn = node["turn"].as<int>(_turn);
+	_alarmLvl = node["alarmLvl"].as<int>(_alarmLvl);
 	_bughuntMinTurn = node["bughuntMinTurn"].as<int>(_bughuntMinTurn);
 	_bughuntMode = node["bughuntMode"].as<bool>(_bughuntMode);
 	_itemObjectivesNumber = node["itemObjectivesNumber"].as<int>(_itemObjectivesNumber);
@@ -500,6 +501,7 @@ YAML::Node SavedBattleGame::save() const
 	node["flattenedMapBlockNames"] = _flattenedMapBlockNames;
 	node["globalshade"] = _globalShade;
 	node["turn"] = _turn;
+	node["alarmLvl"] = _alarmLvl;
 	node["bughuntMinTurn"] = _bughuntMinTurn;
 	node["animFrame"] = _animFrame;
 	node["bughuntMode"] = _bughuntMode;
@@ -1200,6 +1202,29 @@ void SavedBattleGame::newTurnUpdateScripts()
 }
 
 /**
+ * Updates alarm level on the battlescape.
+ */
+void SavedBattleGame::updateAlarm()
+{
+	if (_side == FACTION_HOSTILE)
+	{
+		for (std::vector<BattleUnit*>::iterator i = _units.begin(); i != _units.end(); ++i)
+		{
+			if ((*i)->getFaction() == FACTION_HOSTILE) //TODO: add not stunned check!
+			{
+				auto ai = (*i)->getAIModule();
+				if (ai->countKnownTargets() > 0 || (*i)->getKills() || (*i)->getAlarmed())
+				{
+					Log(LOG_DEBUG) << "And there is a place for trigger!!";
+					_alarmLvl += 1;
+				}
+			}
+		}
+	}
+
+}
+
+/**
  * Ends the current turn and progresses to the next one.
  */
 void SavedBattleGame::endTurn()
@@ -1307,6 +1332,9 @@ void SavedBattleGame::endTurn()
 
 	//scripts update
 	newTurnUpdateScripts();
+
+	//time to handle alarm
+	updateAlarm();
 
 	//fov check will be done by `BattlescapeGame::endTurn`
 

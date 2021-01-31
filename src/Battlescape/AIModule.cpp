@@ -252,6 +252,12 @@ void AIModule::think(BattleAction *action)
 		Log(LOG_INFO) << "Currently using " << AIMode << " behaviour";
 	}
 
+	if (_visibleEnemies) // || _knownEnemies #FINNIKTODO: Consider
+	{
+		Log(LOG_INFO) << "Unit has " << _visibleEnemies << "/" << _knownEnemies << " known enemies visible, its is now alarmed!";
+		_unit->setAlarmed(true);
+	}
+
 	if (_unit->isLeeroyJenkins())
 	{
 		dont_think(action);

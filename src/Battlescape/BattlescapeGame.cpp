@@ -3237,12 +3237,15 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 		{
 			continue;
 		}
+
 		int dif = _save->getGeoscapeSave()->getDifficulty();
-		if (dif < command->getMinDifficulty())
+		if (dif < command->getMinDifficulty() || dif > command->getMaxDifficulty())
 		{
 			continue;
 		}
-		if (dif > command->getMaxDifficulty())
+
+		int alarm = _save->getAlarmLevel();
+		if (alarm < command->getMinAlarm() || alarm > command->getMaxAlarm())
 		{
 			continue;
 		}

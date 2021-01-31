@@ -31,7 +31,8 @@ namespace OpenXcom
 BattleScript::BattleScript() :
 	_type(BSC_UNDEFINED), 
 	_executionChances(100), _executions(1), _cumulativeFrequency(0), _label(0), _startTurn(0), _endTurn(-1), _unitSide(1),
-	_minLevel(0), _maxLevel(0), _packSize(1), _randomPackSize(false), _minDifficulty(0), _maxDifficulty(4)
+	_minLevel(0), _maxLevel(0), _packSize(1), _randomPackSize(false),
+	_minDifficulty(0), _maxDifficulty(4), _minAlarmLevel(0), _maxAlarmLevel(INT_MAX)
 {
 }
 
@@ -96,6 +97,8 @@ void BattleScript::load(const YAML::Node& node)
 	_endTurn = node["endTurn"].as<int>(_endTurn);
 	_minDifficulty = node["minDifficulty"].as<int>(_minDifficulty);
 	_maxDifficulty = node["maxDifficulty"].as<int>(_maxDifficulty);
+	_minAlarmLevel = node["minAlarmLevel"].as<int>(_minAlarmLevel);
+	_maxAlarmLevel = node["maxAlarmLevel"].as<int>(_maxAlarmLevel);
 	if (const YAML::Node& messages = node["messages"])
 	{
 		for (YAML::const_iterator i = messages.begin(); i != messages.end(); ++i)

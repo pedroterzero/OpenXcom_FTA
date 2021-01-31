@@ -62,7 +62,8 @@ private:
 	std::vector<std::string> _spawnBlocks;
 	std::vector<std::string> _itemSet, _unitSet;
 	std::map<int, BattleMessage> _message;
-	int _startTurn, _endTurn, _unitSide, _packSize, _minLevel, _maxLevel, _minDifficulty, _maxDifficulty;
+	int _startTurn, _endTurn, _unitSide, _packSize, _minLevel, _maxLevel;
+	int _minDifficulty, _maxDifficulty, _minAlarmLevel, _maxAlarmLevel;
 	bool _randomPackSize;
 public:
 	BattleScript();
@@ -105,6 +106,10 @@ public:
 	int getMinDifficulty() const { return _minDifficulty; };
 	/// Gets the max difficulty level for command.
 	int getMaxDifficulty() const { return _maxDifficulty; };
+	/// Gets the min required alarm level to run this command.
+	int getMinAlarm() const { return _minAlarmLevel; };
+	/// Gets the max alarm level for this command to run.
+	int getMaxAlarm() const { return _maxAlarmLevel; };
 	/// Gets the list of battle messages for command.
 	std::map<int, BattleMessage> getBattleMessages() const { return _message; };
 };
