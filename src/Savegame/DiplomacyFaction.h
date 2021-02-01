@@ -43,6 +43,7 @@ class RuleMissionScript;
 class RuleResearch;
 class RuleSoldier;
 class RuleCraft;
+class RuleItem;
 class ItemContainer;
 class FactionalContainer;
 class FactionalResearch;
@@ -65,7 +66,7 @@ private:
 	std::vector<std::string> _commandsToProcess, _eventsToProcess;
 	std::vector<RuleMissionScript*> _availableMissionScripts;
 	std::vector<std::string> _unlockedResearches;
-	ItemContainer* _items;
+	ItemContainer* _items, _secretItems;
 	FactionalContainer* _staff;
 	std::vector<FactionalResearch*> _research;
 
@@ -80,7 +81,7 @@ private:
 	/// Handle purshaising of Faction's items, based on current situation.
 	void handleRestock();
 	/// Handle selling of faction's items, if they don't need them anymore.
-	void handleSelling();
+	void handleSelling(Mod& mod);
 	/// Handle managing of Faction's staff and non-item equipment.
 	void manageStaff();
 	/// Process Faction's power management and returns required funds for further use.
@@ -144,8 +145,13 @@ public:
 	void setThisMonthRepLvlChanged(bool status) { _repLvlChanged = status; };
 	/// Get mission script commands that pass all checks to generate alien mission for that faction.
 	const std::vector<RuleMissionScript*>& getAvalibleMissionScripts() const { return _availableMissionScripts; };
-	/// Gets an ItemContainer of Faction's "store".
-	ItemContainer* getItems() const { return _items; };
+
+	/// Public manipulators to factional stores.
+	ItemContainer* getPublicItems() const { return _items; };
+	void addItem(const RuleItem* item, int qty = 1);
+	void removeItem(const RuleItem* item, int qty = 1);
+
+
 	/// Gets Faction's personell and non-item properties.
 	FactionalContainer* getStaffContainer() { return _staff; };
 

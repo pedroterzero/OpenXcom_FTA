@@ -165,6 +165,40 @@ void DiplomacyFaction::disableResearch(const std::string& research)
 	if (!erased) { Log(LOG_ERROR) << "Research project  named " << research << " was not deleted from <unlockedResearches> list!"; }
 }
 
+void DiplomacyFaction::addItem(const RuleItem* item, int qty)
+{
+	if (qty > 0)
+	{
+		bool goToSecret = false;
+		if (_secretItems.getItem(item) <= 0 && item->isAlienArtifact())
+		{
+			auto it = std::find(_mod->getResearchList().begin(), _mod->getResearchList().end(), item->getName());
+			if (it != _mod->getResearchList().end())
+			{
+				if (!isResearched(*it))
+				{
+					goToSecret = true;
+				}
+			}
+		}
+		if (goToSecret)
+		{
+			_secretItems.addItem(item, 1);
+			qty -= 1;
+		}
+		if (qty > 0)
+		{
+			_items->addItem(item, qty);
+		}
+	}
+
+}
+
+void DiplomacyFaction::removeItem(const RuleItem* item, int qty)
+{
+	_items->removeItem(item, qty);
+}
+
 /**
  * Main handler of Faction logic.
  * @param Game game engine.
@@ -209,7 +243,7 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 		processFactionalEvents(engine);
 
 		//it's management time!
-		handleSelling();
+		handleSelling(*engine.getMod());
 		handleRestock();
 		manageStaff();
 		int64_t reqFunds = managePower(save.getMonthsPassed(), _mod->getDefaultFactionPowerCost());
@@ -302,9 +336,9 @@ void DiplomacyFaction::processFactionalEvents(Game& engine)
 	const Mod& mod = *engine.getMod();
 	SavedGame& save = *engine.getSavedGame();
 
-	auto list = this->getRules()->getFactionalEvents();
+	auto &list = this->getRules()->getFactionalEvents();
 
-	for (auto i : list)
+	for (auto &i : list)
 	{
 		auto rule = mod.getDiplomacyFactionEvent(i);
 		if (rule != nullptr)
@@ -400,7 +434,7 @@ void DiplomacyFaction::processFactionalEvents(Game& engine)
 
 						if (!rule->getItemsToAdd().empty())
 						{
-							for (auto i : rule->getItemsToAdd())
+							for (auto &i : rule->getItemsToAdd())
 							{
 								auto ruleItem = mod.getItem(i.first);
 								if (ruleItem != nullptr)
@@ -408,13 +442,13 @@ void DiplomacyFaction::processFactionalEvents(Game& engine)
 									int val = i.second;
 									if (val > 0)
 									{
-										_items->addItem(ruleItem, val);
+										addItem(ruleItem, val);
 									}
 									else if (val < 0)
 									{
 										if (_items->getItem(ruleItem) >= val)
 										{
-											_items->removeItem(ruleItem, val);
+											removeItem(ruleItem, val);
 										}
 									}
 								}
@@ -439,7 +473,7 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 		SavedGame& save = *engine.getSavedGame();
 		if (RNG::percent(_rule->getGenMissionFrequency()))
 		{
-			for (auto name : _commandsToProcess)
+			for (auto &name : _commandsToProcess)
 			{
 				auto ruleScript = mod.getMissionScript(name);
 				auto month = save.getMonthsPassed();
@@ -509,7 +543,7 @@ void DiplomacyFaction::factionEventGenerator(Game& engine)
 		SavedGame& save = *engine.getSavedGame();
 		if (RNG::percent(_rule->getGenEventFrequency()))
 		{
-			for (auto name : _eventsToProcess)
+			for (auto &name : _eventsToProcess)
 			{
 				auto ruleScript = mod.getEventScript(name);
 				auto month = save.getMonthsPassed();
@@ -630,7 +664,6 @@ void DiplomacyFaction::handleRestock()
 			continue;
 		}
 
-
 		// first, we see if we can handle this item
 		if (isResearched(ruleItem->getRequirements()) && isResearched(ruleItem->getBuyRequirements()))
 		{
@@ -651,7 +684,8 @@ void DiplomacyFaction::handleRestock()
 	for (auto i = buyList.begin(); i != buyList.end(); ++i)
 	{
 		auto itemRule = _mod->getItem((*i).first);
-		int64_t toBuy = floor(((*i).second / rWeightSum * _power * _rule->getStockMod() / 100) - _items->getItem(itemRule));
+		int64_t toBuy = round((*i).second / rWeightSum * _power * _rule->getStockMod() / 100);
+		toBuy -= _items->getItem(itemRule);
 
 		if (toBuy)
 		{
@@ -672,7 +706,7 @@ void DiplomacyFaction::handleRestock()
  * Handle managing of Faction's staff and non-item equipment.
  * @param mod rulesets to get constant data.
  */
-void DiplomacyFaction::handleSelling()
+void DiplomacyFaction::handleSelling(Mod& mod)
 {
 	std::map<std::string, double> sellList;
 
@@ -706,13 +740,18 @@ void DiplomacyFaction::handleSelling()
 	for (auto i = sellList.begin(); i != sellList.end(); ++i)
 	{
 		auto itemRule = _mod->getItem((*i).first);
-		int64_t toSell = floor(((*i).second / rWeightSum * _power * _rule->getStockMod() / 100) - _items->getItem(itemRule)) * (-1);
+		int64_t toSell = round((*i).second / rWeightSum * _power * _rule->getStockMod() / 100) * (-1);
+		toSell -= _items->getItem(itemRule);
 
 		if (toSell > 0)
 		{
-			int64_t cost = round(itemRule->getBuyCost()); //yes, faction can sell items with purchase cost, or balancing resources would go crazy.
+			int cost = itemRule->getBuyCost(); //yes, faction can sell items with purchase cost, or balancing resources would go crazy.
+			if (!cost)
+			{
+				cost = itemRule->getSellCost(); //well, in case we can't buy it, this would be ok too =)
+			}
 
-			_items->removeItem(itemRule, toSell);
+			removeItem(itemRule, toSell);
 			_funds += toSell * cost; 
 			Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " is selling items " << (*i).first << ": " << toSell << " because of coef: " << (*i).second; //#CLEARLOGS
 		}
@@ -891,7 +930,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 				RuleItem* spawnedItem = _mod->getItem(research->getSpawnedItem());
 				if (spawnedItem)
 				{
-					_items->addItem(spawnedItem, 1);
+					addItem(spawnedItem, 1);
 				}
 
 				// spawn event
@@ -994,7 +1033,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 
 				if (rRule->needItem())
 				{
-					if (_items->getItem(_mod->getItem((*i))) <= 0)
+					if (_items->getItem(_mod->getItem((*i))) <= 0 || _secretItems.getItem(_mod->getItem((*i))) <= 0)
 					{
 						continue; //sadly, we dont have required item
 					}
@@ -1029,60 +1068,55 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 			// now we should pick the most sweet project to start
 			std::sort(researchList.begin(), researchList.end());
 
-			RuleResearch* choice = nullptr;
+			RuleResearch* choice = researchList.front().second; // our potential choice
+			int priority = researchList.front().first;
+			bool promising = true;
+			int64_t factionCost = choice->getCost();
+			factionCost = (reqFunds * 2 / 3) - (factionCost / 24 * 10) * _rule->getScienceBaseCost(); //counts FTA is loaded, so we turn hours to days and say, that faction's research is 10 times slower, than player's
 
-			for (auto j = researchList.begin(); j != researchList.end(); ++j)
+			if (_funds > factionCost) // looks like we would manage to deal with this one.
 			{
-				choice = (*j).second; // our potential choice
-				int priority = (*j).first;
-				bool promising = true;
-				int64_t factionCost = choice->getCost();
-				factionCost = (reqFunds * 2 / 3) - (factionCost / 24 * 10) * _rule->getScienceBaseCost(); //counts FTA is loaded, so we turn hours to days and say, that faction's research is 10 times slower, than player's
-
-				if (_funds > factionCost) // looks like we would manage to deal with this one.
+				// now let's if this research is more valuable than already processed researches
+				if (hasResearch)
 				{
-					// now let's if this research is more valuable than already processed researches
-					if (hasResearch)
+					for (auto k = _research.begin(); k != _research.end(); ++k)
 					{
-						for (auto k = _research.begin(); k != _research.end(); ++k)
+						if ((*k)->getPriority() >= priority)
 						{
-							if ((*k)->getPriority() >= priority)
-							{
-								promising = false;
-								break; //ongoing research is better
-							}
-							else if ((*k)->getPriority() * 2 < priority)
-							{
-								// now we are talking, looks like we are wasting time here, let's reduce funding of this crap!
-								if ((*k)->getScientists() > 1) // we can keep lone guy doing his stuff
-								{
-									int qty = ceil((*k)->getScientists() / 2);
-									_staff->addItem("STR_SCIENTIST", qty);
-									(*k)->setScientists((*k)->getScientists() - qty);
-								}
-							}
+							promising = false;
+							break; //ongoing research is better
 						}
-						if (!promising)
+						else if ((*k)->getPriority() * 2 < priority)
 						{
-							break; // we should not start new researches as we have a lot more things to do right now
+							// now we are talking, looks like we are wasting time here, let's reduce funding of this crap!
+							if ((*k)->getScientists() > 1) // we can keep lone guy doing his stuff
+							{
+								int qty = ceil((*k)->getScientists() / 2);
+								_staff->addItem("STR_SCIENTIST", qty);
+								(*k)->setScientists((*k)->getScientists() - qty);
+							}
 						}
 					}
-
-					// finally, we can start a new research project
-					FactionalResearch* newResearch = new FactionalResearch(choice, this);
-					_research.push_back(newResearch);
-					int randomCost = factionCost / 4;
-					newResearch->setTimeLeft(factionCost + RNG::generate(-randomCost, randomCost));
-					newResearch->setPriority(priority);
-					int qty = _staff->getItem("STR_SCIENTIST");
-					qty = RNG::generate(qty * 0.5, qty * 0.9); // FINNIKTODO: think more about how many scientists faction should assign on a new project
-					newResearch->setScientists(qty);
-					_staff->removeItem("STR_SCIENTIST", qty);
-					_funds -= factionCost / 10;
-
-					Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " has chosen research : " << choice->getName()
-						<< " with priority: " << priority; //#CLEARLOGS
+					if (!promising)
+					{
+						return; // we should not start new researches as we have a lot more things to do right now
+					}
 				}
+
+				// finally, we can start a new research project
+				FactionalResearch* newResearch = new FactionalResearch(choice, this);
+				_research.push_back(newResearch);
+				int randomCost = factionCost / 4;
+				newResearch->setTimeLeft(factionCost + RNG::generate(-randomCost, randomCost));
+				newResearch->setPriority(priority);
+				int qty = _staff->getItem("STR_SCIENTIST");
+				qty = RNG::generate(qty * 0.5, qty * 0.9); // FINNIKTODO: think more about how many scientists faction should assign on a new project
+				newResearch->setScientists(qty);
+				_staff->removeItem("STR_SCIENTIST", qty);
+				_funds -= factionCost / 10;
+
+				Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " has chosen research : " << choice->getName()
+					<< " with priority: " << priority; //#CLEARLOGS
 			}
 		}
 	}

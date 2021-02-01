@@ -207,7 +207,7 @@ bool MasterMind::spawnEvent(std::string name)
 
 void MasterMind::updateLoyalty(int score, LoyaltySource source)
 {
-	int coef = 100;
+	double coef = 1;
 	std::string reason = "";
 	switch (source)
 	{
@@ -242,8 +242,9 @@ void MasterMind::updateLoyalty(int score, LoyaltySource source)
 	default:
 		break;
 	}
+	coef = coef / 100;
 	int loyalty = _game->getSavedGame()->getLoyalty();
-	loyalty += std::round((score * coef) / 100);
+	loyalty += std::round(score * coef);
 	Log(LOG_DEBUG) << "Loyalty updating to:  " << loyalty << " from coef: " << coef << " and score value: " << score << " with reason: " << reason; //#CLEARLOGS remove for next release
 	_game->getSavedGame()->setLoyalty(loyalty);
 }

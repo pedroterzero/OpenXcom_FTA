@@ -1210,12 +1210,11 @@ void SavedBattleGame::updateAlarm()
 	{
 		for (std::vector<BattleUnit*>::iterator i = _units.begin(); i != _units.end(); ++i)
 		{
-			if ((*i)->getFaction() == FACTION_HOSTILE) //TODO: add not stunned check!
+			if ((*i)->getFaction() == FACTION_HOSTILE &&
+				((*i)->getStatus() != STATUS_DEAD) || ((*i)->getStatus() != STATUS_UNCONSCIOUS) || ((*i)->getStatus() != STATUS_PANICKING))
 			{
-				auto ai = (*i)->getAIModule();
-				if (ai->countKnownTargets() > 0 || (*i)->getKills() || (*i)->getAlarmed())
+				if ((*i)->getKills() || (*i)->getAlarmed())
 				{
-					Log(LOG_DEBUG) << "And there is a place for trigger!!";
 					_alarmLvl += 1;
 				}
 			}

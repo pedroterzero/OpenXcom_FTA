@@ -633,7 +633,7 @@ void DiplomacyPurchaseState::btnOkClick(Action *)
 					t->setItems(rule->getType(), i->amount);
 					_base->getTransfers()->push_back(t);
 
-					_faction->getItems()->removeItem(rule, i->amount);
+					_faction->removeItem(rule, i->amount);
 				}
 				break;
 			}
@@ -1054,7 +1054,7 @@ int DiplomacyPurchaseState::getFactionItemStock(std::string entityName)
 	RuleItem* itemRule = _game->getMod()->getItem(entityName);
 	if (itemRule)
 	{
-		int iQty = _faction->getItems()->getItem(itemRule);
+		int iQty = _faction->getPublicItems()->getItem(itemRule);
 		if (iQty > 0)
 		{
 			if (!itemRule->getReputationRequirements().empty())
