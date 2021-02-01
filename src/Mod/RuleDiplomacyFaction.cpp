@@ -61,6 +61,7 @@ void RuleDiplomacyFaction::load(const YAML::Node &node)
 	_repPriceFactor = node["repPriceFactor"].as<int>(_repPriceFactor);
 	_stockMod = node["stockMod"].as<int>(_stockMod);
 	_wishList = node["wishList"].as<std::map<std::string, double>>(_wishList);
+	_staffWeights = node["staffWeights"].as<std::map<std::string, int>>(_staffWeights);
 	_powerHungry = node["powerHungry"].as<int>(_powerHungry);
 	_scienceBaseCost = node["scienceBaseCost"].as<int>(_scienceBaseCost);
 

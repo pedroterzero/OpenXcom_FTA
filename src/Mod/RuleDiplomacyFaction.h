@@ -37,7 +37,7 @@ private:
 	int _genMissionFrequency, _genEventFrequency;
 	int _sellPriceFactor, _buyPriceFactor, _repPriceFactor, _stockMod, _powerHungry, _scienceBaseCost;
 	int _startingReputation, _startingFunds, _startingPower;
-	std::map<std::string, int> _startingItems, _startingStaff;
+	std::map<std::string, int> _startingItems, _startingStaff, _staffWeights;
 	std::map<std::string, double> _wishList;
 	std::vector<std::string> _helpTreatyMissions, _helpTreatyEvents, _happyEvents, _angryEvents, _startingResearches, _factionalEvents;
 public:
@@ -99,6 +99,7 @@ public:
 	int getRepPriceFactor() const { return _repPriceFactor; };
 	int getStockMod() const { return _stockMod; };
 	const std::map<std::string, double>& getWishList() const { return _wishList; }
+	const std::map<std::string, int>& getStaffWeights() const { return _staffWeights; }
 
 
 

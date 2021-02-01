@@ -322,13 +322,14 @@ void DiplomacyPurchaseState::think()
  * @param baseCost price for row from rules.
  * @returns corrected value.
  */
-int64_t DiplomacyPurchaseState::getCostAdjustment(int64_t baseCost)
+int DiplomacyPurchaseState::getCostAdjustment(int baseCost)
 {
 	int priceFactor = _faction->getRules()->getBuyPriceFactor();
 	int repFactor = _faction->getRules()->getRepPriceFactor();
 	int normalizedRep = _faction->getReputationLevel() - 3;
-	baseCost += (baseCost * priceFactor / 100) + (baseCost * (repFactor * normalizedRep / 100));
-	return baseCost;
+	int64_t result = baseCost;
+	result += (result * priceFactor / 100) + (result * (repFactor * normalizedRep / 100));
+	return static_cast<int>(result);
 }
 
 /**

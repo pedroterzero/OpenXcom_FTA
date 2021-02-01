@@ -71,7 +71,7 @@ private:
 	/// Gets the row of the current selection.
 	TransferRow &getRow() { return _items[_rows[_sel]]; }
 	/// Calculate price adjustment.
-	int64_t getCostAdjustment(int64_t baseCost);
+	int getCostAdjustment(int baseCost);
 public:
 	/// Creates the Purchase state.
 	DiplomacyPurchaseState(Base *base, DiplomacyFaction* faction);

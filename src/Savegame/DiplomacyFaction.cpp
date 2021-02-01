@@ -356,7 +356,7 @@ void DiplomacyFaction::processFactionalEvents(Game& engine)
 					//ok, we are happy with this factional event, let's finally process its effects!
 					if (triggerHappy)
 					{
-						Log(LOG_DEBUG) << "Event: " << rule->getType() << "passed all checks!"; //#CLEARLOGS
+						Log(LOG_DEBUG) << "Event: " << rule->getType() << " passed all checks!"; //#CLEARLOGS
 						_power += rule->getPowerChange();
 						_funds += rule->getFundsChange();
 						_vigilance += rule->getVigilanceChange();
@@ -632,43 +632,10 @@ void DiplomacyFaction::handleRestock()
 
 
 		// first, we see if we can handle this item
-		auto requirements = ruleItem->getRequirements();
-		auto reqBuy = ruleItem->getBuyRequirements();
-		bool usage = false;
-		bool purchase = false;
-		if (!requirements.empty())
+		if (isResearched(ruleItem->getRequirements()) && isResearched(ruleItem->getBuyRequirements()))
 		{
-			for (auto r = requirements.begin(); r != requirements.end(); ++r)
-			{
-				if (std::find(_unlockedResearches.begin(), _unlockedResearches.end(), (*r)->getName()) != _unlockedResearches.end())
-				{
-					usage = true;
-					break;
-				}
-			}
-			if (!usage)
-			{
-				continue;
-			}
+			buyList.insert(std::make_pair((*it).first, (*it).second / cost * 10000));
 		}
-		if (!reqBuy.empty())
-		{
-			for (auto r = reqBuy.begin(); r != reqBuy.end(); ++r)
-			{
-				if (std::find(_unlockedResearches.begin(), _unlockedResearches.end(), (*r)->getName()) != _unlockedResearches.end())
-				{
-					purchase = true;
-					break;
-				}
-			}
-			if (!purchase)
-			{
-				continue;
-			}
-		}
-
-		// ok, we know what is that toy, move on
-		buyList.insert(std::make_pair((*it).first, (*it).second / cost * 10000));
 	}
 
 	// now let's calculate absolute weight from sum of relative values
@@ -743,10 +710,10 @@ void DiplomacyFaction::handleSelling()
 
 		if (toSell > 0)
 		{
-			int64_t cost = round(itemRule->getSellCost() * 1.2);
+			int64_t cost = round(itemRule->getBuyCost()); //yes, faction can sell items with purchase cost, or balancing resources would go crazy.
 
 			_items->removeItem(itemRule, toSell);
-			_funds += toSell * cost; //yes, faction can sell items with purchase cost, or balancing resources would go crazy.
+			_funds += toSell * cost; 
 			Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " is selling items " << (*i).first << ": " << toSell << " because of coef: " << (*i).second; //#CLEARLOGS
 		}
 	}
@@ -800,8 +767,8 @@ void DiplomacyFaction::manageStaff()
 
 	for (auto j = buyList.begin(); j != buyList.end(); ++j)
 	{
-		double weight = 0;
-		for (auto k = _rule->getWishList().begin(); k != _rule->getWishList().end(); ++k)
+		int weight = 0;
+		for (auto k = _rule->getStaffWeights().begin(); k != _rule->getStaffWeights().end(); ++k)
 		{
 			if (k->first == (*j).first)
 			{
@@ -814,7 +781,9 @@ void DiplomacyFaction::manageStaff()
 		if (weight)
 		{
 			
-			int64_t toBuy = floor((_power / weight) - _staff->getItem((*j).first));
+			int64_t toBuy = _power;
+			toBuy *= weight;
+			toBuy = floor(toBuy / 10000) - _staff->getItem((*j).first);
 
 			if (toBuy)
 			{
@@ -825,12 +794,12 @@ void DiplomacyFaction::manageStaff()
 					_funds -= toBuy * cost;
 					Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " is buying staff " << (*j).first << ": " << toBuy << " because of coef: " << floor(_power / weight); //#CLEARLOGS
 				}
-				else
-				{
-					_staff->removeItem((*j).first, toBuy);
-					_funds += toBuy * cost; //yes, faction can sell items with purchase cost, or balancing resources would go crazy.
-					Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " is selling staff " << (*j).first << ": " << toBuy << " because of coef: " << floor(_power / weight); //#CLEARLOGS
-				}
+				//else
+				//{
+				//	_staff->removeItem((*j).first, toBuy);
+				//	_funds += toBuy * cost; //yes, faction can sell items with purchase cost, or balancing resources would go crazy.
+				//	Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " is selling staff " << (*j).first << ": " << toBuy << " because of coef: " << floor(_power / weight); //#CLEARLOGS
+				//}
 			}
 		}
 
