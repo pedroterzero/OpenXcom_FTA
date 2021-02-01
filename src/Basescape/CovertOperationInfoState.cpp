@@ -50,9 +50,9 @@ namespace OpenXcom
 		_txtDungeonLevel = new Text(150, 9, 164, 25);
 		_txtProgress = new Text(150, 9, 164, 35);
 		_txtSoldiers = new Text(145, 9, 8, 45);
-		_txtAditionalInfo = new Text(150, 9, 164, 45);
+		_txtAdditionalInfo = new Text(150, 9, 164, 45);
 		_lstSoldiers = new TextList(140, 112, 8, 55);
-		_lstAditionalInfo = new TextList(148, 108, 120, 55);
+		_lstAdditionalInfo = new TextList(148, 108, 120, 55);
 		_btnOk = new TextButton(304, 16, 8, 176);
 
 		// Set palette
@@ -66,9 +66,9 @@ namespace OpenXcom
 		add(_txtDungeonLevel, "text", "covertOperationInfoState");
 		add(_txtProgress, "text", "covertOperationInfoState");
 		add(_txtSoldiers, "text", "covertOperationInfoState");
-		add(_txtAditionalInfo, "text", "covertOperationInfoState");
+		add(_txtAdditionalInfo, "text", "covertOperationInfoState");
 		add(_lstSoldiers, "list", "covertOperationInfoState");
-		add(_lstAditionalInfo, "list", "covertOperationInfoState");
+		add(_lstAdditionalInfo, "list", "covertOperationInfoState");
 
 		centerAllSurfaces();
 
@@ -98,12 +98,12 @@ namespace OpenXcom
 		//_lstSoldiers->onMouseClick((ActionHandler)&CovertOperationInfoState::lstSoldiersClick);
 		fillSoldiersList();
 
-		_txtAditionalInfo->setText(tr("STR_ADDITIONAL_INFO"));
-		_lstAditionalInfo->setColumns(1, 148);
-		_lstAditionalInfo->setBackground(_window);
-		_lstAditionalInfo->setMargin(2);
-		_lstAditionalInfo->setWordWrap(true);
-		fillAditionalInfoList();
+		_txtAdditionalInfo->setText(tr("STR_ADDITIONAL_INFO"));
+		_lstAdditionalInfo->setColumns(1, 148);
+		_lstAdditionalInfo->setBackground(_window);
+		_lstAdditionalInfo->setMargin(2);
+		_lstAdditionalInfo->setWordWrap(true);
+		fillAdditionalInfoList();
 
 		_btnOk->setText(tr("STR_OK"));
 		_btnOk->onMouseClick((ActionHandler)&CovertOperationInfoState::btnOkClick);
@@ -160,11 +160,11 @@ namespace OpenXcom
 		}
 	}
 
-	void CovertOperationInfoState::fillAditionalInfoList()
+	void CovertOperationInfoState::fillAdditionalInfoList()
 	{
 		if (_operation->getIsPsi())
 		{
-			_lstAditionalInfo->addRow(1, tr("STR_TEAM_HAS_PSIONIC_POWER").c_str());
+			_lstAdditionalInfo->addRow(1, tr("STR_TEAM_HAS_PSIONIC_POWER").c_str());
 		}
 	}
 }

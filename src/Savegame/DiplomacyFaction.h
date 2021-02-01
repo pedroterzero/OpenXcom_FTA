@@ -28,19 +28,25 @@ namespace OpenXcom
 enum ThinkPeriod { TIMESTEP_DAILY, TIMESTEP_MONTHLY };
 
 /**
-* Define arrey of treaty names.
+* Define array of treaty names.
 */
 enum TreatyName { HELP_TREATY, RESEARCH_TREATY };
-
 
 class RuleDiplomacyFaction;
 class Game;
 class SavedGame;
 class Mod;
+class MasterMind;
 class GeoscapeEvent;
 class RuleEvent;
 class RuleMissionScript;
-
+class RuleResearch;
+class RuleSoldier;
+class RuleCraft;
+class ItemContainer;
+class FactionalContainer;
+class FactionalResearch;
+class RuleDiplomacyFactionEvent;
 
 /**
  * Represents a custom Diplomacy Faction, spawned at the game start and waiting to be discovered.
@@ -48,16 +54,48 @@ class RuleMissionScript;
 class DiplomacyFaction
 {
 private:
-	const RuleDiplomacyFaction &_rule;
-	int _reputationScore, _reputationLvL;
-	bool _discovered, _thisMonthDiscovered;
+	const Mod* _mod;
+	const RuleDiplomacyFaction* _rule;
+	int _reputationScore, _reputationLvL, _power, _vigilance;
+	int64_t _funds;
+	std::vector<int> _dailyRepScore;
+	bool _discovered, _thisMonthDiscovered, _repLvlChanged;
 	std::vector<std::string> _treaties;
 	std::string _reputationName;
 	std::vector<std::string> _commandsToProcess, _eventsToProcess;
 	std::vector<RuleMissionScript*> _availableMissionScripts;
+	std::vector<std::string> _unlockedResearches;
+	ItemContainer* _items;
+	FactionalContainer* _staff;
+	std::vector<FactionalResearch*> _research;
+
+	/// Handle daily reputation change and immidiate reaction to it.
+	void processDailyReputation(Game& engine);
+	/// Handle factional specific events.
+	void processFactionalEvents(Game& engine);
+	/// Generates mission for the faction base on current situation in the game.
+	void factionMissionGenerator(Game& engine);
+	/// Generates event from the faction base on current situation in the game.
+	void factionEventGenerator(Game& engine);
+	/// Handle purshaising of Faction's items, based on current situation.
+	void handleRestock();
+	/// Handle selling of faction's items, if they don't need them anymore.
+	void handleSelling();
+	/// Handle managing of Faction's staff and non-item equipment.
+	void manageStaff();
+	/// Process Faction's power management and returns required funds for further use.
+	int64_t managePower(int64_t month, int64_t baseCost);
+	/// Handle researching.
+	void handleResearch(Game& engine, int64_t reqFunds);
+	/// Get if research article is unlocked by faction.
+	bool isResearched(const std::string& name) const;
+	bool isResearched(const RuleResearch* rule) const;
+	bool isResearched(const std::vector<std::string>& names) const;
+	bool isResearched(const std::vector<const RuleResearch*>& rules) const;
+
 public:
 	/// Creates a blank Diplomacy Faction.
-	DiplomacyFaction(const RuleDiplomacyFaction &rule);
+	DiplomacyFaction(const Mod* mod, const std::string& name);
 	/// Cleans up the Faction info.
 	~DiplomacyFaction();
 	/// Loads the Faction from YAML.
@@ -65,19 +103,33 @@ public:
 	/// Saves the Faction to YAML.
 	YAML::Node save() const;
 	/// Gets the Faction's ruleset.
-	const RuleDiplomacyFaction &getRules() const { return _rule; };
+	const RuleDiplomacyFaction* getRules() const { return _rule; };
 	/// Gets current player's reputation in this Faction.
 	int getReputationScore() const { return _reputationScore; }
 	/// Sets current player's reputation in this Faction.
 	void setReputationScore(int reputation) { _reputationScore = reputation; };
+	/// Updates reputation score based on incoming value and handle simple reaction to it.
+	void updateReputationScore(int change);
 	/// Gets corrent reputation level.
-	int getReputationLevel() const { return _reputationScore;};
+	int getReputationLevel() const { return _reputationLvL;};
 	/// Gets corrent reputation level name.
 	std::string getReputationName() const { return _reputationName; };
 	/// Sets new reputation level of the faction.
 	void setReputationLevel(int level) { _reputationLvL = level; };
 	/// Sets new reputation level of the faction.
-	void setReputationName(std::string reputationName ) { _reputationName = reputationName; };
+	void setReputationName(const std::string& reputationName) { _reputationName = reputationName; };
+	/// Adds research projet's name to a faction's list of unlocked researches.
+	void unlockResearch(const std::string& research) { _unlockedResearches.push_back(research); };
+	/// Removes research projet's name to a faction's list of unlocked researches.
+	void disableResearch(const std::string& research);
+	/// Gets the faction power value.
+	int getPower() const { return _power; };
+	/// Sets a new power value for the faction.
+	void setPower(int power) { _power = power; };
+	/// Gets the faction's funds.
+	int getFunds() const { return _funds; };
+	/// Sets a new value for the faction's funds.
+	void setFunds(int funds) { _funds = funds; };
 	/// Is this Faction was discovered?
 	bool isDiscovered() const { return _discovered; }
 	/// Sets Faction's discovered status.
@@ -86,13 +138,19 @@ public:
 	bool isThisMonthDiscovered() const { return _thisMonthDiscovered; }
 	/// Sets Faction's this month discovered status.
 	void setThisMonthDiscovered(bool status) { _thisMonthDiscovered = status; };
-	/// Handle Faction logic.
-	void think(Game& engine, ThinkPeriod = TIMESTEP_DAILY);
-	/// Generates mission for the faction base on current situation in the game.
-	void factionMissionGenerator(Game& engine);
-	/// Generates event from the faction base on current situation in the game.
-	void factionEventGenerator(Game& engine);
+	/// Was this Faction discovered this month?
+	bool isThisMonthRepLvlChanged() const { return _repLvlChanged; }
+	/// Sets Faction's this month discovered status.
+	void setThisMonthRepLvlChanged(bool status) { _repLvlChanged = status; };
 	/// Get mission script commands that pass all checks to generate alien mission for that faction.
-	const std::vector<RuleMissionScript*> &getAvalibleMissionScripts() const { return _availableMissionScripts; };
+	const std::vector<RuleMissionScript*>& getAvalibleMissionScripts() const { return _availableMissionScripts; };
+	/// Gets an ItemContainer of Faction's "store".
+	ItemContainer* getItems() const { return _items; };
+	/// Gets Faction's personell and non-item properties.
+	FactionalContainer* getStaffContainer() { return _staff; };
+
+	/// The main handler of Faction logic.
+	void think(Game& engine, ThinkPeriod = TIMESTEP_DAILY);
 };
+
 }

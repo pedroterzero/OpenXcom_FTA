@@ -526,10 +526,10 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 	for (YAML::const_iterator it = diplomacyFactions.begin(); it != diplomacyFactions.end(); ++it)
 	{
 		std::string diplomacyFactionName = (*it)["name"].as<std::string>();
-		if (mod->getDiplomacyFaction(diplomacyFactionName))//(mod->getEvent(eventName))
+		if (mod->getDiplomacyFaction(diplomacyFactionName))
 		{
-			const RuleDiplomacyFaction &diplomacyFactionRule = *mod->getDiplomacyFaction(diplomacyFactionName);//const RuleEvent& eventRule = *mod->getEvent(eventName);
-			DiplomacyFaction *diplomacyFaction = new DiplomacyFaction(diplomacyFactionRule);
+			const RuleDiplomacyFaction &diplomacyFactionRule = *mod->getDiplomacyFaction(diplomacyFactionName);
+			DiplomacyFaction *diplomacyFaction = new DiplomacyFaction(mod, diplomacyFactionName);
 			diplomacyFaction->load(*it);
 			_diplomacyFactions.push_back(diplomacyFaction);
 		}

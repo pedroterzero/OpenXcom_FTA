@@ -1190,6 +1190,15 @@
     <ClCompile Include="Geoscape\TransformationFinishedState.cpp">
       <Filter>Geoscape</Filter>
     </ClCompile>
+    <ClCompile Include="Savegame\FactionalContainer.cpp">
+      <Filter>Savegame</Filter>
+    </ClCompile>
+    <ClCompile Include="Savegame\FactionalResearch.cpp">
+      <Filter>Savegame</Filter>
+    </ClCompile>
+    <ClCompile Include="Mod\RuleDiplomacyFactionEvent.cpp">
+      <Filter>Mod</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2443,6 +2452,15 @@
     </ClInclude>
     <ClInclude Include="Geoscape\TransformationFinishedState.h">
       <Filter>Geoscape</Filter>
+    </ClInclude>
+    <ClInclude Include="Savegame\FactionalContainer.h">
+      <Filter>Savegame</Filter>
+    </ClInclude>
+    <ClInclude Include="Savegame\FactionalResearch.h">
+      <Filter>Savegame</Filter>
+    </ClInclude>
+    <ClInclude Include="Mod\RuleDiplomacyFactionEvent.h">
+      <Filter>Mod</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

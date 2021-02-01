@@ -171,12 +171,12 @@ std::string RuleCovertOperation::chooseGenFailureMissionType() const
 	return _failureMissions.choose();
 }
 
-std::string RuleCovertOperation::chooseGenInstantTrapDeploumentType() const
+std::string RuleCovertOperation::chooseGenInstantTrapDeploymentType() const
 {
 	return _instantTrapDeployment.choose();
 }
 
-std::string RuleCovertOperation::chooseGenInstantSuccessDeploumentType() const
+std::string RuleCovertOperation::chooseGenInstantSuccessDeploymentType() const
 {
 	return _instantSuccessDeployment.choose();
 }

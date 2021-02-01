@@ -42,8 +42,8 @@ namespace OpenXcom
 	private:
 		TextButton* _btnOk;
 		Window* _window;
-		Text* _txtTitle, * _txtScientists, * _txtEngineers, * _txtDungeonLevel, * _txtProgress, * _txtSoldiers, * _txtAditionalInfo;
-		TextList* _lstSoldiers, * _lstAditionalInfo;
+		Text* _txtTitle, * _txtScientists, * _txtEngineers, * _txtDungeonLevel, * _txtProgress, * _txtSoldiers, * _txtAdditionalInfo;
+		TextList* _lstSoldiers, * _lstAdditionalInfo;
 		CovertOperation* _operation;
 		RuleCovertOperation* _rule;
 	public:
@@ -60,6 +60,6 @@ namespace OpenXcom
 		void init() override;
 
 		void fillSoldiersList();
-		void fillAditionalInfoList();
+		void fillAdditionalInfoList();
 	};
 }

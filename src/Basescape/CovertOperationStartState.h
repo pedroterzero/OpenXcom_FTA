@@ -79,9 +79,9 @@ public:
 	void btnRemoveEngineerClick(Action* action);
 	/// Handler for the ManufactureState button.
 	void btnManufactureStateClick(Action* action);
-	/// Gets string that discribes prediction of timeframe that needs to finish the operation.
+	/// Gets string that discribed prediction of timeframe that needs to finish the operation.
 	std::string getOperationTimeString(bool mod = false);
-	/// Gets string that discribes operations odds of success.
+	/// Gets string that discribed operations odds of success.
 	std::string getOperationOddsString(bool mod = false);
 
 	// *** Logic Section ***

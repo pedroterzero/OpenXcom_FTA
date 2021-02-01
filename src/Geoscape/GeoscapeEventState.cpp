@@ -352,11 +352,11 @@ void GeoscapeEventState::eventLogic()
 		{
 			for (std::vector<DiplomacyFaction*>::iterator j = save->getDiplomacyFactions().begin(); j != save->getDiplomacyFactions().end(); ++j)
 			{
-				std::string factionName = (*j)->getRules().getName();
+				std::string factionName = (*j)->getRules()->getName();
 				std::string lookingName = (*i).first;
 				if (factionName == lookingName)
 				{
-					(*j)->setReputationScore((*j)->getReputationScore() + (*i).second);
+					(*j)->updateReputationScore((*i).second);
 					break;
 				}
 			}

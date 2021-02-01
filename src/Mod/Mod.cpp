@@ -81,6 +81,7 @@
 #include "ExtraStrings.h"
 #include "RuleInterface.h"
 #include "RuleDiplomacyFaction.h"
+#include "RuleDiplomacyFactionEvent.h"
 #include "RuleCovertOperation.h"
 #include "RuleArcScript.h"
 #include "RuleEventScript.h"
@@ -342,7 +343,7 @@ Mod::Mod() :
 	_enableCloseQuartersCombat(0), _closeQuartersAccuracyGlobal(100), _closeQuartersTuCostGlobal(12), _closeQuartersEnergyCostGlobal(8), _closeQuartersSneakUpGlobal(0),
 	_noLOSAccuracyPenaltyGlobal(-1),
 	_surrenderMode(0),
-	_ftaGame(false), _researchTreeDisabled(false),
+	_ftaGame(false), _researchTreeDisabled(false), _defaultFactionPowerCost(300000),
 	_coefBattlescape(100), _coefGeoscape(100), _coefDogfight(100), _coefResearch(100), _coefAlienMission(100), _coefUfo(100), _coefAlienBase(100), _noFundsPenalty(200), _noFundsValue(-100000),
 	_bughuntMinTurn(999), _bughuntMaxEnemies(2), _bughuntRank(0), _bughuntLowMorale(40), _bughuntTimeUnitsLeft(60),
 	_manaEnabled(false), _manaBattleUI(false), _manaTrainingPrimary(false), _manaTrainingSecondary(false), _manaReplenishAfterMission(true),
@@ -698,6 +699,12 @@ Mod::~Mod()
 	{
 		delete i->second;
 	}
+
+	for (std::map<std::string, RuleDiplomacyFactionEvent*>::const_iterator i = _diplomacyFactionEvents.begin(); i != _diplomacyFactionEvents.end(); ++i)
+	{
+		delete i->second;
+	}
+
 	for (std::map<std::string, RuleCovertOperation*>::const_iterator i = _covertOperations.begin(); i != _covertOperations.end(); ++i)
 	{
 		delete i->second;
@@ -2435,6 +2442,7 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	_bughuntLowMorale = doc["bughuntLowMorale"].as<int>(_bughuntLowMorale);
 	_bughuntTimeUnitsLeft = doc["bughuntTimeUnitsLeft"].as<int>(_bughuntTimeUnitsLeft);
 	_ftaGame = doc["ftaGame"].as<bool>(_ftaGame);
+	_defaultFactionPowerCost = doc["defaultFactionPowerCost"].as<int>(_defaultFactionPowerCost);
 	_researchTreeDisabled = doc["researchTreeDisabled"].as<bool>(_researchTreeDisabled);
 
 
@@ -2671,6 +2679,15 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	for (YAML::const_iterator i = doc["diplomacyFactions"].begin(); i != doc["diplomacyFactions"].end(); ++i)
 	{
 		RuleDiplomacyFaction* rule = loadRule(*i, &_diplomacyFactions, &_diplomacyFactionIndex, "name");
+		if (rule != 0)
+		{
+			rule->load(*i);
+		}
+	}
+
+	for (YAML::const_iterator i = doc["diplomacyFactionEvents"].begin(); i != doc["diplomacyFactionEvents"].end(); ++i)
+	{
+		RuleDiplomacyFactionEvent* rule = loadRule(*i, &_diplomacyFactionEvents, &_diplomacyFactionEventIndex, "type");
 		if (rule != 0)
 		{
 			rule->load(*i);
@@ -4309,9 +4326,19 @@ RuleDiplomacyFaction* Mod::getDiplomacyFaction(const std::string& name, bool err
 	return getRule(name, "Diplomacy Faction", _diplomacyFactions, error);
 }
 
+RuleDiplomacyFactionEvent* Mod::getDiplomacyFactionEvent(const std::string& name, bool error) const
+{
+	return getRule(name, "Diplomacy Faction Event", _diplomacyFactionEvents, error);
+}
+
 const std::vector<std::string>* Mod::getDiplomacyFactionList() const
 {
 	return &_diplomacyFactionIndex;
+}
+
+const std::vector<std::string>* Mod::getDiplomacyFactionEventList() const
+{
+	return &_diplomacyFactionEventIndex;
 }
 
 RuleCovertOperation* Mod::getCovertOperation(const std::string& name, bool error) const

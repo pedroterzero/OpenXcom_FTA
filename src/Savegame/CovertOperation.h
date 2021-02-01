@@ -19,7 +19,6 @@
  */
 #include <string>
 #include <yaml-cpp/yaml.h>
-//#include "../Engine/State.h"
 
 namespace OpenXcom
 {
@@ -112,7 +111,7 @@ public:
 	/// Is this covert operation is running in battlescape?
 	bool isInBattlescape() const { return _inBattlescape; }
 	/// Sets if this operation is running in battlescape
-	void setInBattlescape(bool inbattle) { _inBattlescape = inbattle; }
+	void setInBattlescape(bool inBattle) { _inBattlescape = inBattle; }
 	/// Handle covert operation logic.
 	bool think(Game& engine, const Globe& globe);
 	/// Process soldier's actions results in covert operation

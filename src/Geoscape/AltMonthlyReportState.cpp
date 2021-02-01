@@ -438,24 +438,29 @@ std::string AltMonthlyReportState::calculateUpdates()
 		for (std::vector<DiplomacyFaction*>::iterator k = factions.begin(); k != factions.end(); ++k)
 		{
 			bool changed = _game->getMasterMind()->updateReputationLvl(*k);
+			bool prevChanged = (*k)->isThisMonthRepLvlChanged();
 
 			if ((*k)->isThisMonthDiscovered())
 			{
 				ss << tr("STR_WE_DISCOVERED_FACTION");
-				ss << tr((*k)->getRules().getName());
+				ss << tr((*k)->getRules()->getName());
 				ss << ". ";
 				ss << tr("STR_THEIR_ATTITUDE_TO_US");
 				ss <<  tr((*k)->getReputationName());
 				ss << ". ";
 				ss << "\n\n";
 			}
-			else if (changed && (*k)->isDiscovered())
+			else if (changed || prevChanged && (*k)->isDiscovered())
 			{
-				ss << tr((*k)->getRules().getName());
+				ss << tr((*k)->getRules()->getName());
 				ss << tr("STR_ATTITUDE_BECOME");
 				ss << tr((*k)->getReputationName());
 				ss << ". ";
 				ss << "\n\n";
+				if (prevChanged)
+				{
+					(*k)->setThisMonthRepLvlChanged(false);
+				}
 			}
 		}
 

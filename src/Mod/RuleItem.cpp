@@ -381,6 +381,7 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 
 	mod->loadUnorderedNamesToInt(_type, _recoveryDividers, node["recoveryDividers"]);
 	_recoveryTransformationsName = node["recoveryTransformations"].as< std::map<std::string, std::vector<int> > >(_recoveryTransformationsName);
+	_reputationRequirements = node["reputationRequirements"].as<std::map<std::string, int>>(_reputationRequirements);
 	mod->loadUnorderedNames(_type, _categories, node["categories"]);
 	_size = node["size"].as<double>(_size);
 	_costBuy = node["costBuy"].as<int>(_costBuy);

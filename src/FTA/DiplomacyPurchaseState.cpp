@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 OpenXcom Developers.
+ * Copyright 2010-2021 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -50,13 +50,13 @@
 #include "../Mod/Armor.h"
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Savegame/DiplomacyFaction.h"
+#include "../Savegame/FactionalContainer.h"
 #include "../Mod/RuleDiplomacyFaction.h"
 #include "../Engine/Logger.h"
 
 
 namespace OpenXcom
 {
-
 /**
  * Initializes all the elements in the Purchase/Hire screen.
  * @param game Pointer to the core game.
@@ -74,10 +74,10 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 	_txtFunds = new Text(150, 9, 10, 24);
 	_txtPurchases = new Text(150, 9, 160, 24);
 	_txtSpaceUsed = new Text(150, 9, 160, 34);
-	_txtCost = new Text(102, 9, 152, 44);
-	_txtQuantity = new Text(60, 9, 256, 44);
+	_txtCost = new Text(85, 9, 152, 44);
+	_txtQuantity = new Text(51, 9, 256, 44);
 	_cbxCategory = new ComboBox(this, 120, 16, 10, 36);
-	_lstItems = new TextList(287, 120, 8, 54);
+	_lstItems = new TextList(288, 120, 8, 54);
 
 	// Set palette
 	setInterface("buyMenu");
@@ -127,8 +127,8 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 
 	_txtQuantity->setText(tr("STR_QUANTITY_UC"));
 
-	_lstItems->setArrowColumn(227, ARROW_VERTICAL);
-	_lstItems->setColumns(4, 150, 55, 50, 28);
+	_lstItems->setArrowColumn(211, ARROW_VERTICAL);
+	_lstItems->setColumns(5, 132, 51, 53, 21, 30);
 	_lstItems->setSelectable(true);
 	_lstItems->setBackground(_window);
 	_lstItems->setMargin(2);
@@ -143,34 +143,19 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 	_cats.push_back("STR_ALL_ITEMS");
 	_cats.push_back("STR_FILTER_HIDDEN");
 
-	//auto sellList = faction->getRules().getSellingSet();
-
-	/*const std::vector<std::string> &cw = _game->getMod()->getCraftWeaponsList();
-	for (std::vector<std::string>::const_iterator i = cw.begin(); i != cw.end(); ++i)
-	{
-		RuleCraftWeapon *rule = _game->getMod()->getCraftWeapon(*i);
-		_craftWeapons.insert(rule->getLauncherItem());
-		_craftWeapons.insert(rule->getClipItem());
-	}
-	const std::vector<std::string> &ar = _game->getMod()->getArmorsList();
-	for (std::vector<std::string>::const_iterator i = ar.begin(); i != ar.end(); ++i)
-	{
-		Armor *rule = _game->getMod()->getArmor(*i);
-		_armors.insert(rule->getStoreItem());
-	}*/
-
 	auto providedBaseFunc = _base->getProvidedBaseFunc({});
 	const std::vector<std::string> &soldiers = _game->getMod()->getSoldiersList();
 	for (std::vector<std::string>::const_iterator i = soldiers.begin(); i != soldiers.end(); ++i)
 	{
 		RuleSoldier *rule = _game->getMod()->getSoldier(*i);
 		auto purchaseBaseFunc = rule->getRequiresBuyBaseFunc();
+		int stock = getFactionItemStock(rule->getType());
 		if (rule->getBuyCost() != 0
 			&& _game->getSavedGame()->isResearched(rule->getRequirements())
 			&& (~providedBaseFunc & purchaseBaseFunc).none()
-			&& isEntityAllowedByFaction(rule->getType()))
+			&& stock > 0)
 		{
-			TransferRow row = { TRANSFER_SOLDIER, rule, tr(rule->getType()), rule->getBuyCost(), _base->getSoldierCountAndSalary(rule->getType()).first, 0, 0 };
+			TransferRow row = { TRANSFER_SOLDIER, rule, tr(rule->getType()), getCostAdjustment(rule->getBuyCost()), _base->getSoldierCountAndSalary(rule->getType()).first, 0, 0, stock };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -180,9 +165,10 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 		}
 	}
 	{
-		if (isEntityAllowedByFaction("STR_SCIENTIST"))
+		int stock = getFactionItemStock("STR_SCIENTIST");
+		if (stock > 0)
 		{
-			TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), _game->getMod()->getHireScientistCost(), _base->getTotalScientists(), 0, 0 };
+			TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), getCostAdjustment(_game->getMod()->getHireScientistCost()), _base->getTotalScientists(), 0, 0, stock };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -192,9 +178,10 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 		}
 	}
 	{
-		if (isEntityAllowedByFaction("STR_ENGINEER"))
+		int stock = getFactionItemStock("STR_ENGINEER");
+		if (stock > 0)
 		{
-			TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), _game->getMod()->getHireEngineerCost(), _base->getTotalEngineers(), 0, 0 };
+			TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), getCostAdjustment(_game->getMod()->getHireEngineerCost()), _base->getTotalEngineers(), 0, 0, stock };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -209,12 +196,13 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 	{
 		RuleCraft *rule = _game->getMod()->getCraft(*i);
 		auto purchaseBaseFunc = rule->getRequiresBuyBaseFunc();
+		int stock = getFactionItemStock(rule->getType());
 		if (rule->getBuyCost() != 0
 			&& _game->getSavedGame()->isResearched(rule->getRequirements())
 			&& (~providedBaseFunc & purchaseBaseFunc).none()
-			&& isEntityAllowedByFaction(rule->getType()))
+			&& stock > 0)
 		{
-			TransferRow row = { TRANSFER_CRAFT, rule, tr(rule->getType()), rule->getBuyCost(), _base->getCraftCount(rule), 0, 0 };
+			TransferRow row = { TRANSFER_CRAFT, rule, tr(rule->getType()), getCostAdjustment(rule->getBuyCost()), _base->getCraftCount(rule), 0, 0, stock };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -228,13 +216,14 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 	{
 		RuleItem *rule = _game->getMod()->getItem(*i);
 		auto purchaseBaseFunc = rule->getRequiresBuyBaseFunc();
+		int stock = getFactionItemStock(rule->getName());
 		if (rule->getBuyCost() != 0
 			&& _game->getSavedGame()->isResearched(rule->getRequirements())
 			&& _game->getSavedGame()->isResearched(rule->getBuyRequirements())
 			&& (~providedBaseFunc & purchaseBaseFunc).none()
-			&& isEntityAllowedByFaction(rule->getName()))
+			&& stock > 0)
 		{
-			TransferRow row = { TRANSFER_ITEM, rule, tr(rule->getType()), rule->getBuyCost(), _base->getStorageItems()->getItem(rule), 0, 0 };
+			TransferRow row = { TRANSFER_ITEM, rule, tr(rule->getType()), getCostAdjustment(rule->getBuyCost()), _base->getStorageItems()->getItem(rule), 0, 0, stock };
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -326,6 +315,21 @@ void DiplomacyPurchaseState::think()
 
 	_timerInc->think(this, 0);
 	_timerDec->think(this, 0);
+}
+
+/**
+ * Calculates price adjustment based on faction's stats and other factors.
+ * @param baseCost price for row from rules.
+ * @returns corrected value.
+ */
+int DiplomacyPurchaseState::getCostAdjustment(int baseCost)
+{
+	int priceFactor = _faction->getRules()->getBuyPriceFactor();
+	int repFactor = _faction->getRules()->getRepPriceFactor();
+	int normalizedRep = _faction->getReputationLevel() - 3;
+	int64_t result = baseCost;
+	result += (result * priceFactor / 100) + (result * (repFactor * normalizedRep / 100));
+	return static_cast<int>(result);
 }
 
 /**
@@ -553,10 +557,11 @@ void DiplomacyPurchaseState::updateList()
 				name.insert(0, "  ");
 			}
 		}
-		std::ostringstream ssQty, ssAmount;
+		std::ostringstream ssQty, ssAmount, ssStock;
 		ssQty << _items[i].qtySrc;
 		ssAmount << _items[i].amount;
-		_lstItems->addRow(4, name.c_str(), Unicode::formatFunding(_items[i].cost).c_str(), ssQty.str().c_str(), ssAmount.str().c_str());
+		ssStock << "/" << _items[i].stock;
+		_lstItems->addRow(5, name.c_str(), Unicode::formatFunding(_items[i].cost).c_str(), ssQty.str().c_str(), ssAmount.str().c_str(), ssStock.str().c_str());
 		_rows.push_back(i);
 		if (_items[i].amount > 0)
 		{
@@ -576,6 +581,7 @@ void DiplomacyPurchaseState::updateList()
 void DiplomacyPurchaseState::btnOkClick(Action *)
 {
 	_game->getSavedGame()->setFunds(_game->getSavedGame()->getFunds() - _total);
+	_faction->setFunds(_faction->getFunds() + _total);
 	for (std::vector<TransferRow>::const_iterator i = _items.begin(); i != _items.end(); ++i)
 	{
 		if (i->amount > 0)
@@ -593,17 +599,20 @@ void DiplomacyPurchaseState::btnOkClick(Action *)
 					t = new Transfer(time);
 					t->setSoldier(_game->getMod()->genSoldier(_game->getSavedGame(), rule->getType()));
 					_base->getTransfers()->push_back(t);
+					_faction->getStaffContainer()->removeItem(rule->getType());
 				}
 				break;
 			case TRANSFER_SCIENTIST:
 				t = new Transfer(_game->getMod()->getPersonnelTime());
 				t->setScientists(i->amount);
 				_base->getTransfers()->push_back(t);
+				_faction->getStaffContainer()->removeItem("STR_SCIENTIST", i->amount);
 				break;
 			case TRANSFER_ENGINEER:
 				t = new Transfer(_game->getMod()->getPersonnelTime());
 				t->setEngineers(i->amount);
 				_base->getTransfers()->push_back(t);
+				_faction->getStaffContainer()->removeItem("STR_ENGINEER", i->amount);
 				break;
 			case TRANSFER_CRAFT:
 				for (int c = 0; c < i->amount; c++)
@@ -614,6 +623,7 @@ void DiplomacyPurchaseState::btnOkClick(Action *)
 					craft->setStatus("STR_REFUELLING");
 					t->setCraft(craft);
 					_base->getTransfers()->push_back(t);
+					_faction->getStaffContainer()->removeItem(rule->getType());
 				}
 				break;
 			case TRANSFER_ITEM:
@@ -622,6 +632,8 @@ void DiplomacyPurchaseState::btnOkClick(Action *)
 					t = new Transfer(rule->getTransferTime());
 					t->setItems(rule->getType(), i->amount);
 					_base->getTransfers()->push_back(t);
+
+					_faction->getItems()->removeItem(rule, i->amount);
 				}
 				break;
 			}
@@ -833,6 +845,10 @@ void DiplomacyPurchaseState::increaseByValue(int change)
 	{
 		errorMessage = tr("STR_NOT_ENOUGH_MONEY");
 	}
+	else if (getRow().amount + 1 > getRow().stock)
+	{
+		errorMessage = tr("STR_NOT_ENOUGH_STOCK");
+	}
 	else
 	{
 		RuleItem *rule = nullptr;
@@ -875,6 +891,12 @@ void DiplomacyPurchaseState::increaseByValue(int change)
 		int maxByMoney = (_game->getSavedGame()->getFunds() - _total) / getRow().cost;
 		if (maxByMoney >= 0)
 			change = std::min(maxByMoney, change);
+		int amount = getRow().amount;
+		int stock = getRow().stock;
+		if (stock - amount - change < 0)
+		{
+			change = stock - amount;
+		}
 		switch (getRow().type)
 		{
 		case TRANSFER_SOLDIER:
@@ -1022,30 +1044,54 @@ void DiplomacyPurchaseState::cbxCategoryChange(Action *)
 	updateList();
 }
 /**
- * Returns true if current Faction allowes to purchase
- * that item at current reputation level.
- * @param change how much we want to add.
- * @return true if entity is allowed for purchase
+ * Returns a value of available item for current reputation level
+ * @param item type.
+ * @return number of allowed to purchase items.
  */
-bool DiplomacyPurchaseState::isEntityAllowedByFaction(std::string entityName)
+int DiplomacyPurchaseState::getFactionItemStock(std::string entityName)
 {
-	for (std::map<std::string, int>::const_iterator i = _faction->getRules().getSellingSet().begin(); i != _faction->getRules().getSellingSet().end(); ++i)
+	// first we look through item storage, we check if entity is an item
+	RuleItem* itemRule = _game->getMod()->getItem(entityName);
+	if (itemRule)
 	{
-		if ((*i).first == entityName)
+		int iQty = _faction->getItems()->getItem(itemRule);
+		if (iQty > 0)
 		{
-			int repReq = i->second;
-			if (_faction->getReputationLevel() >= repReq)
+			if (!itemRule->getReputationRequirements().empty())
 			{
-				return true;
-				break;
+				for (auto i : itemRule->getReputationRequirements())
+				{
+					if (i.first == _faction->getRules()->getName())
+					{
+						if (_faction->getReputationLevel() < i.second)
+						{
+							return 0;
+						}
+					}
+				}
 			}
-			else
-			{
-				break;
-			}
+			return iQty;
+		}
+		else
+		{
+			return 0;
 		}
 	}
-	return false;
+	// if not, we check other factional property
+	else
+	{
+		int sQty = _faction->getStaffContainer()->getItem(entityName);
+		if (sQty > 0)
+		{
+			return sQty;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	// nothing to sell, sorry
+	return 0;
 }
 
 }

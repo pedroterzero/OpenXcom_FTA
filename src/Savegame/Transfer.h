@@ -33,6 +33,7 @@ struct TransferRow
 	int cost;
 	int qtySrc, qtyDst;
 	int amount;
+	int stock;
 };
 
 class Soldier;
