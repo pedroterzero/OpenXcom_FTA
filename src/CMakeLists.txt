@@ -204,6 +204,7 @@ set ( geoscape_src
   Geoscape/DogfightState.cpp
   Geoscape/FinishedCoverOperationDetailsState.cpp
   Geoscape/FinishedCoverOperationState.cpp
+  Geoscape/ExtendedGeoscapeLinksState.cpp
   Geoscape/FundingState.cpp
   Geoscape/GeoscapeCraftState.cpp
   Geoscape/GeoscapeEventState.cpp

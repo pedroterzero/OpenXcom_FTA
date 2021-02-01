@@ -323,6 +323,7 @@ void RuleItem::loadConfAction(RuleItemAction& a, const YAML::Node& node, const s
 	if (const YAML::Node& conf = node["conf" + name])
 	{
 		a.shots = conf["shots"].as<int>(a.shots);
+		a.spendPerShot = conf["spendPerShot"].as<int>(a.spendPerShot);
 		a.followProjectiles = conf["followProjectiles"].as<bool>(a.followProjectiles);
 		a.name = conf["name"].as<std::string>(a.name);
 		loadAmmoSlotChecked(a.ammoSlot, conf["ammoSlot"], _name);
@@ -762,7 +763,13 @@ void RuleItem::afterLoad(const Mod* mod)
 	for (int i = 0; i < AmmoSlotMax; ++i)
 	{
 		mod->linkRule(_compatibleAmmo[i], _compatibleAmmoNames[i]);
-		Collections::sortVector(_compatibleAmmo[i]);
+		for (auto a : _compatibleAmmo[i])
+		{
+			if (_compatibleAmmoSlots.count(a) == 0)
+			{
+				_compatibleAmmoSlots.insert(std::make_pair(a, i));
+			}
+		}
 	}
 	if (_vehicleUnit)
 	{
@@ -1553,12 +1560,10 @@ const std::vector<const RuleItem*> *RuleItem::getPrimaryCompatibleAmmo() const
  */
 int RuleItem::getSlotForAmmo(const RuleItem* type) const
 {
-	for (int i = 0; i < AmmoSlotMax; ++i)
+	auto f = _compatibleAmmoSlots.find(type);
+	if (f != _compatibleAmmoSlots.end())
 	{
-		if (Collections::sortVectorHave(_compatibleAmmo[i], type))
-		{
-			return i;
-		}
+		return f->second;
 	}
 	return -1;
 }
@@ -2655,6 +2660,11 @@ void getRandomTypeScript(const RuleDamageType* rdt, int &ret)
 	ret = rdt ? rdt->RandomType : 0;
 }
 
+void getArmorEffectivenessScript(const RuleDamageType* rdt, int& ret)
+{
+	ret = rdt ? round(rdt->ArmorEffectiveness * 100) : 0;
+}
+
 template<float RuleDamageType::* Ptr>
 void getDamageToScript(const RuleDamageType* rdt, int &ret, int value)
 {
@@ -2729,6 +2739,8 @@ void RuleItem::ScriptRegister(ScriptParserBase* parser)
 
 		rs.add<&getResistTypeScript>("getResistType", "which damage resistance type is used for damage reduction");
 		rs.add<&getRandomTypeScript>("getRandomType", "how to calculate randomized weapon damage from the weapon's power");
+
+		rs.add<&getArmorEffectivenessScript>("getArmorEffectiveness", "how effective is a unit's armor against this damage, % (value multiplied by 100 compared to ruleset value)");
 
 		rs.add<&getDamageToScript<&RuleDamageType::ToArmorPre>>("getDamageToArmorPre", "calculated damage value multiplied by the corresponding modifier");
 		rs.add<&getDamageToScript<&RuleDamageType::ToArmor>>("getDamageToArmor", "calculated damage value multiplied by the corresponding modifier");

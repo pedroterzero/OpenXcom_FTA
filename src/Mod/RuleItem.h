@@ -19,6 +19,7 @@
  */
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <yaml-cpp/yaml.h>
 #include "RuleStatBonus.h"
 #include "RuleDamageType.h"
@@ -194,6 +195,7 @@ struct RuleItemAction
 	int accuracy = 0;
 	int range = 0;
 	int shots = 1;
+	int spendPerShot = 1;
 	bool followProjectiles = true;
 	int ammoSlot = 0;
 	RuleItemUseCost cost;
@@ -324,6 +326,7 @@ private:
 	int _coneSize;
 	std::vector<std::vector<std::string>> _compatibleAmmoNames = std::vector<std::vector<std::string>>(AmmoSlotMax);
 	std::vector<const RuleItem*> _compatibleAmmo[AmmoSlotMax];
+	std::unordered_map<const RuleItem*, int> _compatibleAmmoSlots;
 	RuleDamageType _damageType, _meleeType;
 	RuleItemAction _confAimed, _confAuto, _confSnap, _confMelee;
 	int _accuracyUse, _accuracyMind, _accuracyPanic, _accuracyThrow, _accuracyCloseQuarters;

@@ -1456,6 +1456,18 @@ void SavedBattleGame::setBattleState(BattlescapeState *bs)
 }
 
 /**
+ * Is CTRL pressed?
+ */
+bool SavedBattleGame::isCtrlPressed() const
+{
+	if (_battleState)
+	{
+		return _battleState->getGame()->isCtrlPressed();
+	}
+	return false;
+}
+
+/**
  * Resets all the units to their current standing tile(s).
  */
 void SavedBattleGame::resetUnitTiles()

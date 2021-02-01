@@ -2614,6 +2614,10 @@ std::vector<BattleItem*> *BattleUnit::getInventory()
 bool BattleUnit::fitItemToInventory(RuleInventory *slot, BattleItem *item)
 {
 	auto rule = item->getRules();
+	if (rule->canBePlacedIntoInventorySection(slot) == false)
+	{
+		return false;
+	}
 	if (slot->getType() == INV_HAND)
 	{
 		if (!Inventory::overlapItems(this, item, slot))
@@ -2820,10 +2824,6 @@ bool BattleUnit::addItem(BattleItem *item, const Mod *mod, bool allowSecondClip,
 				for (const std::string &s : mod->getInvsList())
 				{
 					RuleInventory *slot = mod->getInventory(s);
-					if (rule->canBePlacedIntoInventorySection(slot) == false)
-					{
-						continue;
-					}
 					if (slot->getType() == INV_SLOT)
 					{
 						placed = fitItemToInventory(slot, item);
@@ -3255,7 +3255,7 @@ bool BattleUnit::reloadAmmo()
 		for (BattleItem* bi : *getInventory())
 		{
 			int slot = ruleWeapon->getSlotForAmmo(bi->getRules());
-			if (slot != -1)
+			if (slot != -1 && !weapon->getAmmoForSlot(slot))
 			{
 				int tuTemp = (Mod::EXTENDED_ITEM_RELOAD_COST && bi->getSlot()->getType() != INV_HAND) ? bi->getSlot()->getCost(weapon->getSlot()) : 0;
 				tuTemp += ruleWeapon->getTULoad(slot);

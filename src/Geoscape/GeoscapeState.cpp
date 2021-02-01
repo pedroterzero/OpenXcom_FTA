@@ -72,6 +72,7 @@
 #include "GraphsState.h"
 #include "FundingState.h"
 #include "../FTA/DiplomacyStartState.h"
+#include "ExtendedGeoscapeLinksState.h"
 #include "MonthlyReportState.h"
 #include "AltMonthlyReportState.h"
 #include "ProductionCompleteState.h"
@@ -301,7 +302,7 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	_btnOptions->setGeoscapeButton(true);
 
 	_btnFunding->initText(_game->getMod()->getFont("FONT_GEO_BIG"), _game->getMod()->getFont("FONT_GEO_SMALL"), _game->getLanguage());
-	_btnFunding->setText(tr("STR_FUNDING_UC"));
+	_btnFunding->setText(Options::oxceLinks ? tr("STR_EXTENDED_UC") : tr("STR_FUNDING_UC"));
 	_btnFunding->onMouseClick((ActionHandler)&GeoscapeState::btnFundingClick);
 	_btnFunding->onKeyboardPress((ActionHandler)&GeoscapeState::btnFundingClick, Options::keyGeoFunding);
 	_btnFunding->setGeoscapeButton(true);
@@ -501,7 +502,7 @@ void GeoscapeState::handle(Action *action)
 	if (action->getDetails()->type == SDL_KEYDOWN)
 	{
 		// "ctrl-d" - enable debug mode
-		if (Options::debug && action->getDetails()->key.keysym.sym == SDLK_d && (SDL_GetModState() & KMOD_CTRL) != 0)
+		if (Options::debug && action->getDetails()->key.keysym.sym == SDLK_d && _game->isCtrlPressed())
 		{
 			_game->getSavedGame()->setDebugMode();
 			if (_game->getSavedGame()->getDebugMode())
@@ -515,7 +516,7 @@ void GeoscapeState::handle(Action *action)
 			_cbxRegion->setVisible(_game->getSavedGame()->getDebugMode());
 			_cbxZone->setVisible(_game->getSavedGame()->getDebugMode());
 		}
-		if (Options::debug && _game->getSavedGame()->getDebugMode() && (SDL_GetModState() & KMOD_CTRL) != 0)
+		if (Options::debug && _game->getSavedGame()->getDebugMode() && _game->isCtrlPressed())
 		{
 			// "ctrl-1"
 			if (action->getDetails()->key.keysym.sym == SDLK_1)
@@ -2875,7 +2876,22 @@ void GeoscapeState::btnFundingClick(Action *)
 	{
 		return;
 	}
-	else if (_game->getMod()->getIsFTAGame()) {_game->pushState(new DiplomacyStartState(0, true));} else {_game->pushState(new FundingState);}	
+	
+	if (_game->getMod()->getIsFTAGame()) 
+	{
+		_game->pushState(new DiplomacyStartState(0, true));
+	} 
+	else 
+	{
+		if (Options::oxceLinks)
+		{
+			_game->pushState(new ExtendedGeoscapeLinksState(this));
+		}
+		else
+		{
+			_game->pushState(new FundingState);
+		}
+	}	
 }
 
 /**
@@ -3990,7 +4006,7 @@ bool GeoscapeState::processCommand(RuleMissionScript *command)
 		strategy.removeMission(targetRegion, missionType);
 	}
 
-	// if needed, canlculate gap value for this command and save it
+	// if needed, calculate gap value for this command and save it
 	int timer = command->getSpawnGap();
 	timer += RNG::generate(0, command->getRandomSpawnGap());
 	if (timer > 0)

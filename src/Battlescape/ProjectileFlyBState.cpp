@@ -304,7 +304,7 @@ void ProjectileFlyBState::init()
 	}
 
 	bool forceEnableObstacles = false;
-	if (_action.type == BA_LAUNCH || (Options::forceFire && (SDL_GetModState() & KMOD_CTRL) != 0 && isPlayer) || !_parent->getPanicHandled())
+	if (_action.type == BA_LAUNCH || (Options::forceFire && _parent->getSave()->isCtrlPressed() && isPlayer) || !_parent->getPanicHandled())
 	{
 		// target nothing, targets the middle of the tile
 		_targetVoxel = _action.target.toVoxel() + TileEngine::voxelTileCenter;
@@ -1004,13 +1004,6 @@ void ProjectileFlyBState::projectileHitUnit(Position pos)
 				_unit->setTurnsLeftSpottedForSnipers(std::max(victim->getSpotterDuration(), _unit->getTurnsLeftSpottedForSnipers()));
 			}
 		}
-		// Record the last unit to hit our victim. If a victim dies without warning*, this unit gets the credit.
-		// *Because the unit died in a fire or bled out.
-		victim->setMurdererId(_unit->getId());
-		if (_action.weapon != 0)
-			victim->setMurdererWeapon(_action.weapon->getRules()->getName());
-		if (_ammo != 0)
-			victim->setMurdererWeaponAmmo(_ammo->getRules()->getName());
 	}
 }
 

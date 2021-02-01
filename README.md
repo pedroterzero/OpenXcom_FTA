@@ -1,7 +1,5 @@
-# OpenXcom From the Ashes [![Build Status][travis-badge]][travis-url] [![Workflow Status][workflow-badge]][actions-url]
+# OpenXcom From the Ashes [![Workflow Status][workflow-badge]][actions-url]
 
-[travis-badge]: https://travis-ci.org/OpenXcom/OpenXcom.svg
-[travis-url]: https://travis-ci.org/OpenXcom/OpenXcom
 [workflow-badge]: https://github.com/OpenXcom/OpenXcom/workflows/ci/badge.svg
 [actions-url]: https://github.com/OpenXcom/OpenXcom/actions
 

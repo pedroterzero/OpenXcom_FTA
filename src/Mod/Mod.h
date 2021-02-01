@@ -262,6 +262,7 @@ private:
 	std::pair<std::string, int> _alienFuel;
 	std::string _fontName, _finalResearch, _psiUnlockResearch, _fakeUnderwaterBaseUnlockResearch, _newBaseUnlockResearch;
 	std::string _ufopaediaUnlockResearch, _baseConstructionUnlockResearch;
+	std::string _hireScientistsUnlockResearch, _hireEngineersUnlockResearch;
 
 	std::string _destroyedFacility;
 	YAML::Node _startingBaseDefault, _startingBaseBeginner, _startingBaseExperienced, _startingBaseVeteran, _startingBaseGenius, _startingBaseSuperhuman;
@@ -380,6 +381,7 @@ public:
 	static std::string DEBRIEF_MUSIC_GOOD;
 	static std::string DEBRIEF_MUSIC_BAD;
 	static int DIFFICULTY_COEFFICIENT[5];
+	static int SELL_PRICE_COEFFICIENT[5];
 	static int UNIT_RESPONSE_SOUNDS_FREQUENCY[4];
 	static bool EXTENDED_ITEM_RELOAD_COST;
 	static bool EXTENDED_RUNNING_COST;
@@ -793,6 +795,10 @@ public:
 	const std::string& getBaseConstructionUnlockResearch() const { return _baseConstructionUnlockResearch; } //FtA version
 	/// Gets the research topic required for using Ufopaedia.
 	const std::string& getUfopaediaUnlockResearch() const { return _ufopaediaUnlockResearch; }
+	/// Gets the research topic required for hiring new scientists.
+	const std::string &getHireScientistsUnlockResearch() const { return _hireScientistsUnlockResearch; }
+	/// Gets the research topic required for hiring new engineers.
+	const std::string &getHireEngineersUnlockResearch() const { return _hireEngineersUnlockResearch; }
 
 	/// Gets the threshold for defining a glancing hit on a ufo during interception
 	int getUfoGlancingHitThreshold() const { return _ufoGlancingHitThreshold; }

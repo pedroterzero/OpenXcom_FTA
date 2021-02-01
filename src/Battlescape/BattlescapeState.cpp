@@ -184,8 +184,6 @@ BattlescapeState::BattlescapeState() :
 		_numVisibleUnit[i] = new NumberText(15, 12, _btnVisibleUnit[i]->getX() + 6 , _btnVisibleUnit[i]->getY() + 4);
 	}
 	_numVisibleUnit[9]->setX(_numVisibleUnit[9]->getX() - 2); // center number 10
-	_btnToggleNV = new InteractiveSurface(12, 12, x + 2, y - 23);
-	_btnTogglePL = new InteractiveSurface(12, 12, x + 2, y - 23 - 13);
 	_warning = new WarningMessage(224, 24, x + 48, y + 32);
 	_btnLaunch = new BattlescapeButton(32, 24, screenWidth - 32, 0); // we need screenWidth, because that is independent of the black bars on the screen
 	_btnLaunch->setVisible(false);
@@ -345,8 +343,6 @@ BattlescapeState::BattlescapeState() :
 		add(_btnVisibleUnit[i]);
 		add(_numVisibleUnit[i]);
 	}
-	add(_btnToggleNV);
-	add(_btnTogglePL);
 	add(_warning, "warning", "battlescape", _icons);
 	add(_txtDebug);
 	add(_txtTooltip, "textTooltip", "battlescape", _icons);
@@ -572,30 +568,6 @@ BattlescapeState::BattlescapeState() :
 	}
 	_txtVisibleUnitTooltip[VISIBLE_MAX] = "STR_CENTER_ON_WOUNDED_FRIEND";
 	_txtVisibleUnitTooltip[VISIBLE_MAX+1] = "STR_CENTER_ON_DIZZY_FRIEND";
-
-	_btnToggleNV->onMouseClick((ActionHandler)& BattlescapeState::btnAndroidNightVisionClick);
-	_btnToggleNV->setTooltip("STR_TOGGLE_NIGHT_VISION");
-	_btnToggleNV->onMouseIn((ActionHandler)& BattlescapeState::txtTooltipIn);
-	_btnToggleNV->onMouseOut((ActionHandler)& BattlescapeState::txtTooltipOut);
-	_btnToggleNV->drawRect(0, 0, 12, 12, 15);
-	_btnToggleNV->drawRect(1, 1, 10, 10, _indicatorBlue);
-#ifdef __ANDROID__
-	_btnToggleNV->setVisible(_save->getGlobalShade() > Options::oxceAutoNightVisionThreshold);
-#else
-	_btnToggleNV->setVisible(false);
-#endif
-
-	_btnTogglePL->onMouseClick((ActionHandler)&BattlescapeState::btnAndroidPersonalLightsClick);
-	_btnTogglePL->setTooltip("STR_TOGGLE_PERSONAL_LIGHTING");
-	_btnTogglePL->onMouseIn((ActionHandler)&BattlescapeState::txtTooltipIn);
-	_btnTogglePL->onMouseOut((ActionHandler)&BattlescapeState::txtTooltipOut);
-	_btnTogglePL->drawRect(0, 0, 12, 12, 15);
-	_btnTogglePL->drawRect(1, 1, 10, 10, _indicatorPurple);
-#ifdef __ANDROID__
-	_btnTogglePL->setVisible(_save->getGlobalShade() > Options::oxceAutoNightVisionThreshold);
-#else
-	_btnTogglePL->setVisible(false);
-#endif
 
 	_warning->setColor(_game->getMod()->getInterface("battlescape")->getElement("warning")->color2);
 	_warning->setTextColor(_game->getMod()->getInterface("battlescape")->getElement("warning")->color);
@@ -1036,7 +1008,7 @@ void BattlescapeState::mapClick(Action *action)
 			BattleUnit *bu = _save->selectUnit(pos);
 			if (bu && (bu->getVisible() || _save->getDebugMode()))
 			{
-				if (_save->getDebugMode() && (SDL_GetModState() & KMOD_CTRL) != 0)
+				if (_save->getDebugMode() && _game->isCtrlPressed())
 				{
 					// mind probe
 					popup(new UnitInfoState(bu, this, false, true));
@@ -1509,34 +1481,6 @@ void BattlescapeState::btnVisibleUnitClick(Action *action)
 }
 
 /**
- * Toggles night vision (purely cosmetic).
- * @param action Pointer to an action.
- */
-void BattlescapeState::btnAndroidNightVisionClick(Action *action)
-{
-	if (allowButtons())
-	{
-		_map->toggleNightVision();
-	}
-
-	action->getDetails()->type = SDL_NOEVENT; // consume the event
-}
-
-/**
- * Toggles personal lights (NOT cosmetic!).
- * @param action Pointer to an action.
- */
-void BattlescapeState::btnAndroidPersonalLightsClick(Action *action)
-{
-	if (allowButtons())
-	{
-		_save->getTileEngine()->togglePersonalLighting();
-	}
-
-	action->getDetails()->type = SDL_NOEVENT; // consume the event
-}
-
-/**
  * Launches the blaster bomb.
  * @param action Pointer to an action.
  */
@@ -1848,7 +1792,11 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 		{
 			// show rank (vanilla behaviour)
 			SurfaceSet *texture = _game->getMod()->getSurfaceSet("SMOKE.PCK");
-			texture->getFrame(soldier->getRankSpriteBattlescape())->blitNShade(_rank, 0, 0);
+			auto frame = texture->getFrame(soldier->getRankSpriteBattlescape());
+			if (frame)
+			{
+				frame->blitNShade(_rank, 0, 0);
+			}
 		}
 		else
 		{
@@ -2382,9 +2330,9 @@ inline void BattlescapeState::handle(Action *action)
 			if (action->getDetails()->type == SDL_KEYDOWN)
 			{
 				SDLKey key = action->getDetails()->key.keysym.sym;
-				bool ctrlPressed = (SDL_GetModState() & KMOD_CTRL) != 0;
-				bool shiftPressed = (SDL_GetModState() & KMOD_SHIFT) != 0;
-				bool altPressed = (SDL_GetModState() & KMOD_ALT) != 0;
+				bool ctrlPressed = _game->isCtrlPressed();
+				bool shiftPressed = _game->isShiftPressed();
+				bool altPressed = _game->isAltPressed();
 
 				// "ctrl-b" - reopen briefing
 				if (key == SDLK_b && ctrlPressed)
@@ -3552,8 +3500,8 @@ void BattlescapeState::stopScrolling(Action *action)
 	else
 	{
 		SDL_WarpMouse(_cursorPosition.x, _cursorPosition.y);
-		action->setMouseAction(_cursorPosition.x/action->getXScale(), _cursorPosition.y/action->getYScale(), 0, 0);
-		_map->setSelectorPosition(_cursorPosition.x / action->getXScale(), _cursorPosition.y / action->getYScale());
+		action->setMouseAction(_cursorPosition.x, _cursorPosition.y, _map->getX(), _map->getY());
+		_map->setSelectorPosition(action->getAbsoluteXMouse(), action->getAbsoluteYMouse());
 	}
 	// reset our "mouse position stored" flag
 	_cursorPosition.z = 0;
