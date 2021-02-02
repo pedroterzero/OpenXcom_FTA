@@ -392,8 +392,12 @@ int DiplomacySellState::getCostAdjustment(int baseCost)
 	int priceFactor = _faction->getRules()->getSellPriceFactor();
 	int repFactor = _faction->getRules()->getRepPriceFactor();
 	int normalizedRep = _faction->getReputationLevel() - 3;
+	int diffFactor = _game->getSavedGame()->getSellPriceCoefficient();
 	int64_t result = baseCost;
-	result += (result * priceFactor / 100) + (result * (repFactor * normalizedRep / 100));
+	result *= priceFactor / 100;
+	result *= normalizedRep / 100;
+	result *= diffFactor / 100;
+
 	return static_cast<int>(result);
 }
 
@@ -715,7 +719,7 @@ void DiplomacySellState::btnOkClick(Action*)
 			case TRANSFER_ITEM:
 				RuleItem* item = (RuleItem*)i->rule;
 				{
-					_faction->getItems()->addItem(item, i->amount);
+					_faction->addItem(item, i->amount);
 					// remove all of said items from base
 					int toRemove = cleanUpContainer(_base->getStorageItems(), item, i->amount);
 

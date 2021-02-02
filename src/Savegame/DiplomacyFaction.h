@@ -66,7 +66,7 @@ private:
 	std::vector<std::string> _commandsToProcess, _eventsToProcess;
 	std::vector<RuleMissionScript*> _availableMissionScripts;
 	std::vector<std::string> _unlockedResearches;
-	ItemContainer* _items, _secretItems;
+	ItemContainer* _items, *_secretItems;
 	FactionalContainer* _staff;
 	std::vector<FactionalResearch*> _research;
 

@@ -95,6 +95,8 @@ void ManufactureInfoState::buildUi()
 	_txtAllocated = new Text(40, 16, 128, 88);
 	_txtTodo = new Text(40, 16, 280, 88);
 
+	_btnSell->setVisible(false);
+
 	_surfaceEngineers = new InteractiveSurface(160, 150, 0, 25);
 	_surfaceEngineers->onMouseClick((ActionHandler)&ManufactureInfoState::handleWheelEngineer, 0);
 

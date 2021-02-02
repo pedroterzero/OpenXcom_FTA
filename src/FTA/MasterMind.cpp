@@ -142,8 +142,8 @@ void MasterMind::newGameHelper(int diff, GeoscapeState* gs)
 		}
 
 		// populate faction item stores and staff
-		auto items = faction->getItems();
-		for (auto item : factionRules->getStartingItems())
+		auto items = faction->getPublicItems();
+		for (auto &item : factionRules->getStartingItems())
 		{
 			RuleItem* itemRule = _game->getMod()->getItem(item.first);
 			if (itemRule)
@@ -156,7 +156,7 @@ void MasterMind::newGameHelper(int diff, GeoscapeState* gs)
 					" ; no item ruleset defined!");
 			}
 		}
-		for (auto staff : factionRules->getStartingStaff())
+		for (auto &staff : factionRules->getStartingStaff())
 		{
 			faction->getStaffContainer()->addItem(staff.first, staff.second);
 		}

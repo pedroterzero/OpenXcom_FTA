@@ -284,7 +284,7 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	_btnBases->setGeoscapeButton(true);
 
 	_btnGraphs->initText(_game->getMod()->getFont("FONT_GEO_BIG"), _game->getMod()->getFont("FONT_GEO_SMALL"), _game->getLanguage());
-	_btnGraphs->setText(tr("STR_GRAPHS"));
+	_btnGraphs->setText(_game->getMod()->getIsFTAGame() ? tr("STR_DIPLOMACY_UC") : tr("STR_GRAPHS"));
 	_btnGraphs->onMouseClick((ActionHandler)&GeoscapeState::btnGraphsClick);
 	_btnGraphs->onKeyboardPress((ActionHandler)&GeoscapeState::btnGraphsClick, Options::keyGeoGraphs);
 	_btnGraphs->setGeoscapeButton(true);
@@ -303,6 +303,7 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 
 	_btnFunding->initText(_game->getMod()->getFont("FONT_GEO_BIG"), _game->getMod()->getFont("FONT_GEO_SMALL"), _game->getLanguage());
 	_btnFunding->setText(Options::oxceLinks ? tr("STR_EXTENDED_UC") : tr("STR_FUNDING_UC"));
+	
 	_btnFunding->onMouseClick((ActionHandler)&GeoscapeState::btnFundingClick);
 	_btnFunding->onKeyboardPress((ActionHandler)&GeoscapeState::btnFundingClick, Options::keyGeoFunding);
 	_btnFunding->setGeoscapeButton(true);
@@ -2832,7 +2833,14 @@ void GeoscapeState::btnGraphsClick(Action *)
 	{
 		return;
 	}
-	_game->pushState(new GraphsState);
+	if (_game->getMod()->getIsFTAGame())
+	{
+		_game->pushState(new DiplomacyStartState(0, true));
+	}
+	else
+	{
+		_game->pushState(new GraphsState);
+	}
 }
 
 /**
@@ -2876,22 +2884,14 @@ void GeoscapeState::btnFundingClick(Action *)
 	{
 		return;
 	}
-	
-	if (_game->getMod()->getIsFTAGame()) 
+	if (Options::oxceLinks)
 	{
-		_game->pushState(new DiplomacyStartState(0, true));
-	} 
-	else 
+		_game->pushState(new ExtendedGeoscapeLinksState(this));
+	}
+	else
 	{
-		if (Options::oxceLinks)
-		{
-			_game->pushState(new ExtendedGeoscapeLinksState(this));
-		}
-		else
-		{
-			_game->pushState(new FundingState);
-		}
-	}	
+		_game->pushState(new FundingState);
+	}
 }
 
 /**

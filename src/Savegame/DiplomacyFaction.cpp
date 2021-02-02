@@ -170,7 +170,7 @@ void DiplomacyFaction::addItem(const RuleItem* item, int qty)
 	if (qty > 0)
 	{
 		bool goToSecret = false;
-		if (_secretItems.getItem(item) <= 0 && item->isAlienArtifact())
+		if (_secretItems->getItem(item) <= 0 && item->isAlienArtifact())
 		{
 			auto it = std::find(_mod->getResearchList().begin(), _mod->getResearchList().end(), item->getName());
 			if (it != _mod->getResearchList().end())
@@ -183,7 +183,7 @@ void DiplomacyFaction::addItem(const RuleItem* item, int qty)
 		}
 		if (goToSecret)
 		{
-			_secretItems.addItem(item, 1);
+			_secretItems->addItem(item, 1);
 			qty -= 1;
 		}
 		if (qty > 0)
@@ -1033,7 +1033,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 
 				if (rRule->needItem())
 				{
-					if (_items->getItem(_mod->getItem((*i))) <= 0 || _secretItems.getItem(_mod->getItem((*i))) <= 0)
+					if (_items->getItem(_mod->getItem((*i))) <= 0 || _secretItems->getItem(_mod->getItem((*i))) <= 0)
 					{
 						continue; //sadly, we dont have required item
 					}

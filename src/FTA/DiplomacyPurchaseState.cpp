@@ -166,7 +166,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 	}
 	{
 		int stock = getFactionItemStock("STR_SCIENTIST");
-		if (stock > 0)
+		if (stock > 0 && (_game->getMod()->getHireScientistsUnlockResearch().empty() || _game->getSavedGame()->isResearched(_game->getMod()->getHireScientistsUnlockResearch(), true)))
 		{
 			TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), getCostAdjustment(_game->getMod()->getHireScientistCost()), _base->getTotalScientists(), 0, 0, stock };
 			_items.push_back(row);
@@ -179,7 +179,7 @@ DiplomacyPurchaseState::DiplomacyPurchaseState(Base *base, DiplomacyFaction* fac
 	}
 	{
 		int stock = getFactionItemStock("STR_ENGINEER");
-		if (stock > 0)
+		if (stock > 0 && (_game->getMod()->getHireEngineersUnlockResearch().empty() || _game->getSavedGame()->isResearched(_game->getMod()->getHireEngineersUnlockResearch(), true)))
 		{
 			TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), getCostAdjustment(_game->getMod()->getHireEngineerCost()), _base->getTotalEngineers(), 0, 0, stock };
 			_items.push_back(row);
@@ -328,7 +328,9 @@ int DiplomacyPurchaseState::getCostAdjustment(int baseCost)
 	int repFactor = _faction->getRules()->getRepPriceFactor();
 	int normalizedRep = _faction->getReputationLevel() - 3;
 	int64_t result = baseCost;
-	result += (result * priceFactor / 100) + (result * (repFactor * normalizedRep / 100));
+	result *= priceFactor / 100;
+	result *= normalizedRep / 100;
+
 	return static_cast<int>(result);
 }
 
@@ -620,6 +622,7 @@ void DiplomacyPurchaseState::btnOkClick(Action *)
 					RuleCraft *rule = (RuleCraft*)i->rule;
 					t = new Transfer(rule->getTransferTime());
 					Craft *craft = new Craft(rule, _base, _game->getSavedGame()->getId(rule->getType()));
+					craft->initFixedWeapons(_game->getMod());
 					craft->setStatus("STR_REFUELLING");
 					t->setCraft(craft);
 					_base->getTransfers()->push_back(t);
