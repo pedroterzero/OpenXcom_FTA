@@ -49,6 +49,7 @@ DiplomacyFaction::DiplomacyFaction(const Mod* mod, const std::string& name):
 {
 	_rule = _mod->getDiplomacyFaction(name);
 	_items = new ItemContainer();
+	_secretItems = new ItemContainer();
 	_staff = new FactionalContainer();
 }
 
@@ -59,6 +60,7 @@ DiplomacyFaction::~DiplomacyFaction()
 		delete* i;
 	}
 	delete _items;
+	delete _secretItems;
 	delete _staff;
 }
 

@@ -54,7 +54,7 @@ private:
 	std::string _name, _description, _background, _music;
 	std::vector<std::string> _regionList;
 	bool _city;
-	int _points, _funds;
+	int _points, _funds, _loyalty;
 	int _spawnedPersons;
 	std::string _spawnedPersonType, _spawnedPersonName;
 	YAML::Node _spawnedSoldier;
@@ -88,6 +88,8 @@ public:
 	int getPoints() const { return _points; }
 	/// Gets the amount of funds awarded when this event pops up.
 	int getFunds() const { return _funds; }
+	/// Gets the value of loyalty that would be added to the player's loyalty score when this event pops up.
+	int getLoyalty() const { return _loyalty; }
 
 	/// Gets the number of spawned persons.
 	int getSpawnedPersons() const { return _spawnedPersons; }

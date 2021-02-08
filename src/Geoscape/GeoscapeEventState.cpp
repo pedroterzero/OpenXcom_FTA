@@ -209,8 +209,10 @@ void GeoscapeEventState::eventLogic()
 	}
 	
 
-	// 2. give/take funds
+	// 2. give/take funds and loyalty
 	save->setFunds(save->getFunds() + rule.getFunds());
+
+	save->setLoyalty(save->getLoyalty() + rule.getLoyalty());
 
 	// 3. spawn/transfer persons (soldiers, engineers, scientists, ...)
 	const std::string& spawnedPersonType = rule.getSpawnedPersonType();

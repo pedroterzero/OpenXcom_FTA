@@ -250,57 +250,60 @@ void MasterMind::updateLoyalty(int score, LoyaltySource source)
 }
 
 /**
-* Handle calculation of base services (manufacture, labs and craft repair) performance bonus caused bu loyalty score.
+* Handle calculation of base services (manufacture, labs and craft repair) performance bonus caused by loyalty score.
 * @return value of performance bonus.
 */
 int MasterMind::getLoyaltyPerformanceBonus()
 {
 	int bonus = 100;
-	int loyalty = _game->getSavedGame()->getLoyalty();
-	int cap = _game->getMod()->getLoyaltyPerformanceCap();
-	int factor = _game->getMod()->getLoyaltyPerformanceFactor();
-	int chance = 0;
-
-	if (loyalty > 0)
+	if (_game->getMod()->getIsFTAGame())
 	{
-		if (loyalty > cap)
+		int loyalty = _game->getSavedGame()->getLoyalty();
+		int cap = _game->getMod()->getLoyaltyPerformanceCap();
+		int factor = _game->getMod()->getLoyaltyPerformanceFactor();
+		int chance = 0;
+
+		if (loyalty > 0)
 		{
-			if (RNG::percent(factor / 3))
+			if (loyalty > cap)
 			{
-				bonus = 240;
-				return bonus;
+				if (RNG::percent(factor / 3))
+				{
+					bonus = 240;
+					return bonus;
+				}
+				chance = factor;
 			}
-			chance = factor;
-		}
-		else
-		{
-			chance = (loyalty * factor) / cap;
-		}
-
-		if (RNG::percent(chance))
-		{
-			bonus = 200;
-		}
-	}
-	else
-	{
-		chance = (-loyalty * factor * 1.5) / cap;
-
-		if (RNG::percent(chance))
-		{
-			bonus = 50;
-		}
-		else
-		{
-			chance = (-loyalty * factor) / cap;
+			else
+			{
+				chance = (loyalty * factor) / cap;
+			}
 
 			if (RNG::percent(chance))
 			{
-				bonus = 0;
+				bonus = 200;
+			}
+		}
+		else
+		{
+			chance = (-loyalty * factor * 1.5) / cap;
+
+			if (RNG::percent(chance))
+			{
+				bonus = 50;
+			}
+			else
+			{
+				chance = (-loyalty * factor) / cap;
+
+				if (RNG::percent(chance))
+				{
+					bonus = 0;
+				}
 			}
 		}
 	}
-
+	
 	return bonus;
 }
 
