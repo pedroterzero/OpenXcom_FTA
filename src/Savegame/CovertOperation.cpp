@@ -560,7 +560,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 			if (criticalFail && trapRoll > 0) trapRoll = trapRoll + 35;
 			process = RNG::generate(0, 99) < trapRoll;
 		}
-		if (process) 
+		if (process && !_inBattlescape) 
 		{//oh, boy, we are going to generate battlescape to resolve our covert operation!
 			AlienDeployment* deployment = mod.getDeployment(deploymentName);
 			if (deployment != 0)

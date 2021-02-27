@@ -26,7 +26,8 @@
 namespace OpenXcom
 {
 
-RuleResearch::RuleResearch(const std::string &name) : _name(name), _cost(0), _points(0), _sequentialGetOneFree(false), _needItem(false), _destroyItem(false), _listOrder(0)
+RuleResearch::RuleResearch(const std::string &name) : _name(name), _cost(0), _points(0), _sequentialGetOneFree(false),
+													  _needItem(false), _destroyItem(false), _hidden(false), _listOrder(0)
 {
 }
 
@@ -59,6 +60,7 @@ void RuleResearch::load(const YAML::Node &node, Mod* mod, const ModScript& parse
 	_getOneFreeProtectedName = node["getOneFreeProtected"].as< std::map<std::string, std::vector<std::string> > >(_getOneFreeProtectedName);
 	_needItem = node["needItem"].as<bool>(_needItem);
 	_destroyItem = node["destroyItem"].as<bool>(_destroyItem);
+	_hidden = node["hidden"].as<bool>(_hidden);
 	_listOrder = node["listOrder"].as<int>(_listOrder);
 	if (!_listOrder)
 	{

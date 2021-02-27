@@ -1777,6 +1777,12 @@ void SavedGame::getAvailableResearchProjects(std::vector<RuleResearch *> &projec
 
 		RuleResearch *research = pair.second;
 
+		// This research topic is hidden, don't show it to the player!
+		if (research->hidden())
+		{
+			continue;
+		}
+
 		if ((considerDebugMode && _debug) || haveReserchVector(unlocked, research))
 		{
 			// Empty, these research topics are on the "unlocked list", *don't* check the dependencies!

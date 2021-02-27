@@ -51,7 +51,7 @@ class RuleResearch
 	bool _sequentialGetOneFree;
 	std::map<std::string, std::vector<std::string> > _getOneFreeProtectedName;
 	std::map<const RuleResearch*, std::vector<const RuleResearch*> > _getOneFreeProtected;
-	bool _needItem, _destroyItem;
+	bool _needItem, _destroyItem, _hidden;
 	int _listOrder;
 
 	ScriptValues<RuleResearch> _scriptValues;
@@ -83,6 +83,8 @@ public:
 	bool needItem() const;
 	/// Checks if this ResearchProject consumes the corresponding Item when research completes.
 	bool destroyItem() const;
+	/// Checks if this ResearchProject is unavalible for manual research and would be discovered with a special condition (event, mission reward, research bonus or with YS).
+	bool hidden() const { return _hidden; };
 	/// Gets the list of ResearchProjects unlocked by this research.
 	const std::vector<const RuleResearch*> &getUnlocked() const;
 	/// Gets the list of ResearchProjects disabled by this research.
