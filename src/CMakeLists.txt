@@ -9,7 +9,6 @@ set ( basescape_src
   Basescape/BasescapeState.cpp
   Basescape/BaseView.cpp
   Basescape/BuildFacilitiesState.cpp
-  Basescape/ChangeHeadquartersState.cpp
   Basescape/CovertOperationArmorState.cpp
   Basescape/CovertOperationEquipmentState.cpp
   Basescape/CovertOperationInfoState.cpp
@@ -93,6 +92,8 @@ set ( battlescape_src
   Battlescape/DebriefingState.cpp
   Battlescape/Explosion.cpp
   Battlescape/ExplosionBState.cpp
+  Battlescape/ExtendedBattlescapeLinksState.cpp
+  Battlescape/ExtendedInventoryLinksState.cpp
   Battlescape/InfoboxOKState.cpp
   Battlescape/InfoboxState.cpp
   Battlescape/Inventory.cpp

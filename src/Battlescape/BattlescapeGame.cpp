@@ -528,6 +528,11 @@ void BattlescapeGame::endTurn()
 		{
 			for (BattleItem *item : *_save->getItems())
 			{
+				if (item->isOwnerIgnored())
+				{
+					continue;
+				}
+
 				const RuleItem *rule = item->getRules();
 				const Tile *tile = item->getTile();
 				BattleUnit *unit = item->getOwner();
@@ -560,6 +565,11 @@ void BattlescapeGame::endTurn()
 				{
 					statePushNext(expl);
 				}
+				else if (item->isSpecialWeapon())
+				{
+					// we can't remove special weapons, disable the fuse at least
+					item->setFuseTimer(-1);
+				}
 				else
 				{
 					_save->removeItem(item);
@@ -589,6 +599,10 @@ void BattlescapeGame::endTurn()
 		{
 			for (BattleItem *item : *_save->getItems())
 			{
+				if (item->isOwnerIgnored())
+				{
+					continue;
+				}
 				item->fuseTimerEvent();
 			}
 		}
@@ -668,7 +682,7 @@ void BattlescapeGame::endTurn()
 
 	// having active battleScripts or "escort the VIPs" missions don't end when all aliens are neutralized
 	// objective type MUST_DESTROY was already handled above
-	bool killingAllAliensIsNotEnough = (_save->getVIPSurvivalPercentage() > 0 && _save->getVIPEscapeType() != ESCAPE_NONE); 
+	bool killingAllAliensIsNotEnough = (_save->getVIPSurvivalPercentage() > 0 && _save->getVIPEscapeType() != ESCAPE_NONE);
 
 	bool battleComplete = ((!killingAllAliensIsNotEnough || !toDoScripts) && tally.liveAliens == 0) || tally.liveSoldiers == 0;
 
@@ -721,7 +735,7 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 
 	for (std::vector<BattleUnit*>::iterator j = _save->getUnits()->begin(); j != _save->getUnits()->end(); ++j)
 	{
-		if ((*j)->getStatus() == STATUS_IGNORE_ME) continue;
+		if ((*j)->isIgnored()) continue;
 		BattleUnit *victim = (*j);
 		BattleUnit *murderer = origMurderer;
 
@@ -1711,7 +1725,7 @@ void BattlescapeGame::primaryAction(Position pos)
 		{
 			int maxWaypoints = _currentAction.weapon->getRules()->getSprayWaypoints();
 			if ((int)_currentAction.waypoints.size() >= maxWaypoints ||
-				(_parentState->getGame()->isCtrlPressed() && _parentState->getGame()->isShiftPressed()) ||
+				(_parentState->getGame()->isCtrlPressed(true) && _parentState->getGame()->isShiftPressed(true)) ||
 				(!Options::battleConfirmFireMode && (int)_currentAction.waypoints.size() == maxWaypoints - 1))
 			{
 				// If we're firing early, pick one last waypoint.
@@ -1762,8 +1776,8 @@ void BattlescapeGame::primaryAction(Position pos)
 		}
 		else if (_currentAction.type == BA_AUTOSHOT &&
 			_currentAction.weapon->getRules()->getSprayWaypoints() > 0 &&
-			_parentState->getGame()->isCtrlPressed() &&
-			_parentState->getGame()->isShiftPressed() &&
+			_parentState->getGame()->isCtrlPressed(true) &&
+			_parentState->getGame()->isShiftPressed(true) &&
 			_currentAction.waypoints.empty()) // Starts the spray autoshot targeting
 		{
 			_currentAction.sprayTargeting = true;
@@ -1807,6 +1821,14 @@ void BattlescapeGame::primaryAction(Position pos)
 				if (_currentAction.type == BA_MINDCONTROL && targetFaction == FACTION_PLAYER)
 				{
 					// no mind controlling allies, unwanted side effects
+					psiTargetAllowed = false;
+				}
+				else if (_currentAction.type == BA_PANIC && targetUnit->getUnitRules() && !targetUnit->getUnitRules()->canPanic())
+				{
+					psiTargetAllowed = false;
+				}
+				else if (_currentAction.type == BA_MINDCONTROL && targetUnit->getUnitRules() && !targetUnit->getUnitRules()->canBeMindControlled())
+				{
 					psiTargetAllowed = false;
 				}
 				if (psiTargetAllowed)
@@ -1877,8 +1899,8 @@ void BattlescapeGame::primaryAction(Position pos)
 		}
 		else if (playableUnitSelected())
 		{
-			bool isCtrlPressed = _parentState->getGame()->isCtrlPressed();
-			bool isShiftPressed = _parentState->getGame()->isShiftPressed();
+			bool isCtrlPressed = _parentState->getGame()->isCtrlPressed(true);
+			bool isShiftPressed = _parentState->getGame()->isShiftPressed(true);
 			if (bPreviewed &&
 				(_currentAction.target != pos || (_save->getPathfinding()->isModifierUsed() != isCtrlPressed)))
 			{
@@ -1930,7 +1952,7 @@ void BattlescapeGame::secondaryAction(Position pos)
 	//  -= turn to or open door =-
 	_currentAction.target = pos;
 	_currentAction.actor = _save->getSelectedUnit();
-	_currentAction.strafe = Options::strafe && _parentState->getGame()->isCtrlPressed() && _save->getSelectedUnit()->getTurretType() > -1;
+	_currentAction.strafe = Options::strafe && _parentState->getGame()->isCtrlPressed(true) && _save->getSelectedUnit()->getTurretType() > -1;
 	statePushBack(new UnitTurnBState(this, _currentAction));
 }
 
@@ -2282,7 +2304,11 @@ void BattlescapeGame::spawnFromPrimedItems()
 
 	for (std::vector<BattleItem*>::iterator i = _save->getItems()->begin(); i != _save->getItems()->end(); ++i)
 	{
-		if (!(*i)->getRules()->getSpawnUnit().empty() && !(*i)->getXCOMProperty())
+		if ((*i)->isOwnerIgnored())
+		{
+			continue;
+		}
+		if (!(*i)->getRules()->getSpawnUnit().empty() && !(*i)->getXCOMProperty() && !(*i)->isSpecialWeapon())
 		{
 			if ((*i)->getRules()->getBattleType() == BT_GRENADE && (*i)->getFuseTimer() == 0 && (*i)->isFuseEnabled())
 			{
@@ -2520,6 +2546,11 @@ BattleItem *BattlescapeGame::surveyItems(BattleAction *action, bool pickUpWeapon
 	// first fill a vector with items on the ground that were dropped on the alien turn, and have an attraction value.
 	for (std::vector<BattleItem*>::iterator i = _save->getItems()->begin(); i != _save->getItems()->end(); ++i)
 	{
+		if ((*i)->isOwnerIgnored())
+		{
+			continue;
+		}
+
 		if ((*i)->getRules()->getAttraction())
 		{
 			if ((*i)->getTurnFlag() || pickUpWeaponsMoreActively)

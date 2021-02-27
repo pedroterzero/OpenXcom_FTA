@@ -55,6 +55,7 @@
 #include "UnitInfoState.h"
 #include "BattlescapeState.h"
 #include "BattlescapeGenerator.h"
+#include "ExtendedInventoryLinksState.h"
 #include "TileEngine.h"
 #include "../Mod/RuleInterface.h"
 #include "../Ufopaedia/Ufopaedia.h"
@@ -109,6 +110,15 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent, Base *base, bo
 	_btnArmor = new BattlescapeButton(RuleInventory::PAPERDOLL_W, RuleInventory::PAPERDOLL_H, RuleInventory::PAPERDOLL_X, RuleInventory::PAPERDOLL_Y);
 	_btnCreateTemplate = new BattlescapeButton(32, 22, _templateBtnX, _createTemplateBtnY);
 	_btnApplyTemplate = new BattlescapeButton(32, 22, _templateBtnX, _applyTemplateBtnY);
+	auto pixelShift = _game->getMod()->getInterface("inventory")->getElement("buttonLinks");
+	if (pixelShift && pixelShift->TFTDMode)
+	{
+		_btnLinks = new BattlescapeButton(23, 22, 213, 0);
+	}
+	else
+	{
+		_btnLinks = new BattlescapeButton(23, 22, 213, 1);
+	}
 	_selAmmo = new Surface(RuleInventory::HAND_W * RuleInventory::SLOT_W, RuleInventory::HAND_H * RuleInventory::SLOT_H, 272, 88);
 	_inv = new Inventory(_game, 320, 200, 0, 0, _parent == 0);
 	_btnQuickSearch = new TextEdit(this, 40, 9, 244, 140);
@@ -141,6 +151,7 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent, Base *base, bo
 	add(_btnRank, "rank", "inventory", _bg);
 	add(_btnCreateTemplate, "buttonCreate", "inventory", _bg);
 	add(_btnApplyTemplate, "buttonApply", "inventory", _bg);
+	add(_btnLinks, "buttonLinks", "inventory", _bg);
 	add(_selAmmo);
 	add(_inv);
 
@@ -246,12 +257,21 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent, Base *base, bo
 	_btnApplyTemplate->onMouseIn((ActionHandler)&InventoryState::txtTooltipIn);
 	_btnApplyTemplate->onMouseOut((ActionHandler)&InventoryState::txtTooltipOut);
 
+	_btnLinks->onMouseClick((ActionHandler)&InventoryState::btnLinksClick);
+	_btnLinks->setTooltip("STR_EXTENDED_LINKS");
+	_btnLinks->onMouseIn((ActionHandler)&InventoryState::txtTooltipIn);
+	_btnLinks->onMouseOut((ActionHandler)&InventoryState::txtTooltipOut);
+
 	_btnQuickSearch->setHighContrast(true);
 	_btnQuickSearch->setText(""); // redraw
 	_btnQuickSearch->onEnter((ActionHandler)&InventoryState::btnQuickSearchApply);
 	_btnQuickSearch->setVisible(false);
 
 	_btnOk->onKeyboardRelease((ActionHandler)&InventoryState::btnQuickSearchToggle, Options::keyToggleQuickSearch);
+
+	_game->getMod()->getSurface("oxceLinksInv")->blitNShade(_btnLinks, 0, 0);
+	_btnLinks->initSurfaces();
+	_btnLinks->setVisible(Options::oxceLinks && !_tu);
 
 	// only use copy/paste buttons in setup (i.e. non-tu) mode
 	if (_tu)
@@ -389,7 +409,7 @@ void InventoryState::init()
 			// Step 0: update unit's armor
 			unit->updateArmorFromSoldier(_game->getMod(), s, s->getArmor(), _battleGame->getDepth());
 
-			// Step 1: remember the unit's equipment (excl. fixed items)
+			// Step 1: remember the unit's equipment (incl. loaded fixed items)
 			_clearInventoryTemplate(_tempInventoryTemplate);
 			_createInventoryTemplate(_tempInventoryTemplate);
 
@@ -502,7 +522,7 @@ void InventoryState::init()
 void InventoryState::edtSoldierPress(Action *)
 {
 	// renaming available only in the base (not during mission)
-	if (_base == 0)
+	if (_base == 0 || _btnLinks->getVisible())
 	{
 		_txtName->setFocus(false);
 	}
@@ -655,7 +675,8 @@ void InventoryState::saveEquipmentLayout()
 			// skip fixed items
 			if ((*j)->getRules()->isFixed())
 			{
-				continue;
+				bool loaded = (*j)->needsAmmoForSlot(0) && (*j)->getAmmoForSlot(0);
+				if (!loaded) continue;
 			}
 
 			layoutItems->push_back(new EquipmentLayoutItem((*j)));
@@ -1084,7 +1105,7 @@ void InventoryState::btnQuickSearchApply(Action *)
  */
 void InventoryState::btnGroundClick(Action *action)
 {
-	if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
+	if (_game->isRightClick(action))
 	{
 		// scroll backwards
 		_inv->arrangeGround(-1);
@@ -1127,11 +1148,23 @@ void InventoryState::_createInventoryTemplate(std::vector<EquipmentLayoutItem*> 
 		// skip fixed items
 		if ((*j)->getRules()->isFixed())
 		{
-			continue;
+			bool loaded = (*j)->needsAmmoForSlot(0) && (*j)->getAmmoForSlot(0);
+			if (!loaded) continue;
 		}
 
 		inventoryTemplate.push_back(new EquipmentLayoutItem((*j)));
 	}
+}
+
+void InventoryState::btnLinksClick(Action *)
+{
+	// don't accept clicks when moving items
+	if (_inv->getSelectedItem() != 0)
+	{
+		return;
+	}
+
+	_game->pushState(new ExtendedInventoryLinksState(this, _battleGame, _base, !_tu));
 }
 
 void InventoryState::btnCreateTemplateClick(Action *)
@@ -1247,7 +1280,7 @@ void InventoryState::_applyInventoryTemplate(std::vector<EquipmentLayoutItem*> &
 				continue;
 			}
 
-			if ((*templateIt)->getItemType() == groundItemName)
+			if ((*templateIt)->isFixed() == false && (*templateIt)->getItemType() == groundItemName)
 			{
 				// if the loaded ammo doesn't match the template item's,
 				// remember the weapon for later and continue scanning
@@ -1275,6 +1308,51 @@ void InventoryState::_applyInventoryTemplate(std::vector<EquipmentLayoutItem*> &
 					matchedWeapon = groundItem;
 					found = true; // found = true, even if not equipped
 					break;
+				}
+			}
+		}
+
+		if ((*templateIt)->isFixed())
+		{
+			for (BattleItem* fixedItem : *unit->getInventory())
+			{
+				if (fixedItem->getRules()->isFixed() == false)
+				{
+					// this is not a fixed item, continue searching...
+					continue;
+				}
+				if (fixedItem->getSlot()->getId() == (*templateIt)->getSlot() &&
+					fixedItem->getSlotX() == (*templateIt)->getSlotX() &&
+					fixedItem->getSlotY() == (*templateIt)->getSlotY() &&
+					fixedItem->getRules()->getType() == (*templateIt)->getItemType())
+				{
+					// if the loaded ammo doesn't match the template item's,
+					// remember the weapon for later and continue scanning
+					bool skipWeapon = false;
+					for (int slot = 0; slot < RuleItem::AmmoSlotMax; ++slot)
+					{
+						if (!fixedItem->needsAmmoForSlot(slot))
+						{
+							continue;
+						}
+						BattleItem* loadedAmmo = fixedItem->getAmmoForSlot(slot);
+						if ((needsAmmo[slot] && (!loadedAmmo || targetAmmo[slot] != loadedAmmo->getRules()->getType()))
+							|| (!needsAmmo[slot] && loadedAmmo))
+						{
+							// remember the last matched weapon for simplicity (but prefer empty weapons if any are found)
+							if (!matchedWeapon || matchedWeapon->getAmmoForSlot(slot))
+							{
+								matchedWeapon = fixedItem;
+							}
+							skipWeapon = true;
+						}
+					}
+					if (!skipWeapon)
+					{
+						matchedWeapon = fixedItem;
+						found = true; // found = true, even if not equipped
+						break;
+					}
 				}
 			}
 		}
@@ -1312,6 +1390,17 @@ void InventoryState::_applyInventoryTemplate(std::vector<EquipmentLayoutItem*> &
 			}
 		}
 
+		if (!found)
+		{
+			itemMissing = true;
+		}
+
+		if ((*templateIt)->isFixed())
+		{
+			// we have loaded the fixed weapon (if possible) and we don't need to do anything else, it's already in the correct slot
+			continue;
+		}
+
 		// check if the slot is not occupied already (e.g. by a fixed weapon)
 		if (matchedWeapon && !_inv->overlapItems(
 			unit,
@@ -1330,11 +1419,6 @@ void InventoryState::_applyInventoryTemplate(std::vector<EquipmentLayoutItem*> &
 		else
 		{
 			// let the user know or not? probably not... should be obvious why
-		}
-
-		if (!found)
-		{
-			itemMissing = true;
 		}
 	}
 
@@ -1853,7 +1937,7 @@ void InventoryState::handle(Action *action)
 	}
 
 #ifndef __MORPHOS__
-	if (action->getDetails()->type == SDL_MOUSEBUTTONDOWN)
+	if (Options::thumbButtons && action->getDetails()->type == SDL_MOUSEBUTTONDOWN)
 	{
 		if (action->getDetails()->button.button == SDL_BUTTON_X1)
 		{

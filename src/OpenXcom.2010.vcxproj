@@ -227,7 +227,6 @@
     <ClCompile Include="Basescape\BasescapeState.cpp" />
     <ClCompile Include="Basescape\BaseView.cpp" />
     <ClCompile Include="Basescape\BuildFacilitiesState.cpp" />
-    <ClCompile Include="Basescape\ChangeHeadquartersState.cpp" />
     <ClCompile Include="Basescape\CovertOperationArmorState.cpp" />
     <ClCompile Include="Basescape\CovertOperationEquipmentState.cpp" />
     <ClCompile Include="Basescape\CovertOperationInfoState.cpp" />
@@ -308,6 +307,8 @@
     <ClCompile Include="Battlescape\DebriefingState.cpp" />
     <ClCompile Include="Battlescape\Explosion.cpp" />
     <ClCompile Include="Battlescape\ExplosionBState.cpp" />
+    <ClCompile Include="Battlescape\ExtendedBattlescapeLinksState.cpp" />
+    <ClCompile Include="Battlescape\ExtendedInventoryLinksState.cpp" />
     <ClCompile Include="Battlescape\InfoboxOKState.cpp" />
     <ClCompile Include="Battlescape\InfoboxState.cpp" />
     <ClCompile Include="Battlescape\Inventory.cpp" />
@@ -627,7 +628,6 @@
     <ClInclude Include="Basescape\BasescapeState.h" />
     <ClInclude Include="Basescape\BaseView.h" />
     <ClInclude Include="Basescape\BuildFacilitiesState.h" />
-    <ClInclude Include="Basescape\ChangeHeadquartersState.h" />
     <ClInclude Include="Basescape\CovertOperationArmorState.h" />
     <ClInclude Include="Basescape\CovertOperationEquipmentState.h" />
     <ClInclude Include="Basescape\CovertOperationInfoState.h" />
@@ -708,6 +708,8 @@
     <ClInclude Include="Battlescape\DebriefingState.h" />
     <ClInclude Include="Battlescape\Explosion.h" />
     <ClInclude Include="Battlescape\ExplosionBState.h" />
+    <ClInclude Include="Battlescape\ExtendedBattlescapeLinksState.h" />
+    <ClInclude Include="Battlescape\ExtendedInventoryLinksState.h" />
     <ClInclude Include="Battlescape\InfoboxOKState.h" />
     <ClInclude Include="Battlescape\InfoboxState.h" />
     <ClInclude Include="Battlescape\Inventory.h" />

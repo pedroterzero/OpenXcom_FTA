@@ -11,8 +11,6 @@ en-US:
   STR_FACILITY_FORBIDDEN_BY_OTHER: "CANNOT BUILD HERE!{SMALLLINE}Some existing facility forbids building this facility."
   STR_FACILITY_OTHER_FORBIDDEN_BY_THIS: "CANNOT BUILD HERE!{SMALLLINE}Some existing facility would be forbidden by this facility."
   STR_NOT_ENOUGH_ITEMS: "NOT ENOUGH MATERIALS!{SMALLLINE}We need more resources to build this facility.{NEWLINE}Missing> {0}: {1}"
-#ChangeHeadquartersState.cpp
-  STR_MOVE_HQ_TO: "Move HQ to"
 #CraftArmorState.cpp
   STR_ID: "ID"
   STR_FIRST_LETTER: "FIRST LETTER"
@@ -267,6 +265,9 @@ en-US:
 #Options.cpp
   STR_UPDATE_CHECK: "Automatic update check"
   STR_UPDATE_CHECK_DESC: "If enabled, OpenXcom will automatically check for updates and give you an option to update itself by a single button click."
+  STR_AUTOSAVE_SLOTS: "Autosave slots"
+  STR_AUTOSAVE_SLOTS_DESC: "Number of slots for Battlescape autosaves."
+  STR_AUTO_SAVE_BATTLESCAPE_SLOT_WITH_NUMBER: "<AUTO BATTLESCAPE> {0}"
   STR_LAZY_LOADING: "Lazy loading"
   STR_LAZY_LOADING_DESC: "If enabled, graphic resources are loaded on-demand. Otherwise everything is loaded at start-up."
   STR_VSYNC_FOR_OPENGL: "VSync for OpenGL"
@@ -302,8 +303,8 @@ en-US:
   STR_REMOVE_ARMOR_FROM_ALL_CRAFTS: "Remove Armor From All Crafts"
   STR_REMOVE_ARMOR_FROM_CRAFT: "Remove Armor From Craft"
   STR_REMOVE_SOLDIERS_FROM_TRAINING: "Remove Soldiers From Training"
-  STR_INVENTORY_ARMOR: "Change Armor (via Inventory)"
-  STR_INVENTORY_AVATAR: "Change Avatar (via Inventory)"
+  STR_INVENTORY_ARMOR: "Change Armor"
+  STR_INVENTORY_AVATAR: "Change Avatar"
   STR_ACTION_ITEM_1: "Item Action 1 (Aim/Use)"
   STR_ACTION_ITEM_2: "Item Action 2 (Snap)"
   STR_ACTION_ITEM_3: "Item Action 3 (Auto)"
@@ -313,6 +314,12 @@ en-US:
   STR_TOGGLE_NIGHT_VISION: "Toggle Night Vision"
   STR_HOLD_NIGHT_VISION: "Short Night Vision"
   STR_SELECT_MUSIC_TRACK: "Select Music Track"
+#===================
+  STR_TOGGLE_TOUCH_BUTTONS: "Toggle Touch Buttons"
+  STR_TOGGLE_BRIGHTNESS: "Toggle Brightness (visual only)"
+  STR_BRIEFING: "Briefing"
+  STR_TOGGLE_DEBUG_MODE: "Toggle Debug Mode"
+  STR_DEBUG_KILL_ALL_ALIENS: "DEBUG: Kill All Aliens"
 #=================== Geoscape ===================
 #AllocateTrainingState.cpp
   STR_PHYSICAL_TRAINING: "Martial Training"

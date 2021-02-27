@@ -353,6 +353,16 @@ SaveInfo SavedGame::getSaveInfo(const std::string &file, Language *lang)
 		save.displayName = lang->getString("STR_AUTO_SAVE_BATTLESCAPE_SLOT");
 		save.reserved = true;
 	}
+	else if (save.fileName.find(AUTOSAVE_BATTLESCAPE) != std::string::npos)
+	{
+		int turn = 0;
+		if (doc["turn"])
+		{
+			turn = doc["turn"].as<int>(turn);
+		}
+		save.displayName = lang->getString("STR_AUTO_SAVE_BATTLESCAPE_SLOT_WITH_NUMBER").arg(turn);
+		save.reserved = true;
+	}
 	else
 	{
 		if (doc["name"])
@@ -3319,18 +3329,6 @@ std::string debugDisplayScript(const GameTime* p)
 	}
 }
 
-void getRuleResearch(const Mod* mod, const RuleResearch*& rule, const std::string& name)
-{
-	if (mod)
-	{
-		rule = mod->getResearch(name);
-	}
-	else
-	{
-		rule = nullptr;
-	}
-}
-
 void isResearchedScript(const SavedGame* sg, int& val, const RuleResearch* name)
 {
 	if (sg)
@@ -3405,7 +3403,6 @@ void SavedGame::ScriptRegister(ScriptParserBase* parser)
 	sgg.add<&getRandomScript>("getRandomState");
 	sgg.add<&getLoyaltyScript>("getLoyalty");
 
-	sgg.add<&getRuleResearch>("getRuleResearch");
 	sgg.add<&isResearchedScript>("isResearched");
 
 	sgg.addScriptValue<&SavedGame::_scriptValues>();
