@@ -183,6 +183,143 @@ void MasterMind::newGameHelper(int diff, GeoscapeState* gs)
 }
 
 /**
+* Process event script from different sources
+* @param engine - Game.
+* @param scripts - a vector of event script's string IDs.
+* @param source is the reason we are running process (mothly, factional, xcom).
+*/
+void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scripts, ProcessorSource source)
+{
+	const Mod& mod = *engine.getMod();
+	SavedGame& save = *engine.getSavedGame();
+
+	if (!scripts.empty())
+	{
+		for (auto& name : scripts)
+		{
+			auto ruleScript = mod.getEventScript(name);
+			int allowedProcessor = ruleScript->getAllowedProcessor();
+			// check allowed processor first!
+			if ((source == MOTHLY && allowedProcessor != 0) ||
+				(source == FACTIONAL && allowedProcessor != 1) ||
+				(source == XCOM && allowedProcessor != 2))
+			{
+				continue; //we should skip that!
+			}
+			auto month = save.getMonthsPassed();
+			int loyalty = save.getLoyalty();
+			if (ruleScript->getFirstMonth() <= month &&
+				(ruleScript->getLastMonth() >= month || ruleScript->getLastMonth() == -1) &&
+				(ruleScript->getMinScore() <= save.getCurrentScore(month)) &&
+				(ruleScript->getMaxScore() >= save.getCurrentScore(month)) &&
+				(ruleScript->getMinLoyalty() <= loyalty) &&
+				(ruleScript->getMaxLoyalty() >= loyalty) &&
+				(ruleScript->getMinFunds() <= save.getFunds()) &&
+				(ruleScript->getMaxFunds() >= save.getFunds()) &&
+				ruleScript->getMinDifficulty() <= save.getDifficulty() &&
+				ruleScript->getMaxDifficulty() >= save.getDifficulty() &&
+				!save.getEventScriptGapped(ruleScript->getType()))
+			{
+				// level two condition check: make sure we meet any research requirements, if any.
+				bool triggerHappy = true;
+				for (std::map<std::string, bool>::const_iterator j = ruleScript->getResearchTriggers().begin(); triggerHappy && j != ruleScript->getResearchTriggers().end(); ++j)
+				{
+					triggerHappy = (save.isResearched(j->first) == j->second);
+					if (!triggerHappy)
+						continue;
+				}
+				if (triggerHappy)
+				{
+					// item requirements
+					for (auto& triggerItem : ruleScript->getItemTriggers())
+					{
+						triggerHappy = (save.isItemObtained(triggerItem.first) == triggerItem.second);
+						if (!triggerHappy)
+							continue;
+					}
+				}
+				if (triggerHappy)
+				{
+					// facility requirements
+					for (auto& triggerFacility : ruleScript->getFacilityTriggers())
+					{
+						triggerHappy = (save.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
+						if (!triggerHappy)
+							continue;
+					}
+				}
+				// ok, we still want event from this script, now let`s actually choose one.
+				if (triggerHappy)
+				{
+					std::vector<const RuleEvent*> toBeGenerated;
+
+					// 1. sequentially generated one-time events (cannot repeat)
+					{
+						std::vector<std::string> possibleSeqEvents;
+						for (auto& seqEvent : ruleScript->getOneTimeSequentialEvents())
+						{
+							if (!save.wasEventGenerated(seqEvent))
+								possibleSeqEvents.push_back(seqEvent); // insert
+						}
+						if (!possibleSeqEvents.empty())
+						{
+							auto eventRules = mod.getEvent(possibleSeqEvents.front(), true); // take first
+							toBeGenerated.push_back(eventRules);
+						}
+					}
+
+					// 2. randomly generated one-time events (cannot repeat)
+					{
+						WeightedOptions possibleRngEvents;
+						WeightedOptions tmp = ruleScript->getOneTimeRandomEvents(); // copy for the iterator, because of getNames()
+						possibleRngEvents = tmp; // copy for us to modify
+						for (auto& rngEvent : tmp.getNames())
+						{
+							if (save.wasEventGenerated(rngEvent))
+								possibleRngEvents.set(rngEvent, 0); // delete
+						}
+						if (!possibleRngEvents.empty())
+						{
+							auto eventRules = mod.getEvent(possibleRngEvents.choose(), true); // take random
+							toBeGenerated.push_back(eventRules);
+						}
+					}
+
+					// 3. randomly generated repeatable events
+					{
+						auto eventRules = mod.getEvent(ruleScript->generate(save.getMonthsPassed()), false);
+						if (eventRules)
+						{
+							toBeGenerated.push_back(eventRules);
+						}
+					}
+
+					// 4. generate
+					bool generated = false;
+					for (auto eventRules : toBeGenerated)
+					{
+						if (spawnEvent(eventRules->getName()))
+						{
+							generated = true;
+						}
+					}
+					// 4a. if needed any of events were generated, we mark this with gap timer.
+					if (generated)
+					{
+						int timer = ruleScript->getSpawnGap();
+						timer += RNG::generate(0, ruleScript->getRandomSpawnGap());
+						if (timer > 0)
+						{
+							_game->getSavedGame()->setEventScriptGapTimer(ruleScript->getType(), timer);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+/**
 * Handle request for generation of Geoscape Event.
 * @param eventName - string with rules name of the event.
 * @return true is event was generater successfully.

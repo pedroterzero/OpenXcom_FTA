@@ -37,6 +37,7 @@ private:
 	int _minScore, _maxScore;
 	int _minLoyalty, _maxLoyalty;
 	int _allowedProcessor;
+	int _spawnGap, _randomSpawnGap;
 	int64_t _minFunds, _maxFunds;
 	std::map<std::string, bool> _researchTriggers;
 	std::map<std::string, bool> _itemTriggers;
@@ -79,6 +80,10 @@ public:
 	int64_t getMaxFunds() const { return _maxFunds; }
 	/// Get allowed procesor (monthly/factional) that is allowed to process this command.
 	int getAllowedProcessor() const { return _allowedProcessor; }
+	/// Gets interval in what the event script command should not be processed.
+	int getSpawnGap() const { return _spawnGap; }
+	/// Gets random ammount of gap for event script command.
+	int getRandomSpawnGap() const { return _randomSpawnGap; }
 	/// Gets the research triggers that may apply to this command.
 	const std::map<std::string, bool> &getResearchTriggers() const { return _researchTriggers; }
 	/// Gets the item triggers that may apply to this command.

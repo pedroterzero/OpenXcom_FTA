@@ -26,6 +26,7 @@ namespace OpenXcom
 {
 
 enum LoyaltySource {XCOM_BATTLESCAPE, XCOM_DOGFIGHT, XCOM_GEOSCAPE, XCOM_RESEARCH, ALIEN_MISSION_DESPAWN, ALIEN_UFO_ACTIVITY, ALIEN_BASE};
+enum ProcessorSource {MOTHLY, FACTIONAL, XCOM};
 
 class Game;
 class GeoscapeState;
@@ -43,6 +44,8 @@ public:
 	/// Method that help create the new game in FtA way
 	void newGameHelper(int diff, GeoscapeState* gs);
 
+	/// Process event script from different sources
+	void eventScriptProcessor(Game& engine, std::vector<std::string> scripts, ProcessorSource source);
 	/// Generate Geoscape event from it's name if everything is ok with it.
 	bool spawnEvent(std::string name);
 	/// Loyalty update handler

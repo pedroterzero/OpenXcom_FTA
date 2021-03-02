@@ -256,13 +256,20 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 		{
 			//load treaty scripts from rules to generate missions and geoscape events
 			_commandsToProcess = _rule->getHelpTreatyMissions();
-			_eventsToProcess = _rule->getHelpTreatyEvents();
+			_eventsToProcess = _rule->getHelpTreatyEventScripts();
 		}
 
 		//generate missions and events
 		factionMissionGenerator(engine);
-		factionEventGenerator(engine);
 
+		if (!_rule->getFactionalEvents().empty())
+		{
+			for (auto& s : _rule->getUsualEventScripts())
+			{
+				_eventsToProcess.push_back(s);
+			}
+		}
+		mind.eventScriptProcessor(engine, _eventsToProcess, FACTIONAL);
 	}
 }
 
@@ -526,121 +533,6 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 					if (triggerHappy)
 					{
 						_availableMissionScripts.push_back(ruleScript);
-					}
-				}
-			}
-		}
-	}
-}
-
-/**
- * Handle factional events processing.
- * @param Game game engine.
- */
-void DiplomacyFaction::factionEventGenerator(Game& engine)
-{
-	if (!_eventsToProcess.empty())
-	{
-		const Mod& mod = *engine.getMod();
-		SavedGame& save = *engine.getSavedGame();
-		if (RNG::percent(_rule->getGenEventFrequency()))
-		{
-			for (auto &name : _eventsToProcess)
-			{
-				auto ruleScript = mod.getEventScript(name);
-				auto month = save.getMonthsPassed();
-				int loyalty = save.getLoyalty();
-				if (ruleScript->getFirstMonth() <= month &&
-					(ruleScript->getLastMonth() >= month || ruleScript->getLastMonth() == -1) &&
-					(ruleScript->getMinScore() <= save.getCurrentScore(month)) &&
-					(ruleScript->getMaxScore() >= save.getCurrentScore(month)) &&
-					(ruleScript->getMinLoyalty() <= loyalty) &&
-					(ruleScript->getMaxLoyalty() >= loyalty) &&
-					(ruleScript->getMinFunds() <= save.getFunds()) &&
-					(ruleScript->getMaxFunds() >= save.getFunds()) &&
-					ruleScript->getMinDifficulty() <= save.getDifficulty() &&
-					ruleScript->getMaxDifficulty() >= save.getDifficulty() &&
-					(ruleScript->getAllowedProcessor() == 0 || ruleScript->getAllowedProcessor() == 2))
-				{
-					// level two condition check: make sure we meet any research requirements, if any.
-					bool triggerHappy = true;
-					for (std::map<std::string, bool>::const_iterator j = ruleScript->getResearchTriggers().begin(); triggerHappy && j != ruleScript->getResearchTriggers().end(); ++j)
-					{
-						triggerHappy = (save.isResearched(j->first) == j->second);
-						if (!triggerHappy)
-							continue;
-					}
-					if (triggerHappy)
-					{
-						// item requirements
-						for (auto& triggerItem : ruleScript->getItemTriggers())
-						{
-							triggerHappy = (save.isItemObtained(triggerItem.first) == triggerItem.second);
-							if (!triggerHappy)
-								continue;
-						}
-					}
-					if (triggerHappy)
-					{
-						// facility requirements
-						for (auto& triggerFacility : ruleScript->getFacilityTriggers())
-						{
-							triggerHappy = (save.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
-							if (!triggerHappy)
-								continue;
-						}
-					}
-					// ok, we still want event from this script, now let`s actually choose one.
-					if (triggerHappy)
-					{
-						std::vector<const RuleEvent*> toBeGenerated;
-
-						// 1. sequentially generated one-time events (cannot repeat)
-						{
-							std::vector<std::string> possibleSeqEvents;
-							for (auto& seqEvent : ruleScript->getOneTimeSequentialEvents())
-							{
-								if (!save.wasEventGenerated(seqEvent))
-									possibleSeqEvents.push_back(seqEvent); // insert
-							}
-							if (!possibleSeqEvents.empty())
-							{
-								auto eventRules = mod.getEvent(possibleSeqEvents.front(), true); // take first
-								toBeGenerated.push_back(eventRules);
-							}
-						}
-
-						// 2. randomly generated one-time events (cannot repeat)
-						{
-							WeightedOptions possibleRngEvents;
-							WeightedOptions tmp = ruleScript->getOneTimeRandomEvents(); // copy for the iterator, because of getNames()
-							possibleRngEvents = tmp; // copy for us to modify
-							for (auto& rngEvent : tmp.getNames())
-							{
-								if (save.wasEventGenerated(rngEvent))
-									possibleRngEvents.set(rngEvent, 0); // delete
-							}
-							if (!possibleRngEvents.empty())
-							{
-								auto eventRules = mod.getEvent(possibleRngEvents.choose(), true); // take random
-								toBeGenerated.push_back(eventRules);
-							}
-						}
-
-						// 3. randomly generated repeatable events
-						{
-							auto eventRules = mod.getEvent(ruleScript->generate(save.getMonthsPassed()), false);
-							if (eventRules)
-							{
-								toBeGenerated.push_back(eventRules);
-							}
-						}
-
-						// 4. generate
-						for (auto eventRules : toBeGenerated)
-						{
-							engine.getMasterMind()->spawnEvent(eventRules->getName());
-						}
 					}
 				}
 			}

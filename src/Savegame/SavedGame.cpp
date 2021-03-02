@@ -635,6 +635,7 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 		}
 	}
 	_missionScriptsTimers = doc["missionScriptsTimers"].as< std::map<std::string, int> >(_missionScriptsTimers);
+	_eventScriptsTimers = doc["eventScriptsTimers"].as< std::map<std::string, int> >(_eventScriptsTimers);
 	_generatedEvents = doc["generatedEvents"].as< std::map<std::string, int> >(_generatedEvents);
 	_ufopediaRuleStatus = doc["ufopediaRuleStatus"].as< std::map<std::string, int> >(_ufopediaRuleStatus);
 	_manufactureRuleStatus = doc["manufactureRuleStatus"].as< std::map<std::string, int> >(_manufactureRuleStatus);
@@ -944,6 +945,7 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 		node["performedCovertOperations"].push_back((*i));
 	}
 	node["missionScriptsTimers"] = _missionScriptsTimers;
+	node["eventScriptsTimers"] = _eventScriptsTimers;
 	node["generatedEvents"] = _generatedEvents;
 	node["ufopediaRuleStatus"] = _ufopediaRuleStatus;
 	node["manufactureRuleStatus"] = _manufactureRuleStatus;
@@ -2871,6 +2873,35 @@ void SavedGame::handleMissionScriptTimers()
 		else
 		{
 			_missionScriptsTimers.at((*it).first) -= 1;
+			++it;
+		}
+	}
+}
+
+void SavedGame::setEventScriptGapTimer(const std::string& name, int timer)
+{
+	if (timer > 0)
+	{
+		_eventScriptsTimers[name] += timer;
+	}
+}
+
+bool SavedGame::getEventScriptGapped(const std::string& name)
+{
+	return (_eventScriptsTimers.find(name) != _eventScriptsTimers.end());
+}
+
+void SavedGame::handleEventScriptTimers()
+{
+	for (auto it = _eventScriptsTimers.cbegin(); it != _eventScriptsTimers.cend();)
+	{
+		if ((*it).second < 1)
+		{
+			it = _eventScriptsTimers.erase(it);
+		}
+		else
+		{
+			_eventScriptsTimers.at((*it).first) -= 1;
 			++it;
 		}
 	}

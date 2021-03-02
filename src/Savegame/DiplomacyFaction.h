@@ -76,8 +76,6 @@ private:
 	void processFactionalEvents(Game& engine);
 	/// Generates mission for the faction base on current situation in the game.
 	void factionMissionGenerator(Game& engine);
-	/// Generates event from the faction base on current situation in the game.
-	void factionEventGenerator(Game& engine);
 	/// Handle purshaising of Faction's items, based on current situation.
 	void handleRestock();
 	/// Handle selling of faction's items, if they don't need them anymore.

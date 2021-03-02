@@ -149,7 +149,7 @@ private:
 	SavedBattleGame *_battleGame;
 	std::vector<const RuleResearch*> _discovered;
 	std::vector<std::string> _performedOperations;
-	std::map<std::string, int> _missionScriptsTimers;
+	std::map<std::string, int> _missionScriptsTimers, _eventScriptsTimers;
 	std::map<std::string, int> _generatedEvents;
 	std::map<std::string, int> _ufopediaRuleStatus;
 	std::map<std::string, int> _manufactureRuleStatus;
@@ -432,6 +432,14 @@ public:
 	bool getMissionScriptGapped(const std::string& name);
 	/// Reducing gap timers of mission script commands and cleaning list if needed.
 	void handleMissionScriptTimers();
+
+	/// Calculates and remembers gap timer for event script command.
+	void setEventScriptGapTimer(const std::string& name, int timer);
+	/// Checks if event script command is in list of commands that should not be processed yet.
+	bool getEventScriptGapped(const std::string& name);
+	/// Reducing gap timers of event script commands and cleaning list if needed.
+	void handleEventScriptTimers();
+
 	/// Gets the list of dead soldiers.
 	std::vector<Soldier*> *getDeadSoldiers();
 	/// Gets the last selected player base.

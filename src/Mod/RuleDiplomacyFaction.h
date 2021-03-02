@@ -34,12 +34,12 @@ class RuleDiplomacyFaction
 {
 private:
 	std::string _name, _description, _background, _cardBackground, _discoverResearch, _discoverEvent, _startingResearch;
-	int _genMissionFrequency, _genEventFrequency;
+	int _genMissionFrequency;
 	int _sellPriceFactor, _buyPriceFactor, _repPriceFactor, _stockMod, _powerHungry, _scienceBaseCost;
 	int _startingReputation, _startingFunds, _startingPower;
 	std::map<std::string, int> _startingItems, _startingStaff, _staffWeights;
 	std::map<std::string, double> _wishList;
-	std::vector<std::string> _helpTreatyMissions, _helpTreatyEvents, _happyEvents, _angryEvents, _startingResearches, _factionalEvents;
+	std::vector<std::string> _helpTreatyMissions, _helpTreatyEventScripts, _usualEventsScripts, _happyEvents, _angryEvents, _startingResearches, _factionalEvents;
 public:
 	/// Creates a blank RuleDiplomacyFaction.
 	RuleDiplomacyFaction(const std::string &name);
@@ -78,10 +78,10 @@ public:
 	const std::vector<std::string>& getHelpTreatyMissions() const { return _helpTreatyMissions; }
 	/// Gets mission frequency for generatoting.
 	int getGenMissionFrequency() const { return _genMissionFrequency; };
-	/// Gets geoscape event scripts to run from faction generator.
-	const std::vector<std::string>& getHelpTreatyEvents() const { return _helpTreatyEvents; }
-	/// Gets geoscape event frequency for generator.
-	int getGenEventFrequency() const { return _genEventFrequency; };
+	/// Gets geoscape event scripts to run as help treaty list.
+	const std::vector<std::string>& getHelpTreatyEventScripts() const { return _helpTreatyEventScripts; }
+	/// Gets geoscape event scripts to run without any factional's condition.
+	const std::vector<std::string>& getUsualEventScripts() const { return _usualEventsScripts; }
 	/// Gets geoscape events to spawn when faction is super happy with player's actions.
 	const std::vector<std::string>& getHappyEvents() const { return _happyEvents; }
 	/// Gets geoscape events to spawn when faction is super angry on player.

@@ -30,7 +30,7 @@ namespace OpenXcom
 RuleEventScript::RuleEventScript(const std::string &type) :
 	_type(type), _firstMonth(0), _lastMonth(-1), _executionOdds(100), _minDifficulty(0), _maxDifficulty(4),
 	_minScore(INT_MIN), _maxScore(INT_MAX), _minLoyalty(INT_MIN), _maxLoyalty(INT_MAX), _minFunds(INT64_MIN), _maxFunds(INT64_MAX),
-	_affectsGameProgression(false), _allowedProcessor(0)
+	_affectsGameProgression(false), _allowedProcessor(0), _spawnGap(0), _randomSpawnGap(0)
 {
 }
 
@@ -85,7 +85,9 @@ void RuleEventScript::load(const YAML::Node &node)
 	_itemTriggers = node["itemTriggers"].as<std::map<std::string, bool> >(_itemTriggers);
 	_facilityTriggers = node["facilityTriggers"].as<std::map<std::string, bool> >(_facilityTriggers);
 	_affectsGameProgression = node["affectsGameProgression"].as<bool>(_affectsGameProgression);
-	_allowedProcessor = node["allowedProcessor"].as<int>(_allowedProcessor); //0 - any, 1 - monthly only, 2 - faction only
+	_allowedProcessor = node["allowedProcessor"].as<int>(_allowedProcessor); //0 - monthly only, 1 - faction only, 2 - xcom only
+	_spawnGap = node["spawnGap"].as<int>(_spawnGap);
+	_randomSpawnGap = node["randomSpawnGap"].as<int>(_randomSpawnGap);
 }
 
 /**

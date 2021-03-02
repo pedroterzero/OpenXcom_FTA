@@ -2429,10 +2429,14 @@ void GeoscapeState::time1Day()
 		}
 	}
 
-	// Handle mission scripts gap timers
+	// Handle mission and event scripts gap timers
 	_game->getSavedGame()->handleMissionScriptTimers();
+	_game->getSavedGame()->handleEventScriptTimers();
 
-	//handle daily Faction logic
+	// Handle daily internal xcom events
+	_game->getMasterMind()->eventScriptProcessor(*_game, *mod->getEventScriptList(), XCOM);
+
+	//Handle daily Faction logic
 	for (auto faction : saveGame->getDiplomacyFactions())
 	{
 		faction->think(*_game,TIMESTEP_DAILY);
@@ -3534,117 +3538,7 @@ void GeoscapeState::determineAlienMissions()
 	}
 
 	// after the mission scripts, it's time for the event scripts
-	{
-		std::vector<RuleEventScript *> relevantEventScripts;
-
-		// first we need to build a list of "valid" commands
-		for (auto& scriptName : *mod->getEventScriptList())
-		{
-			RuleEventScript *eventScript = mod->getEventScript(scriptName);
-
-			// level one condition check: make sure we're within our time constraints
-			if (eventScript->getFirstMonth() <= month &&
-				(eventScript->getLastMonth() >= month || eventScript->getLastMonth() == -1) &&
-				// and make sure we satisfy the difficulty restrictions
-				(month < 1 || eventScript->getMinScore() <= currentScore) &&
-				(month < 1 || eventScript->getMaxScore() >= currentScore) &&
-				(month < 1 || eventScript->getMinLoyalty() <= loyalty) &&
-				(month < 1 || eventScript->getMaxLoyalty() >= loyalty) &&
-				(month < 1 || eventScript->getMinFunds() <= currentFunds) &&
-				(month < 1 || eventScript->getMaxFunds() >= currentFunds) &&
-				eventScript->getMinDifficulty() <= save->getDifficulty() &&
-				eventScript->getMaxDifficulty() >= save->getDifficulty() &&
-				(eventScript->getAllowedProcessor() == 0 || eventScript->getAllowedProcessor() == 1))
-			{
-				// level two condition check: make sure we meet any research requirements, if any.
-				bool triggerHappy = true;
-				for (auto& trigger : eventScript->getResearchTriggers())
-				{
-					triggerHappy = (save->isResearched(trigger.first) == trigger.second);
-					if (!triggerHappy)
-						break;
-				}
-				if (triggerHappy)
-				{
-					// item requirements
-					for (auto &triggerItem : eventScript->getItemTriggers())
-					{
-						triggerHappy = (save->isItemObtained(triggerItem.first) == triggerItem.second);
-						if (!triggerHappy)
-							break;
-					}
-				}
-				if (triggerHappy)
-				{
-					// facility requirements
-					for (auto &triggerFacility : eventScript->getFacilityTriggers())
-					{
-						triggerHappy = (save->isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
-						if (!triggerHappy)
-							break;
-					}
-				}
-				// level three condition check: does random chance favour this command's execution?
-				if (triggerHappy && RNG::percent(eventScript->getExecutionOdds()))
-				{
-					relevantEventScripts.push_back(eventScript);
-				}
-			}
-		}
-
-		// now, let's process the relevant event scripts
-		for (auto& eventCommand : relevantEventScripts)
-		{
-			std::vector<const RuleEvent*> toBeGenerated;
-
-			// 1. sequentially generated one-time events (cannot repeat)
-			{
-				std::vector<std::string> possibleSeqEvents;
-				for (auto& seqEvent : eventCommand->getOneTimeSequentialEvents())
-				{
-					if (!save->wasEventGenerated(seqEvent))
-						possibleSeqEvents.push_back(seqEvent); // insert
-				}
-				if (!possibleSeqEvents.empty())
-				{
-					auto eventRules = mod->getEvent(possibleSeqEvents.front(), true); // take first
-					toBeGenerated.push_back(eventRules);
-				}
-			}
-
-			// 2. randomly generated one-time events (cannot repeat)
-			{
-				WeightedOptions possibleRngEvents;
-				WeightedOptions tmp = eventCommand->getOneTimeRandomEvents(); // copy for the iterator, because of getNames()
-				possibleRngEvents = tmp; // copy for us to modify
-				for (auto& rngEvent : tmp.getNames())
-				{
-					if (save->wasEventGenerated(rngEvent))
-						possibleRngEvents.set(rngEvent, 0); // delete
-				}
-				if (!possibleRngEvents.empty())
-				{
-					auto eventRules = mod->getEvent(possibleRngEvents.choose(), true); // take random
-					toBeGenerated.push_back(eventRules);
-				}
-			}
-
-			// 3. randomly generated repeatable events
-			{
-				auto eventRules = mod->getEvent(eventCommand->generate(save->getMonthsPassed()), false);
-				if (eventRules)
-				{
-					toBeGenerated.push_back(eventRules);
-				}
-			}
-
-			// 4. generate
-			for (auto eventRules : toBeGenerated)
-			{
-				_game->getMasterMind()->spawnEvent(eventRules->getName());
-			}
-		}
-	}
+	_game->getMasterMind()->eventScriptProcessor(*_game, *mod->getEventScriptList(), MOTHLY);
 
 	// Alien base upgrades happen only AFTER the first game month
 	if (month > 0)
