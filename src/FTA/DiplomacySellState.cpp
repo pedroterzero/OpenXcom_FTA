@@ -394,9 +394,12 @@ int DiplomacySellState::getCostAdjustment(int baseCost)
 	int normalizedRep = _faction->getReputationLevel() - 3;
 	int diffFactor = _game->getSavedGame()->getSellPriceCoefficient();
 	int64_t result = baseCost;
-	result *= priceFactor / 100;
-	result *= normalizedRep / 100;
-	result *= diffFactor / 100;
+	if (priceFactor != 0 && repFactor != 0 && normalizedRep != 0 && diffFactor != 0)
+	{
+		result *= priceFactor / 100;
+		result *= normalizedRep / 100;
+		result *= diffFactor / 100;
+	}
 
 	return static_cast<int>(result);
 }

@@ -328,8 +328,11 @@ int DiplomacyPurchaseState::getCostAdjustment(int baseCost)
 	int repFactor = _faction->getRules()->getRepPriceFactor();
 	int normalizedRep = _faction->getReputationLevel() - 3;
 	int64_t result = baseCost;
-	result *= priceFactor / 100;
-	result *= normalizedRep / 100;
+	if (priceFactor != 0 && repFactor != 0 && normalizedRep != 0)
+	{
+		result *= priceFactor / 100;
+		result *= normalizedRep / 100;
+	}
 
 	return static_cast<int>(result);
 }
@@ -891,6 +894,8 @@ void DiplomacyPurchaseState::increaseByValue(int change)
 
 	if (errorMessage.empty())
 	{
+		int t = getRow().cost;
+		auto row = getRow();
 		int maxByMoney = (_game->getSavedGame()->getFunds() - _total) / getRow().cost;
 		if (maxByMoney >= 0)
 			change = std::min(maxByMoney, change);
