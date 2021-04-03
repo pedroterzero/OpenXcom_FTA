@@ -2335,7 +2335,7 @@ void BattlescapeGame::removeSummonedPlayerUnits()
 		}
 		if (!vip)
 		{
-			if (!(*unit)->isSummonedPlayerUnit())
+			if (!(*unit)->isSummonedPlayerUnit() && !vip)
 			{
 				++unit;
 			}
@@ -2352,17 +2352,22 @@ void BattlescapeGame::removeSummonedPlayerUnits()
 				if ((*unit)->getStatus() == STATUS_UNCONSCIOUS || (*unit)->getStatus() == STATUS_DEAD)
 					_save->removeUnconsciousBodyItem((*unit));
 
-			//remove all items form unit
-			(*unit)->removeSpecialWeapons(_save);
-			auto inv = *(*unit)->getInventory();
-			for (auto* bi : inv)
-			{
-				_save->removeItem(bi);
-			}
+				//remove all items form unit
+				(*unit)->removeSpecialWeapons(_save);
+				auto inv = *(*unit)->getInventory();
+				for (auto* bi : inv)
+				{
+					_save->removeItem(bi);
+				}
 
-			(*unit)->setTile(nullptr, _save);
-			delete (*unit);
-			unit = _save->getUnits()->erase(unit);
+				(*unit)->setTile(nullptr, _save);
+				delete (*unit);
+				unit = _save->getUnits()->erase(unit);
+			}
+		}
+		else
+		{
+			++unit;
 		}
 	}
 

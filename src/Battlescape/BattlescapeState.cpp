@@ -3128,19 +3128,24 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 	// reset touch flags
 	_game->resetTouchButtonFlags();
 
-	// dear civilians and summoned player units,
-	// please drop all borrowed xcom equipment now, so that we can recover it
+	// dear civilians, xcom vulanteers and summoned player units
+	// please drop all borrowed xcom equipment now (including mission objective) and your xcom donations, so that we can recover it
 	// thank you!
 	std::vector<BattleItem*> itemsToDrop;
 	for (auto* unit : *_save->getUnits())
 	{
 		bool relevantUnitType = unit->getOriginalFaction() == FACTION_NEUTRAL || unit->isSummonedPlayerUnit();
+		bool joinXCOM = false;
+		if (unit->getUnitRules() != nullptr)
+		{
+			joinXCOM = !unit->getUnitRules()->getCivilianRecoveryType().empty();
+		}
 		if (relevantUnitType && !unit->isOut())
 		{
 			itemsToDrop.clear();
 			for (auto* item : *unit->getInventory())
 			{
-				if (item->getXCOMProperty() || item->getUnit())
+				if (item->getXCOMProperty() || item->getUnit() || item->getRules()->isMissionObjective() || joinXCOM)
 				{
 					itemsToDrop.push_back(item);
 				}
