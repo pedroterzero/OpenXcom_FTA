@@ -1287,8 +1287,8 @@ void BattlescapeGenerator::autoEquip(std::vector<BattleUnit*> units, Mod *mod, s
  */
 BattleUnit *BattlescapeGenerator::addXCOMVehicle(Vehicle *v)
 {
-	Unit *rule = v->getRules()->getVehicleUnit();
-	BattleUnit *unit = addXCOMUnit(new BattleUnit(_game->getMod(), rule, FACTION_PLAYER, _unitSequence++, nullptr, rule->getArmor(), 0, _save->getDepth()));
+	const Unit *rule = v->getRules()->getVehicleUnit();
+	BattleUnit *unit = addXCOMUnit(_save->createTempUnit(rule, FACTION_PLAYER, _unitSequence++));
 	if (unit)
 	{
 		_save->createItemForUnit(v->getRules(), unit, true);
@@ -1612,7 +1612,7 @@ void BattlescapeGenerator::deployAliens(const AlienDeployment *deployment)
  */
 BattleUnit *BattlescapeGenerator::addAlien(Unit *rules, int alienRank, bool outside)
 {
-	BattleUnit *unit = new BattleUnit(_game->getMod(), rules, FACTION_HOSTILE, _unitSequence++, _save->getEnviroEffects(), rules->getArmor(), _game->getMod()->getStatAdjustment(_game->getSavedGame()->getDifficulty()), _save->getDepth());
+	BattleUnit *unit = _save->createTempUnit(rules, FACTION_HOSTILE, _unitSequence++);
 	Node *node = 0;
 
 	// safety to avoid index out of bounds errors
@@ -1633,7 +1633,7 @@ BattleUnit *BattlescapeGenerator::addAlien(Unit *rules, int alienRank, bool outs
 
 	if (node && _save->setUnitPosition(unit, node->getPosition()))
 	{
-		unit->setAIModule(new AIModule(_game->getSavedGame()->getSavedBattle(), unit, node));
+		unit->getAIModule()->setStartNode(node);
 		unit->setRankInt(alienRank);
 		int dir = _save->getTileEngine()->faceWindow(node->getPosition());
 		Position craft = _game->getSavedGame()->getSavedBattle()->getUnits()->at(0)->getPosition();
@@ -1653,7 +1653,6 @@ BattleUnit *BattlescapeGenerator::addAlien(Unit *rules, int alienRank, bool outs
 		// DEMIGOD DIFFICULTY: screw the player: spawn as many aliens as possible.
 		if (_game->getMod()->isDemigod() && placeUnitNearFriend(unit))
 		{
-			unit->setAIModule(new AIModule(_game->getSavedGame()->getSavedBattle(), unit, 0));
 			unit->setRankInt(alienRank);
 			int dir = _save->getTileEngine()->faceWindow(unit->getPosition());
 			Position craft = _game->getSavedGame()->getSavedBattle()->getUnits()->at(0)->getPosition();
@@ -1683,13 +1682,13 @@ BattleUnit *BattlescapeGenerator::addAlien(Unit *rules, int alienRank, bool outs
  */
 BattleUnit *BattlescapeGenerator::addCivilian(Unit *rules, int nodeRank)
 {
-	BattleUnit *unit = new BattleUnit(_game->getMod(), rules, FACTION_NEUTRAL, _unitSequence++, _save->getEnviroEffects(), rules->getArmor(), 0, _save->getDepth());
+	BattleUnit *unit = _save->createTempUnit(rules, FACTION_NEUTRAL, _unitSequence++);
 	Node *node = _save->getSpawnNode(nodeRank, unit);
 
 	if (node)
 	{
 		_save->setUnitPosition(unit, node->getPosition());
-		unit->setAIModule(new AIModule(_save, unit, node));
+		unit->getAIModule()->setStartNode(node);
 		unit->setDirection(RNG::generate(0,7));
 
 		// we only add a unit if it has a node to spawn on.
@@ -1698,7 +1697,6 @@ BattleUnit *BattlescapeGenerator::addCivilian(Unit *rules, int nodeRank)
 	}
 	else if (placeUnitNearFriend(unit))
 	{
-		unit->setAIModule(new AIModule(_save, unit, node));
 		unit->setDirection(RNG::generate(0,7));
 		_save->getUnits()->push_back(unit);
 	}
