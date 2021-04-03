@@ -1242,9 +1242,28 @@ void BattlescapeGenerator::autoEquip(std::vector<BattleUnit*> units, Mod *mod, s
 						// let's not be greedy, we'll only take a second extra clip
 						// if everyone else has had a chance to take a first.
 						bool allowSecondClip = (pass == 3);
-						if ((*i)->addItem(*j, mod, allowSecondClip, allowAutoLoadout))
+						bool placed = false;
+						int stackSize = (*j)->getRules()->getStackSize();
+						auto itemType = (*j)->getRules()->getType(); // remember current item type so we can stop filling the stack if we run out of items of this type.
+						for (int s = 0; s < stackSize; ++s) //we want to fill all stack 
 						{
-							j = craftInv->erase(j);
+							if ((*i)->addItem(*j, mod, allowSecondClip, allowAutoLoadout))
+							{
+								j = craftInv->erase(j);
+								placed = true;
+							}
+							else
+							{
+								break; // if we can't fit even one no point in trying to equip more
+							}
+							// if there are no more items of this type or we reached the end of the craft inventory then break
+							if (j == craftInv->end() || itemType != (*j)->getRules()->getType()) // Using shortcut evaluation trick here. Wonder if it's better to separate these two conditions
+							{
+								break;
+							}
+						}
+						if (placed)
+						{
 							add = false;
 							break;
 						}
