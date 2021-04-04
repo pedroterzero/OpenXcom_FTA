@@ -163,6 +163,7 @@ void SavedBattleGame::load(const YAML::Node &node, Mod *mod, SavedGame* savedGam
 	_globalShade = node["globalshade"].as<int>(_globalShade);
 	_turn = node["turn"].as<int>(_turn);
 	_alarmLvl = node["alarmLvl"].as<int>(_alarmLvl);
+	_battleScriptVars = node["battleScriptVars"].as< std::map<std::string, int> >(_battleScriptVars);
 	_bughuntMinTurn = node["bughuntMinTurn"].as<int>(_bughuntMinTurn);
 	_bughuntMode = node["bughuntMode"].as<bool>(_bughuntMode);
 	_itemObjectivesNumber = node["itemObjectivesNumber"].as<int>(_itemObjectivesNumber);
@@ -551,6 +552,7 @@ YAML::Node SavedBattleGame::save() const
 	node["globalshade"] = _globalShade;
 	node["turn"] = _turn;
 	node["alarmLvl"] = _alarmLvl;
+	node["battleScriptVars"] = _battleScriptVars;
 	node["bughuntMinTurn"] = _bughuntMinTurn;
 	node["animFrame"] = _animFrame;
 	node["bughuntMode"] = _bughuntMode;
@@ -759,6 +761,41 @@ AlienDeployment* SavedBattleGame::getAlienDeploymet()
 ItemContainer *SavedBattleGame::getBaseStorageItems()
 {
 	return _baseItems;
+}
+
+/**
+* Find battleScript variable for the battle game.
+* @return value for battleScript variable.
+*/
+int SavedBattleGame::findBattleScriptVariable(const std::string& varName)
+{
+	for (std::map<std::string, int>::iterator i = _battleScriptVars.begin(); i != _battleScriptVars.end(); ++i)
+	{
+		if ((*i).first == varName)
+		{
+			return (*i).second;
+		}
+	}
+	return 0;
+}
+
+/**
+* Increments battleScript variable with value.
+*/
+void SavedBattleGame::updateBattleScriptVariable(const std::string& varName, int val)
+{
+	for (std::map<std::string, int>::iterator i = _battleScriptVars.begin(); i != _battleScriptVars.end(); ++i)
+	{
+		if ((*i).first == varName)
+		{
+			(*i).second += 1;
+			return;
+		}
+	}
+	if (val)
+	{
+		_battleScriptVars.insert(std::pair<std::string, int>(varName, val));
+	}
 }
 
 /**

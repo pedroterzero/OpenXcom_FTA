@@ -188,6 +188,14 @@ private:
 	std::vector<InfoboxOKState*> _infoboxQueue;
 	/// Shows the infoboxes in the queue (if any).
 	void showInfoBoxQueue();
+	/// Process battlescripts.
+	void processBattleScripts(const std::vector<BattleScript*>* script);
+	/// Gets valid blocks to process the battlescript command.
+	std::vector<std::pair<int, int>> getValidBlocks(BattleScript* command);
+	/// Spawn units as part of battlescript commands.
+	bool scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock);
+	/// Display message fro the battlescript
+	void displayScriptMessage(BattleScript* command);
 public:
 	/// is debug mode enabled in the battlescape?
 	static bool _debugPlay;
@@ -319,14 +327,6 @@ public:
 	bool areAllEnemiesNeutralized() const { return _allEnemiesNeutralized; }
 	/// Resets the flag.
 	void resetAllEnemiesNeutralized() { _allEnemiesNeutralized = false; }
-	/// Process battlescripts.
-	void processBattleScripts(const std::vector<BattleScript*>* script);
-	/// Gets valid blocks to process the battlescript command.
-	std::vector<std::pair<int, int>> getValidBlocks(BattleScript* command);
-	/// Spawn units as part of battlescript commands.
-	void scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock);
-	/// Display message fro the battlescript
-	void displayScriptMessage(BattleScript* command);
 };
 
 }

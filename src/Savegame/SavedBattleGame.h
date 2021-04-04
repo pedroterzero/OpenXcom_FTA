@@ -113,6 +113,7 @@ private:
 	int _alarmLvl;
 	bool _beforeGame;
 	std::string _hiddenMovementBackground;
+	std::map<std::string, int> _battleScriptVars;
 	HitLog *_hitLog;
 	ScriptValues<SavedBattleGame> _scriptValues;
 	/// Selects a soldier.
@@ -158,6 +159,10 @@ public:
 	ItemContainer *getBaseStorageItems();
 	/// Gets the alarm level of the battle game.
 	int getAlarmLevel() const { return _alarmLvl; };
+	/// Find battleScript variable for the battle game.
+	int findBattleScriptVariable(const std::string& varName);
+	/// Increments battleScript variable with value.
+	void updateBattleScriptVariable(const std::string& varName, int val = 0);
 	/// Applies the enviro effects.
 	void applyEnviroEffects(const RuleEnviroEffects* enviroEffects);
 	/// Gets the enviro effects.

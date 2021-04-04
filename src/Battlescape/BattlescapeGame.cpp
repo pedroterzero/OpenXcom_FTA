@@ -3269,6 +3269,7 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 	for (std::vector<BattleScript*>::const_iterator i = script->begin(); i != script->end(); ++i)
 	{
 		BattleScript* command = *i;
+		std::string varName = command->getVariableName();
 
 		int turn = _save->getTurn();
 		if (turn < command->getStartTurn())
@@ -3284,6 +3285,14 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 		if (dif < command->getMinDifficulty() || dif > command->getMaxDifficulty())
 		{
 			continue;
+		}
+
+		if (command->getMaxRuns() > 0)
+		{
+			if (_save->findBattleScriptVariable(varName) >= command->getMaxRuns())
+			{
+				continue;
+			}
 		}
 
 		int alarm = _save->getAlarmLevel();
@@ -3347,10 +3356,14 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 						continue;
 					}
 					//spawn units
-					scriptSpawnUnit(command, validBlocks);
+					if (scriptSpawnUnit(command, validBlocks))
+					{
+						_save->updateBattleScriptVariable(varName, 1);
+					}
 					break;
 				case BSC_SHOW_MESSAGE:
 					displayScriptMessage(command);
+					_save->updateBattleScriptVariable(varName, 1);
 					break;
 				case BSC_ADDBLOCK:
 					Log(LOG_ERROR) << "Sorry, there is no support of processing addBlock command yet! :] ";
@@ -3474,7 +3487,7 @@ std::vector<std::pair<int, int>> OpenXcom::BattlescapeGame::getValidBlocks(Battl
 	return validBlocks;
 }
 
-void OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock)
+bool OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock)
 {
 	auto units = command->getUnitSet();
 	if (units.empty())
@@ -3634,6 +3647,7 @@ void OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 					//_parentState->getGame()->pushState(new InfoboxState(_parentState->getGame()->getLanguage()->getString(messageText), 4000));
 					_parentState->getGame()->pushState(new InfoboxOKState(_parentState->getGame()->getLanguage()->getString(messageText)));
 
+					return true;
 				}
 			}
 			else
@@ -3644,6 +3658,7 @@ void OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 		}
 		--tries;
 	}
+	return false;
 }
 
 }
