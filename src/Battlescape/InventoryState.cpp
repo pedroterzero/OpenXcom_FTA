@@ -594,6 +594,8 @@ void InventoryState::updateStats()
 	}
 	bool showPsiStrength = (psiSkillWithoutAnyBonuses > 0 || (Options::psiStrengthEval && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements())));
 
+	bool ftaGame = _game->getMod()->getIsFTAGame();
+
 	auto updateStatLine = [&](Text* txtField, const std::string& elementId)
 	{
 		Element *element = _game->getMod()->getInterface("inventory")->getElement(elementId);
@@ -608,17 +610,36 @@ void InventoryState::updateStats()
 					txtField->setText(tr("STR_REACTIONS_SHORT").arg(unit->getBaseStats()->reactions));
 					break;
 				case 3:
-					if (psiSkillWithoutAnyBonuses > 0)
-						txtField->setText(tr("STR_PSIONIC_SKILL_SHORT").arg(unit->getBaseStats()->psiSkill));
+					if (ftaGame)
+					{
+						txtField->setText(tr("STR_MELEE_SHORT").arg(unit->getBaseStats()->melee));
+						break;
+					}
 					else
-						txtField->setText("");
-					break;
+					{
+						if (psiSkillWithoutAnyBonuses > 0)
+							txtField->setText(tr("STR_PSIONIC_SKILL_SHORT").arg(unit->getBaseStats()->psiSkill));
+						else
+							txtField->setText("");
+						break;
+					}
 				case 4:
-					if (showPsiStrength)
-						txtField->setText(tr("STR_PSIONIC_STRENGTH_SHORT").arg(unit->getBaseStats()->psiStrength));
+					if (ftaGame)
+					{
+						if (psiSkillWithoutAnyBonuses > 0)
+							txtField->setText(tr("STR_PSIONIC_SKILL_SHORT").arg(unit->getBaseStats()->psiSkill));
+						else
+							txtField->setText("");
+						break;
+					}
 					else
-						txtField->setText("");
-					break;
+					{
+						if (showPsiStrength)
+							txtField->setText(tr("STR_PSIONIC_STRENGTH_SHORT").arg(unit->getBaseStats()->psiStrength));
+						else
+							txtField->setText("");
+						break;
+					}
 				case 11:
 					txtField->setText(tr("STR_FIRING_SHORT").arg(unit->getBaseStats()->firing));
 					break;
