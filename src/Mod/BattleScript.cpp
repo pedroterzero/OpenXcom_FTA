@@ -23,6 +23,7 @@
 #include "../Engine/Exception.h"
 #include "../Engine/Logger.h"
 #include "../Mod/RuleTerrain.h"
+#include <climits>
 
 
 namespace OpenXcom
