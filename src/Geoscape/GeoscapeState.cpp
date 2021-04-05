@@ -1727,9 +1727,7 @@ void GeoscapeState::baseHunting()
  */
 bool GeoscapeState::processMissionSite(MissionSite *site)
 {
-	SavedGame* save = _game->getSavedGame();
-	SavedBattleGame* battle = save->getSavedBattle();
-	auto alienCustomMission = _game->getMod()->getDeployment(battle->getAlienCustomMission());
+	auto alienCustomMission = site->getDeployment();
 	bool removeSite = site->getSecondsRemaining() < 30 * 60;
 	if (!removeSite)
 	{
