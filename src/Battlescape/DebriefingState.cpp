@@ -75,6 +75,7 @@
 #include "../Savegame/MissionStatistics.h"
 #include "../Savegame/BattleUnitStatistics.h"
 #include "../FTA/MasterMind.h"
+#include "../Ufopaedia/Ufopaedia.h"
 #include "../fallthrough.h"
 
 namespace OpenXcom
@@ -877,11 +878,6 @@ void DebriefingState::btnOkClick(Action *)
 	}
 	_game->getSavedGame()->setBattleGame(0);
 	_game->popState();
-
-	if (_game->getMod()->getIsFTAGame() && !_game->getSavedGame()->isResearched("STR_HELLO"))
-	{
-		_game->popState(); //we need this to skip Commander log arc script if the first mission was failed.
-	}
 		
 	if (_game->getSavedGame()->getMonthsPassed() == -1)
 	{
@@ -2231,9 +2227,14 @@ void DebriefingState::prepareDebriefing()
 			{
 				researchVec.push_back(_game->getMod()->getResearch(research->getLookup(), true));
 				_game->getSavedGame()->addFinishedResearch(researchVec.back(), _game->getMod(), base, true);
+				Ufopaedia::openArticle(_game, research->getLookup());
+			}
+			else
+			{
+				Ufopaedia::openArticle(_game, research->getName());
 			}
 
-			if (auto bonus = _game->getSavedGame()->selectGetOneFree(research))
+			if (const RuleResearch* bonus = _game->getSavedGame()->selectGetOneFree(research))
 			{
 				researchVec.push_back(bonus);
 				_game->getSavedGame()->addFinishedResearch(bonus, _game->getMod(), base, true);
@@ -2241,6 +2242,11 @@ void DebriefingState::prepareDebriefing()
 				{
 					researchVec.push_back(_game->getMod()->getResearch(bonus->getLookup(), true));
 					_game->getSavedGame()->addFinishedResearch(researchVec.back(), _game->getMod(), base, true);
+					Ufopaedia::openArticle(_game, research->getLookup());
+				}
+				else
+				{
+					Ufopaedia::openArticle(_game, bonus->getName());
 				}
 			}
 
