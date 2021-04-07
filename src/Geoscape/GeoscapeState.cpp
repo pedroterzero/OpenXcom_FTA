@@ -2182,6 +2182,14 @@ void GeoscapeState::time1Hour()
 			{
 				timerReset();
 			}
+ 
+			Collections::deleteIf(
+				_game->getSavedGame()->getGeoscapeEvents(),
+				[](GeoscapeEvent* ge)
+				{
+					return ge->isOver();
+				}
+			);
 		}
 	}
 
