@@ -201,10 +201,12 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 	SavedGame& save = *engine.getSavedGame();
 	// if finished, don't do anything
 	if (_over)
+	{
 		return false;
+	}
 
 	// are we there yet?
-	if (_spent <= _cost)
+	if (_spent < _cost)
 	{
 		++_spent;
 		//should we spawn ongoing event?
@@ -505,7 +507,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 		{
 			if (mod.getIsFTAGame())
 			{
-				missionRace = "STR_ADVENT";
+				missionRace = "STR_MIB";
 				Log(LOG_ERROR) << "An error occurred during the processing of the result of a covert operation:  " << this->getOperationName() << " ! In the rules of the alien mission " << missionName <<
 					" no alien race has been set! As we run FTAGame race set to " << missionRace;
 			}
@@ -594,6 +596,9 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 		//now we can finish operation
 		engine.pushState(new FinishedCoverOperationState(this, operationResult));
 	}
+
+	_over = true;
+
 	return true;
 }
 
@@ -610,23 +615,23 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	SavedGame& save = *engine.getSavedGame();
 
 	//first, we calculate how much experience we can award for the operation (expRolls)
-	int ruleCost = this->getRules()->getCosts();
+	int ruleCost = this->getRules()->getCosts() / 12;
 	int danger = this->getRules()->getDanger();
 	int effCost = 1;
 	if (ruleCost < 20) effCost = ceil(ruleCost / 8);
 	else if (ruleCost < 40) effCost = ceil(ruleCost / 8.5);
 	else if (ruleCost < 60) effCost = ceil(ruleCost / 9.86);
-	else if (effCost < 80) 	effCost = ceil(ruleCost / 11.54);
+	else if (ruleCost < 80) 	effCost = ceil(ruleCost / 11.54);
 	else effCost = ceil(ruleCost / 12.52);
 
 	int expRolls = 1 + effCost + ceil(danger / 3);
 	//limit experience gain
-	if (expRolls > 10 && expRolls <= 13) expRolls = 10;
-	if (expRolls > 13 && expRolls <= 16) expRolls = 11;
-	if (expRolls > 16) expRolls = 12;
+	if (expRolls > 5 && expRolls <= 8) expRolls = 6;
+	if (expRolls > 8 && expRolls <= 12) expRolls = 9;
+	if (expRolls > 12) expRolls = 10;
 
 	if (save.getMonthsPassed() > 10) expRolls++; //bonus for lategame
-	int expRollsRandom = RNG::generate(-3, 3);
+	int expRollsRandom = RNG::generate(-2, 2);
 	expRolls += expRollsRandom; //add more random
 	//experience is reduced for fail and critical fail
 	if (!operationResult && !criticalFail) expRolls = round(expRolls / 3);
@@ -649,7 +654,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 		int tuExp = 0, staminaExp = 0;
 		int healthExp = 0, braveryExp = 0, reactionsExp = 0, firingExp = 0, throwingExp = 0, meleeExp = 0, strengthExp = 0;
 		int psiSkillExp = 0, psiStrExp = 0, manaExp = 0;
-		//our dudes did something very wrong, so we hurt them back
+		//our dudes did something very wrong
 		if (criticalFail && danger > 0)
 		{
 			for (size_t j = 0; j < danger; j++)

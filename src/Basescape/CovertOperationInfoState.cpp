@@ -83,7 +83,7 @@ namespace OpenXcom
 		_txtScientists->setText(tr("STR_SCIENTISTS_N").arg(_operation->getAssignedScientists()));
 		_txtEngineers->setText(tr("STR_ENGINEERS_N").arg(_operation->getAssignedEngineers()));
 		_txtDungeonLevel->setText(tr("STR_DANGER_LEVEL").arg(_operation->getRules()->getDanger()));
-		_txtProgress->setText(tr("STR_OPERATION_PROGRESS").arg(_operation->getSpent()));
+		_txtProgress->setText(tr("STR_OPERATION_PROGRESS").arg(ceil(_operation->getSpent() / 24)));
 
 		if (_operation->getAssignedScientists() == 0)
 			_txtScientists->setVisible(false);

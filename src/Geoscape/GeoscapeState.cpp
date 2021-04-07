@@ -2179,15 +2179,9 @@ void GeoscapeState::time1Hour()
 		{
 			bool process = operation->think(*_game, *_globe);
 			if (process)
+			{
 				timerReset();
-			// Remove finished operation 
-			Collections::deleteIf(
-				_game->getSavedGame()->getGeoscapeEvents(),
-				[](GeoscapeEvent* ge)
-				{
-					return ge->isOver();
-				}
-			);
+			}
 		}
 	}
 

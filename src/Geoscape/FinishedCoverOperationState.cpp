@@ -150,11 +150,11 @@ namespace OpenXcom
 	void FinishedCoverOperationState::btnOkClick(Action*)
 	{
 		_operation->finishOperation();
-		_game->popState();
 		if (!_researchName.empty())
 		{
 			Ufopaedia::openArticle(_game, _researchName);
 		}
+		_game->popState();
 	}
 	/**
 	 * Shows Finished Covert Opration details.
