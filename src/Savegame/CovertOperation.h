@@ -138,6 +138,8 @@ public:
 	/// Create base Covert Operation results
 	CovertOperationResults(const std::string& operationName, bool result, std::string finishDate) :
 		_operationName(operationName), _result(result), _finishDate(finishDate), _score(0), _funds(0) {};
+	/// Cleans up the Covert Operation results info.
+	~CovertOperationResults() {};
 	/// Manipulate score
 	void addScore(int score) { _score += score; }
 	int getScore() { return _score; }
