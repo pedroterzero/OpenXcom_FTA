@@ -2222,31 +2222,37 @@ void DebriefingState::prepareDebriefing()
 		{
 			std::vector<const RuleResearch*> researchVec;
 			researchVec.push_back(research);
+			bool showPedia = !_game->getSavedGame()->isResearched(research);
 			_game->getSavedGame()->addFinishedResearch(research, _game->getMod(), base, true);
 			if (!research->getLookup().empty())
 			{
 				researchVec.push_back(_game->getMod()->getResearch(research->getLookup(), true));
 				_game->getSavedGame()->addFinishedResearch(researchVec.back(), _game->getMod(), base, true);
-				Ufopaedia::openArticle(_game, research->getLookup());
+				if (showPedia)
+					Ufopaedia::openArticle(_game, research->getLookup());
 			}
 			else
 			{
-				Ufopaedia::openArticle(_game, research->getName());
+				if (showPedia)
+					Ufopaedia::openArticle(_game, research->getName());
 			}
 
 			if (const RuleResearch* bonus = _game->getSavedGame()->selectGetOneFree(research))
 			{
 				researchVec.push_back(bonus);
+				showPedia = !_game->getSavedGame()->isResearched(bonus);
 				_game->getSavedGame()->addFinishedResearch(bonus, _game->getMod(), base, true);
 				if (!bonus->getLookup().empty())
 				{
 					researchVec.push_back(_game->getMod()->getResearch(bonus->getLookup(), true));
 					_game->getSavedGame()->addFinishedResearch(researchVec.back(), _game->getMod(), base, true);
-					Ufopaedia::openArticle(_game, research->getLookup());
+					if (showPedia)
+						Ufopaedia::openArticle(_game, research->getLookup());
 				}
 				else
 				{
-					Ufopaedia::openArticle(_game, bonus->getName());
+					if (showPedia)
+						Ufopaedia::openArticle(_game, bonus->getName());
 				}
 			}
 
