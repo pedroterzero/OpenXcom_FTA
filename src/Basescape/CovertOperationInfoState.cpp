@@ -31,6 +31,7 @@
 #include "../Savegame/CovertOperation.h"
 #include "../Savegame/Base.h"
 #include "SoldierInfoState.h"
+#include <cmath>
 #include <algorithm>
 #include <unordered_set>
 
