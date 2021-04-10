@@ -81,6 +81,7 @@ void RuleEventScript::load(const YAML::Node &node)
 	_maxLoyalty = node["maxLoyalty"].as<int>(_maxLoyalty);
 	_minFunds = node["minFunds"].as<int64_t>(_minFunds);
 	_maxFunds = node["maxFunds"].as<int64_t>(_maxFunds);
+	_requiredReputation = node["requiredReputation"].as<std::map<std::string, int>>(_requiredReputation);
 	_researchTriggers = node["researchTriggers"].as<std::map<std::string, bool> >(_researchTriggers);
 	_itemTriggers = node["itemTriggers"].as<std::map<std::string, bool> >(_itemTriggers);
 	_facilityTriggers = node["facilityTriggers"].as<std::map<std::string, bool> >(_facilityTriggers);
