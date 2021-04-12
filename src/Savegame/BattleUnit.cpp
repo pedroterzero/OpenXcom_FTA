@@ -2684,6 +2684,8 @@ std::vector<BattleItem*> *BattleUnit::getInventory()
  */
 bool BattleUnit::canStackToSlot(BattleItem* item, RuleInventory* slot, int x, int y) const
 {
+	// If target slot is empty stacking is not applicable
+	if (!getItem(slot, x, y)) { return false; }
 	// See if item is stackable at all. If not we can quit straight away
 	if (item->getRules()->getStackSize() < 2) {	return false; }
 	// Check if our item is of the same type as the one in the slot
@@ -2735,8 +2737,8 @@ bool BattleUnit::fitItemToInventory(RuleInventory *slot, BattleItem *item)
 	{
 		for (const RuleSlot &rs : *slot->getSlots())
 		{
-			if (!Inventory::overlapItems(this, item, slot, rs.x, rs.y) && slot->fitItemInSlot(rule, rs.x, rs.y) ||
-				canStackToSlot(item, slot, rs.x, rs.y))
+			if (slot->fitItemInSlot(rule, rs.x, rs.y) &&
+				(!Inventory::overlapItems(this, item, slot, rs.x, rs.y) || canStackToSlot(item, slot, rs.x, rs.y)))
 			{
 				item->moveToOwner(this);
 				item->setSlot(slot);
