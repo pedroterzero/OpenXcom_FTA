@@ -245,9 +245,10 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 		processFactionalEvents(engine);
 
 		//it's management time!
+		Log(LOG_DEBUG) << "Handling restock, Faction:  " << _rule->getName() << " has funds: " << _funds << " and power: " << _power << "."; //#CLEARLOGS
 		handleSelling(*engine.getMod());
 		handleRestock();
-		manageStaff();
+		//manageStaff(); #FINNIKTODO uncomment with alpha 2
 		int64_t reqFunds = managePower(save.getMonthsPassed(), _mod->getDefaultFactionPowerCost());
 		handleResearch(engine, reqFunds);
 
@@ -546,13 +547,11 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
  */
 void DiplomacyFaction::handleRestock()
 {
-	std::map<std::string, double> buyList;
-
 	for (auto it = _rule->getWishList().begin(); it != _rule->getWishList().end(); ++it)
 	{
 		RuleItem* ruleItem = _mod->getItem((*it).first);
-		int cost = ruleItem->getBuyCost();
-		if (cost == 0)
+		int64_t cost = ruleItem->getBuyCost();
+		if (cost <= 0)
 		{
 			// we don't have cost for the item, skip that trash!
 			continue;
@@ -561,39 +560,19 @@ void DiplomacyFaction::handleRestock()
 		// first, we see if we can handle this item
 		if (isResearched(ruleItem->getRequirements()) && isResearched(ruleItem->getBuyRequirements()))
 		{
-			buyList.insert(std::make_pair((*it).first, (*it).second / cost * 10000));
-		}
-	}
-
-	// now let's calculate absolute weight from sum of relative values
-	double rWeightSum = 0;
-	for (auto i = buyList.begin(); i != buyList.end(); ++i)
-	{
-		rWeightSum += (*i).second;
-	}
-
-	// finally, we can purchase things.
-	Log(LOG_DEBUG) << "Handling restock, Faction:  " << _rule->getName() << " has funds: " << _funds << " and power: " << _power << "."; //#CLEARLOGS
-
-	for (auto i = buyList.begin(); i != buyList.end(); ++i)
-	{
-		auto itemRule = _mod->getItem((*i).first);
-		int64_t toBuy = round((*i).second / rWeightSum * _power * _rule->getStockMod() / 100);
-		toBuy -= _items->getItem(itemRule);
-
-		if (toBuy)
-		{
-			int64_t cost = itemRule->getBuyCost();
-			
+			// calculate wanted ammount purchase things
+			int64_t toBuy = round(((*it).second / cost) * _power * _rule->getStockMod() / 1000);
+			toBuy -= _items->getItem(ruleItem);
+			// now we can purchase things
 			if (toBuy > 0 && _funds > 0)
 			{
-				_items->addItem(itemRule, toBuy);
+				_items->addItem(ruleItem, toBuy);
 				_funds -= toBuy * cost;
-				Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " is buying items " << (*i).first << ": " << toBuy << " because of coef: " << (*i).second; //#CLEARLOGS
+				Log(LOG_DEBUG) << "> We buying items " << ruleItem->getType() << ": " << toBuy << ", and now it stocks: " << _items->getItem(ruleItem); //#CLEARLOGS
 			}
 		}
 	}
-	Log(LOG_DEBUG) << "Restock finished, Faction:  " << _rule->getName() << " now has funds: " << _funds << "."; //#CLEARLOGS
+	Log(LOG_DEBUG) << ">>>> Restock finished, Faction:  " << _rule->getName() << " has funds: " << _funds << "."; //#CLEARLOGS
 }
 
 /**
@@ -602,14 +581,22 @@ void DiplomacyFaction::handleRestock()
  */
 void DiplomacyFaction::handleSelling(Mod& mod)
 {
-	std::map<std::string, double> sellList;
+	std::map<RuleItem*, std::pair<int, int>> sellList;
 
 	for (auto it = _items->getContents()->begin(); it != _items->getContents()->end(); ++it)
 	{
 		RuleItem* ruleItem = _mod->getItem((*it).first);
-		int cost = ruleItem->getSellCost();
+		int64_t cost = ruleItem->getBuyCost(); //yes, faction can sell items with purchase cost, or balancing resources would go crazy.
+		if (!cost)
+		{
+			cost = ruleItem->getSellCost(); //well, in case we can't buy it, this would be ok too =)
+		}
+		if (!cost)
+		{
+			cost = 1; // extra safe if something bad would come to faction stash, it would cost at least $1
+		}
 
-		double wishWeight = 1;
+		double wishWeight = 0;
 		for (auto k = _rule->getWishList().begin(); k != _rule->getWishList().end(); ++k)
 		{
 			if (k->first == (*it).first)
@@ -618,38 +605,27 @@ void DiplomacyFaction::handleSelling(Mod& mod)
 				break;
 			}
 		}
-		// calculate relative weight of that item
-		sellList.insert(std::make_pair((*it).first, wishWeight / cost * 10000));
-	}
-
-	// now let's calculate absolute weight from sum of relative values
-	double rWeightSum = 0;
-	for (auto i = sellList.begin(); i != sellList.end(); ++i)
-	{
-		rWeightSum += (*i).second;
-	}
-
-	// finally, we can sell something!
-	Log(LOG_DEBUG) << "Handling selling, Faction:  " << _rule->getName(); //#CLEARLOGS
-	for (auto i = sellList.begin(); i != sellList.end(); ++i)
-	{
-		auto itemRule = _mod->getItem((*i).first);
-		int64_t toSell = round((*i).second / rWeightSum * _power * _rule->getStockMod() / 100) * (-1);
-		toSell -= _items->getItem(itemRule);
-
+		// calculate desired ammount of that item
+		int64_t toSell = round((wishWeight / ruleItem->getBuyCost()) * _power * _rule->getStockMod() / 1000);
+		toSell = _items->getItem(ruleItem) - toSell;
 		if (toSell > 0)
 		{
-			int cost = itemRule->getBuyCost(); //yes, faction can sell items with purchase cost, or balancing resources would go crazy.
-			if (!cost)
-			{
-				cost = itemRule->getSellCost(); //well, in case we can't buy it, this would be ok too =)
-			}
-
-			removeItem(itemRule, toSell);
-			_funds += toSell * cost; 
-			Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " is selling items " << (*i).first << ": " << toSell << " because of coef: " << (*i).second; //#CLEARLOGS
+			sellList.insert(std::make_pair(ruleItem, std::make_pair(toSell, cost)));
 		}
 	}
+
+	if (!sellList.empty())
+	{
+		for (auto i = sellList.begin(); i != sellList.end(); ++i)
+		{
+			removeItem((*i).first, (*i).second.first);
+			int64_t dFunds = (*i).second.first * (*i).second.second; // sorry for that, was too lasy to make a structure
+			_funds += dFunds;
+			Log(LOG_DEBUG) << "> We selling items " << (*i).first->getType() << ": " << (*i).second.first; //#CLEARLOGS
+		}
+	}
+
+	Log(LOG_DEBUG) << ">>>> Sale finished, Faction:  " << _rule->getName() << " has funds: " << _funds; //#CLEARLOGS
 }
 
 /**
