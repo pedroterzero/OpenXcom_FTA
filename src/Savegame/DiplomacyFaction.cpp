@@ -619,7 +619,8 @@ void DiplomacyFaction::handleSelling(Mod& mod)
 		for (auto i = sellList.begin(); i != sellList.end(); ++i)
 		{
 			removeItem((*i).first, (*i).second.first);
-			int64_t dFunds = (*i).second.first * (*i).second.second; // sorry for that, was too lasy to make a structure
+			int64_t dFunds = (*i).second.first;
+			dFunds *= (*i).second.second; // sorry for that, was too lasy to make a structure
 			_funds += dFunds;
 			Log(LOG_DEBUG) << "> We selling items " << (*i).first->getType() << ": " << (*i).second.first; //#CLEARLOGS
 		}
