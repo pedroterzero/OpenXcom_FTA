@@ -313,6 +313,7 @@
     <ClCompile Include="Battlescape\ExplosionBState.cpp" />
     <ClCompile Include="Battlescape\ExtendedBattlescapeLinksState.cpp" />
     <ClCompile Include="Battlescape\ExtendedInventoryLinksState.cpp" />
+    <ClCompile Include="Battlescape\HackingState.cpp" />
     <ClCompile Include="Battlescape\InfoboxOKState.cpp" />
     <ClCompile Include="Battlescape\InfoboxState.cpp" />
     <ClCompile Include="Battlescape\Inventory.cpp" />
@@ -446,6 +447,7 @@
     <ClCompile Include="Geoscape\UfoDetectedState.cpp" />
     <ClCompile Include="Geoscape\UfoLostState.cpp" />
     <ClCompile Include="Geoscape\UfoTrackerState.cpp" />
+    <ClCompile Include="Battlescape\HackingView.cpp" />
     <ClCompile Include="Interface\ArrowButton.cpp" />
     <ClCompile Include="Interface\Bar.cpp" />
     <ClCompile Include="Interface\BattlescapeButton.cpp" />
@@ -714,6 +716,7 @@
     <ClInclude Include="Battlescape\ExplosionBState.h" />
     <ClInclude Include="Battlescape\ExtendedBattlescapeLinksState.h" />
     <ClInclude Include="Battlescape\ExtendedInventoryLinksState.h" />
+    <ClInclude Include="Battlescape\HackingState.h" />
     <ClInclude Include="Battlescape\InfoboxOKState.h" />
     <ClInclude Include="Battlescape\InfoboxState.h" />
     <ClInclude Include="Battlescape\Inventory.h" />
@@ -864,6 +867,7 @@
     <ClInclude Include="Geoscape\UfoDetectedState.h" />
     <ClInclude Include="Geoscape\UfoLostState.h" />
     <ClInclude Include="Geoscape\UfoTrackerState.h" />
+    <ClInclude Include="Battlescape\HackingView.h" />
     <ClInclude Include="Interface\ArrowButton.h" />
     <ClInclude Include="Interface\Bar.h" />
     <ClInclude Include="Interface\BattlescapeButton.h" />
