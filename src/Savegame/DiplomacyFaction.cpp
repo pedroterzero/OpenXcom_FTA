@@ -606,7 +606,7 @@ void DiplomacyFaction::handleSelling(Mod& mod)
 			}
 		}
 		// calculate desired ammount of that item
-		int64_t toSell = round((wishWeight / ruleItem->getBuyCost()) * _power * _rule->getStockMod() / 1000);
+		int64_t toSell = round((wishWeight / cost) * _power * _rule->getStockMod() / 1000);
 		toSell = _items->getItem(ruleItem) - toSell;
 		if (toSell > 0)
 		{
