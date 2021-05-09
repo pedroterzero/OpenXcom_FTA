@@ -361,6 +361,7 @@ Mod::Mod() :
 	_coefBattlescape(100), _coefGeoscape(100), _coefDogfight(100), _coefResearch(100), _coefAlienMission(100), _coefUfo(100), _coefAlienBase(100), _noFundsPenalty(200), _noFundsValue(-100000),
 	_bughuntMinTurn(999), _bughuntMaxEnemies(2), _bughuntRank(0), _bughuntLowMorale(40), _bughuntTimeUnitsLeft(60),
 	_manaEnabled(false), _manaBattleUI(false), _manaTrainingPrimary(false), _manaTrainingSecondary(false), _manaReplenishAfterMission(true),
+	_hackingBaseTuCost(10), _hackingFirewallBaseTuCost(10), _hackingFirewallBaseHpCost(10),
 	_loseMoney("loseGame"), _loseRating("loseGame"), _loseDefeat("loseGame"),
 	_ufoGlancingHitThreshold(0), _ufoBeamWidthParameter(1000),
 	_escortRange(20), _drawEnemyRadarCircles(1), _escortsJoinFightAgainstHK(true), _hunterKillerFastRetarget(true),
@@ -2479,6 +2480,10 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 		_healthMissingWoundThreshold = nodeHealth["woundThreshold"].as<int>(_healthMissingWoundThreshold);
 		_healthReplenishAfterMission = nodeHealth["replenishAfterMission"].as<bool>(_healthReplenishAfterMission);
 	}
+
+	_hackingBaseTuCost = doc["hackingBaseTuCost"].as<int>(_hackingBaseTuCost);
+	_hackingFirewallBaseTuCost = doc["hackingFirewallBaseTuCost"].as<int>(_hackingFirewallBaseTuCost);
+	_hackingFirewallBaseHpCost = doc["hackingFirewallBaseHpCost"].as<int>(_hackingFirewallBaseHpCost);
 
 	if (const YAML::Node& nodeLoyalty = doc["loyaltySettings"])
 	{
