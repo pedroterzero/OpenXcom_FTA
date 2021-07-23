@@ -5453,6 +5453,14 @@ void BattleUnit::disableIndicators()
 	_disableIndicators = true;
 }
 
+/**
+ * Checks if this unit can be hacked using hacking device
+ * @return True if hacking is allowed
+ */
+bool BattleUnit::canBeHacked() const
+{
+	return _armor->getHackingDefense() > 0;
+}
 
 ////////////////////////////////////////////////////////////
 //					Script binding

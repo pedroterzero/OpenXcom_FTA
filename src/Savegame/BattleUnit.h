@@ -803,6 +803,8 @@ public:
 	bool indicatorsAreEnabled() const { return !_disableIndicators; }
 	/// Disable showing indicators for this unit.
 	void disableIndicators();
+	/// Checks if this unit can be hacked.
+	bool canBeHacked() const;
 };
 
 } //namespace OpenXcom
