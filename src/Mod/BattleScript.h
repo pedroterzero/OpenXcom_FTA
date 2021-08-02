@@ -79,8 +79,6 @@ public:
 	int getLabel() const { return _label; };
 	/// Gets how many times this command repeats (1 repeat means 2 executions) in one turn.
 	int getExecutions() const { return _executions; };
-	/// Gets global max runs of the script.
-	int getMaxRuns() const { return _maxRuns; };
 	/// Gets what conditions apply to this command.
 	const std::vector<int>* getConditionals() const { return &_conditionals; };
 	/// Gets the groups vector for iteration.
