@@ -252,25 +252,28 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 		int64_t reqFunds = managePower(save.getMonthsPassed(), _mod->getDefaultFactionPowerCost());
 		handleResearch(engine, reqFunds);
 
-		//process treaty logic
-		if (std::find(_treaties.begin(), _treaties.end(), "STR_HELP_TREATY") != _treaties.end())
+		if (_discovered)
 		{
-			//load treaty scripts from rules to generate missions and geoscape events
-			_commandsToProcess = _rule->getHelpTreatyMissions();
-			_eventsToProcess = _rule->getHelpTreatyEventScripts();
-		}
-
-		//generate missions and events
-		factionMissionGenerator(engine);
-
-		if (!_rule->getFactionalEvents().empty())
-		{
-			for (auto& s : _rule->getUsualEventScripts())
+			//process treaty logic
+			if (std::find(_treaties.begin(), _treaties.end(), "STR_HELP_TREATY") != _treaties.end())
 			{
-				_eventsToProcess.push_back(s);
+				//load treaty scripts from rules to generate missions and geoscape events
+				_commandsToProcess = _rule->getHelpTreatyMissions();
+				_eventsToProcess = _rule->getHelpTreatyEventScripts();
 			}
+
+			//generate missions and events
+			factionMissionGenerator(engine);
+
+			if (!_rule->getFactionalEvents().empty())
+			{
+				for (auto& s : _rule->getUsualEventScripts())
+				{
+					_eventsToProcess.push_back(s);
+				}
+			}
+			mind.eventScriptProcessor(engine, _eventsToProcess, FACTIONAL);
 		}
-		mind.eventScriptProcessor(engine, _eventsToProcess, FACTIONAL);
 	}
 }
 
@@ -491,7 +494,6 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 				// lets process mission script with own way, first things first
 				if (ruleScript->getFirstMonth() <= month &&
 					(ruleScript->getLastMonth() >= month || ruleScript->getLastMonth() == -1) &&
-					(ruleScript->getMaxRuns() == -1 || ruleScript->getMaxRuns() > save.getAlienStrategy().getMissionsRun(ruleScript->getVarName())) &&
 					(ruleScript->getMinScore() <= save.getCurrentScore(month)) &&
 					(ruleScript->getMaxScore() >= save.getCurrentScore(month)) &&
 					(ruleScript->getMinLoyalty() <= loyalty) &&
@@ -499,7 +501,7 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 					(ruleScript->getMinFunds() <= save.getFunds()) &&
 					(ruleScript->getMaxFunds() >= save.getFunds()) &&
 					ruleScript->getMinDifficulty() <= save.getDifficulty() &&
-					(ruleScript->getAllowedProcessor() == 0 || ruleScript->getAllowedProcessor() == 2) &&
+					(ruleScript->getAllowedProcessor() == 0 || ruleScript->getAllowedProcessor() == 1) &&
 					!save.getMissionScriptGapped(ruleScript->getType()))
 				{
 					// level two condition check: make sure we meet any research requirements, if any.
