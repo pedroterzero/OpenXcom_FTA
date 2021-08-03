@@ -45,7 +45,7 @@ namespace OpenXcom
 
 DiplomacyFaction::DiplomacyFaction(const Mod* mod, const std::string& name):
 					_mod(mod), _reputationScore(0), _reputationLvL(0), _funds(0), _power(0), _vigilance(0),
-					_discovered(false), _thisMonthDiscovered(false), _repLvlChanged(false), _rule (nullptr)
+					_discovered(false), _thisMonthDiscovered(false), _repLvlChanged(false), _rule (nullptr), _helpTreatyTimer(0)
 {
 	_rule = _mod->getDiplomacyFaction(name);
 	_items = new ItemContainer();
@@ -77,6 +77,7 @@ void DiplomacyFaction::load(const YAML::Node &node)
 	_funds = node["funds"].as<int>(_funds);
 	_power = node["power"].as<int>(_power);
 	_vigilance = node["vigilance"].as<int>(_vigilance);
+	_helpTreatyTimer = node["helpTreatyTimer"].as<int>(_helpTreatyTimer);
 	_discovered = node["discovered"].as<bool>(_discovered);
 	_thisMonthDiscovered = node["thisMonthDiscovered"].as<bool>(_thisMonthDiscovered);
 	_treaties = node["treaties"].as<std::vector<std::string>>(_treaties);
@@ -118,6 +119,7 @@ YAML::Node DiplomacyFaction::save() const
 	node["funds"] = _funds;
 	node["power"] = _power;
 	node["vigilance"] = _vigilance;
+	node["helpTreatyTimer"] = _helpTreatyTimer;
 	if (_discovered)
 	{
 		node["discovered"] = _discovered;
@@ -212,6 +214,7 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 	MasterMind& mind = *engine.getMasterMind();
 	_commandsToProcess.clear();
 	_eventsToProcess.clear();
+	_avoidRepeatVars.clear();
 
 	//let's process out daily duty
 	if (period == TIMESTEP_DAILY)
@@ -227,8 +230,7 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 				bool success = mind.spawnEvent(_rule->getDiscoverEvent());
 			}
 			// update reputation level for just discovered fraction
-			mind.updateReputationLvl(this, false);
-			this->setThisMonthDiscovered(true);
+			mind.updateReputationLvl(this, false);;
 			// and if it turns friendly at start we sign help treaty by default
 			if (_reputationLvL > 0)
 			{
@@ -258,7 +260,15 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 			if (std::find(_treaties.begin(), _treaties.end(), "STR_HELP_TREATY") != _treaties.end())
 			{
 				//load treaty scripts from rules to generate missions and geoscape events
-				_commandsToProcess = _rule->getHelpTreatyMissions();
+				if (_helpTreatyTimer > 0)
+				{
+					_helpTreatyTimer -= 1;
+				}
+				else
+				{
+					_commandsToProcess = _rule->getHelpTreatyMissions();
+					_helpTreatyTimer = _rule->getHelpTreatyGap();
+				}
 				_eventsToProcess = _rule->getHelpTreatyEventScripts();
 			}
 
@@ -506,6 +516,19 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 				{
 					// level two condition check: make sure we meet any research requirements, if any.
 					bool triggerHappy = true;
+					bool avoidRepeat = false;
+					if (ruleScript->getRepeatAvoidance() > 0 && !ruleScript->getVarName().empty())
+					{
+						if (std::find(_avoidRepeatVars.begin(), _avoidRepeatVars.end(), ruleScript->getVarName()) != _avoidRepeatVars.end())
+						{
+							triggerHappy = false;
+						}
+						else
+						{
+							avoidRepeat = true;
+						}
+					}
+
 					for (std::map<std::string, bool>::const_iterator j = ruleScript->getResearchTriggers().begin(); triggerHappy && j != ruleScript->getResearchTriggers().end(); ++j)
 					{
 						triggerHappy = (save.isResearched(j->first) == j->second);
@@ -536,6 +559,10 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 					if (triggerHappy)
 					{
 						_availableMissionScripts.push_back(ruleScript);
+						if (avoidRepeat)
+						{
+							_avoidRepeatVars.push_back(ruleScript->getVarName());
+						}
 					}
 				}
 			}

@@ -34,7 +34,7 @@ class RuleDiplomacyFaction
 {
 private:
 	std::string _name, _description, _background, _cardBackground, _discoverResearch, _discoverEvent, _startingResearch;
-	int _genMissionFrequency;
+	int _genMissionFrequency, _helpTreatyGap;
 	int _sellPriceFactor, _buyPriceFactor, _repPriceFactor, _stockMod, _powerHungry, _scienceBaseCost;
 	int _startingReputation, _startingFunds, _startingPower;
 	std::map<std::string, int> _startingItems, _startingStaff, _staffWeights;
@@ -76,8 +76,10 @@ public:
 
 	/// Gets help treaty mission scripts for the faction.
 	const std::vector<std::string>& getHelpTreatyMissions() const { return _helpTreatyMissions; }
-	/// Gets mission frequency for generatoting.
+	/// Gets mission frequency for generating.
 	int getGenMissionFrequency() const { return _genMissionFrequency; };
+	/// Gets time gap for help treaty missions.
+	int getHelpTreatyGap() const { return _helpTreatyGap; };
 	/// Gets geoscape event scripts to run as help treaty list.
 	const std::vector<std::string>& getHelpTreatyEventScripts() const { return _helpTreatyEventScripts; }
 	/// Gets geoscape event scripts to run without any factional's condition.

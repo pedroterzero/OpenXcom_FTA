@@ -449,6 +449,7 @@ std::string AltMonthlyReportState::calculateUpdates()
 				ss <<  tr((*k)->getReputationName());
 				ss << ". ";
 				ss << "\n\n";
+				(*k)->setThisMonthDiscovered(false);
 			}
 			else if (changed || prevChanged && (*k)->isDiscovered())
 			{
