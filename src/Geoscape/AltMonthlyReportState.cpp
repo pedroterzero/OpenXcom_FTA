@@ -468,45 +468,48 @@ std::string AltMonthlyReportState::calculateUpdates()
 	}
 
 	//handle loyalty updating
-	_loyalty = save->getLoyalty();
-	_lastMonthsLoyalty = save->getLastMonthsLoyalty();
-
-	int funds = save->getFunds();
-	if (funds < 0)
+	if (_gameOver != 0)
 	{
-		int noFundsV = _game->getMod()->getLoyaltyNoFundsValue();
-		if (funds < noFundsV)
+		_loyalty = save->getLoyalty();
+		_lastMonthsLoyalty = save->getLastMonthsLoyalty();
+
+		int funds = save->getFunds();
+		if (funds < 0)
 		{
-			int	discontent = _game->getMod()->getLoyaltyNoFundsPenalty() * _game->getSavedGame()->getDifficultyCoefficient();
-			auto stuffMessage = tr("STR_STUFF_NO_MONEY1");
+			int noFundsV = _game->getMod()->getLoyaltyNoFundsValue();
+			if (funds < noFundsV)
+			{
+				int	discontent = _game->getMod()->getLoyaltyNoFundsPenalty() * _game->getSavedGame()->getDifficultyCoefficient();
+				auto stuffMessage = tr("STR_STUFF_NO_MONEY1");
 
-			if (funds < noFundsV * 2)
-			{
-				discontent *= 2;
-				stuffMessage = tr("STR_STUFF_NO_MONEY2");
+				if (funds < noFundsV * 2)
+				{
+					discontent *= 2;
+					stuffMessage = tr("STR_STUFF_NO_MONEY2");
+				}
+				if (funds < noFundsV * 5)
+				{
+					discontent *= 2;
+					stuffMessage = tr("STR_STUFF_NO_MONEY5");
+				}
+				if (funds < noFundsV * 10)
+				{
+					discontent *= 2;
+					stuffMessage = tr("STR_STUFF_NO_MONEY10");
+				}
+				if (funds < noFundsV * 20)
+				{
+					discontent *= 2;
+					stuffMessage = tr("STR_STUFF_NO_MONEY20");
+				}
+				ss << stuffMessage;
+				_game->getMasterMind()->updateLoyalty(discontent, XCOM_GEOSCAPE);
 			}
-			if (funds < noFundsV * 5)
-			{
-				discontent *= 2;
-				stuffMessage = tr("STR_STUFF_NO_MONEY5");
-			}
-			if (funds < noFundsV * 10)
-			{
-				discontent *= 2;
-				stuffMessage = tr("STR_STUFF_NO_MONEY10");
-			}
-			if (funds < noFundsV * 20)
-			{
-				discontent *= 2;
-				stuffMessage = tr("STR_STUFF_NO_MONEY20");
-			}
-			ss << stuffMessage;
-			_game->getMasterMind()->updateLoyalty(discontent, XCOM_GEOSCAPE);
+
 		}
-
-	}
 		//update loyalty data after it was loaded
-	_game->getSavedGame()->setLastMonthsLoyalty(_loyalty);
+		_game->getSavedGame()->setLastMonthsLoyalty(_loyalty);
+	}
 
 	return ss.str();
 	
