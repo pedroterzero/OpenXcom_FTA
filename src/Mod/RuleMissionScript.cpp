@@ -84,7 +84,7 @@ void RuleMissionScript::load(const YAML::Node& node)
 	_minFunds = node["minFunds"].as<int64_t>(_minFunds);
 	_maxFunds = node["maxFunds"].as<int64_t>(_maxFunds);
 	_conditionals = node["conditionals"].as<std::vector<int> >(_conditionals);
-	_allowedProcessor = node["allowedProcessor"].as<int>(_allowedProcessor); //0 - monthly only, 1 - faction only, 2 - xcom only
+	_allowedProcessor = node["allowedProcessor"].as<int>(_allowedProcessor); //0 - monthly only, 1 - faction only
 	_spawnGap = node["spawnGap"].as<int>(_spawnGap);
 	_randomSpawnGap = node["randomSpawnGap"].as<int>(_randomSpawnGap);
 	if (const YAML::Node &weights = node["missionWeights"])

@@ -486,7 +486,7 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 					(ruleScript->getMinFunds() <= save.getFunds()) &&
 					(ruleScript->getMaxFunds() >= save.getFunds()) &&
 					ruleScript->getMinDifficulty() <= save.getDifficulty() &&
-					(ruleScript->getAllowedProcessor() == 0 || ruleScript->getAllowedProcessor() == 1) &&
+					(ruleScript->getAllowedProcessor() == 1) &&
 					!save.getMissionScriptGapped(ruleScript->getType()))
 				{
 					// level two condition check: make sure we meet any research requirements, if any.

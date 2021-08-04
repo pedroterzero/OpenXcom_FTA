@@ -3440,7 +3440,7 @@ void GeoscapeState::determineAlienMissions()
 			(month < 1 || command->getMinFunds() <= currentFunds) &&
 			(month < 1 || command->getMaxFunds() >= currentFunds) &&
 			command->getMinDifficulty() <= save->getDifficulty() &&
-			(command->getAllowedProcessor() == 0 || command->getAllowedProcessor() == 2) &&
+			(command->getAllowedProcessor() == 0) &&
 			!save->getMissionScriptGapped(command->getType()))
 		{
 			// level two condition check: make sure we meet any research requirements, if any.
