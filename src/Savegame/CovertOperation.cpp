@@ -615,7 +615,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	SavedGame& save = *engine.getSavedGame();
 
 	//first, we calculate how much experience we can award for the operation (expRolls)
-	int ruleCost = this->getRules()->getCosts() / 12;
+	int ruleCost = this->getRules()->getCosts() / 20;
 	int danger = this->getRules()->getDanger();
 	int effCost = 1;
 	if (ruleCost < 20) effCost = ceil(ruleCost / 8);

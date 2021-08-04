@@ -705,6 +705,7 @@ double CovertOperationStartState::getOperationOdds()
 		if (!_rule->getAllowAllEquipment())
 		{
 			bool isConcealed = true;
+			bool allConsealed = true;
 			int heavy = 0;
 			int itemBonusEffect = _rule->getConcealedItemsBonus();
 			double itemCatEffect = 0;
@@ -712,13 +713,14 @@ double CovertOperationStartState::getOperationOdds()
 			{
 				RuleItem* item = _game->getMod()->getItem((*i).first);
 				isConcealed = item->belongsToCategory("STR_CONCEALABLE");
+				if (isConcealed) allConsealed = false;
 				if (item->belongsToCategory("STR_HEAVY_WEAPONS")) ++heavy;
 			}
-			if (isConcealed)
+			if (allConsealed)
 			{
 				itemCatEffect = itemBonusEffect * static_cast<double>(assignedSoldiersN);
 			}
-			itemCatEffect = itemCatEffect - (heavy * itemBonusEffect * 2 / assignedSoldiersN);
+			itemCatEffect = itemCatEffect - (heavy * itemBonusEffect * 4 / assignedSoldiersN);
 			_chances = _chances + itemCatEffect;
 		}
 	}
