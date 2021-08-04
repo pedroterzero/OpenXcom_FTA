@@ -259,6 +259,7 @@ private:
 	int _buildTimeReductionScaling;
 	int _defaultFactionPowerCost;
 	int _defeatScore, _defeatFunds;
+	int _reputationBreakthroughValue;
 	bool _difficultyDemigod;
 	std::pair<std::string, int> _alienFuel;
 	std::string _fontName, _finalResearch, _psiUnlockResearch, _fakeUnderwaterBaseUnlockResearch, _newBaseUnlockResearch;
@@ -1001,6 +1002,7 @@ public:
 	const std::map<int, std::string> *getMonthlyRatings() const;
 	const std::map<int, std::string>* getLoyaltyRatings() const;
 	const std::map<int, std::string>* getReputationLevels() const;
+	int getReputationBreakthroughValue() const { return _reputationBreakthroughValue; };
 	const std::map<std::string, std::string> &getFixedUserOptions() const { return _fixedUserOptions; }
 	const std::map<std::string, std::string> &getRecommendedUserOptions() const { return _recommendedUserOptions; }
 	const std::vector<std::string> &getHiddenMovementBackgrounds() const;

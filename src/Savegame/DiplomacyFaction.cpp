@@ -169,6 +169,7 @@ void DiplomacyFaction::disableResearch(const std::string& research)
 	if (!erased) { Log(LOG_ERROR) << "Research project  named " << research << " was not deleted from <unlockedResearches> list!"; }
 }
 
+
 void DiplomacyFaction::addItem(const RuleItem* item, int qty)
 {
 	if (qty > 0)
@@ -297,6 +298,9 @@ void DiplomacyFaction::processDailyReputation(Game& engine)
 	SavedGame& save = *engine.getSavedGame();
 	MasterMind& mind = *engine.getMasterMind();
 	int dailyReputation = 0;
+	int breakLevel = mod.getReputationBreakthroughValue();
+	std::vector<std::string> events;
+	bool needUpdate = false;
 
 	for (auto& n : _dailyRepScore)
 	{
@@ -304,52 +308,22 @@ void DiplomacyFaction::processDailyReputation(Game& engine)
 	}
 	_dailyRepScore.clear();
 
-	if (dailyReputation)
+	if (dailyReputation * 1.2 > breakLevel)
 	{
-		const std::map<int, std::string>* repLevels = mod.getReputationLevels();
-		if (repLevels)
+		events = _rule->getHappyEvents();
+	}
+	else if (dailyReputation < breakLevel * (-1))
+	{
+		events = _rule->getAngryEvents();
+		_treaties.clear(); //we break all friendly-like treaties in this case
+	}
+
+	if (needUpdate)
+	{
+		_repLvlChanged = mind.updateReputationLvl(this, false);;
+		if (!events.empty())
 		{
-			int nextRepScore = 0;
-			std::vector<std::string> events;
-			bool needUpdate = false;
-
-			for (auto it = repLevels->begin(); it != repLevels->end(); ++it)
-			{
-				if (it->second == _reputationName)
-				{
-					if (dailyReputation > 0)
-					{
-						nextRepScore = it++->first;
-						if (nextRepScore < _reputationScore + dailyReputation)
-						{
-							events = _rule->getHappyEvents();
-							needUpdate = true;
-						}
-					}
-					else
-					{
-						nextRepScore = it--->first;
-						if (nextRepScore > _reputationScore + dailyReputation)
-						{
-							events = _rule->getAngryEvents();
-							needUpdate = true;
-							//we break all friendly-like treaties in this case
-							_treaties.clear();
-						}
-					}
-					break;
-				}
-			}
-
-			if (needUpdate)
-			{
-				mind.updateReputationLvl(this, false);
-				_repLvlChanged = true;
-				if (!events.empty())
-				{
-					mind.spawnEvent(events.at(RNG::generate(0, events.size() - 1)));
-				}
-			}
+			mind.spawnEvent(events.at(RNG::generate(0, events.size() - 1)));
 		}
 	}
 }
@@ -502,7 +476,8 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 				auto month = save.getMonthsPassed();
 				int loyalty = save.getLoyalty();
 				// lets process mission script with own way, first things first
-				if (ruleScript->getFirstMonth() <= month &&
+				if (RNG::percent(ruleScript->getExecutionOdds())
+					&& ruleScript->getFirstMonth() <= month &&
 					(ruleScript->getLastMonth() >= month || ruleScript->getLastMonth() == -1) &&
 					(ruleScript->getMinScore() <= save.getCurrentScore(month)) &&
 					(ruleScript->getMaxScore() >= save.getCurrentScore(month)) &&

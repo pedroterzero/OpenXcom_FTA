@@ -432,12 +432,12 @@ std::string AltMonthlyReportState::calculateUpdates()
 
 	// update factions
 	std::vector<OpenXcom::DiplomacyFaction*> factions = _game->getSavedGame()->getDiplomacyFactions();
-	if (!factions.empty())
+	if (!factions.empty() && !_gameOver)
 	{
 		ss << "\n\n";
 		for (std::vector<DiplomacyFaction*>::iterator k = factions.begin(); k != factions.end(); ++k)
 		{
-			bool changed = _game->getMasterMind()->updateReputationLvl(*k);
+			bool changed = _game->getMasterMind()->updateReputationLvl(*k, false);
 			bool prevChanged = (*k)->isThisMonthRepLvlChanged();
 
 			if ((*k)->isThisMonthDiscovered())

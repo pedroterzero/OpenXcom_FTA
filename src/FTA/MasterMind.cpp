@@ -133,7 +133,7 @@ void MasterMind::newGameHelper(int diff, GeoscapeState* gs)
 
 		// set up starting values
 		faction->setReputationScore(factionRules->getStartingReputation());
-		updateReputationLvl(faction);
+		updateReputationLvl(faction, true);
 		faction->setFunds(factionRules->getStartingFunds());
 		faction->setPower(factionRules->getStartingPower()); //we always start with 0 vigilance
 		for (auto research : factionRules->getStartingResearches())
