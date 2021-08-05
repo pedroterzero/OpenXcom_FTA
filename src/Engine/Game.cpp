@@ -51,7 +51,7 @@ namespace OpenXcom
 const double Game::VOLUME_GRADIENT = 10.0;
 
 /**
- * Starts up SDL with all the subsystems and SDL_mixer for audio processing,
+ * Starts up all the SDL subsystems,
  * creates the display screen and sets up the cursor.
  * @param title Title of the game window.
  */
@@ -524,9 +524,6 @@ void Game::loadLanguages()
 	const std::string defaultLang = "en-US";
 	std::string currentLang = defaultLang;
 
-	delete _lang;
-	_lang = new Language();
-
 	// No language set, detect based on system
 	if (Options::language.empty())
 	{
@@ -565,6 +562,9 @@ void Game::loadLanguages()
 		}
 	}
 	Options::language = currentLang;
+
+	delete _lang;
+	_lang = new Language();
 
 	const std::string dirLanguage = "Language/";
 	const std::string dirLanguageAndroid = "Language/Android/";

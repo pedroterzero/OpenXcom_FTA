@@ -120,10 +120,10 @@ void Armor::load(const YAML::Node &node, const ModScript &parsers, Mod *mod)
 		_corpseGeoName = _corpseBattleNames.at(0);
 	}
 	mod->loadNames(_type, _builtInWeaponsNames, node["builtInWeapons"]);
-	_corpseGeoName = node["corpseGeo"].as<std::string>(_corpseGeoName);
-	_storeItemName = node["storeItem"].as<std::string>(_storeItemName);
-	_specWeaponName = node["specialWeapon"].as<std::string>(_specWeaponName);
-	_requiresName = node["requires"].as<std::string>(_requiresName);
+	mod->loadName(_type, _corpseGeoName, node["corpseGeo"]);
+	mod->loadNameNull(_type, _storeItemName, node["storeItem"]);
+	mod->loadNameNull(_type, _specWeaponName, node["specialWeapon"]);
+	mod->loadNameNull(_type, _requiresName, node["requires"]);
 
 	_layersDefaultPrefix = node["layersDefaultPrefix"].as<std::string>(_layersDefaultPrefix);
 	_layersSpecificPrefix = node["layersSpecificPrefix"].as< std::map<int, std::string> >(_layersSpecificPrefix);
@@ -273,11 +273,23 @@ void Armor::afterLoad(const Mod* mod)
 			throw Exception("Missing battle corpse item(s).");
 		}
 	}
+
+	int numCorpse = 0;
 	for (auto& c : _corpseBattle)
 	{
 		if (!c)
 		{
 			throw Exception("Battle corpse item(s) cannot be empty.");
+		}
+
+		if (!numCorpse++)
+		{
+			// only first item need be corpse
+			mod->checkForSoftError(c->getBattleType() != BT_CORPSE, _type, "First Battle corpse item need have corpse item type");
+		}
+		else
+		{
+			mod->checkForSoftError(c->isRecoverable(), _type, "Multiple recoverable battle corpse item(s)");
 		}
 	}
 	if (!_corpseGeo)

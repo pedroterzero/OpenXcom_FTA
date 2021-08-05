@@ -79,7 +79,7 @@ private:
 	std::map<const RuleItem*, int> _rounds, _roundsPainKiller, _roundsStimulant, _roundsHeal, _recoveredItems;
 	Uint8 _ammoColor;
 	std::map<int, RecoveryItem*> _recoveryStats;
-	bool _positiveScore, _destroyBase, _showSellButton;
+	bool _positiveScore, _destroyBase, _promotions, _showSellButton, _initDone;
 	std::map<int, int>  _containmentStateInfo;
 	int _totalEvacObjs, _savedEvacObjs, _recoveredItemObjs;
 	int _limitsEnforced;
@@ -115,6 +115,7 @@ public:
 	~DebriefingState();
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
+	/// Prepare debriefing.
 	void init() override;
 	/// Handler for clicking the STATS button.
 	void btnStatsClick(Action *action);

@@ -674,6 +674,12 @@ public:
 	MovementType getMovementType() const;
 	/// Gets the turn cost.
 	int getTurnCost() const;
+	/// Gets cost of standing up from kneeling.
+	int getKneelUpCost() const { return 8; }
+	/// Gets cost of kneel down.
+	int getKneelDownCost() const { return 4; }
+	/// Gets cost of curret transiton form kneeling to standing or reverse.
+	int getKneelChangeCost() const { return isKneeled() ? getKneelUpCost() : getKneelDownCost(); }
 
 	/// Create special weapon for unit.
 	void setSpecialWeapon(SavedBattleGame *save, bool updateFromSave);
@@ -744,6 +750,8 @@ public:
 	void setAlreadyExploded(bool alreadyExploded) { _alreadyExploded = alreadyExploded; }
 	/// Gets whether this unit can be captured alive (applies to aliens).
 	bool getCapturable() const;
+	/// free up the patrol node target, to allow others to use it.
+	void freePatrolTarget();
 	/// Marks this unit as summoned by an item and therefore won't count for recovery or total player units left.
 	void setSummonedPlayerUnit(bool summonedPlayerUnit);
 	/// Was this unit summoned by an item?

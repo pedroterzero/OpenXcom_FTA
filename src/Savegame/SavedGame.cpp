@@ -3161,7 +3161,7 @@ void SavedGame::setDisableSoldierEquipment(bool disableSoldierEquipment)
 bool SavedGame::isManaUnlocked(Mod *mod) const
 {
 	auto researchName = mod->getManaUnlockResearch();
-	if (researchName.empty() || isResearched(researchName))
+	if (Mod::isEmptyRuleName(researchName) || isResearched(researchName))
 	{
 		return true;
 	}

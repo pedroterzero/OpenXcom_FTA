@@ -605,7 +605,7 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 	_waypoints = node["waypoints"].as<int>(_waypoints);
 	_fixedWeapon = node["fixedWeapon"].as<bool>(_fixedWeapon);
 	_fixedWeaponShow = node["fixedWeaponShow"].as<bool>(_fixedWeaponShow);
-	_defaultInventorySlotName = node["defaultInventorySlot"].as<std::string>(_defaultInventorySlotName);
+	mod->loadNameNull(_type, _defaultInventorySlotName, node["defaultInventorySlot"]);
 	_defaultInvSlotX = node["defaultInvSlotX"].as<int>(_defaultInvSlotX);
 	_defaultInvSlotY = node["defaultInvSlotY"].as<int>(_defaultInvSlotY);
 	mod->loadUnorderedNames(_type, _supportedInventorySectionsNames, node["supportedInventorySections"]);
@@ -667,8 +667,8 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 	mod->loadUnorderedNamesToNames(_type, _zombieUnitByArmorMale, node["zombieUnitByArmorMale"]);
 	mod->loadUnorderedNamesToNames(_type, _zombieUnitByArmorFemale, node["zombieUnitByArmorFemale"]);
 	mod->loadUnorderedNamesToNames(_type, _zombieUnitByType, node["zombieUnitByType"]);
-	_zombieUnit = node["zombieUnit"].as<std::string>(_zombieUnit);
-	_spawnUnit = node["spawnUnit"].as<std::string>(_spawnUnit);
+	mod->loadNameNull(_type, _zombieUnit, node["zombieUnit"]);
+	mod->loadNameNull(_type, _spawnUnit, node["spawnUnit"]);
 	_spawnUnitFaction = node["spawnUnitFaction"].as<int>(_spawnUnitFaction);
 	if (node["psiTargetMatrix"])
 	{
@@ -681,12 +681,15 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 	_underwaterOnly = node["underwaterOnly"].as<bool>(_underwaterOnly);
 	_landOnly = node["landOnly"].as<bool>(_landOnly);
 	_specialType = node["specialType"].as<int>(_specialType);
-	_vaporColor = node["vaporColor"].as<int>(_vaporColor);
+
+	mod->loadTransparencyOffset(_type, _vaporColor, node["vaporColor"]);
 	_vaporDensity = node["vaporDensity"].as<int>(_vaporDensity);
 	_vaporProbability = node["vaporProbability"].as<int>(_vaporProbability);
-	_vaporColorSurface = node["vaporColorSurface"].as<int>(_vaporColorSurface);
+
+	mod->loadTransparencyOffset(_type, _vaporColorSurface, node["vaporColorSurface"]);
 	_vaporDensitySurface = node["vaporDensitySurface"].as<int>(_vaporDensitySurface);
 	_vaporProbabilitySurface = node["vaporProbabilitySurface"].as<int>(_vaporProbabilitySurface);
+
 	mod->loadSpriteOffset(_type, _customItemPreviewIndex, node["customItemPreviewIndex"], "CustomItemPreviews");
 	_kneelBonus = node["kneelBonus"].as<int>(_kneelBonus);
 	_oneHandedPenalty = node["oneHandedPenalty"].as<int>(_oneHandedPenalty);
@@ -1069,10 +1072,6 @@ int RuleItem::getRandomSound(const std::vector<int> &vector, int defaultValue) c
  */
 int RuleItem::getReloadSound() const
 {
-	if (_reloadSound.empty())
-	{
-		return Mod::ITEM_RELOAD;
-	}
 	return getRandomSound(_reloadSound);
 }
 

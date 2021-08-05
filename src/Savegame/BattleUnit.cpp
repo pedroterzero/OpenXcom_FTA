@@ -259,13 +259,13 @@ void BattleUnit::prepareUnitSounds()
 
 	if (_geoscapeSoldier)
 	{
-		_aggroSound = -1;
-		_moveSound = _armor->getMoveSound() != -1 ? _armor->getMoveSound() : -1; // there's no soldier move sound, thus hardcoded -1
+		_aggroSound = Mod::NO_SOUND;
+		_moveSound = _armor->getMoveSound() != Mod::NO_SOUND ? _armor->getMoveSound() : Mod::NO_SOUND; // there's no soldier move sound, thus hardcoded -1
 	}
 	else if (_unitRules)
 	{
 		_aggroSound = _unitRules->getAggroSound();
-		_moveSound = _armor->getMoveSound() != -1 ? _armor->getMoveSound() : _unitRules->getMoveSound();
+		_moveSound = _armor->getMoveSound() != Mod::NO_SOUND ? _armor->getMoveSound() : _unitRules->getMoveSound();
 	}
 
 	// lower priority: soldier type / unit type
@@ -2374,6 +2374,8 @@ void BattleUnit::prepareTimeUnits(int tu)
 		}
 		// Each fatal wound to the left or right leg reduces the soldier's TUs by 10%.
 		_tu -= (_tu * ((_fatalWounds[BODYPART_LEFTLEG]+_fatalWounds[BODYPART_RIGHTLEG]) * 10))/100;
+
+		setValueMax(_tu, 0, 0, getBaseStats()->tu);
 	}
 }
 
@@ -3414,7 +3416,17 @@ bool BattleUnit::reloadAmmo()
 		{
 			weapon->setAmmoForSlot(slotAmmo, ammo);
 
-			_lastReloadSound = ruleWeapon->getReloadSound();
+			auto sound = ammo->getRules()->getReloadSound();
+			if (sound == Mod::NO_SOUND)
+			{
+				sound = ruleWeapon->getReloadSound();
+			}
+			if (sound == Mod::NO_SOUND)
+			{
+				sound = Mod::ITEM_RELOAD;
+			}
+
+			_lastReloadSound = sound;
 			return true;
 		}
 	}
@@ -5075,6 +5087,14 @@ void BattleUnit::setMeleeAttackedBy(int attackerId)
 bool BattleUnit::getCapturable() const
 {
 	return _capturable;
+}
+
+void BattleUnit::freePatrolTarget()
+{
+	if (_currentAIState)
+	{
+		_currentAIState->freePatrolTarget();
+	}
 }
 
 /**

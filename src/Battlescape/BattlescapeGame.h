@@ -79,6 +79,7 @@ struct BattleAction : BattleActionCost
 	int value;
 	std::string result;
 	bool strafe, run, ignoreSpottedEnemies;
+	bool kneel = false;
 	int diff;
 	int autoShotCounter;
 	Position cameraPosition;
