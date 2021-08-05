@@ -249,6 +249,8 @@ public:
 	/// Show one of Psi, Special or Skill button
 	void showUiButton(ButtonType buttonType, int spriteIndex = 1);
 	void resetUiButton();
+	/// Updates the visible unit indicators. Used for LoS Preview.
+	void updateVisibleUnits(std::vector<BattleUnit *> *units);
 	/// Clears mouse-scrolling state.
 	void clearMouseScrollingState();
 	/// Returns a pointer to the battlegame, in case we need its functions.
