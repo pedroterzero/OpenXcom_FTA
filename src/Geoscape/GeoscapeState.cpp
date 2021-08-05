@@ -3439,10 +3439,14 @@ void GeoscapeState::determineAlienMissions()
 			(month < 1 || command->getMaxLoyalty() >= loyalty) &&
 			(month < 1 || command->getMinFunds() <= currentFunds) &&
 			(month < 1 || command->getMaxFunds() >= currentFunds) &&
-			command->getMinDifficulty() <= save->getDifficulty() &&
-			(command->getAllowedProcessor() == 0) &&
-			!save->getMissionScriptGapped(command->getType()))
+			command->getMinDifficulty() <= save->getDifficulty())
 		{
+			// don't forget about FTA-specific stuff
+			if (command->getAllowedProcessor() != 0 || save->getMissionScriptGapped(command->getType()))
+			{
+				//nope, we dont want such mission
+				continue;
+			}
 			// level two condition check: make sure we meet any research requirements, if any.
 			bool triggerHappy = true;
 			for (std::map<std::string, bool>::const_iterator j = command->getResearchTriggers().begin(); triggerHappy && j != command->getResearchTriggers().end(); ++j)

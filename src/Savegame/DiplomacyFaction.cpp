@@ -485,10 +485,14 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 					(ruleScript->getMaxLoyalty() >= loyalty) &&
 					(ruleScript->getMinFunds() <= save.getFunds()) &&
 					(ruleScript->getMaxFunds() >= save.getFunds()) &&
-					ruleScript->getMinDifficulty() <= save.getDifficulty() &&
-					(ruleScript->getAllowedProcessor() == 1) &&
-					!save.getMissionScriptGapped(ruleScript->getType()))
+					ruleScript->getMinDifficulty() <= save.getDifficulty())
 				{
+					// don't forget about FTA-specific stuff
+					if (ruleScript->getAllowedProcessor() != 1 || save.getMissionScriptGapped(ruleScript->getType()))
+					{
+						//nope, we dont want such mission
+						continue;
+					}
 					// level two condition check: make sure we meet any research requirements, if any.
 					bool triggerHappy = true;
 					bool avoidRepeat = false;
