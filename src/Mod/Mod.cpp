@@ -2459,7 +2459,7 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	_bughuntLowMorale = doc["bughuntLowMorale"].as<int>(_bughuntLowMorale);
 	_bughuntTimeUnitsLeft = doc["bughuntTimeUnitsLeft"].as<int>(_bughuntTimeUnitsLeft);
 	_ftaGame = doc["ftaGame"].as<bool>(_ftaGame);
-	_reputationBreakthroughValue = doc["reputationBreakthroughValue"].as<bool>(_reputationBreakthroughValue);
+	_reputationBreakthroughValue = doc["reputationBreakthroughValue"].as<int>(_reputationBreakthroughValue);
 	_ironManEnabled = doc["ironManEnabled"].as<bool>(_ironManEnabled);
 	_defaultFactionPowerCost = doc["defaultFactionPowerCost"].as<int>(_defaultFactionPowerCost);
 	_researchTreeDisabled = doc["researchTreeDisabled"].as<bool>(_researchTreeDisabled);
