@@ -1216,6 +1216,9 @@
     <ClCompile Include="Mod\RuleObject.cpp">
       <Filter>Mod</Filter>
     </ClCompile>
+    <ClCompile Include="Savegame\BattleObject.cpp">
+      <Filter>Savegame</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2495,6 +2498,9 @@
       <Filter>Battlescape</Filter>
     <ClInclude Include="Mod\RuleObject.h">
       <Filter>Mod</Filter>
+    </ClInclude>
+    <ClInclude Include="Savegame\BattleObject.h">
+      <Filter>Savegame</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -25,6 +25,7 @@
 #include "../Engine/RNG.h"
 #include "../Engine/ScriptBind.h"
 #include "BattleUnit.h"
+#include "BattleObject.h"
 #include "BattleItem.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/Armor.h"
@@ -839,6 +840,14 @@ void Tile::removeItem(BattleItem *item)
 		}
 	}
 	item->setTile(0);
+}
+
+void Tile::setObject(BattleObject* object)
+{
+	_battleObject->setTile(0);
+	//update with new BattleObject
+	_battleObject = object;
+	object->setTile(this);
 }
 
 /**

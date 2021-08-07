@@ -368,6 +368,7 @@ set ( savegame_src
   Savegame/Base.cpp
   Savegame/BaseFacility.cpp
   Savegame/BattleItem.cpp
+  Savegame/BattleObject.cpp
   Savegame/BattleUnit.cpp
   Savegame/Country.cpp
   Savegame/CovertOperation.cpp
