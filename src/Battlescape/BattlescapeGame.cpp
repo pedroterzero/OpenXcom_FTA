@@ -48,9 +48,11 @@
 #include "../Savegame/Tile.h"
 #include "../Savegame/BattleUnit.h"
 #include "../Savegame/BattleItem.h"
+#include "../Savegame/BattleObject.h"
 #include "../Savegame/Ufo.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/RuleInventory.h"
+#include "../Mod/RuleObject.h"
 #include "../Mod/RuleSoldier.h"
 #include "../Mod/RuleTerrain.h"
 #include "../Mod/Armor.h"
@@ -1926,14 +1928,15 @@ void BattlescapeGame::primaryAction(Position pos)
 		else if (playableUnitSelected())
 		{
 			//for test
-			for (BattleItem* item : *_save->getTile(pos)->getInventory())
+			if (_save->getTile(pos)->getBattleObject())
 			{
-				const RuleItem* ruleItem = item->getRules();
 				
-				if (ruleItem->getIsTerminal())
+				const BattleObject *battleObject = _save->getTile(pos)->getBattleObject();
+				
+				if (battleObject->getIsTerminal())
 				{
-					const int doorMCD = ruleItem->getAlterationMCDNumber();
-					const int radius = ruleItem->getAlterationMCDRadius();
+					const int doorMCD = battleObject->getAlterationMCDNumber();
+					const int radius = battleObject->getAlterationMCDRadius();
 
 					Tile* tile = _save->getTile(pos);
 					bool objective = false;
