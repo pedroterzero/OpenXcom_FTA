@@ -143,7 +143,7 @@ const float TilesToVexels = 16.0f;
  * Creates a blank ruleset for a certain type of item.
  * @param type String defining the type.
  */
-RuleItem::RuleItem(const std::string &type) :
+RuleItem::RuleItem(const std::string& type) :
 	_type(type), _name(type), _vehicleUnit(nullptr), _size(0.0), _costBuy(0), _costSell(0), _costDispose(0), _transferTime(24), _weight(3), _throwRange(0), _underwaterThrowRange(0),
 	_stackSize(1),
 	_bigSprite(-1), _floorSprite(-1), _handSprite(120), _bulletSprite(-1), _specialIconSprite(-1),
@@ -173,6 +173,7 @@ RuleItem::RuleItem(const std::string &type) :
 	_spawnUnitFaction(-1),
 	_targetMatrix(7),
 	_LOSRequired(false), _underwaterOnly(false), _landOnly(false), _psiReqiured(false), _manaRequired(false),
+	_isTerminal(false), _alterationMCDNumber(0), _alterationMCDRadius(0),//test
 	_meleePower(0), _specialType(-1), _vaporColor(-1), _vaporDensity(0), _vaporProbability(15),
 	_vaporColorSurface(-1), _vaporDensitySurface(0), _vaporProbabilitySurface(15),
 	_kneelBonus(-1), _oneHandedPenalty(-1),
@@ -648,6 +649,9 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 	_hackingRange = node["hackingRange"].as<int>(_hackingRange);
 
 	_recoveryPoints = node["recoveryPoints"].as<int>(_recoveryPoints);
+	_isTerminal = node["isTerminal"].as<bool>(_isTerminal);//test
+	_alterationMCDNumber = node["alterationMCDNumber"].as<int>(_alterationMCDNumber);//test
+	_alterationMCDRadius = node["alterationMCDRadius"].as<int>(_alterationMCDRadius);//test
 	_armor = node["armor"].as<int>(_armor);
 	_turretType = node["turretType"].as<int>(_turretType);
 	if (const YAML::Node &nodeAI = node["ai"])
