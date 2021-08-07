@@ -510,6 +510,7 @@
     <ClCompile Include="Mod\RuleEventScript.cpp" />
     <ClCompile Include="Mod\RuleItemCategory.cpp" />
     <ClCompile Include="Mod\RuleManufactureShortcut.cpp" />
+    <ClCompile Include="Mod\RuleObject.cpp" />
     <ClCompile Include="Mod\RuleSkill.cpp" />
     <ClCompile Include="Mod\RuleSoldierBonus.cpp" />
     <ClCompile Include="Mod\RuleSoldierTransformation.cpp" />
@@ -929,6 +930,7 @@
     <ClInclude Include="Mod\RuleEventScript.h" />
     <ClInclude Include="Mod\RuleItemCategory.h" />
     <ClInclude Include="Mod\RuleManufactureShortcut.h" />
+    <ClInclude Include="Mod\RuleObject.h" />
     <ClInclude Include="Mod\RuleSkill.h" />
     <ClInclude Include="Mod\RuleSoldierBonus.h" />
     <ClInclude Include="Mod\RuleSoldierTransformation.h" />
