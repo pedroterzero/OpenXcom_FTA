@@ -32,6 +32,7 @@ namespace OpenXcom
 class MapData;
 class BattleUnit;
 class BattleItem;
+class BattleObject;
 class RuleInventory;
 class Particle;
 class ScriptParserBase;
@@ -122,6 +123,7 @@ protected:
 	int _explosive = 0;
 	Position _pos;
 	BattleUnit *_unit;
+	BattleObject* _battleObject;
 	std::vector<BattleItem *> _inventory;
 	int _visible;
 	int _preview;
@@ -350,6 +352,10 @@ public:
 	void addItem(BattleItem *item, RuleInventory *ground);
 	/// Remove item
 	void removeItem(BattleItem *item);
+	/// Get pointer to the BattleObject
+	BattleObject* getBattleObject() const { return _battleObject; };
+	/// Set BattleObject
+	void setObject(BattleObject* object);
 	/// Get top-most item
 	BattleItem* getTopItem();
 	/// New turn preparations.

@@ -37,6 +37,7 @@ class Pathfinding;
 class TileEngine;
 class RuleEnviroEffects;
 class BattleItem;
+class BattleObject;
 class BattleUnit;
 class Mod;
 class State;
@@ -70,6 +71,7 @@ private:
 	std::vector<Node*> _nodes;
 	std::vector<BattleUnit*> _units;
 	std::vector<BattleItem*> _items, _deleted;
+	std::vector<BattleObject*> _battleObjects;
 	int _itemObjectivesNumber;
 	Pathfinding *_pathfinding;
 	TileEngine *_tileEngine;
@@ -206,6 +208,8 @@ public:
 	std::vector<Node*> *getNodes();
 	/// Gets a pointer to the list of items.
 	std::vector<BattleItem*> *getItems();
+	/// Gets a pointer to the list of battle objects.
+	std::vector<BattleObject*>* getBattleObjects() { return &_battleObjects; };
 	/// Gets a pointer to the list of units.
 	std::vector<BattleUnit*> *getUnits();
 	/// Gets terrain size x.
