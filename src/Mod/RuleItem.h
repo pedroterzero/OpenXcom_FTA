@@ -322,9 +322,6 @@ private:
 	int _psiMissAnimation, _psiMissAnimFrames;
 	int _power;
 	bool _hidePower;
-	bool _isTerminal;//test
-	int _alterationMCDNumber; //test
-	int _alterationMCDRadius;//test
 	float _powerRangeReduction;
 	float _powerRangeThreshold;
 	int _coneSize;
@@ -603,17 +600,6 @@ public:
 	const RuleItemAction *getConfigSnap() const;
 	/// Get configuration of melee action.
 	const RuleItemAction *getConfigMelee() const;
-
-	//test
-	bool getIsTerminal() const { return _isTerminal; }
-	int getAlterationMCDNumber() const {
-		return _alterationMCDNumber;
-	}
-	int getAlterationMCDRadius() const {
-		return _alterationMCDRadius;
-	}
-
-
 	/// Gets the item's aimed shot accuracy.
 	int getAccuracyAimed() const;
 	/// Gets the item's autoshot accuracy.
