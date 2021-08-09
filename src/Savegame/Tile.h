@@ -292,6 +292,8 @@ public:
 	int getShade() const;
 	/// Destroy a tile part.
 	bool destroy(TilePart part, SpecialTileType type);
+	/// Destroy battle object
+	void deleteBattleObject();
 	/// Damage a tile part.
 	bool damage(TilePart part, int power, SpecialTileType type);
 	/// Set a "virtual" explosive on this tile, to detonate later.
