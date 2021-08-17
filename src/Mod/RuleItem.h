@@ -30,7 +30,7 @@
 namespace OpenXcom
 {
 
-enum BattleType { BT_NONE, BT_FIREARM, BT_AMMO, BT_MELEE, BT_GRENADE, BT_PROXIMITYGRENADE, BT_MEDIKIT, BT_SCANNER, BT_MINDPROBE, BT_PSIAMP, BT_FLARE, BT_CORPSE };
+enum BattleType { BT_NONE, BT_FIREARM, BT_AMMO, BT_MELEE, BT_GRENADE, BT_PROXIMITYGRENADE, BT_MEDIKIT, BT_SCANNER, BT_MINDPROBE, BT_PSIAMP, BT_FLARE, BT_CORPSE, BT_HACKING };
 enum BattleFuseType { BFT_NONE = -3, BFT_INSTANT = -2, BFT_SET = -1, BFT_FIX_MIN = 0, BFT_FIX_MAX = 64 };
 enum BattleMediKitType { BMT_NORMAL = 0, BMT_HEAL = 1, BMT_STIMULANT = 2, BMT_PAINKILLER = 3 };
 enum BattleMediKitAction { BMA_HEAL = 1, BMA_STIMULANT = 2, BMA_PAINKILLER = 4 };
@@ -53,7 +53,7 @@ enum ExperienceTrainingMode {
 	ETM_PSI_STRENGTH_OR_SKILL, ETM_PSI_STRENGTH_OR_SKILL_2X,
 	ETM_NOTHING
 };
-enum BattleActionType : Uint8 { BA_NONE, BA_TURN, BA_WALK, BA_KNEEL, BA_PRIME, BA_UNPRIME, BA_THROW, BA_AUTOSHOT, BA_SNAPSHOT, BA_AIMEDSHOT, BA_HIT, BA_USE, BA_LAUNCH, BA_MINDCONTROL, BA_PANIC, BA_RETHINK, BA_CQB };
+enum BattleActionType : Uint8 { BA_NONE, BA_TURN, BA_WALK, BA_KNEEL, BA_PRIME, BA_UNPRIME, BA_THROW, BA_AUTOSHOT, BA_SNAPSHOT, BA_AIMEDSHOT, BA_HIT, BA_USE, BA_LAUNCH, BA_MINDCONTROL, BA_PANIC, BA_RETHINK, BA_CQB, BA_HACK };
 
 enum class BattleActionOrigin { CENTRE = 0, LEFT, RIGHT }; // Used for off-centre shooting.
 
@@ -346,6 +346,7 @@ private:
 	std::vector<std::string> _supportedInventorySectionsNames;
 	std::vector<const RuleInventory*> _supportedInventorySections;
 	int _waypoints, _invWidth, _invHeight;
+	int _hackingHp, _hackingTu, _hackingRange;
 	int _painKiller, _heal, _stimulant;
 	BattleMediKitType _medikitType;
 	bool _medikitTargetSelf, _medikitTargetImmune;
@@ -877,6 +878,14 @@ public:
 	int getMonthlyMaintenance() const;
 	/// Gets how many waypoints are used for a "spray" attack
 	int getSprayWaypoints() const;
+
+	/// Gets how many hacking health points does an item have.
+	int getHackingHP() const { return _hackingHp; }
+	/// Gets how many hacking time units does an item have.
+	int getHackingTU() const { return _hackingTu; }
+	/// Gets the hacking range for the item.
+	int getHackingRange() const { return _hackingRange; }
+
 	/// Gets script.
 	template<typename Script>
 	const typename Script::Container &getScript() const { return _battleItemScripts.get<Script>(); }

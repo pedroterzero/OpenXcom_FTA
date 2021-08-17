@@ -65,6 +65,7 @@
 #include "../Engine/Logger.h"
 #include "../Savegame/BattleUnitStatistics.h"
 #include "ConfirmEndMissionState.h"
+#include "HackingBState.h"
 #include "../fmath.h"
 
 namespace OpenXcom
@@ -1098,6 +1099,10 @@ void BattlescapeGame::setupCursor()
 		{
 			getMap()->setCursorType(CT_WAYPOINT);
 		}
+		else if (_currentAction.type == BA_HACK)
+		{
+			getMap()->setCursorType(CT_HACK);
+		}
 		else
 		{
 			getMap()->setCursorType(CT_AIM);
@@ -1915,6 +1920,45 @@ void BattlescapeGame::primaryAction(Position pos)
 					}
 				}
 			}
+		}
+		else if (_currentAction.type == BA_HACK && _currentAction.weapon->getRules()->getBattleType() == BT_HACKING && _parentState->getGame()->getMod()->getIsFTAGame())
+		{
+		auto targetUnit = _save->selectUnit(pos);
+		if (targetUnit && targetUnit->getVisible())
+		{
+			auto targetFaction = targetUnit->getFaction();
+			bool hackTargetAllowed = _currentAction.weapon->getRules()->isTargetAllowed(targetFaction);
+			if (_currentAction.type == BA_HACK && targetFaction == FACTION_PLAYER)
+			{
+				// no hacking allies
+				hackTargetAllowed = false;
+			}
+			else if (_currentAction.type == BA_HACK && !targetUnit->canBeHacked())
+			{
+				hackTargetAllowed = false;
+				_parentState->warning("STR_NOT_HACKING_TARGET");
+			}
+			if (hackTargetAllowed)
+			{
+				_currentAction.updateTU();
+				_currentAction.target = pos;
+				if (!_currentAction.weapon->getRules()->isLOSRequired() ||
+					(_currentAction.actor->getFaction() == FACTION_PLAYER && targetFaction != FACTION_HOSTILE) ||
+					std::find(_currentAction.actor->getVisibleUnits()->begin(), _currentAction.actor->getVisibleUnits()->end(), targetUnit) != _currentAction.actor->getVisibleUnits()->end())
+				{
+					// get the sound/animation started
+					getMap()->setCursorType(CT_NORMAL);
+					//_parentState->getGame()->getCursor()->setVisible(false);
+					_currentAction.cameraPosition = getMap()->getCamera()->getMapOffset();
+					statePushBack(new HackingBState(this, _currentAction, _parentState->getGame()));
+
+				}
+				else
+				{
+					_parentState->warning("STR_LINE_OF_SIGHT_REQUIRED");
+				}
+			}
+		}
 		}
 		else if (Options::battleConfirmFireMode && (_currentAction.waypoints.empty() || pos != _currentAction.waypoints.front()))
 		{
