@@ -67,6 +67,7 @@
 #include "../Engine/Logger.h"
 #include "../Savegame/BattleUnitStatistics.h"
 #include "ConfirmEndMissionState.h"
+#include "HackingBState.h"
 #include "../fmath.h"
 
 #include "HackingBState.h"
@@ -2082,7 +2083,7 @@ void BattlescapeGame::primaryAction(Position pos)
 		{
 			bool isCtrlPressed = Options::strafe && _save->isCtrlPressed(true);
 			bool isShiftPressed = _save->isShiftPressed(true);
-			
+
 			successfulHack(_save, pos);
 
 			if (bPreviewed &&
