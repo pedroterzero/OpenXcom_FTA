@@ -4177,6 +4177,12 @@ bool TileEngine::meleeAttack(BattleActionAttack attack, BattleUnit *victim, int 
 	return meleeAttackCalculate(attack, victim) > 0;
 }
 
+/**
+ *  Attempts a hacking attack action.
+ * @param action Pointer to an action.
+ * @param target Pointer to a target unit
+ * @return Whether it failed or succeeded.
+ */
 bool TileEngine::hackAttack(BattleAction& action, BattleUnit* target)
 {
 	if (!target)
@@ -4211,6 +4217,17 @@ bool TileEngine::hackAttack(BattleAction& action, BattleUnit* target)
 	{
 		_save->getBattleGame()->autoEndBattle();
 	}
+	return true;
+}
+
+/**
+ * Attempts hacking a battle object.
+ * @param action Pointer to an action.
+ * @return Whether it failed or succeeded.
+ */
+bool TileEngine::hackObject(BattleAction& action, BattleObject* object)
+{
+	//TODO: put object hacking code here
 	return true;
 }
 
