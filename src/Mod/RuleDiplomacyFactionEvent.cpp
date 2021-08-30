@@ -69,6 +69,7 @@ void RuleDiplomacyFactionEvent::load(const YAML::Node& node)
 	_factionResearchTriggers = node["factionResearchTriggers"].as<std::map<std::string, bool> >(_factionResearchTriggers);
 	_itemTriggers = node["itemTriggers"].as<std::map<std::string, bool> >(_itemTriggers);
 	_itemsToAdd = node["itemsToAdd"].as<std::map<std::string, int> >(_itemsToAdd);
+	_staffToAdd = node["staffToAdd"].as<std::map<std::string, int> >(_staffToAdd);
 	_discoveredResearches = node["discoveredResearches"].as<std::vector<std::string>>(_discoveredResearches);
 }
 }

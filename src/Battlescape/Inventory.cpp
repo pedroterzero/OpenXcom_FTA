@@ -886,21 +886,26 @@ void Inventory::mouseClick(Action *action, State *state)
 					_warning->showMessage(_game->getLanguage()->getString("STR_CANNOT_PLACE_ITEM_INTO_THIS_SECTION"));
 				}
 				// Put item in empty slot, or stack it, if possible.
-				else if (!overlapItems(_selUnit, _selItem, slot, x, y) && slot->fitItemInSlot(_selItem->getRules(), x, y) || canStack)
+				else if (item == 0 || item == _selItem || canStack)
 				{
-					if (!_tu || _selUnit->spendTimeUnits(_selItem->getSlot()->getCost(slot)))
+					// If item fits into an empty slot or can be stacked try moving it there
+					if (!overlapItems(_selUnit, _selItem, slot, x, y) && slot->fitItemInSlot(_selItem->getRules(), x, y) || canStack)
 					{
-						moveItem(_selItem, slot, x, y);
-						setSelectedItem(0);
-						_game->getMod()->getSoundByDepth(_depth, Mod::ITEM_DROP)->play();
+						if (!_tu || _selUnit->spendTimeUnits(_selItem->getSlot()->getCost(slot)))
+						{
+							moveItem(_selItem, slot, x, y);
+							setSelectedItem(0);
+							_game->getMod()->getSoundByDepth(_depth, Mod::ITEM_DROP)->play();
+						}
+						else
+						{
+							_warning->showMessage(_game->getLanguage()->getString("STR_NOT_ENOUGH_TIME_UNITS"));
+						}
 					}
-					else
-					{
-						_warning->showMessage(_game->getLanguage()->getString("STR_NOT_ENOUGH_TIME_UNITS"));
-					}
+					// else do nothing and exit "if (slot != 0)" section: we can't fit an item in the selected slot or stack it with anything.
 				}
 				// Put item in weapon
-				else if (item->isWeaponWithAmmo())
+				else if (item && item->isWeaponWithAmmo())
 				{
 					int slotAmmo = item->getRules()->getSlotForAmmo(_selItem->getRules());
 					if (slotAmmo == -1)

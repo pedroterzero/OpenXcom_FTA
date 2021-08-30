@@ -25,6 +25,7 @@
 #include "../Engine/RNG.h"
 #include "../Engine/ScriptBind.h"
 #include "BattleUnit.h"
+#include "BattleObject.h"
 #include "BattleItem.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/Armor.h"
@@ -387,6 +388,23 @@ int Tile::openDoor(TilePart part, BattleUnit *unit, BattleActionType reserve, bo
 	return -1;
 }
 
+/**
+ * Switch MCD of part tile to altMCD.
+ * @param part
+ * @return a value: true if successful, false if tilepart is not exist on this tile
+ */
+bool Tile::SwitchToAltMCD(TilePart part)
+{
+	if (!_objects[part]) return false;
+
+	
+	setMapData(_objects[part]->getDataset()->getObject(_objects[part]->getAltMCD()), _objects[part]->getAltMCD(), _mapData->SetID[part],
+		_objects[part]->getDataset()->getObject(_objects[part]->getAltMCD())->getObjectType());
+	setMapData(0, -1, -1, part);
+
+	return true;
+}
+
 int Tile::closeUfoDoor()
 {
 	int retval = 0;
@@ -542,7 +560,20 @@ bool Tile::destroy(TilePart part, SpecialTileType type)
 		/* replace with scorched earth */
 		setMapData(MapDataSet::getScorchedEarthTile(), 1, 0, O_FLOOR);
 	}
+	deleteBattleObject();
 	return _objective;
+}
+
+/**
+ * Delete battle object in this tile (if exist)
+ */
+void Tile::deleteBattleObject()
+{
+	if (getBattleObject())
+	{
+		getBattleObject()->setTile(0);
+		_battleObject = nullptr;	
+	}
 }
 
 /**
@@ -839,6 +870,14 @@ void Tile::removeItem(BattleItem *item)
 		}
 	}
 	item->setTile(0);
+}
+
+void Tile::setBattleObject(BattleObject* object)
+{
+	//_battleObject->setTile(0);
+	//update with new BattleObject
+	_battleObject = object;
+	object->setTile(this);
 }
 
 /**

@@ -80,6 +80,7 @@ void RuleMissionScript::load(const YAML::Node& node)
 	_maxScore = node["maxScore"].as<int>(_maxScore);
 	_minLoyalty = node["minLoyalty"].as<int>(_minLoyalty);
 	_maxLoyalty = node["maxLoyalty"].as<int>(_maxLoyalty);
+	_requiredReputation = node["requiredReputation"].as<std::map<std::string, int>>(_requiredReputation);
 	_minFunds = node["minFunds"].as<int64_t>(_minFunds);
 	_maxFunds = node["maxFunds"].as<int64_t>(_maxFunds);
 	_conditionals = node["conditionals"].as<std::vector<int> >(_conditionals);

@@ -228,6 +228,31 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 					if (!triggerHappy)
 						continue;
 				}
+
+				// reputation requirements
+				if (triggerHappy)
+				{
+					if (!ruleScript->getReputationRequirments().empty())
+					{
+						triggerHappy = false;
+						for (auto& triggerFaction : ruleScript->getReputationRequirments())
+						{
+							for (auto& faction : engine.getSavedGame()->getDiplomacyFactions())
+							{
+								if (faction->getRules()->getName() == triggerFaction.first)
+								{
+									if (faction->getReputationLevel() >= triggerFaction.second)
+									{
+										triggerHappy = true;
+									}
+								}
+							}
+						}
+						if (!triggerHappy)
+							continue;
+					}
+				}
+
 				if (triggerHappy)
 				{
 					// item requirements

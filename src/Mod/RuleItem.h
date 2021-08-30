@@ -601,8 +601,6 @@ public:
 	const RuleItemAction *getConfigSnap() const;
 	/// Get configuration of melee action.
 	const RuleItemAction *getConfigMelee() const;
-
-
 	/// Gets the item's aimed shot accuracy.
 	int getAccuracyAimed() const;
 	/// Gets the item's autoshot accuracy.

@@ -36,6 +36,7 @@ private:
 	int _minScore, _maxScore;
 	int _minLoyalty, _maxLoyalty;
 	int64_t _minFunds, _maxFunds;
+	std::map<std::string, int> _requiredReputation;
 	std::map<std::string, bool> _researchTriggers;
 	std::map<std::string, bool> _itemTriggers;
 	std::map<std::string, bool> _facilityTriggers;
@@ -72,6 +73,8 @@ public:
 	int getMinLoyalty() const { return _minLoyalty; }
 	/// Gets the maximum loyalty for this command to run.
 	int getMaxLoyalty() const { return _maxLoyalty; }
+	/// Gets the diplomacy faction requirments that may apply to this command.
+	const std::map<std::string, int>& getReputationRequirments() const { return _requiredReputation; }
 	/// Gets the minimum funds (from current month) for this command to run.
 	int64_t getMinFunds() const { return _minFunds; }
 	/// Gets the maximum funds (from current month) for this command to run.

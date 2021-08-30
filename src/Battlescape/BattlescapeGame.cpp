@@ -29,6 +29,7 @@
 #include "MeleeAttackBState.h"
 #include "PsiAttackBState.h"
 #include "ExplosionBState.h"
+#include "../Mod/MapDataSet.h"
 #include "TileEngine.h"
 #include "UnitInfoState.h"
 #include "UnitDieBState.h"
@@ -47,9 +48,11 @@
 #include "../Savegame/Tile.h"
 #include "../Savegame/BattleUnit.h"
 #include "../Savegame/BattleItem.h"
+#include "../Savegame/BattleObject.h"
 #include "../Savegame/Ufo.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/RuleInventory.h"
+#include "../Mod/RuleObject.h"
 #include "../Mod/RuleSoldier.h"
 #include "../Mod/RuleTerrain.h"
 #include "../Mod/Armor.h"
@@ -62,6 +65,7 @@
 #include "../Engine/Logger.h"
 #include "../Savegame/BattleUnitStatistics.h"
 #include "ConfirmEndMissionState.h"
+#include "HackingBState.h"
 #include "../fmath.h"
 
 #include "HackingBState.h"
@@ -96,6 +100,8 @@ void BattleActionCost::clearTU()
 {
 	*(RuleItemUseCost*)this = RuleItemUseCost();
 }
+
+
 
 /**
  * Test if action can be performed.
@@ -1358,6 +1364,65 @@ void BattlescapeGame::setStateInterval(Uint32 interval)
 	_parentState->setStateInterval(interval);
 }
 
+void successfulHack(SavedBattleGame* _save, Position pos)
+{
+	//for test
+	if (_save->getTile(pos)->getBattleObject())
+	{
+
+		BattleObject* battleObject = _save->getTile(pos)->getBattleObject();
+
+		if (battleObject->getHackingDefence() > 0)
+		{
+			const int doorMCD = battleObject->getRules()->getAlterationMCDNumber();
+			const int radius = battleObject->getRules()->getAlterationMCDRadius();
+
+			Tile* tile = _save->getTile(pos);
+			bool objective = false;
+			Tile* tiles[9];
+
+			static const TilePart parts[8] = { O_WESTWALL,O_NORTHWALL,O_FLOOR,O_WESTWALL,O_NORTHWALL,O_OBJECT,O_OBJECT,O_OBJECT };
+			Position pos = tile->getPosition();
+			MapSubset gs = { std::make_pair(pos.x - radius, pos.x + radius + 1), std::make_pair(pos.y - radius, pos.y + radius + 1) };
+
+			_save->getTileEngine()->iterateTiles(_save, gs, [&](Tile* tile)
+				{
+					tiles[0] = _save->getTile(Position(pos.x + 1, pos.y, pos.z)); //east wall
+					tiles[1] = _save->getTile(Position(pos.x, pos.y + 1, pos.z)); //south wall
+					tiles[2] = tiles[3] = tiles[4] = tiles[5] = tile;
+					tiles[6] = _save->getTile(Position(pos.x, pos.y - 1, pos.z)); //north bigwall
+					tiles[7] = _save->getTile(Position(pos.x - 1, pos.y, pos.z)); //west bigwall
+
+
+					for (int i = 7; i >= 0; --i)
+					{
+						if (!tiles[i] || !tiles[i]->getMapData(parts[i]))
+							continue; //skip out of map and emptiness
+
+						TilePart currentpart = parts[i], currentpart2;
+
+						int diemcd = tiles[i]->getMapData(currentpart)->getDieMCD();
+						int altmcd = tiles[i]->getMapData(currentpart)->getAltMCD();
+						if (altmcd == doorMCD)
+						{
+							if (diemcd != 0)
+								currentpart2 = tiles[i]->getMapData(currentpart)->getDataset()->getObject(diemcd)->getObjectType();
+							else
+								currentpart2 = currentpart;
+
+							tile->SwitchToAltMCD(currentpart);
+						}
+
+
+					}
+				}
+			);
+
+		}
+
+	}
+	//for test end
+}
 
 /**
  * Checks against reserved time units and energy units.
@@ -1869,7 +1934,7 @@ void BattlescapeGame::primaryAction(Position pos)
 					// no hacking allies
 					hackTargetAllowed = false;
 				}
-				else if (_currentAction.type == BA_HACK && !targetUnit->canBeHacked()) 
+				else if (_currentAction.type == BA_HACK && !targetUnit->canBeHacked())
 				{
 					hackTargetAllowed = false;
 					_parentState->warning("STR_NOT_HACKING_TARGET");
@@ -1943,6 +2008,8 @@ void BattlescapeGame::primaryAction(Position pos)
 		}
 		else if (playableUnitSelected())
 		{
+			successfulHack(_save, pos);
+
 			bool isCtrlPressed = _parentState->getGame()->isCtrlPressed(true);
 			bool isShiftPressed = _parentState->getGame()->isShiftPressed(true);
 			if (bPreviewed &&
@@ -3331,9 +3398,9 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 			continue;
 		}
 
-		if (command->getMaxRuns() > 0)
+		if (command->getExecutions() > 0)
 		{
-			if (_save->findBattleScriptVariable(varName) >= command->getMaxRuns())
+			if (_save->findBattleScriptVariable(varName) >= command->getExecutions())
 			{
 				continue;
 			}
