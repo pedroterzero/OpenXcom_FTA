@@ -20,7 +20,6 @@
 #include <vector>
 #include "Position.h"
 #include "BattlescapeGame.h"
-#include "../Savegame/SavedBattleGame.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/MapData.h"
 #include <SDL.h>
@@ -31,6 +30,7 @@ namespace OpenXcom
 class SavedBattleGame;
 class BattleUnit;
 class BattleItem;
+class BattleObject;
 class Tile;
 class RuleSkill;
 struct BattleAction;
