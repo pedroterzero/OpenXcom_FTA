@@ -39,6 +39,7 @@ private:
 	int _allowedProcessor;
 	int _spawnGap, _randomSpawnGap;
 	int64_t _minFunds, _maxFunds;
+	std::map<std::string, int> _requiredReputation;
 	std::map<std::string, bool> _researchTriggers;
 	std::map<std::string, bool> _itemTriggers;
 	std::map<std::string, bool> _facilityTriggers;
@@ -86,6 +87,8 @@ public:
 	int getRandomSpawnGap() const { return _randomSpawnGap; }
 	/// Gets the research triggers that may apply to this command.
 	const std::map<std::string, bool> &getResearchTriggers() const { return _researchTriggers; }
+	/// Gets the diplomacy faction requirments that may apply to this command.
+	const std::map<std::string, int>& getReputationRequirments() const { return _requiredReputation; }
 	/// Gets the item triggers that may apply to this command.
 	const std::map<std::string, bool> &getItemTriggers() const { return _itemTriggers; }
 	/// Gets the facility triggers that may apply to this command.

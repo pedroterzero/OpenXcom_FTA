@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Copyright 2010-2016 OpenXcom Developers.
+ * Copyright 2010-2021 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -17,17 +17,37 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "BattleState.h"
 
-#define OPENXCOM_VERSION_SHORT "Extended 7.0.1"
-#define OPENXCOM_VERSION_LONG "7.0.1.0"
-#define OPENXCOM_VERSION_NUMBER 7,0,1,0
+namespace OpenXcom
+{
 
-#ifndef OPENXCOM_VERSION_GIT
-#define OPENXCOM_VERSION_GIT " (v2021-04-02)"
-#endif
+class BattlescapeGame;
+class BattleUnit;
+class BattleItem;
+class Tile;
+class Game;
 
-#define OPENXCOM_FTA_VERSION_GIT " (v2021-08-03)"
-#define OPENXCOM_FTA_VERSION_SHORT "FtA 0.2.4"
-#define OPENXCOM_FTA_VERSION_LONG "0.2.4.0"
-#define OPENXCOM_FTA_VERSION_NUMBER 0,2,4,0
+/**
+ * A hacking battle state.
+ */
+class HackingBState : public BattleState
+{
+private:
+	Game* _game;
+	BattleUnit* _unit;
+	BattleItem* _item;
+	Tile* _targetTile;
+	bool _initialized;
+public:
+	/// Creates a new Hacking battle state.
+	HackingBState(BattlescapeGame* parent, BattleAction action, Game* game);
+	/// Cleans up the Hacking battle state.
+	~HackingBState();
+	/// Initializes the state.
+	void init() override;
+	/// Runs state functionality every cycle.
+	void think() override;
+};
 
+}// namespace

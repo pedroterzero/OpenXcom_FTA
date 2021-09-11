@@ -51,6 +51,7 @@
 #include "../Mod/RuleEventScript.h"
 #include "../Mod/RuleEvent.h"
 #include "../Mod/RuleMissionScript.h"
+#include "../Mod/RuleDiplomacyFaction.h"
 #include "../Savegame/DiplomacyFaction.h"
 #include "../Savegame/CovertOperation.h"
 #include "../Savegame/Waypoint.h"
@@ -2179,15 +2180,9 @@ void GeoscapeState::time1Hour()
 		{
 			bool process = operation->think(*_game, *_globe);
 			if (process)
+			{
 				timerReset();
-			// Remove finished operation 
-			Collections::deleteIf(
-				_game->getSavedGame()->getGeoscapeEvents(),
-				[](GeoscapeEvent* ge)
-				{
-					return ge->isOver();
-				}
-			);
+			}
 		}
 	}
 
@@ -3303,6 +3298,30 @@ void GeoscapeState::determineAlienMissions()
 					if (!triggerHappy)
 						break;
 				}
+				// reputation requirements
+				if (triggerHappy)
+				{
+					if (!arcScript->getReputationRequirments().empty())
+					{
+						triggerHappy = false;
+						for (auto& triggerFaction : arcScript->getReputationRequirments())
+						{
+							for (auto& faction : _game->getSavedGame()->getDiplomacyFactions())
+							{
+								auto test = faction->getRules()->getName();
+								if (faction->getRules()->getName() == triggerFaction.first)
+								{
+									if (faction->getReputationLevel() >= triggerFaction.second)
+									{
+										triggerHappy = true;
+									}
+								}
+							}
+						}
+						if (!triggerHappy)
+							continue;
+					}
+				}
 				if (triggerHappy)
 				{
 					// item requirements
@@ -3429,6 +3448,29 @@ void GeoscapeState::determineAlienMissions()
 			for (std::map<std::string, bool>::const_iterator j = command->getResearchTriggers().begin(); triggerHappy && j != command->getResearchTriggers().end(); ++j)
 			{
 				triggerHappy = (save->isResearched(j->first) == j->second);
+			}
+			// reputation requirements
+			if (triggerHappy)
+			{
+				if (!command->getReputationRequirments().empty())
+				{
+					triggerHappy = false;
+					for (auto& triggerFaction : command->getReputationRequirments())
+					{
+						for (auto& faction : _game->getSavedGame()->getDiplomacyFactions())
+						{
+							if (faction->getRules()->getName() == triggerFaction.first)
+							{
+								if (faction->getReputationLevel() >= triggerFaction.second)
+								{
+									triggerHappy = true;
+								}
+							}
+						}
+					}
+					if (!triggerHappy)
+						continue;
+				}
 			}
 			if (triggerHappy)
 			{

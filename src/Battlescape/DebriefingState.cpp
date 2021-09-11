@@ -72,6 +72,7 @@
 #include "../Menu/SaveGameState.h"
 #include "../Mod/AlienDeployment.h"
 #include "../Mod/RuleInterface.h"
+#include "../Mod/RuleResearch.h"
 #include "../Savegame/MissionStatistics.h"
 #include "../Savegame/BattleUnitStatistics.h"
 #include "../FTA/MasterMind.h"
@@ -1965,10 +1966,10 @@ void DebriefingState::prepareDebriefing()
 	}
 	// Extended mission types handling
 	int extraPoints = 0;
-	if (ruleDeploy && ruleDeploy->getExtendedObjectiveType() == "STR_EVACUATION" && (vipsLost > 0 || vipsSaved > 0))
+	if (ruleDeploy && ruleDeploy->getExtendedObjectiveType() == "STR_EVACUATION")
 	{
 		success = true;
-		if (vipsSaved == 0 || (vipsSaved * 4) < vipsLost)
+		if ((vipsLost > 0 && (vipsSaved * 4) < vipsLost) || (vipsSaved == 0 && playersSurvived == 0)) // if we saved too few VIPs or if there were no VIPs and we lost all soldiers
 		{
 			_txtTitle->setText(tr("STR_EVACUATION_FAILED"));
 			success = false;
@@ -1977,7 +1978,7 @@ void DebriefingState::prepareDebriefing()
 				addStat(objectiveFailedText, 1, objectiveFailedScore);
 			}
 		}
-		else if (vipsLost == 0 || (vipsLost * 4) < vipsSaved)
+		else if ((vipsSaved > 0 && (vipsLost * 4) < vipsSaved) || (vipsLost == 0 && deadSoldiers == 0 && playersMIA == 0)) // if we saved enough VIPs or if there were no VIPs and we saved all soldiers
 		{
 			_txtTitle->setText(tr("STR_EVACUATION_SUCCESSFUL"));
 			if (!objectiveCompleteText.empty())
@@ -1985,7 +1986,7 @@ void DebriefingState::prepareDebriefing()
 				addStat(objectiveCompleteText, 1, objectiveCompleteScore);
 			}
 		}
-		else
+		else // any other combination
 		{
 			_txtTitle->setText(tr("STR_EVACUATION_COMPLETE"));
 		}
@@ -2222,31 +2223,37 @@ void DebriefingState::prepareDebriefing()
 		{
 			std::vector<const RuleResearch*> researchVec;
 			researchVec.push_back(research);
+			bool showPedia = !_game->getSavedGame()->isResearched(research);
 			_game->getSavedGame()->addFinishedResearch(research, _game->getMod(), base, true);
 			if (!research->getLookup().empty())
 			{
 				researchVec.push_back(_game->getMod()->getResearch(research->getLookup(), true));
 				_game->getSavedGame()->addFinishedResearch(researchVec.back(), _game->getMod(), base, true);
-				Ufopaedia::openArticle(_game, research->getLookup());
+				if (showPedia)
+					Ufopaedia::openArticle(_game, research->getLookup());
 			}
 			else
 			{
-				Ufopaedia::openArticle(_game, research->getName());
+				if (showPedia)
+					Ufopaedia::openArticle(_game, research->getName());
 			}
 
 			if (const RuleResearch* bonus = _game->getSavedGame()->selectGetOneFree(research))
 			{
 				researchVec.push_back(bonus);
+				showPedia = !_game->getSavedGame()->isResearched(bonus);
 				_game->getSavedGame()->addFinishedResearch(bonus, _game->getMod(), base, true);
 				if (!bonus->getLookup().empty())
 				{
 					researchVec.push_back(_game->getMod()->getResearch(bonus->getLookup(), true));
 					_game->getSavedGame()->addFinishedResearch(researchVec.back(), _game->getMod(), base, true);
-					Ufopaedia::openArticle(_game, research->getLookup());
+					if (showPedia)
+						Ufopaedia::openArticle(_game, research->getLookup());
 				}
 				else
 				{
-					Ufopaedia::openArticle(_game, bonus->getName());
+					if (showPedia)
+						Ufopaedia::openArticle(_game, bonus->getName());
 				}
 			}
 

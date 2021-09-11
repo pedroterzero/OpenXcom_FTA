@@ -40,6 +40,7 @@
 #include "../Savegame/Tile.h"
 #include "../Savegame/BattleUnit.h"
 #include "../Savegame/BattleItem.h"
+#include "../Savegame/BattleObject.h"
 #include "../Ufopaedia/Ufopaedia.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/RuleInterface.h"
@@ -896,6 +897,7 @@ void Map::drawTerrain(Surface *surface)
 					}
 
 					auto unit = tile->getUnit();
+					auto battleObject = tile->getBattleObject();
 
 					// Draw cursor back
 					if (_cursorType != CT_NONE && _selectorX > itX - _cursorSize && _selectorY > itY - _cursorSize && _selectorX < itX+1 && _selectorY < itY+1 && !_save->getBattleState()->getMouseOverIcons())
@@ -908,6 +910,11 @@ void Map::drawTerrain(Surface *surface)
 									frameNumber = halfAnimFrameRest; // yellow box
 								else
 									frameNumber = 0; // red box
+								// FTA Hacking Cursor
+								if (_game->getMod()->getIsFTAGame() && _cursorType == CT_HACK && battleObject)
+								{
+									frameNumber = halfAnimFrameRest; // yellow box
+								}
 							}
 							else
 							{
@@ -1239,6 +1246,11 @@ void Map::drawTerrain(Surface *surface)
 									frameNumber = 3 + halfAnimFrameRest; // yellow box
 								else
 									frameNumber = 3; // red box
+								// FTA Hacking cursor
+								if (_game->getMod()->getIsFTAGame() && _cursorType == CT_HACK && battleObject)
+								{
+									frameNumber = 3 + halfAnimFrameRest; // yellow box
+								}
 							}
 							else
 							{
@@ -1451,9 +1463,11 @@ void Map::drawTerrain(Surface *surface)
 						}
 						if (!_isAltPressed && _cursorType > 2 && _camera->getViewLevel() == itZ)
 						{
-							int frame[6] = {0, 0, 0, 11, 13, 15};
+							int frame[7] = {0, 0, 0, 11, 13, 15, 17};
+							assert(_cursorType < std::size(frame) && "_cursorType value too large"); // array scope check
 							tmpSurface = _game->getMod()->getSurfaceSet("CURSOR.PCK")->getFrame(frame[_cursorType] + (_animFrame / 4) % 2);
 							Surface::blitRaw(surface, tmpSurface, screenPosition.x, screenPosition.y, 0);
+							
 						}
 					}
 

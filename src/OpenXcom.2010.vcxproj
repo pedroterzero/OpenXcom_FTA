@@ -309,6 +309,7 @@
     <ClCompile Include="Battlescape\ExplosionBState.cpp" />
     <ClCompile Include="Battlescape\ExtendedBattlescapeLinksState.cpp" />
     <ClCompile Include="Battlescape\ExtendedInventoryLinksState.cpp" />
+    <ClCompile Include="Battlescape\HackingState.cpp" />
     <ClCompile Include="Battlescape\InfoboxOKState.cpp" />
     <ClCompile Include="Battlescape\InfoboxState.cpp" />
     <ClCompile Include="Battlescape\Inventory.cpp" />
@@ -442,6 +443,8 @@
     <ClCompile Include="Geoscape\UfoDetectedState.cpp" />
     <ClCompile Include="Geoscape\UfoLostState.cpp" />
     <ClCompile Include="Geoscape\UfoTrackerState.cpp" />
+    <ClCompile Include="Battlescape\HackingView.cpp" />
+    <ClCompile Include="Battlescape\HackingBState.cpp" />
     <ClCompile Include="Interface\ArrowButton.cpp" />
     <ClCompile Include="Interface\Bar.cpp" />
     <ClCompile Include="Interface\BattlescapeButton.cpp" />
@@ -510,6 +513,7 @@
     <ClCompile Include="Mod\RuleEventScript.cpp" />
     <ClCompile Include="Mod\RuleItemCategory.cpp" />
     <ClCompile Include="Mod\RuleManufactureShortcut.cpp" />
+    <ClCompile Include="Mod\RuleObject.cpp" />
     <ClCompile Include="Mod\RuleSkill.cpp" />
     <ClCompile Include="Mod\RuleSoldierBonus.cpp" />
     <ClCompile Include="Mod\RuleSoldierTransformation.cpp" />
@@ -564,6 +568,7 @@
     <ClCompile Include="Savegame\Base.cpp" />
     <ClCompile Include="Savegame\BaseFacility.cpp" />
     <ClCompile Include="Savegame\BattleItem.cpp" />
+    <ClCompile Include="Savegame\BattleObject.cpp" />
     <ClCompile Include="Savegame\BattleUnit.cpp" />
     <ClCompile Include="Savegame\Country.cpp" />
     <ClCompile Include="Savegame\CovertOperation.cpp" />
@@ -710,6 +715,7 @@
     <ClInclude Include="Battlescape\ExplosionBState.h" />
     <ClInclude Include="Battlescape\ExtendedBattlescapeLinksState.h" />
     <ClInclude Include="Battlescape\ExtendedInventoryLinksState.h" />
+    <ClInclude Include="Battlescape\HackingState.h" />
     <ClInclude Include="Battlescape\InfoboxOKState.h" />
     <ClInclude Include="Battlescape\InfoboxState.h" />
     <ClInclude Include="Battlescape\Inventory.h" />
@@ -860,6 +866,8 @@
     <ClInclude Include="Geoscape\UfoDetectedState.h" />
     <ClInclude Include="Geoscape\UfoLostState.h" />
     <ClInclude Include="Geoscape\UfoTrackerState.h" />
+    <ClInclude Include="Battlescape\HackingView.h" />
+    <ClInclude Include="Battlescape\HackingBState.h" />
     <ClInclude Include="Interface\ArrowButton.h" />
     <ClInclude Include="Interface\Bar.h" />
     <ClInclude Include="Interface\BattlescapeButton.h" />
@@ -929,6 +937,7 @@
     <ClInclude Include="Mod\RuleEventScript.h" />
     <ClInclude Include="Mod\RuleItemCategory.h" />
     <ClInclude Include="Mod\RuleManufactureShortcut.h" />
+    <ClInclude Include="Mod\RuleObject.h" />
     <ClInclude Include="Mod\RuleSkill.h" />
     <ClInclude Include="Mod\RuleSoldierBonus.h" />
     <ClInclude Include="Mod\RuleSoldierTransformation.h" />
@@ -984,6 +993,7 @@
     <ClInclude Include="Savegame\Base.h" />
     <ClInclude Include="Savegame\BaseFacility.h" />
     <ClInclude Include="Savegame\BattleItem.h" />
+    <ClInclude Include="Savegame\BattleObject.h" />
     <ClInclude Include="Savegame\BattleUnit.h" />
     <ClInclude Include="Savegame\BattleUnitStatistics.h" />
     <ClInclude Include="Savegame\Country.h" />

@@ -38,6 +38,7 @@ private:
 	std::map<std::string, bool> _playerResearchTriggers, _factionResearchTriggers;
 	std::map<std::string, bool> _itemTriggers;
 	std::map<std::string, int> _itemsToAdd;
+	std::map<std::string, int> _staffToAdd;
 	std::vector<std::string> _discoveredResearches;
 public:
 	/// Creates a blank RuleEventScript.
@@ -85,6 +86,8 @@ public:
 	int getVigilanceChange() const { return _vigilanceChange; };
 	/// Gets the list of items to add to factional storage.
 	const std::map<std::string, int>& getItemsToAdd() const { return _itemsToAdd; }
+	/// Gets the list of staff, that would join faction.
+	const std::map<std::string, int>& getStaffToAdd() const { return _staffToAdd; }
 	/// Gets the list of discovered researches.
 	const std::vector<std::string>& getDiscoveredResearches() const { return _discoveredResearches; };
 
