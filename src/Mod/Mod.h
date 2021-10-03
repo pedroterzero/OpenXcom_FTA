@@ -229,6 +229,7 @@ private:
 	bool _allowAlienBasesOnWrongTextures;
 	bool _ftaGame, _researchTreeDisabled;
 	bool _ironManEnabled;
+	int _ftaGameLength;
 	int _kneelBonusGlobal, _oneHandedPenaltyGlobal;
 	int _enableCloseQuartersCombat, _closeQuartersAccuracyGlobal, _closeQuartersTuCostGlobal, _closeQuartersEnergyCostGlobal, _closeQuartersSneakUpGlobal;
 	int _noLOSAccuracyPenaltyGlobal;
@@ -829,6 +830,9 @@ public:
 	int getBughuntTimeUnitsLeft() const { return _bughuntTimeUnitsLeft; }
 	/// Gets if we are playing FTA scenario.
 	bool getIsFTAGame() const { return _ftaGame; }
+	/// Gets lenght of FtA game (while in alpha) in months
+	int getFTAGameLength() const { return _ftaGameLength; }
+	
 	/// Gets if ironman enabled in a ruleset.
 	bool getIsIronManEnabled() const { return _ironManEnabled; }
 	/// Gets if research tree was disabled.

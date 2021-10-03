@@ -2609,7 +2609,7 @@ void GeoscapeState::time1Month()
 	if (_game->getMod()->getIsFTAGame())
 	{
 		_game->getSavedGame()->monthlyScoring();
-		if (_game->getSavedGame()->getMonthsPassed() > 3)
+		if (_game->getSavedGame()->getMonthsPassed() > _game->getMod()->getFTAGameLength())
 		{
 			popup(new AlphaGameVersionEnds()); //temp alpha 1 blocker
 		}
