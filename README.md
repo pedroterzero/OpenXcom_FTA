@@ -29,29 +29,12 @@ data or user folder (see below for folder locations).
 
 ## Mods
 
-Mods are an important and exciting part of the game.  OpenXcom comes with a set
-of standard mods based on traditional XcomUtil and UFOExtender functionality.
-There is also a [mod portal website](https://openxcom.mod.io/) with a thriving
-mod community with hundreds of innovative mods to choose from.
-
-To install a mod, go to the mods subdirectory in your user directory (see below
-for folder locations).  Extract the mod into a new subdirectory.  WinZip has an
-"Extract to" option that creates a directory whose name is based on the archive
-name.  It doesn't really matter what the directory name is as long as it is
-unique.  Some mods are packed with extra directories at the top, so you may
-need to move files around inside the new mod directory to get things straighted
-out.  For example, if you extract a mod to mods/LulzMod and you see something
-like:
-
-    mods/LulzMod/data/TERRAIN/
-    mods/LulzMod/data/Rulesets/
-
-and so on, just move everything up a level so it looks like:
-
-    mods/LulzMod/TERRAIN/
-    mods/LulzMod/Rulesets/
-
-and you're good to go!  Enable your new mod on the Options -> Mods page in-game.
+Current engine version is designed to be used together with [X-COM: From the Ashes
+mod](https://github.com/723Studio/X-Com-From-the-Ashes). Still, currently it is fully compatible 
+with all OXC an OXCE mods, and does not have any game breaking changes. If you
+face any bug with mod, please, let us know with created issue in this repository.
+All major changes in this code, compared to OpenXcom or OpenXcom Extended are
+locked behind `ftaGame` property (see [project's wiki](https://github.com/723Studio/OpenXcom_FTA/wiki) for more info.)
 
 ## Directory Locations
 
