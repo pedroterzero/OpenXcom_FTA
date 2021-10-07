@@ -2014,7 +2014,12 @@ void Base::destroyFacility(std::vector<BaseFacility*>::iterator facility)
 		Collections::deleteIf(_productions, _productions.size(),
 			[&](Production* p)
 			{
-				if (p->getAssignedEngineers() > toRemove)
+				if (toRemove <= 0)
+				{
+					// skip rest
+					return false;
+				}
+				else if (p->getAssignedEngineers() > toRemove)
 				{
 					p->setAssignedEngineers(p->getAssignedEngineers() - toRemove);
 					_engineers += toRemove;
