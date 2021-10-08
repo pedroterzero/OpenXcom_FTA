@@ -1927,12 +1927,13 @@ void BattlescapeGame::primaryAction(Position pos)
 				}
 				else
 				{
+					hackTargetAllowed = false;
 					_parentState->warning("STR_LINE_OF_SIGHT_REQUIRED");
 				}
 
 			}
 			// check if there is a battle object that can be hacked
-			if (battleObject)
+			else if (battleObject)
 			{
 				if (!battleObject->canBeHacked())
 				{
@@ -1940,6 +1941,10 @@ void BattlescapeGame::primaryAction(Position pos)
 					_parentState->warning("STR_NOT_HACKING_TARGET");
 				}
 				// TODO: add battle object line of sight check here
+			}
+			else
+			{
+				hackTargetAllowed = false;
 			}
 
 			if (hackTargetAllowed)
