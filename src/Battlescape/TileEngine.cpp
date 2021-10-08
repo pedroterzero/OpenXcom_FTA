@@ -4258,7 +4258,7 @@ bool TileEngine::hackObject(BattleAction& action, BattleObject* object)
 					{
 						currentPart2 = currentPart;
 					}
-					tile->SwitchToAltMCD(currentPart);
+					tile->switchToAltMCD(currentPart);
 				}
 			}
 		}
