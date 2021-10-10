@@ -713,7 +713,7 @@ double CovertOperationStartState::getOperationOdds()
 			{
 				RuleItem* item = _game->getMod()->getItem((*i).first);
 				isConcealed = item->belongsToCategory("STR_CONCEALABLE");
-				if (isConcealed) allConsealed = false;
+				if (!isConcealed) allConsealed = false;
 				if (item->belongsToCategory("STR_HEAVY_WEAPONS")) ++heavy;
 			}
 			if (allConsealed)
