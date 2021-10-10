@@ -1306,21 +1306,17 @@ void SavedBattleGame::newTurnUpdateScripts()
  */
 void SavedBattleGame::updateAlarm()
 {
-	if (_side == FACTION_HOSTILE)
+	for (std::vector<BattleUnit*>::iterator i = _units.begin(); i != _units.end(); ++i)
 	{
-		for (std::vector<BattleUnit*>::iterator i = _units.begin(); i != _units.end(); ++i)
+		if ((*i)->getFaction() == FACTION_HOSTILE &&
+			((*i)->getStatus() != STATUS_DEAD) || ((*i)->getStatus() != STATUS_UNCONSCIOUS) || ((*i)->getStatus() != STATUS_PANICKING))
 		{
-			if ((*i)->getFaction() == FACTION_HOSTILE &&
-				((*i)->getStatus() != STATUS_DEAD) || ((*i)->getStatus() != STATUS_UNCONSCIOUS) || ((*i)->getStatus() != STATUS_PANICKING))
+			if ((*i)->getKills() || (*i)->getAlarmed())
 			{
-				if ((*i)->getKills() || (*i)->getAlarmed())
-				{
-					_alarmLvl += 1;
-				}
+				_alarmLvl += 1;
 			}
 		}
 	}
-
 }
 
 /**
@@ -1432,8 +1428,11 @@ void SavedBattleGame::endTurn()
 	//scripts update
 	newTurnUpdateScripts();
 
-	//time to handle alarm
-	updateAlarm();
+	//time to handle the alarm
+	if (_side == FACTION_HOSTILE)
+	{
+		updateAlarm();
+	}
 
 	//fov check will be done by `BattlescapeGame::endTurn`
 

@@ -491,7 +491,7 @@ void BattlescapeGame::endTurn()
 	_parentState->showLaunchButton(false);
 	_currentAction.targeting = false;
 	_AISecondMove = false;
-	auto side = _save->getSide();
+	//auto side = _save->getSide();
 	bool toDoScripts = scriptsToProcess();
 
 	if (_triggerProcessed.tryRun())
@@ -502,7 +502,7 @@ void BattlescapeGame::endTurn()
 		}
 
 		// Battle scripts processing
-		if (side == FACTION_PLAYER)
+		if (_save->getSide() == FACTION_PLAYER)
 		{
 			std::string deployBattleScript = _save->getAlienDeploymet()->getBattleScript();
 			if (!deployBattleScript.empty())
@@ -524,7 +524,7 @@ void BattlescapeGame::endTurn()
 		bool exploded = false;
 
 		// check for hot grenades on the ground
-		if (side != FACTION_NEUTRAL)
+		if (_save->getSide() != FACTION_NEUTRAL)
 		{
 			for (BattleItem *item : *_save->getItems())
 			{
@@ -595,7 +595,7 @@ void BattlescapeGame::endTurn()
 
 	if (_endTurnProcessed.tryRun())
 	{
-		if (side != FACTION_NEUTRAL)
+		if (_save->getSide() != FACTION_NEUTRAL)
 		{
 			for (BattleItem *item : *_save->getItems())
 			{
@@ -622,7 +622,7 @@ void BattlescapeGame::endTurn()
 	_triggerProcessed.reset();
 	_endTurnProcessed.reset();
 
-	if (side == FACTION_PLAYER)
+	if (_save->getSide() == FACTION_PLAYER)
 	{
 		setupCursor();
 	}
@@ -686,7 +686,7 @@ void BattlescapeGame::endTurn()
 
 	bool battleComplete = ((!killingAllAliensIsNotEnough || !toDoScripts) && tally.liveAliens == 0) || tally.liveSoldiers == 0;
 
-	if ((side != FACTION_NEUTRAL || battleComplete)
+	if ((_save->getSide() != FACTION_NEUTRAL || battleComplete)
 		&& _endTurnRequested)
 	{
 		_parentState->getGame()->pushState(new NextTurnState(_save, _parentState));
