@@ -418,7 +418,7 @@ void MasterMind::updateLoyalty(int score, LoyaltySource source)
 int MasterMind::getLoyaltyPerformanceBonus()
 {
 	int bonus = 100;
-	if (_game->getMod()->getIsFTAGame())
+	/*if (_game->getMod()->getIsFTAGame())
 	{
 		int loyalty = _game->getSavedGame()->getLoyalty();
 		int cap = _game->getMod()->getLoyaltyPerformanceCap();
@@ -464,7 +464,7 @@ int MasterMind::getLoyaltyPerformanceBonus()
 				}
 			}
 		}
-	}
+	}*/
 	
 	return bonus;
 }
