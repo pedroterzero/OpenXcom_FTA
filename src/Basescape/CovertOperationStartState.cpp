@@ -570,10 +570,15 @@ double CovertOperationStartState::getOperationOdds()
 	int startOdds = _rule->getBaseChances();
 	_chances = startOdds;
 
+	if (_game->getSavedGame()->getDifficulty() == DIFF_SUPERHUMAN)
+	{
+		_chances *= 0.85; // extra SH gift
+	}
+
 	int requiredSoldiers = _rule->getSoldierSlots();
 	int assignedSoldiersN = _soldiers.size();
 	// lets process staff effectiveness
-	int slots = 0;
+	double slots = 0;
 	slots = _rule->getOptionalSoldierSlots();
 	if (slots > 0)
 	{

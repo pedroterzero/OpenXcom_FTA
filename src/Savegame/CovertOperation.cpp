@@ -624,14 +624,14 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	else if (ruleCost < 80) 	effCost = ceil(ruleCost / 11.54);
 	else effCost = ceil(ruleCost / 12.52);
 
-	int expRolls = 1 + effCost + ceil(danger / 3);
+	int expRolls = effCost + ceil(danger / 10);
 	//limit experience gain
-	if (expRolls > 5 && expRolls <= 8) expRolls = 6;
+	if (expRolls > 3 && expRolls <= 8) expRolls = 6;
 	if (expRolls > 8 && expRolls <= 12) expRolls = 9;
 	if (expRolls > 12) expRolls = 10;
 
-	if (save.getMonthsPassed() > 10) expRolls++; //bonus for lategame
-	int expRollsRandom = RNG::generate(-2, 2);
+	if (save.getMonthsPassed() > 24) expRolls++; //bonus for lategame
+	int expRollsRandom = RNG::generate(-1, 1);
 	expRolls += expRollsRandom; //add more random
 	//experience is reduced for fail and critical fail
 	if (!operationResult && !criticalFail) expRolls = round(expRolls / 3);
@@ -717,9 +717,9 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 		{
 			//TU and Energy is increased most time
 			if (stats->tu < caps.tu)
-				tuExp = RNG::generate(-2, expRolls); //negative roll makes small additional chance for improveStat return 0
+				tuExp = RNG::generate(-3, expRolls); //negative roll makes small additional chance for improveStat return 0
 			if (stats->stamina < caps.stamina)
-				staminaExp = RNG::generate(-2, expRolls);
+				staminaExp = RNG::generate(-3, expRolls);
 			//other stats would be rolled to be improved
 			int statID = 0;
 			int expGain = 0;
