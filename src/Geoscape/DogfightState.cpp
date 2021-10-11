@@ -1383,9 +1383,8 @@ void DogfightState::update()
 		}
 		if (!_destroyCraft && (_destroyUfo || _mode == _btnDisengage))
 		{
-			// keep original target if attacked by a HK (and didn't disengage manually)
-			bool keepOriginalTarget = _ufoIsAttacking && _craft->getDestination() != _ufo;
-			if (!keepOriginalTarget || _mode == _btnDisengage)
+			// keep original target
+			if (_mode == _btnDisengage || _craft->getDestination() == _ufo || !Options::oxceKeepCraftCommandsAfterDogfight)
 			{
 				_craft->returnToBase();
 			}
@@ -1405,7 +1404,9 @@ void DogfightState::update()
 			std::vector<Craft*> followers = _ufo->getCraftFollowers();
 			for (std::vector<Craft*>::iterator i = followers.begin(); i != followers.end(); ++i)
 			{
-				if (((*i)->getNumSoldiers() == 0 && (*i)->getNumVehicles() == 0) || !(*i)->getRules()->getAllowLanding())
+				if (((*i)->getNumSoldiers() == 0 && (*i)->getNumVehicles() == 0) ||
+					!(*i)->getRules()->getAllowLanding() ||
+					((*i)->getDestination() != _ufo && Options::oxceKeepCraftCommandsAfterDogfight))
 				{
 					(*i)->returnToBase();
 				}

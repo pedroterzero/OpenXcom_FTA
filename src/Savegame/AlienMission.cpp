@@ -370,11 +370,10 @@ void AlienMission::think(Game &engine, const Globe &globe)
 
 	if (_nextWave != _rule.getWaveCount())
 	{
-		size_t origSpawnTimerValue = _rule.getWave(_nextWave).spawnTimer;
-		size_t spawnTimer = origSpawnTimerValue / 30;
+		size_t spawnTimer = _rule.getWave(_nextWave).spawnTimer / 30;
 		_spawnCountdown = (spawnTimer/2 + RNG::generate(0, spawnTimer)) * 30;
 
-		if (origSpawnTimerValue == 0)
+		if (_spawnCountdown == 0)
 		{
 			// spawn more UFOs immediately
 			think(engine, globe);

@@ -395,7 +395,6 @@ Mod::Mod() :
 
 	dmg = new RuleDamageType();
 	dmg->ResistType = DT_NONE;
-	dmg->RandomType = DRT_NONE;
 	_damageTypes[dmg->ResistType] = dmg;
 
 	dmg = new RuleDamageType();
@@ -443,7 +442,6 @@ Mod::Mod() :
 
 	dmg = new RuleDamageType();
 	dmg->ResistType = DT_HE;
-	dmg->RandomType = DRT_EXPLOSION;
 	dmg->FixRadius = -1;
 	dmg->IgnoreOverKill = true;
 	dmg->IgnoreSelfDestruct = true;
@@ -454,7 +452,6 @@ Mod::Mod() :
 
 	dmg = new RuleDamageType();
 	dmg->ResistType = DT_SMOKE;
-	dmg->RandomType = DRT_NONE;
 	dmg->FixRadius = -1;
 	dmg->IgnoreOverKill = true;
 	dmg->IgnoreDirection = true;
@@ -472,7 +469,6 @@ Mod::Mod() :
 
 	dmg = new RuleDamageType();
 	dmg->ResistType = DT_IN;
-	dmg->RandomType = DRT_FIRE;
 	dmg->FixRadius = -1;
 	dmg->FireBlastCalc = true;
 	dmg->IgnoreOverKill = true;
@@ -997,7 +993,7 @@ Palette *Mod::getPalette(const std::string &name, bool error) const
  * Returns the list of voxeldata in the mod.
  * @return Pointer to the list of voxeldata.
  */
-const std::vector<Uint16> *Mod::getVoxelData() const
+std::vector<Uint16> *Mod::getVoxelData()
 {
 	return &_voxelData;
 }
@@ -2128,7 +2124,6 @@ void Mod::loadAll()
 	if (!_recommendedUserOptions.empty() && !Options::oxceRecommendedOptionsWereSet)
 	{
 		_recommendedUserOptions.erase("maximizeInfoScreens"); // FIXME: make proper categorisations in the next release
-		_recommendedUserOptions.erase("oxceModValidationLevel");
 
 		const std::vector<OptionInfo> &options = Options::getOptionInfo();
 		for (std::vector<OptionInfo>::const_iterator i = options.begin(); i != options.end(); ++i)
@@ -2149,7 +2144,6 @@ void Mod::loadAll()
 		_fixedUserOptions.erase("oxceLinks");
 		_fixedUserOptions.erase("oxceUpdateCheck");
 		_fixedUserOptions.erase("maximizeInfoScreens"); // FIXME: make proper categorisations in the next release
-		_fixedUserOptions.erase("oxceModValidationLevel");
 		_fixedUserOptions.erase("oxceAutoNightVisionThreshold");
 
 		const std::vector<OptionInfo> &options = Options::getOptionInfo();
@@ -6103,14 +6097,14 @@ void Mod::ScriptRegister(ScriptParserBase *parser)
 
 	Bind<Mod> mod = { parser };
 
-	mod.add<&offset<&Mod::_soundOffsetBattle>>("getSoundOffsetBattle", "convert mod sound index in first argument to runtime index in given set, second argument is mod id");
-	mod.add<&offset<&Mod::_soundOffsetGeo>>("getSoundOffsetGeo", "convert mod sound index in first argument to runtime index in given set, second argument is mod id");
-	mod.add<&offset<&Mod::_surfaceOffsetBasebits>>("getSpriteOffsetBasebits", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
-	mod.add<&offset<&Mod::_surfaceOffsetBigobs>>("getSpriteOffsetBigobs", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
-	mod.add<&offset<&Mod::_surfaceOffsetFloorob>>("getSpriteOffsetFloorob", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
-	mod.add<&offset<&Mod::_surfaceOffsetHandob>>("getSpriteOffsetHandob", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
-	mod.add<&offset<&Mod::_surfaceOffsetHit>>("getSpriteOffsetHit", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
-	mod.add<&offset<&Mod::_surfaceOffsetSmoke>>("getSpriteOffsetSmoke", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
+	mod.add<&offset<&Mod::_soundOffsetBattle>>("getSoundOffsetBattle");
+	mod.add<&offset<&Mod::_soundOffsetGeo>>("getSoundOffsetGeo");
+	mod.add<&offset<&Mod::_surfaceOffsetBasebits>>("getSpriteOffsetBasebits");
+	mod.add<&offset<&Mod::_surfaceOffsetBigobs>>("getSpriteOffsetBigobs");
+	mod.add<&offset<&Mod::_surfaceOffsetFloorob>>("getSpriteOffsetFloorob");
+	mod.add<&offset<&Mod::_surfaceOffsetHandob>>("getSpriteOffsetHandob");
+	mod.add<&offset<&Mod::_surfaceOffsetHit>>("getSpriteOffsetHit");
+	mod.add<&offset<&Mod::_surfaceOffsetSmoke>>("getSpriteOffsetSmoke");
 	mod.add<&Mod::getMaxDarknessToSeeUnits>("getMaxDarknessToSeeUnits");
 	mod.add<&Mod::getMaxViewDistance>("getMaxViewDistance");
 	mod.add<&getSmokeReduction>("getSmokeReduction");

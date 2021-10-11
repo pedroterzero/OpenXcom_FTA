@@ -316,10 +316,6 @@ void UnitDieBState::convertUnitToCorpse()
 				}
 			}
 		}
-		else
-		{
-			_parent->getSave()->getTileEngine()->applyGravity(_parent->getSave()->getTile(lastPosition));
-		}
 	}
 }
 

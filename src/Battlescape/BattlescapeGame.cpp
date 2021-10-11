@@ -2124,9 +2124,59 @@ void BattlescapeGame::dropItem(Position position, BattleItem *item, bool removeI
  */
 BattleUnit *BattlescapeGame::convertUnit(BattleUnit *unit)
 {
-	_parentState->resetUiButton();
+	// only ever respawn once
+	unit->setAlreadyRespawned(true);
 
-	return getSave()->convertUnit(unit);
+	bool visible = unit->getVisible();
+
+	if (getSave()->getSelectedUnit() == unit)
+	{
+		getSave()->setSelectedUnit(nullptr);
+	}
+	getSave()->getBattleState()->resetUiButton();
+	// in case the unit was unconscious
+	getSave()->removeUnconsciousBodyItem(unit);
+
+	unit->instaKill();
+
+	auto tile = unit->getTile();
+	if (tile == nullptr)
+	{
+		auto pos = unit->getPosition();
+		if (pos != TileEngine::invalid)
+		{
+			tile = _save->getTile(pos);
+		}
+	}
+
+	// in case of unconscious unit someone could stand on top of it, or take curret unit to invenotry, then we skip spawning any thing
+	if (!tile || (tile->getUnit() != nullptr && tile->getUnit() != unit))
+	{
+		return nullptr;
+	}
+
+	getSave()->getTileEngine()->itemDropInventory(tile, unit, false, true);
+
+	// remove unit-tile link
+	unit->setTile(nullptr, _save);
+
+	const Unit* type = unit->getSpawnUnit();
+
+	BattleUnit *newUnit = _save->createTempUnit(type, unit->getSpawnUnitFaction());
+
+	getSave()->initUnit(newUnit);
+	newUnit->setTile(tile, _save);
+	newUnit->setPosition(unit->getPosition());
+	newUnit->setDirection(unit->getDirection());
+	newUnit->clearTimeUnits();
+	getSave()->getUnits()->push_back(newUnit);
+	newUnit->setVisible(visible);
+
+	getTileEngine()->calculateFOV(newUnit->getPosition());  //happens fairly rarely, so do a full recalc for units in range to handle the potential unit visible cache issues.
+	getTileEngine()->applyGravity(newUnit->getTile());
+	newUnit->dontReselect();
+	return newUnit;
+
 }
 
 /**
@@ -2248,7 +2298,7 @@ void BattlescapeGame::spawnFromPrimedItems()
 
 	for (std::vector<BattleItem*>::iterator i = _save->getItems()->begin(); i != _save->getItems()->end(); ++i)
 	{
-		if ((*i)->isOwnerIgnored() || !(*i)->getTile())
+		if ((*i)->isOwnerIgnored())
 		{
 			continue;
 		}

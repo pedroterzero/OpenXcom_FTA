@@ -195,9 +195,6 @@ private:
 	bool canStackToSlot(BattleItem* item, RuleInventory* slot, int x, int y) const;
 public:
 	static const int MAX_SOLDIER_ID = 1000000;
-	static const int BUBBLES_FIRST_FRAME = 3;
-	static const int BUBBLES_LAST_FRAME = BUBBLES_FIRST_FRAME + 15;
-
 	/// Name of class used in script.
 	static constexpr const char *ScriptName = "BattleUnit";
 	/// Register all useful function used by script.
@@ -657,14 +654,10 @@ public:
 	bool isSelectable(UnitFaction faction, bool checkReselect, bool checkInventory) const;
 	/// Does this unit have an inventory?
 	bool hasInventory() const;
-
 	/// Is this unit breathing and if so what frame?
-	int getBreathExhaleFrame() const;
-	/// Count frames to next start of breath animation.
-	int getBreathInhaleFrame() const;
+	int getBreathFrame() const;
 	/// Start breathing and/or update the breathing frame.
 	void breathe();
-
 	/// Set the flag for "floor above me" meaning stop rendering bubbles.
 	void setFloorAbove(bool floor);
 	/// Get the flag for "floor above me".

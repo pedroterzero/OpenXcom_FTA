@@ -173,9 +173,7 @@ void Unit::afterLoad(const Mod* mod)
 				"There is live alien item but unit is not recoverable ("+ s +")",
 				LOG_INFO
 			);
-
-			// FIXME: this is too restrictive; I will need to review all the cases and probably refactor civilianRecoveryType functionality a bit too
-			//mod->checkForSoftError(!Mod::isEmptyRuleName(_civilianRecoveryType), _type, "There is civilianRecoveryType but unit is not recoverable (" + s + ")");
+			mod->checkForSoftError(!Mod::isEmptyRuleName(_civilianRecoveryType), _type, "There is civilianRecoveryType but unit is not recoverable ("+ s +")");
 		}
 	}
 }
