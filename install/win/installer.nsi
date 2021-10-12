@@ -350,6 +350,27 @@ ${EndIf}
 
 	download_mod_yes:
 	Delete "$TEMP\X-Com-From-the-Ashes.zip"
+	
+ 	;(uses inetc.dll)
+	inetc::get "https://github.com/723Studio/Hit-Fx-FtA/archive/refs/heads/main.zip" "$TEMP\Hit-Fx-FtA.zip" /end
+	Pop $0
+	StrCmp $0 "OK" 0 download_hitfx_fail1
+
+	;(uses nsisunz.dll)
+${If} $PortableMode == ${BST_CHECKED}
+	nsisunz::UnzipToLog "$TEMP\Hit-Fx-FtA.zip" "$INSTDIR\user\mods"
+${Else}
+	nsisunz::UnzipToLog "$TEMP\Hit-Fx-FtA.zip" "$DOCUMENTS\OpenXcom\mods"
+${EndIf}
+        Pop $0
+	StrCmp $0 "success" download_hitfx_yes download_hitfx_fail1
+
+	download_hitfx_fail1:
+	Abort "Error"
+
+	download_hitfx_yes:
+	Delete "$TEMP\Hit-Fx-FtA.zip"
+	
 	;Store installation folder
 	WriteRegStr HKLM "Software\${GAME_NAME}" "" $INSTDIR
 
