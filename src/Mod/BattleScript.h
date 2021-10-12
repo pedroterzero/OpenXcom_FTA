@@ -77,8 +77,10 @@ public:
 	int getChancesOfExecution() const { return _executionChances; };
 	/// Gets the label for this command.
 	int getLabel() const { return _label; };
-	/// Gets how many times this command repeats (1 repeat means 2 executions) in one turn.
+	/// Gets how many times this command repeats in one turn.
 	int getExecutions() const { return _executions; };
+	/// Gets how many times this command repeats in one turn.
+	int getMaxRuns() const { return _maxRuns; };
 	/// Gets what conditions apply to this command.
 	const std::vector<int>* getConditionals() const { return &_conditionals; };
 	/// Gets the groups vector for iteration.

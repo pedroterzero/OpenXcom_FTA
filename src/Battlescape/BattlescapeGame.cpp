@@ -3237,9 +3237,9 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 			continue;
 		}
 
-		if (command->getExecutions() > 0)
+		if (command->getMaxRuns() > 0)
 		{
-			if (_save->findBattleScriptVariable(varName) >= command->getExecutions())
+			if (_save->findBattleScriptVariable(varName) >= command->getMaxRuns())
 			{
 				continue;
 			}
