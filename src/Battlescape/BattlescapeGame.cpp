@@ -641,7 +641,7 @@ void BattlescapeGame::endTurn()
 	auto tally = _save->getBattleGame()->tallyUnits();
 
 	// if all units from either faction are killed - the mission is over.
-	if (_save->allObjectivesDestroyed() && _save->getObjectiveType() == MUST_DESTROY && !toDoScripts)
+	if (_save->allObjectivesDestroyed() && _save->getObjectiveType() == MUST_DESTROY && (!toDoScripts || tally.liveSoldiers == 0))
 	{
 		_parentState->finishBattle(false, tally.liveSoldiers);
 		return;
