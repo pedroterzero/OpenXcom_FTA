@@ -186,7 +186,7 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 
 	_btnStats->onMouseClick((ActionHandler)&DebriefingState::btnStatsClick);
 
-	_btnSell->setText(tr("STR_SELL"));
+	_btnSell->setText(tr("STR_SELL_UC"));
 	_btnSell->onMouseClick((ActionHandler)&DebriefingState::btnSellClick);
 	_btnTransfer->setText(tr("STR_TRANSFER_UC"));
 	_btnTransfer->onMouseClick((ActionHandler)&DebriefingState::btnTransferClick);
