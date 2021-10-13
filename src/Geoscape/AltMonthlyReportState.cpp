@@ -472,7 +472,7 @@ std::string AltMonthlyReportState::calculateUpdates()
 	}
 
 	//handle loyalty updating
-	if (_gameOver != 0)
+	if (!_gameOver)
 	{
 		int funds = save->getFunds();
 		if (funds < 0)
@@ -490,21 +490,21 @@ std::string AltMonthlyReportState::calculateUpdates()
 				}
 				if (funds < noFundsV * 5)
 				{
-					discontent *= 5;
+					discontent *= 2;
 					stuffMessage = tr("STR_STUFF_NO_MONEY5");
 				}
 				if (funds < noFundsV * 10)
 				{
-					discontent *= 10;
+					discontent *= 2;
 					stuffMessage = tr("STR_STUFF_NO_MONEY10");
 				}
 				if (funds < noFundsV * 20)
 				{
-					discontent *= 20;
+					discontent *= 2;
 					stuffMessage = tr("STR_STUFF_NO_MONEY20");
 				}
 				ss << stuffMessage;
-				_game->getMasterMind()->updateLoyalty(discontent, XCOM_GEOSCAPE);
+				_game->getMasterMind()->updateLoyalty(-discontent, XCOM_GEOSCAPE);
 			}
 		}
 		//update loyalty data after it was loaded
