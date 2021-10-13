@@ -75,6 +75,7 @@ BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(g
 	_edtBase = new TextEdit(this, 127, 17, 193, 0);
 	_txtLocation = new Text(126, 9, 194, 16);
 	_txtFunds = new Text(126, 9, 194, 24);
+	_txtLoyalty = new Text(126, 9, 194, 32);
 	_btnNewBase = new TextButton(128, 12, 192, 58);
 	_btnBaseInfo = new TextButton(128, 12, 192, 71);
 	_btnSoldiers = new TextButton(128, 12, 192, 84);
@@ -96,6 +97,7 @@ BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(g
 	add(_edtBase, "text1", "basescape");
 	add(_txtLocation, "text2", "basescape");
 	add(_txtFunds, "text3", "basescape");
+	add(_txtLoyalty, "text3", "basescape");
 	add(_btnNewBase, "button", "basescape");
 	add(_btnBaseInfo, "button", "basescape");
 	add(_btnSoldiers, "button", "basescape");
@@ -217,6 +219,14 @@ void BasescapeState::init()
 	}
 
 	_txtFunds->setText(tr("STR_FUNDS").arg(Unicode::formatFunding(_game->getSavedGame()->getFunds())));
+	if (_game->getMod()->getIsFTAGame() && _game->getSavedGame()->isResearched("STR_LOYALTY"))
+	{
+		_txtLoyalty->setText(tr("STR_LOYALTY_RATING").arg(_game->getSavedGame()->getLoyalty()));
+	}
+	else
+	{
+		_txtLoyalty->setVisible(false);
+	}
 
 	_btnNewBase->setVisible(_game->getSavedGame()->getBases()->size() < MiniBaseView::MAX_BASES);
 
