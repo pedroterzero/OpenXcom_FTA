@@ -340,7 +340,6 @@ void DiplomacyFaction::processFactionalEvents(Game& engine)
 		auto rule = mod.getDiplomacyFactionEvent(i);
 		if (rule != nullptr)
 		{
-			Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " is processing own event: " << rule->getType() << "!"; //#CLEARLOGS
 			if (RNG::percent(rule->getExecutionOdds()))
 			{
 				auto month = save.getMonthsPassed();
@@ -387,7 +386,7 @@ void DiplomacyFaction::processFactionalEvents(Game& engine)
 					//ok, we are happy with this factional event, let's finally process its effects!
 					if (triggerHappy)
 					{
-						Log(LOG_DEBUG) << "Event: " << rule->getType() << " passed all checks!"; //#CLEARLOGS
+						Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " got event: " << rule->getType(); //#CLEARLOGS
 						_power += rule->getPowerChange();
 						_funds += rule->getFundsChange();
 						_vigilance += rule->getVigilanceChange();

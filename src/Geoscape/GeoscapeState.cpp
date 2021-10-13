@@ -584,18 +584,27 @@ void GeoscapeState::handle(Action *action)
 			// "ctrl-6"
 			if (action->getDetails()->key.keysym.sym == SDLK_6)
 			{
-				_txtDebug->setText("XCOM/ALIEN ACTIVITY FOR THIS MONTH RESET");
-				size_t invertedEntry = _game->getSavedGame()->getFundsList().size() - 1;
-				for (auto& region : *_game->getSavedGame()->getRegions())
+				if (!_game->getMod()->getIsFTAGame())
 				{
-					region->getActivityXcom().at(invertedEntry) = 0;
-					region->getActivityAlien().at(invertedEntry) = 0;
+					_txtDebug->setText("XCOM/ALIEN ACTIVITY FOR THIS MONTH RESET");
+					size_t invertedEntry = _game->getSavedGame()->getFundsList().size() - 1;
+					for (auto &region : *_game->getSavedGame()->getRegions())
+					{
+						region->getActivityXcom().at(invertedEntry) = 0;
+						region->getActivityAlien().at(invertedEntry) = 0;
+					}
+					for (auto &country : *_game->getSavedGame()->getCountries())
+					{
+						country->getActivityXcom().at(invertedEntry) = 0;
+						country->getActivityAlien().at(invertedEntry) = 0;
+					}
 				}
-				for (auto& country : *_game->getSavedGame()->getCountries())
+				else
 				{
-					country->getActivityXcom().at(invertedEntry) = 0;
-					country->getActivityAlien().at(invertedEntry) = 0;
+					_txtDebug->setText("PEOPLE ARE LOYAL NOW: LOYALTY = 1000");
+					_game->getSavedGame()->setLoyalty(1000);
 				}
+				
 			}
 			// "ctrl-7"
 			if (action->getDetails()->key.keysym.sym == SDLK_7)
@@ -2608,13 +2617,13 @@ void GeoscapeState::time1Month()
 	timerReset();
 	if (_game->getMod()->getIsFTAGame())
 	{
-		_game->getSavedGame()->monthlyScoring();
 		if (_game->getSavedGame()->getMonthsPassed() > _game->getMod()->getFTAGameLength())
 		{
 			popup(new AlphaGameVersionEnds()); //temp alpha 1 blocker
 		}
 		else
 		{
+			_game->getSavedGame()->monthlyScoring();
 			popup(new AltMonthlyReportState(_globe));
 		}
 	}

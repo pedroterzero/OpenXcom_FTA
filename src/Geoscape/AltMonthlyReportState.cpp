@@ -419,10 +419,10 @@ std::string AltMonthlyReportState::calculateUpdates()
 	}
 
 	// the council is more lenient after the first month
-	if (save->getMonthsPassed() > 1)
+	/*if (save->getMonthsPassed() > 1)
 	{
 		save->getResearchScores().at(monthOffset) += 400;
-	}
+	}*/
 
 	xcomTotal = save->getResearchScores().at(monthOffset) + xcomSubTotal;
 
@@ -474,8 +474,6 @@ std::string AltMonthlyReportState::calculateUpdates()
 	//handle loyalty updating
 	if (_gameOver != 0)
 	{
-		
-
 		int funds = save->getFunds();
 		if (funds < 0)
 		{
@@ -492,23 +490,22 @@ std::string AltMonthlyReportState::calculateUpdates()
 				}
 				if (funds < noFundsV * 5)
 				{
-					discontent *= 2;
+					discontent *= 5;
 					stuffMessage = tr("STR_STUFF_NO_MONEY5");
 				}
 				if (funds < noFundsV * 10)
 				{
-					discontent *= 2;
+					discontent *= 10;
 					stuffMessage = tr("STR_STUFF_NO_MONEY10");
 				}
 				if (funds < noFundsV * 20)
 				{
-					discontent *= 2;
+					discontent *= 20;
 					stuffMessage = tr("STR_STUFF_NO_MONEY20");
 				}
 				ss << stuffMessage;
 				_game->getMasterMind()->updateLoyalty(discontent, XCOM_GEOSCAPE);
 			}
-
 		}
 		//update loyalty data after it was loaded
 		_game->getSavedGame()->setLastMonthsLoyalty(_loyalty);
