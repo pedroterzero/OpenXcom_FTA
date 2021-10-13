@@ -407,7 +407,7 @@ void MasterMind::updateLoyalty(int score, LoyaltySource source)
 	coef = coef / 100;
 	int loyalty = _game->getSavedGame()->getLoyalty();
 	loyalty += std::round(score * coef);
-	Log(LOG_DEBUG) << "Loyalty updating to:  " << loyalty << " from coef: " << coef << " and score value: " << score << " with reason: " << reason; //#CLEARLOGS remove for next release
+	Log(LOG_DEBUG) << "Loyalty updating to:  " << loyalty << " from coef: " << coef << " and score value: " << score << " with reason: " << reason; //#CLEARLOGS
 	_game->getSavedGame()->setLoyalty(loyalty);
 }
 
@@ -417,56 +417,27 @@ void MasterMind::updateLoyalty(int score, LoyaltySource source)
 */
 int MasterMind::getLoyaltyPerformanceBonus()
 {
-	int bonus = 100;
-	/*if (_game->getMod()->getIsFTAGame())
+	int performance = 100;
+	if (_game->getMod()->getIsFTAGame())
 	{
 		int loyalty = _game->getSavedGame()->getLoyalty();
-		int cap = _game->getMod()->getLoyaltyPerformanceCap();
-		int factor = _game->getMod()->getLoyaltyPerformanceFactor();
-		int chance = 0;
-
+		//int cap = _game->getMod()->getLoyaltyPerformanceCap();
+		//int factor = _game->getMod()->getLoyaltyPerformanceFactor();
 		if (loyalty > 0)
 		{
-			if (loyalty > cap)
-			{
-				if (RNG::percent(factor / 3))
-				{
-					bonus = 240;
-					return bonus;
-				}
-				chance = factor;
-			}
-			else
-			{
-				chance = (loyalty * factor) / cap;
-			}
-
-			if (RNG::percent(chance))
-			{
-				bonus = 200;
-			}
+			double ln = log(fabs(loyalty));
+			int bonus = ceil(-9.79 + (2.23 * ln));
+			performance += bonus;
+			Log(LOG_DEBUG) << "Loyalty is " << loyalty << " so it updates performance to " << performance << " from bonus : " << bonus; //#CLEARLOGS
 		}
-		else
+		if (loyalty < 0)
 		{
-			chance = (-loyalty * factor * 1.5) / cap;
-
-			if (RNG::percent(chance))
-			{
-				bonus = 50;
-			}
-			else
-			{
-				chance = (-loyalty * factor) / cap;
-
-				if (RNG::percent(chance))
-				{
-					bonus = 0;
-				}
-			}
+			double penalty = 0.271 * pow(-loyalty, 0.537);
+			performance -= penalty;
+			Log(LOG_DEBUG) << "Loyalty is " << loyalty << " so it updates performance to " << performance << " from penalty : " << penalty; //#CLEARLOGS
 		}
-	}*/
-	
-	return bonus;
+	}
+	return performance;
 }
 
 /**

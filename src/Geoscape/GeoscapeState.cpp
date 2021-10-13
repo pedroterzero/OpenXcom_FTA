@@ -2042,9 +2042,9 @@ void GeoscapeState::time1Hour()
 	{
 		for (std::vector<Craft*>::iterator j = (*i)->getCrafts()->begin(); j != (*i)->getCrafts()->end(); ++j)
 		{
-			int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
 			if ((*j)->getStatus() == "STR_REPAIRS")
 			{
+				int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
 				(*j)->repair(bonus);
 			}
 			else if ((*j)->getStatus() == "STR_REARMING")
