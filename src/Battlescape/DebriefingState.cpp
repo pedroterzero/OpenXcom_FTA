@@ -90,20 +90,6 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 {
 	_missionStatistics = new MissionStatistics();
 
-	if (_game->getMod()->getIsFTAGame())
-	{
-		_showSellButton = false;
-		for (std::vector<DiplomacyFaction*>::iterator i = _game->getSavedGame()->getDiplomacyFactions().begin();
-													  i != _game->getSavedGame()->getDiplomacyFactions().end(); ++i)
-		{
-			if ((*i)->isDiscovered())
-			{
-				_showSellButton = true;
-				break;
-			}
-		}
-	}
-
 	Options::baseXResolution = Options::baseXGeoscape;
 	Options::baseYResolution = Options::baseYGeoscape;
 	_game->getScreen()->resetDisplay(false);
@@ -376,8 +362,24 @@ void DebriefingState::applyVisibility()
 	// Third page (recovered items)
 	_lstRecoveredItems->setVisible(showItems);
 
+	// Hide sell button if there are no contacts with factions yet
+	bool showSellButtonFTA = true; //for non-FTA cases
+	if (_game->getMod()->getIsFTAGame())
+	{
+		showSellButtonFTA = false;
+		for (std::vector<DiplomacyFaction *>::iterator i = _game->getSavedGame()->getDiplomacyFactions().begin();
+			 i != _game->getSavedGame()->getDiplomacyFactions().end(); ++i)
+		{
+			if ((*i)->isDiscovered())
+			{
+				showSellButtonFTA = true;
+				break;
+			}
+		}
+	}
+
 	// Set text on toggle button accordingly
-	_btnSell->setVisible(showItems && _showSellButton);
+	_btnSell->setVisible(showItems && _showSellButton && showSellButtonFTA);
 	_btnTransfer->setVisible(showItems && _showSellButton && _game->getSavedGame()->getBases()->size() > 1);
 	if (showScore)
 	{
