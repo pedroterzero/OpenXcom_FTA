@@ -479,10 +479,8 @@ void NextTurnState::close()
 
 	if ((!killingAllAliensIsNotEnough && tally.liveAliens == 0) || tally.liveSoldiers == 0)
 	{
-		if (!toDoScripts)
-		{
+		//if (!toDoScripts)
 			_state->finishBattle(false, tally.liveSoldiers);
-		}
 	}
 	else
 	{

@@ -3358,22 +3358,38 @@ std::vector<std::pair<int, int>> OpenXcom::BattlescapeGame::getValidBlocks(Battl
 	{
 		for (auto& dir : command->getSpawnBlocks())
 		{
-			if (dir == "North")
-				for (int x = 0; x < sizeX; ++x) compliantBlocksMap[x][0] = true;
-			else if (dir == "West")
-				for (int y = 0; y < sizeY; ++y) compliantBlocksMap[0][y] = true;
-			else if (dir == "South")
-				for (int x = 0; x < sizeX; ++x) compliantBlocksMap[x][sizeY - 1] = true;
-			else if (dir == "East")
-				for (int y = 0; y < sizeY; ++y) compliantBlocksMap[sizeX - 1][y] = true;
+			if (dir == "EDGES")
+			{
+				for (int x = 0; x < sizeX; ++x)
+					compliantBlocksMap[x][0] = 1;
+				for (int y = 0; y < sizeY; ++y)
+					compliantBlocksMap[0][y] = 1;
+				for (int x = 0; x < sizeX; ++x)
+					compliantBlocksMap[x][sizeY - 1] = 1;
+				for (int y = 0; y < sizeY; ++y)
+					compliantBlocksMap[sizeX - 1][y] = 1;
+				break;
+			}
+			if (dir == "NORTH")
+				for (int x = 0; x < sizeX; ++x)
+					compliantBlocksMap[x][0] = 1;
+			else if (dir == "WEST")
+				for (int y = 0; y < sizeY; ++y)
+					compliantBlocksMap[0][y] = 1;
+			else if (dir == "SOUTH")
+				for (int x = 0; x < sizeX; ++x)
+					compliantBlocksMap[x][sizeY - 1] = 1;
+			else if (dir == "EAST")
+				for (int y = 0; y < sizeY; ++y)
+					compliantBlocksMap[sizeX - 1][y] = 1;
 			else if (dir == "NW")
-				compliantBlocksMap[0][0] = true;
+				compliantBlocksMap[0][0] = 1;
 			else if (dir == "NE")
-				compliantBlocksMap[sizeX - 1][0] = true;
+				compliantBlocksMap[sizeX - 1][0] = 1;
 			else if (dir == "SW")
-				compliantBlocksMap[0][sizeY - 1] = true;
+				compliantBlocksMap[0][sizeY - 1] = 1;
 			else if (dir == "SE")
-				compliantBlocksMap[sizeX - 1][sizeY - 1] = true;
+				compliantBlocksMap[sizeX - 1][sizeY - 1] = 1;
 		}
 	}
 	else

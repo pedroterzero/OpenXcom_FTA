@@ -1342,6 +1342,7 @@ void SavedBattleGame::endTurn()
 	}
 	else if (_side == FACTION_HOSTILE)
 	{
+		updateAlarm();
 		_selectedUnit =  0;
 		_side = FACTION_NEUTRAL;
 		// if there is no neutral team, we skip this and instantly prepare the new turn for the player
@@ -1427,12 +1428,6 @@ void SavedBattleGame::endTurn()
 
 	//scripts update
 	newTurnUpdateScripts();
-
-	//time to handle the alarm
-	if (_side == FACTION_HOSTILE)
-	{
-		updateAlarm();
-	}
 
 	//fov check will be done by `BattlescapeGame::endTurn`
 
