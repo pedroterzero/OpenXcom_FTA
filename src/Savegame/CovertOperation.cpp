@@ -695,7 +695,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			}
 			if (damage < (*i)->getCurrentStats()->health)
 			{
-				(*i)->setWoundRecovery(damage);
+				(*i)->setHealthMissing(damage);
 				_results->addSoldierDamage((*i)->getName(), damage);
 			}
 			else
@@ -767,9 +767,11 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 				case 1:
 					if (stats->bravery < caps.bravery && !braveryExp)
 					{
-						int braveryRoll = 1;
-						if (saved || wound > 4)
+						int braveryRoll = 4;
+						if (wound > 0)
 							braveryRoll += 1;
+						if (saved || wound > 4)
+							braveryRoll += 2;
 						if (RNG::generate(0, 10) > braveryRoll)
 							braveryExp += expGain;
 					}
