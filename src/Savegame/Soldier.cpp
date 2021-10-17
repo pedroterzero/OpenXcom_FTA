@@ -496,7 +496,21 @@ std::string Soldier::getCraftString(Language *lang, const BaseSumDailyRecovery& 
 	{
 		if (hasPendingTransformation())
 		{
-			s = lang->getString("STR_IN_TRANSFORMATION_UC");
+			std::ostringstream ss;
+			ss << lang->getString("STR_IN_TRANSFORMATION_UC");
+			ss << ">";
+			int days = 0;
+			for (auto it = _pendingTransformations.cbegin(); it != _pendingTransformations.cend();)
+			{
+				if ((*it).second > 0)
+				{
+					days += (*it).second;
+					++it;
+				}
+			}
+			days = ceil(days / 24);
+			ss << days;
+			s = ss.str();
 		}
 		else
 		{
