@@ -169,6 +169,12 @@ BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(g
 	_btnSell->onMouseClick((ActionHandler)&BasescapeState::btnSellClick);
 	_btnSell->onKeyboardPress((ActionHandler)&BasescapeState::btnSellClick, Options::keyBasescapeSell);
 
+	if (_game->getMod()->getIsFTAGame())
+	{
+		_btnPurchase->setText(tr("STR_COVERT_OPERATIONS_UC"));
+		_btnSell->setText(tr("STR_DIPLOMACY_UC"));
+	}
+
 	_btnGeoscape->setText(tr("STR_GEOSCAPE_UC"));
 	_btnGeoscape->onMouseClick((ActionHandler)&BasescapeState::btnGeoscapeClick);
 	_btnGeoscape->onKeyboardPress((ActionHandler)&BasescapeState::btnGeoscapeClick, Options::keyCancel);

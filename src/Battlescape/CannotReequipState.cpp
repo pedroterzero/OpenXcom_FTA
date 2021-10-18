@@ -73,7 +73,14 @@ CannotReequipState::CannotReequipState(std::vector<ReequipStat> missingItems, Ba
 	_btnManufacture->setText(tr("STR_MANUFACTURE"));
 	_btnManufacture->onMouseClick((ActionHandler)&CannotReequipState::btnManufactureClick);
 
-	_btnPurchase->setText(tr("STR_PURCHASE_RECRUIT"));
+	if (_game->getMod()->getIsFTAGame())
+	{
+		_btnPurchase->setText(tr("STR_DIPLOMACY_UC"));
+	}
+	else
+	{
+		_btnPurchase->setText(tr("STR_PURCHASE_RECRUIT"));
+	}
 	_btnPurchase->onMouseClick((ActionHandler)&CannotReequipState::btnPurchaseClick);
 
 	_btnOk->setText(tr("STR_OK"));
