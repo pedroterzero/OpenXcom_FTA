@@ -251,22 +251,26 @@ void SoldierTransformationState::initTransformationData()
 
 	const std::map<std::string, int> & requiredItems(_transformationRule->getRequiredItems());
 
-	int row = 0;
-	for (std::map<std::string, int>::const_iterator iter = requiredItems.begin(); iter != requiredItems.end(); ++iter)
+	if (!requiredItems.empty())
 	{
-		std::ostringstream s1, s2;
-		s1 << iter->second;
-		if (_game->getMod()->getItem(iter->first) != 0)
+		int row = 0;
+		for (std::map<std::string, int>::const_iterator iter = requiredItems.begin(); iter != requiredItems.end(); ++iter)
 		{
-			s2 << _base->getStorageItems()->getItem(iter->first);
-			transformationPossible &= (_base->getStorageItems()->getItem(iter->first) >= iter->second);
-		}
+			std::ostringstream s1, s2;
+			s1 << iter->second;
+			if (_game->getMod()->getItem(iter->first) != 0)
+			{
+				s2 << _base->getStorageItems()->getItem(iter->first);
+				transformationPossible &= (_base->getStorageItems()->getItem(iter->first) >= iter->second);
+			}
 
-		_lstRequiredItems->addRow(3, tr(iter->first).c_str(), s1.str().c_str(), s2.str().c_str());
-		_lstRequiredItems->setCellColor(row, 1, _lstRequiredItems->getSecondaryColor());
-		_lstRequiredItems->setCellColor(row, 2, _lstRequiredItems->getSecondaryColor());
-		row++;
+			_lstRequiredItems->addRow(3, tr(iter->first).c_str(), s1.str().c_str(), s2.str().c_str());
+			_lstRequiredItems->setCellColor(row, 1, _lstRequiredItems->getSecondaryColor());
+			_lstRequiredItems->setCellColor(row, 2, _lstRequiredItems->getSecondaryColor());
+			row++;
+		}
 	}
+	
 
 	_btnStart->setVisible(transformationPossible);
 
@@ -306,84 +310,151 @@ void SoldierTransformationState::initTransformationData()
 	{
 		bool showMana = _game->getSavedGame()->isManaUnlocked(_game->getMod());
 
-		_lstStatChanges->addRow(14, "",
-			tr("STR_TIME_UNITS_ABBREVIATION").c_str(),
-			tr("STR_STAMINA_ABBREVIATION").c_str(),
-			tr("STR_HEALTH_ABBREVIATION").c_str(),
-			tr("STR_BRAVERY_ABBREVIATION").c_str(),
-			tr("STR_REACTIONS_ABBREVIATION").c_str(),
-			tr("STR_FIRING_ACCURACY_ABBREVIATION").c_str(),
-			tr("STR_THROWING_ACCURACY_ABBREVIATION").c_str(),
-			tr("STR_MELEE_ACCURACY_ABBREVIATION").c_str(),
-			tr("STR_STRENGTH_ABBREVIATION").c_str(),
-			tr("STR_MANA_ABBREVIATION").c_str(),
-			tr("STR_PSIONIC_STRENGTH_ABBREVIATION").c_str(),
-			tr("STR_PSIONIC_SKILL_ABBREVIATION").c_str(),
-			"");
-		_lstStatChanges->addRow(14, tr("STR_CURRENT_STATS").c_str(),
-			formatStat(currentStats.tu, false, false).c_str(),
-			formatStat(currentStats.stamina, false, false).c_str(),
-			formatStat(currentStats.health, false, false).c_str(),
-			formatStat(currentStats.bravery, false, false).c_str(),
-			formatStat(currentStats.reactions, false, false).c_str(),
-			formatStat(currentStats.firing, false, false).c_str(),
-			formatStat(currentStats.throwing, false, false).c_str(),
-			formatStat(currentStats.melee, false, false).c_str(),
-			formatStat(currentStats.strength, false, false).c_str(),
-			formatStat(currentStats.mana, false, !showMana).c_str(),
-			formatStat(currentStats.psiStrength, false, !showPsiStrength).c_str(),
-			formatStat(currentStats.psiSkill, false, !showPsiSkill).c_str(),
-			"");
-		_lstStatChanges->addRow(14, tr(twoRows ? "STR_CHANGES_MIN" : "STR_CHANGES").c_str(),
-			formatStat(changedStatsMin.tu, true, rerollFlags.tu || randomFlags.tu).c_str(),
-			formatStat(changedStatsMin.stamina, true, rerollFlags.stamina || randomFlags.stamina).c_str(),
-			formatStat(changedStatsMin.health, true, rerollFlags.health || randomFlags.health).c_str(),
-			formatStat(changedStatsMin.bravery, true, rerollFlags.bravery || randomFlags.bravery).c_str(),
-			formatStat(changedStatsMin.reactions, true, rerollFlags.reactions || randomFlags.reactions).c_str(),
-			formatStat(changedStatsMin.firing, true, rerollFlags.firing || randomFlags.firing).c_str(),
-			formatStat(changedStatsMin.throwing, true, rerollFlags.throwing || randomFlags.throwing).c_str(),
-			formatStat(changedStatsMin.melee, true, rerollFlags.melee || randomFlags.melee).c_str(),
-			formatStat(changedStatsMin.strength, true, rerollFlags.strength || randomFlags.strength).c_str(),
-			formatStat(changedStatsMin.mana, true, !showMana || rerollFlags.mana || randomFlags.mana).c_str(),
-			formatStat(changedStatsMin.psiStrength, true, !showPsiStrength || rerollFlags.psiStrength || randomFlags.psiStrength).c_str(),
-			formatStat(changedStatsMin.psiSkill, true, !showPsiSkill || rerollFlags.psiSkill || randomFlags.psiSkill).c_str(),
-			"");
-		if (twoRows)
+		if (_game->getMod()->getIsFTAGame() && !showMana && !_game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements()))
 		{
-			_lstStatChanges->addRow(14, tr("STR_CHANGES_MAX").c_str(),
-				formatStat(changedStatsMax.tu, true, rerollFlags.tu).c_str(),
-				formatStat(changedStatsMax.stamina, true, rerollFlags.stamina).c_str(),
-				formatStat(changedStatsMax.health, true, rerollFlags.health).c_str(),
-				formatStat(changedStatsMax.bravery, true, rerollFlags.bravery).c_str(),
-				formatStat(changedStatsMax.reactions, true, rerollFlags.reactions).c_str(),
-				formatStat(changedStatsMax.firing, true, rerollFlags.firing).c_str(),
-				formatStat(changedStatsMax.throwing, true, rerollFlags.throwing).c_str(),
-				formatStat(changedStatsMax.melee, true, rerollFlags.melee).c_str(),
-				formatStat(changedStatsMax.strength, true, rerollFlags.strength).c_str(),
-				formatStat(changedStatsMax.mana, true, !showMana || rerollFlags.mana).c_str(),
-				formatStat(changedStatsMax.psiStrength, true, !showPsiStrength || rerollFlags.psiStrength).c_str(),
-				formatStat(changedStatsMax.psiSkill, true, !showPsiSkill || rerollFlags.psiSkill).c_str(),
-				"");
+			_lstStatChanges->addRow(11, "",
+									tr("STR_TIME_UNITS_ABBREVIATION").c_str(),
+									tr("STR_STAMINA_ABBREVIATION").c_str(),
+									tr("STR_HEALTH_ABBREVIATION").c_str(),
+									tr("STR_BRAVERY_ABBREVIATION").c_str(),
+									tr("STR_REACTIONS_ABBREVIATION").c_str(),
+									tr("STR_FIRING_ACCURACY_ABBREVIATION").c_str(),
+									tr("STR_THROWING_ACCURACY_ABBREVIATION").c_str(),
+									tr("STR_MELEE_ACCURACY_ABBREVIATION").c_str(),
+									tr("STR_STRENGTH_ABBREVIATION").c_str(),
+									"");
+			_lstStatChanges->addRow(11, tr("STR_CURRENT_STATS").c_str(),
+									formatStat(currentStats.tu, false, false).c_str(),
+									formatStat(currentStats.stamina, false, false).c_str(),
+									formatStat(currentStats.health, false, false).c_str(),
+									formatStat(currentStats.bravery, false, false).c_str(),
+									formatStat(currentStats.reactions, false, false).c_str(),
+									formatStat(currentStats.firing, false, false).c_str(),
+									formatStat(currentStats.throwing, false, false).c_str(),
+									formatStat(currentStats.melee, false, false).c_str(),
+									formatStat(currentStats.strength, false, false).c_str(),
+									"");
+			_lstStatChanges->addRow(11, tr(twoRows ? "STR_CHANGES_MIN" : "STR_CHANGES").c_str(),
+									formatStat(changedStatsMin.tu, true, rerollFlags.tu || randomFlags.tu).c_str(),
+									formatStat(changedStatsMin.stamina, true, rerollFlags.stamina || randomFlags.stamina).c_str(),
+									formatStat(changedStatsMin.health, true, rerollFlags.health || randomFlags.health).c_str(),
+									formatStat(changedStatsMin.bravery, true, rerollFlags.bravery || randomFlags.bravery).c_str(),
+									formatStat(changedStatsMin.reactions, true, rerollFlags.reactions || randomFlags.reactions).c_str(),
+									formatStat(changedStatsMin.firing, true, rerollFlags.firing || randomFlags.firing).c_str(),
+									formatStat(changedStatsMin.throwing, true, rerollFlags.throwing || randomFlags.throwing).c_str(),
+									formatStat(changedStatsMin.melee, true, rerollFlags.melee || randomFlags.melee).c_str(),
+									formatStat(changedStatsMin.strength, true, rerollFlags.strength || randomFlags.strength).c_str(),
+									"");
+			if (twoRows)
+			{
+				_lstStatChanges->addRow(11, tr("STR_CHANGES_MAX").c_str(),
+										formatStat(changedStatsMax.tu, true, rerollFlags.tu).c_str(),
+										formatStat(changedStatsMax.stamina, true, rerollFlags.stamina).c_str(),
+										formatStat(changedStatsMax.health, true, rerollFlags.health).c_str(),
+										formatStat(changedStatsMax.bravery, true, rerollFlags.bravery).c_str(),
+										formatStat(changedStatsMax.reactions, true, rerollFlags.reactions).c_str(),
+										formatStat(changedStatsMax.firing, true, rerollFlags.firing).c_str(),
+										formatStat(changedStatsMax.throwing, true, rerollFlags.throwing).c_str(),
+										formatStat(changedStatsMax.melee, true, rerollFlags.melee).c_str(),
+										formatStat(changedStatsMax.strength, true, rerollFlags.strength).c_str(),
+										"");
+			}
+			if (bonusRule)
+			{
+				_lstStatChanges->addRow(11, tr("STR_BONUS_STATS").c_str(),
+										formatStat(bonusStats.tu, true, false).c_str(),
+										formatStat(bonusStats.stamina, true, false).c_str(),
+										formatStat(bonusStats.health, true, false).c_str(),
+										formatStat(bonusStats.bravery, true, false).c_str(),
+										formatStat(bonusStats.reactions, true, false).c_str(),
+										formatStat(bonusStats.firing, true, false).c_str(),
+										formatStat(bonusStats.throwing, true, false).c_str(),
+										formatStat(bonusStats.melee, true, false).c_str(),
+										formatStat(bonusStats.strength, true, false).c_str(),
+										"");
+			}
 		}
-		if (bonusRule)
+		else // OXCE way
 		{
-			_lstStatChanges->addRow(14, tr("STR_BONUS_STATS").c_str(),
-				formatStat(bonusStats.tu, true, false).c_str(),
-				formatStat(bonusStats.stamina, true, false).c_str(),
-				formatStat(bonusStats.health, true, false).c_str(),
-				formatStat(bonusStats.bravery, true, false).c_str(),
-				formatStat(bonusStats.reactions, true, false).c_str(),
-				formatStat(bonusStats.firing, true, false).c_str(),
-				formatStat(bonusStats.throwing, true, false).c_str(),
-				formatStat(bonusStats.melee, true, false).c_str(),
-				formatStat(bonusStats.strength, true, false).c_str(),
-				formatStat(bonusStats.mana, true, false).c_str(),
-				formatStat(bonusStats.psiStrength, true, false).c_str(),
-				formatStat(bonusStats.psiSkill, true, false).c_str(),
-				"");
+			_lstStatChanges->addRow(14, "",
+									tr("STR_TIME_UNITS_ABBREVIATION").c_str(),
+									tr("STR_STAMINA_ABBREVIATION").c_str(),
+									tr("STR_HEALTH_ABBREVIATION").c_str(),
+									tr("STR_BRAVERY_ABBREVIATION").c_str(),
+									tr("STR_REACTIONS_ABBREVIATION").c_str(),
+									tr("STR_FIRING_ACCURACY_ABBREVIATION").c_str(),
+									tr("STR_THROWING_ACCURACY_ABBREVIATION").c_str(),
+									tr("STR_MELEE_ACCURACY_ABBREVIATION").c_str(),
+									tr("STR_STRENGTH_ABBREVIATION").c_str(),
+									tr("STR_MANA_ABBREVIATION").c_str(),
+									tr("STR_PSIONIC_STRENGTH_ABBREVIATION").c_str(),
+									tr("STR_PSIONIC_SKILL_ABBREVIATION").c_str(),
+									"");
+			_lstStatChanges->addRow(14, tr("STR_CURRENT_STATS").c_str(),
+									formatStat(currentStats.tu, false, false).c_str(),
+									formatStat(currentStats.stamina, false, false).c_str(),
+									formatStat(currentStats.health, false, false).c_str(),
+									formatStat(currentStats.bravery, false, false).c_str(),
+									formatStat(currentStats.reactions, false, false).c_str(),
+									formatStat(currentStats.firing, false, false).c_str(),
+									formatStat(currentStats.throwing, false, false).c_str(),
+									formatStat(currentStats.melee, false, false).c_str(),
+									formatStat(currentStats.strength, false, false).c_str(),
+									formatStat(currentStats.mana, false, !showMana).c_str(),
+									formatStat(currentStats.psiStrength, false, !showPsiStrength).c_str(),
+									formatStat(currentStats.psiSkill, false, !showPsiSkill).c_str(),
+									"");
+			_lstStatChanges->addRow(14, tr(twoRows ? "STR_CHANGES_MIN" : "STR_CHANGES").c_str(),
+									formatStat(changedStatsMin.tu, true, rerollFlags.tu || randomFlags.tu).c_str(),
+									formatStat(changedStatsMin.stamina, true, rerollFlags.stamina || randomFlags.stamina).c_str(),
+									formatStat(changedStatsMin.health, true, rerollFlags.health || randomFlags.health).c_str(),
+									formatStat(changedStatsMin.bravery, true, rerollFlags.bravery || randomFlags.bravery).c_str(),
+									formatStat(changedStatsMin.reactions, true, rerollFlags.reactions || randomFlags.reactions).c_str(),
+									formatStat(changedStatsMin.firing, true, rerollFlags.firing || randomFlags.firing).c_str(),
+									formatStat(changedStatsMin.throwing, true, rerollFlags.throwing || randomFlags.throwing).c_str(),
+									formatStat(changedStatsMin.melee, true, rerollFlags.melee || randomFlags.melee).c_str(),
+									formatStat(changedStatsMin.strength, true, rerollFlags.strength || randomFlags.strength).c_str(),
+									formatStat(changedStatsMin.mana, true, !showMana || rerollFlags.mana || randomFlags.mana).c_str(),
+									formatStat(changedStatsMin.psiStrength, true, !showPsiStrength || rerollFlags.psiStrength || randomFlags.psiStrength).c_str(),
+									formatStat(changedStatsMin.psiSkill, true, !showPsiSkill || rerollFlags.psiSkill || randomFlags.psiSkill).c_str(),
+									"");
+			if (twoRows)
+			{
+				_lstStatChanges->addRow(14, tr("STR_CHANGES_MAX").c_str(),
+										formatStat(changedStatsMax.tu, true, rerollFlags.tu).c_str(),
+										formatStat(changedStatsMax.stamina, true, rerollFlags.stamina).c_str(),
+										formatStat(changedStatsMax.health, true, rerollFlags.health).c_str(),
+										formatStat(changedStatsMax.bravery, true, rerollFlags.bravery).c_str(),
+										formatStat(changedStatsMax.reactions, true, rerollFlags.reactions).c_str(),
+										formatStat(changedStatsMax.firing, true, rerollFlags.firing).c_str(),
+										formatStat(changedStatsMax.throwing, true, rerollFlags.throwing).c_str(),
+										formatStat(changedStatsMax.melee, true, rerollFlags.melee).c_str(),
+										formatStat(changedStatsMax.strength, true, rerollFlags.strength).c_str(),
+										formatStat(changedStatsMax.mana, true, !showMana || rerollFlags.mana).c_str(),
+										formatStat(changedStatsMax.psiStrength, true, !showPsiStrength || rerollFlags.psiStrength).c_str(),
+										formatStat(changedStatsMax.psiSkill, true, !showPsiSkill || rerollFlags.psiSkill).c_str(),
+										"");
+			}
+			if (bonusRule)
+			{
+				_lstStatChanges->addRow(14, tr("STR_BONUS_STATS").c_str(),
+										formatStat(bonusStats.tu, true, false).c_str(),
+										formatStat(bonusStats.stamina, true, false).c_str(),
+										formatStat(bonusStats.health, true, false).c_str(),
+										formatStat(bonusStats.bravery, true, false).c_str(),
+										formatStat(bonusStats.reactions, true, false).c_str(),
+										formatStat(bonusStats.firing, true, false).c_str(),
+										formatStat(bonusStats.throwing, true, false).c_str(),
+										formatStat(bonusStats.melee, true, false).c_str(),
+										formatStat(bonusStats.strength, true, false).c_str(),
+										formatStat(bonusStats.mana, true, false).c_str(),
+										formatStat(bonusStats.psiStrength, true, false).c_str(),
+										formatStat(bonusStats.psiSkill, true, false).c_str(),
+										"");
+			}
 		}
 	}
-	else
+	else // OXCE no mana
 	{
 		_lstStatChanges->addRow(13, "",
 			tr("STR_TIME_UNITS_ABBREVIATION").c_str(),
