@@ -236,6 +236,24 @@ void CovertOperationStartState::init()
 	_txtChances->setAlign(ALIGN_RIGHT);
 
 	_btnStart->setVisible(_soldiers.size() >= _rule->getSoldierSlots());
+	auto reqItems = _rule->getRequiredItemList();
+	if (!reqItems.empty())
+	{
+		int reqItemsN = 0;
+		for (std::map<std::string, int>::iterator it = reqItems.begin(); it != reqItems.end(); ++it)
+		{
+			reqItemsN = reqItemsN + it->second;
+			std::string itemName = it->first;
+			for (std::map<std::string, int>::iterator j = _items->getContents()->begin(); j != _items->getContents()->end(); ++j)
+			{
+				if (j->first == itemName && j->second >= it->second)
+				{
+					reqItemsN = reqItemsN - j->second;
+				}
+			}
+		}
+		_btnStart->setVisible(reqItemsN <= 0);
+	}
 	_btnEquipmet->setVisible(_soldiers.size() > 0 || _items->getTotalQuantity() > 0);
 	_btnArmor->setVisible(_soldiers.size() > 0);
 
@@ -533,7 +551,7 @@ std::string CovertOperationStartState::getOperationOddsString(bool mod)
 		{
 			return ("STR_GREAT");
 		}
-		else if (odds > 75)
+		else if (odds > 70)
 		{
 			return ("STR_GOOD");
 		}
@@ -570,9 +588,26 @@ double CovertOperationStartState::getOperationOdds()
 	int startOdds = _rule->getBaseChances();
 	_chances = startOdds;
 
-	if (_game->getSavedGame()->getDifficulty() == DIFF_SUPERHUMAN)
+	GameDifficulty diff = _game->getSavedGame()->getDifficulty();
+
+	switch (diff)
 	{
-		_chances *= 0.85; // extra SH gift
+	case DIFF_BEGINNER:
+		_chances *= 1.1;
+		break;
+	case DIFF_EXPERIENCED:
+		break;
+	case DIFF_VETERAN:
+		_chances *= 0.95;
+		break;
+	case DIFF_GENIUS:
+		_chances *= 0.9;
+		break;
+	case DIFF_SUPERHUMAN:
+		_chances *= 0.85;
+		break;
+	default:
+		break;
 	}
 
 	int requiredSoldiers = _rule->getSoldierSlots();
@@ -582,7 +617,7 @@ double CovertOperationStartState::getOperationOdds()
 	slots = _rule->getOptionalSoldierSlots();
 	if (slots > 0)
 	{
-		_chances = _chances - (slots * static_cast<double>(_rule->getOptionalSoldierEffect()) * 0.9);
+		_chances = _chances - (slots * static_cast<double>(_rule->getOptionalSoldierEffect()));
 		int optionalSoldiers = assignedSoldiersN - requiredSoldiers;
 		_chances = _chances + optionalSoldiers * static_cast<double>(_rule->getOptionalSoldierEffect());
 		slots = 0;
@@ -591,22 +626,23 @@ double CovertOperationStartState::getOperationOdds()
 	if (slots > 0)
 	{
 		int effect = _rule->getScientistEffect();
-		_chances = _chances - (slots * effect * 0.9) + (_scientists * effect);
+		_chances = _chances - (slots * effect) + (_scientists * effect);
 		slots = 0;
 	}
 	slots = (_rule->getEngineerSlots());
 	if (slots > 0)
 	{
 		int effect = _rule->getEngineerEffect();
-		_chances = _chances - (slots * effect * 0.9) + (_engeneers * effect);
+		_chances = _chances - (slots * effect) + (_engeneers * effect);
 		slots = 0;
 	}
 	//lets see if we need some decrease because of required items
-	if (!_rule->getRequiredItemList().empty())
+
+	std::map<std::string, int> bonItems = _rule->getBonusItemList();
+	if (!bonItems.empty())
 	{
-		std::map<std::string, int> reqItems = _rule->getRequiredItemList();
 		int reqItemsN = 0;
-		for (std::map<std::string, int>::iterator it = reqItems.begin(); it != reqItems.end(); ++it)
+		for (std::map<std::string, int>::iterator it = bonItems.begin(); it != bonItems.end(); ++it)
 		{
 			reqItemsN = reqItemsN + it->second;
 			std::string itemName = it->first;
@@ -618,8 +654,7 @@ double CovertOperationStartState::getOperationOdds()
 				}
 			}
 		}
-		int change = reqItemsN * _rule->getRequiredItemsEffect();
-		_chances = _chances - change;
+		_chances -= _rule->getBonusItemsEffect() * reqItemsN;
 	}
 	//now lets check soldier armor if we have something about it in rules
 	if (!_rule->getAllowedArmor().empty())
@@ -636,7 +671,7 @@ double CovertOperationStartState::getOperationOdds()
 				}
 			}
 		}
-		_chances = _chances - armorlessSoldiers * static_cast<double>(_rule->getAllowedArmorEffect());
+		_chances -= armorlessSoldiers * static_cast<double>(_rule->getAllowedArmorEffect());
 	}
 	//lets process soldier stats as pure bonus
 	if (assignedSoldiersN > 0)
@@ -669,8 +704,11 @@ double CovertOperationStartState::getOperationOdds()
 			_chances = _chances * (solEffectiveness / 100);
 			//lets make a bonus for having officer for field command and avg ranking
 			int rank = solIt->getRank();
-			if (rank > soldierMaxRank) soldierMaxRank = rank;
-			soldiersTotalRank = soldiersTotalRank + rank;
+			if (rank > soldierMaxRank)
+			{
+				soldierMaxRank = rank;
+			}
+			soldiersTotalRank += rank;
 			//now lets handle soldier stats
 			double reacCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->reactions, 2000, 2, 16, -9) ;
 			soldierReactions = soldierReactions + reacCalc * (solEffectiveness / 100);
@@ -703,30 +741,55 @@ double CovertOperationStartState::getOperationOdds()
 		double reactEffect = (soldierReactions / assignedSoldiersN);
 		double tuEffect = (soldiersTU / assignedSoldiersN);
 		double staEffect = (soldiersSta / assignedSoldiersN);
-		double effect = rankEffect + bravEffect + reactEffect + soldiersPsi + tuEffect + staEffect;
-		_chances = _chances + effect;
+		_chances += rankEffect + bravEffect + reactEffect + soldiersPsi + tuEffect + staEffect;
 
 		// let's check if itemset has specific FTA's item categories
 		if (!_rule->getAllowAllEquipment())
 		{
-			bool isConcealed = true;
 			bool allConsealed = true;
 			int heavy = 0;
-			int itemBonusEffect = _rule->getConcealedItemsBonus();
+			int itemConcealedBonusEffect = _rule->getConcealedItemsBonus();
 			double itemCatEffect = 0;
+
+			double diffCoeff = 1;
+			switch (diff)
+			{
+			case DIFF_BEGINNER:
+				diffCoeff = 0.95;
+				break;
+			case DIFF_EXPERIENCED:
+				break;
+			case DIFF_VETERAN:
+				diffCoeff *= 1.2;
+				break;
+			case DIFF_GENIUS:
+				diffCoeff *= 1.3;
+				break;
+			case DIFF_SUPERHUMAN:
+				diffCoeff *= 1.5;
+				break;
+			default:
+				break;
+			}
+
 			for (std::map<std::string, int>::iterator i = _items->getContents()->begin(); i != _items->getContents()->end(); ++i)
 			{
 				RuleItem* item = _game->getMod()->getItem((*i).first);
-				isConcealed = item->belongsToCategory("STR_CONCEALABLE");
-				if (!isConcealed) allConsealed = false;
-				if (item->belongsToCategory("STR_HEAVY_WEAPONS")) ++heavy;
+				if (!item->belongsToCategory("STR_CONCEALABLE"))
+				{
+					allConsealed = false;
+				}
+				if (item->belongsToCategory("STR_HEAVY_WEAPONS") && !item->belongsToCategory("STR_CLIPS"))
+				{
+					++heavy;
+				}
 			}
-			if (allConsealed)
+			if (!allConsealed)
 			{
-				itemCatEffect = itemBonusEffect * static_cast<double>(assignedSoldiersN);
+				itemCatEffect = -itemConcealedBonusEffect * diffCoeff;
 			}
-			itemCatEffect = itemCatEffect - (heavy * itemBonusEffect * 4 / assignedSoldiersN);
-			_chances = _chances + itemCatEffect;
+			itemCatEffect = itemCatEffect - ((diffCoeff * heavy * itemConcealedBonusEffect * 4) / assignedSoldiersN);
+			_chances += itemCatEffect;
 		}
 	}
 

@@ -42,10 +42,10 @@ private:
 	RuleBaseFacilityFunctions _requiresBaseFunc;
 	int _soldierSlots, _optionalSoldierSlots, _scientistSlots, _engineerSlots, _optionalSoldierEffect, _scientistEffect, _engineerEffect, _itemSpaceEffect, _armorEffect;
 	double _itemSpaceLimit;
-	int _baseChances, _costs, _successScore, _failureScore, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger, _concealedItemsBonus, _requiredItemsEffect;
+	int _baseChances, _costs, _successScore, _failureScore, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger, _concealedItemsBonus, _bonusItemsEffect;
 	bool _repeatProgressEvent, _allowAllEquipment;
 	WeightedOptions _successMissions, _failureMissions, _successWeightedItemList, _failureWeightedItemList, _instantTrapDeployment, _instantSuccessDeployment, _progressEvent;
-	std::map<std::string, int> _requiredReputationLvl, _successReputationScore, _failureReputationScore, _successEveryItemList, _failureEveryItemList, _requiredItems, _soldierTypeEffectiveness; //TODO processing of _requiredReputationLvl
+	std::map<std::string, int> _requiredReputationLvl, _successReputationScore, _failureReputationScore, _successEveryItemList, _failureEveryItemList, _requiredItems, _bonusItems, _soldierTypeEffectiveness; //TODO processing of _requiredReputationLvl
 	int _listOrder;
 public:
 	/// Creates a blank craft ruleset.
@@ -154,8 +154,10 @@ public:
 	const WeightedOptions& getFailureWeightedItemList() const { return _failureWeightedItemList; }
 	/// Gets the operation's required item list.
 	const std::map<std::string, int>& getRequiredItemList() const { return _requiredItems; }
+	/// Gets the operation's required item list.
+	const std::map<std::string, int> &getBonusItemList() const { return _bonusItems; }
 	/// Gets bonus for having required items for this operation.
-	int getRequiredItemsEffect() const { return _requiredItemsEffect; };
+	int getBonusItemsEffect() const { return _bonusItemsEffect; };
 	/// Gets if this covert operation does not have any effects for concealed or heavy weapons.
 	bool getAllowAllEquipment() const { return _allowAllEquipment; };
 	/// Gets bonus for concealed-only weapons for this operation.
