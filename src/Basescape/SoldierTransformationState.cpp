@@ -61,17 +61,18 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 	_btnRightArrow = new TextButton(16, 16, 296, 8);
 	_edtSoldier = new TextEdit(this, 210, 16, 54, 8);
 
-	_txtCost = new Text(290, 9, 16, 30);
-	_txtTransferTime = new Text(290, 9, 16, 40);
-	_txtRecoveryTime = new Text(290, 9, 16, 50);
+	_txtDescription = new Text(304, 26, 8, 27);
+	_txtTransferTime = new Text(152, 9, 8, 54);
+	_txtRecoveryTime = new Text(152, 9, 160, 54);
+	_txtCost = new Text(304, 9, 8, 64);
 
-	_txtRequiredItems = new Text(290, 9, 16, 64);
-	_txtItemNameColumn = new Text(60, 16, 30, 72);
-	_txtUnitRequiredColumn = new Text(60, 16, 155, 72);
-	_txtUnitAvailableColumn = new Text(60, 16, 230, 72);
-	_lstRequiredItems = new TextList(270, 32, 30, 88);
+	_txtRequiredItems = new Text(304, 9, 8, 74);
+	_txtItemNameColumn = new Text(60, 16, 25, 82);
+	_txtUnitRequiredColumn = new Text(60, 16, 150, 82);
+	_txtUnitAvailableColumn = new Text(60, 16, 225, 82);
+	_lstRequiredItems = new TextList(270, 32, 25, 98);
 
-	_lstStatChanges = new TextList(288, 40, 16, 130);
+	_lstStatChanges = new TextList(288, 40, 16, 132);
 
 	// Set palette
 	setInterface("soldierTransformation");
@@ -84,6 +85,7 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 	add(_btnRightArrow, "button", "soldierTransformation");
 	add(_edtSoldier, "text", "soldierTransformation");
 
+	add(_txtDescription, "text", "soldierTransformation");
 	add(_txtCost, "text", "soldierTransformation");
 	add(_txtTransferTime, "text", "soldierTransformation");
 	add(_txtRecoveryTime, "text", "soldierTransformation");
@@ -127,6 +129,9 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 
 	_edtSoldier->setBig();
 	_edtSoldier->setAlign(ALIGN_CENTER);
+
+	_txtDescription->setText(tr(_transformationRule->getDescription()));
+	_txtDescription->setWordWrap(true);
 
 	_txtRequiredItems->setText(tr("STR_SPECIAL_MATERIALS_REQUIRED"));
 	_txtRequiredItems->setAlign(ALIGN_CENTER);
@@ -211,7 +216,8 @@ void SoldierTransformationState::initTransformationData()
 	}
 	if (_transformationRule->getTransformationTime() > 0)
 	{
-		_txtTransferTime->setText(tr("STR_TRANSFORMATION_TIME").arg(tr("STR_HOUR", _transformationRule->getTransformationTime())));
+		transferTime = ceil(_transformationRule->getTransformationTime() / 24);
+		_txtTransferTime->setText(tr("STR_TRANSFORMATION_TIME").arg(tr("STR_DAY", transferTime)));
 	}
 	else
 	{
@@ -219,14 +225,19 @@ void SoldierTransformationState::initTransformationData()
 	}
 	_txtRecoveryTime->setText(tr("STR_RECOVERY_TIME").arg(tr("STR_DAY", _transformationRule->getRecoveryTime())));
 
-	if (_transformationRule->getRecoveryTime() == 0)
+	if (transferTime <= 0)
 	{
-		_txtRecoveryTime->setVisible(false);
+		_txtTransferTime->setVisible(false);
+		_txtRecoveryTime->setX(_txtRecoveryTime->getX() - 152);
+		if (_transformationRule->getRecoveryTime() <= 0)
+		{
+			_txtRecoveryTime->setVisible(false);
+			_txtCost->setY(_txtCost->getY() - 10);
+		}
 	}
 	if (_transformationRule->getCost() == 0)
 	{
 		_txtCost->setVisible(false);
-		_txtTransferTime->setY(30);
 	}
 
 	const std::map<std::string, int> & requiredItems(_transformationRule->getRequiredItems());
