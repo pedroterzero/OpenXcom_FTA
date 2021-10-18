@@ -579,6 +579,8 @@ namespace OpenXcom
 	 */
 	void FinishedCoverOperationDetailsState::secondPage()
 	{
+		bool showPsi = _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements()) &&
+					   _game->getSavedGame()->isResearched(_game->getMod()->getManaUnlockResearch());
 		_txtSoldier->setVisible(true);
 		_txtTU->setVisible(true);
 		_txtStamina->setVisible(true);
@@ -589,11 +591,9 @@ namespace OpenXcom
 		_txtThrowing->setVisible(true);
 		_txtMelee->setVisible(true);
 		_txtStrength->setVisible(true);
-		_txtPsiStrength->setVisible(true);
-		_txtPsiSkill->setVisible(true);
+		_txtPsiStrength->setVisible(true && showPsi);
+		_txtPsiSkill->setVisible(true && showPsi);
 		_lstSoldierStats->setVisible(true);
-
-
 	}
 
 

@@ -332,6 +332,12 @@ void DebriefingState::applyVisibility()
 	bool showScore = _pageNumber == 0;
 	bool showStats = _pageNumber == 1;
 	bool showItems = _pageNumber == 2;
+	bool showPsi = true;
+	if (_game->getMod()->getIsFTAGame())
+	{
+		showPsi = _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements()) &&
+			_game->getSavedGame()->isResearched(_game->getMod()->getManaUnlockResearch());
+	}
 
 	// First page (scores)
 	_txtItem->setVisible(showScore || showItems);
@@ -354,8 +360,8 @@ void DebriefingState::applyVisibility()
 	_txtThrowing->setVisible(showStats);
 	_txtMelee->setVisible(showStats);
 	_txtStrength->setVisible(showStats);
-	_txtPsiStrength->setVisible(showStats);
-	_txtPsiSkill->setVisible(showStats);
+	_txtPsiStrength->setVisible(showStats && showPsi);
+	_txtPsiSkill->setVisible(showStats && showPsi);
 	_lstSoldierStats->setVisible(showStats);
 	_txtTooltip->setVisible(showStats);
 
