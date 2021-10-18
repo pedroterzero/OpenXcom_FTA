@@ -67,12 +67,12 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 	_txtCost = new Text(304, 9, 8, 64);
 
 	_txtRequiredItems = new Text(304, 9, 8, 74);
-	_txtItemNameColumn = new Text(60, 16, 25, 82);
-	_txtUnitRequiredColumn = new Text(60, 16, 150, 82);
-	_txtUnitAvailableColumn = new Text(60, 16, 225, 82);
-	_lstRequiredItems = new TextList(270, 32, 25, 98);
+	_txtItemNameColumn = new Text(60, 16, 25, 83);
+	_txtUnitRequiredColumn = new Text(60, 16, 150, 83);
+	_txtUnitAvailableColumn = new Text(60, 16, 225, 83);
+	_lstRequiredItems = new TextList(270, 32, 25, 99);
 
-	_lstStatChanges = new TextList(288, 40, 16, 132);
+	_lstStatChanges = new TextList(288, 40, 16, 133);
 
 	// Set palette
 	setInterface("soldierTransformation");
@@ -129,9 +129,6 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 
 	_edtSoldier->setBig();
 	_edtSoldier->setAlign(ALIGN_CENTER);
-
-	_txtDescription->setText(tr(_transformationRule->getDescription()));
-	_txtDescription->setWordWrap(true);
 
 	_txtRequiredItems->setText(tr("STR_SPECIAL_MATERIALS_REQUIRED"));
 	_txtRequiredItems->setAlign(ALIGN_CENTER);
@@ -203,6 +200,18 @@ void SoldierTransformationState::initTransformationData()
 		transformationPossible = false;
 	}
 
+	if (!_transformationRule->getDescription().empty())
+	{
+		_txtDescription->setText(tr(_transformationRule->getDescription()));
+		_txtDescription->setWordWrap(true);
+	}
+	else
+	{
+		_txtTransferTime->setY(_txtTransferTime->getY() - 24);
+		_txtRecoveryTime->setY(_txtRecoveryTime->getY() - 24);
+		_txtCost->setY(_txtCost->getY() - 24);
+	}
+
 	_txtCost->setText(tr("STR_COST_").arg(Unicode::formatFunding(_transformationRule->getCost())));
 
 	int transferTime = 0;
@@ -216,8 +225,8 @@ void SoldierTransformationState::initTransformationData()
 	}
 	if (_transformationRule->getTransformationTime() > 0)
 	{
-		transferTime = ceil(_transformationRule->getTransformationTime() / 24);
-		_txtTransferTime->setText(tr("STR_TRANSFORMATION_TIME").arg(tr("STR_DAY", transferTime)));
+		transferTime = _transformationRule->getTransformationTime();
+		_txtTransferTime->setText(tr("STR_TRANSFORMATION_TIME").arg(tr("STR_HOUR", _transformationRule->getTransformationTime())));
 	}
 	else
 	{
