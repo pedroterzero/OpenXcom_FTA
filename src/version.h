@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Copyright 2010-2016 OpenXcom Developers.
+ * Copyright 2010-2021 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -28,6 +28,6 @@
 
 #define OPENXCOM_FTA_VERSION_GIT " (v2021-10-18)"
 #define OPENXCOM_FTA_VERSION_SHORT "FtA 0.3.10"
-#define OPENXCOM_FTA_VERSION_LONG "0.3.7.10"
+#define OPENXCOM_FTA_VERSION_LONG "0.3.10.0"
 #define OPENXCOM_FTA_VERSION_NUMBER 0,3,10,0
 

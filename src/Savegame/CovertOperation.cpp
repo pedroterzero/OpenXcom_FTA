@@ -868,6 +868,10 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			if (loneSaved && chosenID == it)
 			{
 				Log(LOG_INFO) << "All soldiers on covert operation named: " << this->getOperationName() << " should be dead, but soldier named: " << (*j)->getName() << " was chosen to be the last survived.";
+				int health = (*j)->getCurrentStats()->health;
+				int genDamage = RNG::generate(health * 0.5, health * 0.9);
+				(*j)->setWoundRecovery(genDamage);
+				_results->addSoldierDamage((*j)->getName(), genDamage);
 			}
 			else
 			{
