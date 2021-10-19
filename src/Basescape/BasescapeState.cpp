@@ -69,6 +69,7 @@ namespace OpenXcom
 BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(globe)
 {
 	// Create objects
+	bool fta = _game->getMod()->getIsFTAGame();
 	_txtFacility = new Text(192, 9, 0, 0);
 	_view = new BaseView(192, 192, 0, 8);
 	_mini = new MiniBaseView(128, 16, 192, 41);
@@ -161,18 +162,21 @@ BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(g
 	_btnTransfer->onMouseClick((ActionHandler)&BasescapeState::btnTransferClick);
 	_btnTransfer->onKeyboardPress((ActionHandler)&BasescapeState::btnTransferClick, Options::keyBasescapeTransfer);
 
-	_btnPurchase->setText(tr("STR_PURCHASE_RECRUIT"));
+	_btnPurchase->setText(fta ? tr("STR_COVERT_OPERATIONS_UC") : tr("STR_PURCHASE_RECRUIT"));
 	_btnPurchase->onMouseClick((ActionHandler)&BasescapeState::btnPurchaseClick);
-	_btnPurchase->onKeyboardPress((ActionHandler)&BasescapeState::btnPurchaseClick, Options::keyBasescapePurchase);
-
-	_btnSell->setText(tr("STR_SELL_SACK_UC"));
+	
+	_btnSell->setText(fta ? tr("STR_DIPLOMACY_UC") : tr("STR_SELL_SACK_UC"));
 	_btnSell->onMouseClick((ActionHandler)&BasescapeState::btnSellClick);
-	_btnSell->onKeyboardPress((ActionHandler)&BasescapeState::btnSellClick, Options::keyBasescapeSell);
 
-	if (_game->getMod()->getIsFTAGame())
+	if (fta)
 	{
-		_btnPurchase->setText(tr("STR_COVERT_OPERATIONS_UC"));
-		_btnSell->setText(tr("STR_DIPLOMACY_UC"));
+		_btnPurchase->onKeyboardPress((ActionHandler)&BasescapeState::btnPurchaseClick, Options::keyBasescapeCovertOperations);
+		_btnSell->onKeyboardPress((ActionHandler)&BasescapeState::btnSellClick, Options::keyDiplomacy);
+	}
+	else
+	{
+		_btnPurchase->onKeyboardPress((ActionHandler)&BasescapeState::btnPurchaseClick, Options::keyBasescapePurchase);
+		_btnSell->onKeyboardPress((ActionHandler)&BasescapeState::btnSellClick, Options::keyBasescapeSell);
 	}
 
 	_btnGeoscape->setText(tr("STR_GEOSCAPE_UC"));

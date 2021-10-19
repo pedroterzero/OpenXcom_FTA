@@ -263,6 +263,7 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	geobord->setY(_sidebar->getY());
 	_sidebar->copy(geobord);
 	_game->getMod()->getSurface("ALTGEOBORD.SCR")->blitNShade(_bg, 0, 0);
+	bool fta = _game->getMod()->getIsFTAGame();
 
 	_sideLine->drawRect(0, 0, _sideLine->getWidth(), _sideLine->getHeight(), 15);
 
@@ -285,9 +286,16 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	_btnBases->setGeoscapeButton(true);
 
 	_btnGraphs->initText(_game->getMod()->getFont("FONT_GEO_BIG"), _game->getMod()->getFont("FONT_GEO_SMALL"), _game->getLanguage());
-	_btnGraphs->setText(_game->getMod()->getIsFTAGame() ? tr("STR_DIPLOMACY_UC") : tr("STR_GRAPHS"));
+	_btnGraphs->setText(fta ? tr("STR_DIPLOMACY_UC") : tr("STR_GRAPHS"));
 	_btnGraphs->onMouseClick((ActionHandler)&GeoscapeState::btnGraphsClick);
-	_btnGraphs->onKeyboardPress((ActionHandler)&GeoscapeState::btnGraphsClick, Options::keyGeoGraphs);
+	if (fta)
+	{
+		_btnGraphs->onKeyboardPress((ActionHandler)&GeoscapeState::btnGraphsClick, Options::keyDiplomacy);
+	}
+	else
+	{
+		_btnGraphs->onKeyboardPress((ActionHandler)&GeoscapeState::btnGraphsClick, Options::keyGeoGraphs);
+	}
 	_btnGraphs->setGeoscapeButton(true);
 
 	_btnUfopaedia->initText(_game->getMod()->getFont("FONT_GEO_BIG"), _game->getMod()->getFont("FONT_GEO_SMALL"), _game->getLanguage());
