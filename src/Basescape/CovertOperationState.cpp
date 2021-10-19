@@ -318,7 +318,10 @@ void CovertOperationsListState::fillOperationList()
 				{
 					if ((*j)->getRules()->getName() == (*i).first)
 					{
-						if ((*j)->getReputationLevel() < (*i).second || !(*j)->isDiscovered()) happy = false;
+						if ((*j)->getReputationLevel() < (*i).second || !(*j)->isDiscovered())
+						{
+							happy = false;
+						}
 					}
 				}
 			}

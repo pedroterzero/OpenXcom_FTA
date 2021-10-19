@@ -45,7 +45,7 @@ private:
 	int _baseChances, _costs, _successScore, _failureScore, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger, _concealedItemsBonus, _bonusItemsEffect;
 	bool _repeatProgressEvent, _allowAllEquipment;
 	WeightedOptions _successMissions, _failureMissions, _successWeightedItemList, _failureWeightedItemList, _instantTrapDeployment, _instantSuccessDeployment, _progressEvent;
-	std::map<std::string, int> _requiredReputationLvl, _successReputationScore, _failureReputationScore, _successEveryItemList, _failureEveryItemList, _requiredItems, _bonusItems, _soldierTypeEffectiveness; //TODO processing of _requiredReputationLvl
+	std::map<std::string, int> _requiredReputationLvl, _successReputationScore, _failureReputationScore, _successEveryItemList, _failureEveryItemList, _requiredItems, _bonusItems, _soldierTypeEffectiveness;
 	int _listOrder;
 public:
 	/// Creates a blank craft ruleset.
