@@ -2428,9 +2428,15 @@ void GeoscapeState::time1Day()
 	_game->getMasterMind()->eventScriptProcessor(*_game, *mod->getEventScriptList(), XCOM);
 
 	//Handle daily Faction logic
+	int day = saveGame->getTime()->getDay();
+	ThinkPeriod step = TIMESTEP_DAILY;
 	for (auto faction : saveGame->getDiplomacyFactions())
 	{
-		faction->think(*_game,TIMESTEP_DAILY);
+		if (day == 10 || day == 20 || _game->getSavedGame()->getTime()->isLastDayOfMonth())
+		{
+			step = TIMESTEP_10_DAYS;
+		}
+		faction->think(*_game, step);
 		if (!faction->getAvalibleMissionScripts().empty())
 		{
 			for (auto missionScript : faction->getAvalibleMissionScripts())
@@ -2544,7 +2550,6 @@ void GeoscapeState::time1Day()
 	}
 
 	// Autosave 3 times a month
-	int day = saveGame->getTime()->getDay();
 	if (day == 10 || day == 20)
 	{
 		if (saveGame->isIronman())

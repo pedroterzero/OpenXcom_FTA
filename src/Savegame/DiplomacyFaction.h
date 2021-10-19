@@ -25,7 +25,7 @@ namespace OpenXcom
 /**
 * Define what time frame should think logic process.
 */
-enum ThinkPeriod { TIMESTEP_DAILY, TIMESTEP_MONTHLY };
+enum ThinkPeriod { TIMESTEP_DAILY, TIMESTEP_10_DAYS, TIMESTEP_MONTHLY };
 
 /**
 * Define array of treaty names.

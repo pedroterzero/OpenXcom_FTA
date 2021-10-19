@@ -428,13 +428,13 @@ int MasterMind::getLoyaltyPerformanceBonus()
 			double ln = log(fabs(loyalty));
 			int bonus = ceil(-9.79 + (2.23 * ln));
 			performance += bonus;
-			Log(LOG_DEBUG) << "Loyalty is " << loyalty << " so it updates performance to " << performance << " from bonus : " << bonus; //#CLEARLOGS
+			//Log(LOG_DEBUG) << "Loyalty is " << loyalty << " so it updates performance to " << performance << " from bonus : " << bonus; //#CLEARLOGS
 		}
 		if (loyalty < 0)
 		{
 			double penalty = 0.271 * pow(-loyalty, 0.537);
 			performance -= penalty;
-			Log(LOG_DEBUG) << "Loyalty is " << loyalty << " so it updates performance to " << performance << " from penalty : " << penalty; //#CLEARLOGS
+			//Log(LOG_DEBUG) << "Loyalty is " << loyalty << " so it updates performance to " << performance << " from penalty : " << penalty; //#CLEARLOGS
 		}
 	}
 	return performance;
