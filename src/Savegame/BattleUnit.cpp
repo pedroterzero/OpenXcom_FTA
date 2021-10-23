@@ -2598,7 +2598,7 @@ void BattleUnit::updateUnitStats(bool tuAndEnergy, bool rest)
 		if (_freshReinforcement)
 		{
 			double lowerTU = RNG::generate(-0.7, -0.4);
-			double lowerSta = RNG::generate(-0.4, -0.2);
+			double lowerSta = RNG::generate(-0.6, -0.4);
 			TURecovery = _stats.tu * lowerTU;
 			ENRecovery = _stats.stamina * lowerSta;
 			_freshReinforcement = false;
