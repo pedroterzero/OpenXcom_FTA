@@ -115,7 +115,7 @@ private:
 	int _motionPoints;
 	int _scannedTurn;
 	int _kills;
-	int _alarmed;
+	bool _alarmed, _freshReinforcement;
 	int _faceDirection; // used only during strafing moves
 	std::vector<int> _meleeAttackedBy;
 	bool _hitByFire, _hitByAnything, _alreadyExploded;
@@ -335,6 +335,11 @@ public:
 	bool isOutThresholdExceed() const;
 	/// Unit is removed from game.
 	bool isIgnored() const;
+
+	/// Gets if the unit is new reinforcement, spawned with battlescript.
+	bool getFreshReinforcement() const { return _freshReinforcement; };
+	/// Sets if this unit is fresh reinforcement.
+	void prepareFreshReinforcement();
 
 	/// Get the number of time units a certain action takes.
 	RuleItemUseCost getActionTUs(BattleActionType actionType, const BattleItem *item) const;

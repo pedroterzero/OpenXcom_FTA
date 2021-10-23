@@ -3591,6 +3591,7 @@ bool OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 				if (faction != FACTION_PLAYER)
 				{
 					newUnit->setAIModule(new AIModule(getSave(), newUnit, 0));
+					newUnit->prepareFreshReinforcement();
 				}
 				bool visible = faction == FACTION_PLAYER;
 				newUnit->setVisible(visible);

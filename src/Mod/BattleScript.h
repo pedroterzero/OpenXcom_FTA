@@ -79,7 +79,7 @@ public:
 	int getLabel() const { return _label; };
 	/// Gets how many times this command repeats in one turn.
 	int getExecutions() const { return _executions; };
-	/// Gets how many times this command repeats in one turn.
+	/// Gets how many times this command repeats in battlescape game session (controlled with variable).
 	int getMaxRuns() const { return _maxRuns; };
 	/// Gets what conditions apply to this command.
 	const std::vector<int>* getConditionals() const { return &_conditionals; };

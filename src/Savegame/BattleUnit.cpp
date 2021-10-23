@@ -63,7 +63,7 @@ BattleUnit::BattleUnit(const Mod *mod, Soldier *soldier, int depth) :
 	_faction(FACTION_PLAYER), _originalFaction(FACTION_PLAYER), _killedBy(FACTION_PLAYER), _id(0), _tile(0),
 	_lastPos(Position()), _direction(0), _toDirection(0), _directionTurret(0), _toDirectionTurret(0),
 	_verticalDirection(0), _status(STATUS_STANDING), _wantsToSurrender(false), _isSurrendering(false), _walkPhase(0), _fallPhase(0), _kneeled(false), _floating(false),
-	_dontReselect(false), _fire(0), _currentAIState(0), _visible(false), _alarmed(false),
+	_dontReselect(false), _fire(0), _currentAIState(0), _visible(false), _alarmed(false), _freshReinforcement(false),
 	_exp{ }, _expTmp{ },
 	_motionPoints(0), _scannedTurn(-1), _kills(0), _hitByFire(false), _hitByAnything(false), _alreadyExploded(false), _fireMaxHit(0), _smokeMaxHit(0), _moraleRestored(0), _charging(0), _turnsSinceSpotted(255), _turnsLeftSpottedForSnipers(0),
 	_statistics(), _murdererId(0), _mindControllerID(0), _fatalShotSide(SIDE_FRONT), _fatalShotBodyPart(BODYPART_HEAD), _armor(0),
@@ -395,7 +395,7 @@ BattleUnit::BattleUnit(const Mod *mod, Unit *unit, UnitFaction faction, int id, 
 	_faction(faction), _originalFaction(faction), _killedBy(faction), _id(id),
 	_tile(0), _lastPos(Position()), _direction(0), _toDirection(0), _directionTurret(0),
 	_toDirectionTurret(0), _verticalDirection(0), _status(STATUS_STANDING), _wantsToSurrender(false), _isSurrendering(false), _walkPhase(0),
-	_fallPhase(0), _kneeled(false), _floating(false), _dontReselect(false), _fire(0), _currentAIState(0), _alarmed(false),
+	_fallPhase(0), _kneeled(false), _floating(false), _dontReselect(false), _fire(0), _currentAIState(0), _alarmed(false), _freshReinforcement(false),
 	_visible(false), _exp{ }, _expTmp{ },
 	_motionPoints(0), _scannedTurn(-1), _kills(0), _hitByFire(false), _hitByAnything(false), _alreadyExploded(false), _fireMaxHit(0), _smokeMaxHit(0),
 	_moraleRestored(0), _charging(0), _turnsSinceSpotted(255), _turnsLeftSpottedForSnipers(0),
@@ -627,6 +627,7 @@ void BattleUnit::load(const YAML::Node &node, const Mod *mod, const ScriptGlobal
 	_rankInt = node["rankInt"].as<int>(_rankInt);
 	_kills = node["kills"].as<int>(_kills);
 	_alarmed = node["alarmed"].as<bool>(_alarmed);
+	_freshReinforcement = node["freshReinforcement"].as<bool>(_freshReinforcement);
 	_dontReselect = node["dontReselect"].as<bool>(_dontReselect);
 	_charging = 0;
 
@@ -729,6 +730,8 @@ YAML::Node BattleUnit::save(const ScriptGlobal *shared) const
 		node["kills"] = _kills;
 	if (_alarmed)
 		node["alarmed"] = _alarmed;
+	if (_freshReinforcement)
+		node["freshReinforcement"] = _freshReinforcement;
 	if (_faction == FACTION_PLAYER && _dontReselect)
 		node["dontReselect"] = _dontReselect;
 
@@ -1856,6 +1859,12 @@ bool BattleUnit::isIgnored() const
 	return _status == STATUS_IGNORE_ME;
 }
 
+void BattleUnit::prepareFreshReinforcement()
+{
+	_freshReinforcement = true;
+	_motionPoints = RNG::generate(1, 4);
+}
+
 /**
  * Get the number of time units a certain action takes.
  * @param actionType
@@ -2585,6 +2594,16 @@ void BattleUnit::updateUnitStats(bool tuAndEnergy, bool rest)
 
 	if (tuAndEnergy)
 	{
+		// lower recovery for just arrived reinforcement
+		if (_freshReinforcement)
+		{
+			double lowerTU = RNG::generate(-0.7, -0.4);
+			double lowerSta = RNG::generate(-0.4, -0.2);
+			TURecovery = _stats.tu * lowerTU;
+			ENRecovery = _stats.stamina * lowerSta;
+			_freshReinforcement = false;
+		}
+
 		// update stats
 		prepareTimeUnits(_armor->getTimeRecovery(this, TURecovery));
 		prepareEnergy(_armor->getEnergyRecovery(this, ENRecovery));
