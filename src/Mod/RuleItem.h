@@ -324,7 +324,7 @@ private:
 	bool _hidePower;
 	float _powerRangeReduction;
 	float _powerRangeThreshold;
-	int _coneSize;
+	int _coneSize, _noiseValue;
 	std::vector<std::vector<std::string>> _compatibleAmmoNames = std::vector<std::vector<std::string>>(AmmoSlotMax);
 	std::vector<const RuleItem*> _compatibleAmmo[AmmoSlotMax];
 	std::unordered_map<const RuleItem*, int> _compatibleAmmoSlots;
@@ -563,6 +563,8 @@ public:
 
 	/// Gets the item's cone size.
 	int getConeSize() const { return _coneSize; }
+	/// Gets the item's fire noise value.
+	int getNoiseValue() const { return _noiseValue; }
 
 	/// Gets amount of psi accuracy dropped for range in voxels.
 	float getPsiAccuracyRangeReduction(float range) const;

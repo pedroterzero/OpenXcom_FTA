@@ -254,6 +254,23 @@ void ExplosionBState::init()
 			{
 				_parent->getMap()->getCamera()->centerOnPosition(_center.toTile(), false);
 			}
+
+			// update noise for enemy units
+			if (_parent->getMod()->getIsFTAGame())
+			{
+				auto units = _parent->getSave()->getUnits();
+				for (BattleUnit *unit : *units)
+				{
+					int soundMod = 20; //#FINNIKTODO add different damage types modification (5 for HE, 3 Stun, 2 Smoke and IN)
+					int soundRange = _radius * soundMod;
+					int dist = std::ceil(Position::distance(unit->getPosition(), _center.toTile()));
+					if (dist <= soundRange)
+					{
+						unit->setAlarmed(true);
+						continue;
+					}
+				}
+			}
 		}
 		else
 		{

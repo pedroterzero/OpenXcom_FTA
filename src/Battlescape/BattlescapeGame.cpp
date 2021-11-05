@@ -1714,6 +1714,7 @@ bool BattlescapeGame::isBusy() const
 void BattlescapeGame::primaryAction(Position pos)
 {
 	bool bPreviewed = Options::battleNewPreviewPath != PATH_NONE;
+	bool fired = false;
 
 	getMap()->resetObstacles();
 
@@ -1882,6 +1883,45 @@ void BattlescapeGame::primaryAction(Position pos)
 			_currentAction.cameraPosition = getMap()->getCamera()->getMapOffset();
 			_states.push_back(new ProjectileFlyBState(this, _currentAction));
 			statePushFront(new UnitTurnBState(this, _currentAction)); // first of all turn towards the target
+			fired = true;
+		}
+
+		//extra handling for not silent weapons
+		if ((_currentAction.type == BA_AUTOSHOT || _currentAction.type == BA_SNAPSHOT || _currentAction.type == BA_AIMEDSHOT) &&
+			_parentState->getGame()->getMod()->getIsFTAGame() &&
+			fired)
+		{
+			int noise = _currentAction.weapon->getRules()->getNoiseValue();
+			if (_currentAction.type == BA_AUTOSHOT)
+			{
+				noise *= _currentAction.weapon->getRules()->getConfigAuto()->shots;
+			}
+
+			if (noise > 0)
+			{
+				auto units = _parentState->getBattleGame()->getSave()->getUnits();
+				for (BattleUnit *unit : *units)
+				{
+					if (noise >= 3) // super loud sounds alarm whole map
+					{
+						unit->setAlarmed(true);
+						continue;
+					}
+					auto shooterPos = _currentAction.actor->getPosition();
+					auto unitPos = unit->getPosition();
+					int dist = std::ceil(Position::distance(unitPos, shooterPos));
+					if (noise >= 2 && dist < 30)
+					{
+						unit->setAlarmed(true);
+						continue;
+					}
+					if (noise >= 1 && dist < 20)
+					{
+						unit->setAlarmed(true);
+						continue;
+					}
+				}
+			}
 		}
 	}
 	else

@@ -1306,6 +1306,7 @@ void SavedBattleGame::newTurnUpdateScripts()
  */
 void SavedBattleGame::updateAlarm()
 {
+	bool riseAlarm = false;
 	for (std::vector<BattleUnit*>::iterator i = _units.begin(); i != _units.end(); ++i)
 	{
 		if ((*i)->getFaction() == FACTION_HOSTILE &&
@@ -1313,9 +1314,13 @@ void SavedBattleGame::updateAlarm()
 		{
 			if ((*i)->getKills() || (*i)->getAlarmed())
 			{
-				_alarmLvl += 1;
+				riseAlarm = true;
 			}
 		}
+	}
+	if (riseAlarm)
+	{
+		_alarmLvl += 1;
 	}
 }
 
