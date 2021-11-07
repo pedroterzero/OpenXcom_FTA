@@ -154,6 +154,12 @@ std::string ConfirmDestinationState::checkStartingCondition()
 		return "";
 	}
 
+	if ((m != 0 || b != 0) &&
+		!_crafts.front()->getRules()->getAllowLanding())
+	{
+		return "STR_NOT_ABLE_TO_LAND_HERE";
+	}
+
 	if (ruleDeploy == 0)
 	{
 		// e.g. UFOs without alien deployment :(
