@@ -3622,7 +3622,6 @@ bool OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 				size_t itemLevel = (size_t)(getMod()->getAlienItemLevels().at(month).at(RNG::generate(0, 9)));
 
 				// Initialize the unit and its position
-				getSave()->initUnit(newUnit, itemLevel);
 				newUnit->setTile(_save->getTile(pos), _save);
 				newUnit->setPosition(pos);
 				newUnit->setDirection(unitDirection);
@@ -3635,6 +3634,7 @@ bool OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 				}
 				bool visible = faction == FACTION_PLAYER;
 				newUnit->setVisible(visible);
+				getSave()->initUnit(newUnit, itemLevel);
 
 				getTileEngine()->calculateFOV(newUnit->getPosition());  //happens fairly rarely, so do a full recalc for units in range to handle the potential unit visible cache issues.
 				getTileEngine()->applyGravity(newUnit->getTile());
