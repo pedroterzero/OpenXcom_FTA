@@ -3649,7 +3649,7 @@ void GeoscapeState::determineAlienMissions()
 	}
 
 	// after the mission scripts, it's time for the event scripts
-	_game->getMasterMind()->eventScriptProcessor(*_game, *mod->getEventScriptList(), MOTHLY);
+	_game->getMasterMind()->eventScriptProcessor(*_game, *mod->getEventScriptList(), MONTHLY);
 
 	// Alien base upgrades happen only AFTER the first game month
 	if (month > 0)
@@ -4310,25 +4310,34 @@ void GeoscapeState::handleResearch(Base* base)
 			popup(new NewPossibleFacilityState(base, _globe, newPossibleFacilities));
 		}
 		// 3j. now iterate through all the bases and remove this project from their labs (unless it can still yield more stuff!)
-		for (Base* otherBase : *saveGame->getBases())
+		std::vector<const RuleResearch *> topicsToCheck;
+		topicsToCheck.push_back(research);
+		if (bonus)
 		{
-			for (ResearchProject* otherProject : otherBase->getResearch())
+			topicsToCheck.push_back(bonus);
+		}
+		for (auto *myResearchRule : topicsToCheck)
+		{
+			for (Base *otherBase : *saveGame->getBases())
 			{
-				if (research->getName() == otherProject->getRules()->getName())
+				for (ResearchProject *otherProject : otherBase->getResearch())
 				{
-					if (saveGame->hasUndiscoveredGetOneFree(research, true))
+					if (myResearchRule == otherProject->getRules())
 					{
-						// This research topic still has some more undiscovered non-disabled and *AVAILABLE* "getOneFree" topics, keep it!
-					}
-					else if (saveGame->hasUndiscoveredProtectedUnlock(research, mod))
-					{
-						// This research topic still has one or more undiscovered non-disabled "protected unlocks", keep it!
-					}
-					else
-					{
-						// This topic can't give you anything else anymore, remove it!
-						otherBase->removeResearch(otherProject);
-						break;
+						if (saveGame->hasUndiscoveredGetOneFree(myResearchRule, true))
+						{
+							// This research topic still has some more undiscovered non-disabled and *AVAILABLE* "getOneFree" topics, keep it!
+						}
+						else if (saveGame->hasUndiscoveredProtectedUnlock(myResearchRule, mod))
+						{
+							// This research topic still has one or more undiscovered non-disabled "protected unlocks", keep it!
+						}
+						else
+						{
+							// This topic can't give you anything else anymore, remove it!
+							otherBase->removeResearch(otherProject);
+							break;
+						}
 					}
 				}
 			}

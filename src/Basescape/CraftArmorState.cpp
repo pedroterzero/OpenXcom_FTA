@@ -438,26 +438,33 @@ void CraftArmorState::lstSoldiersClick(Action *action)
 		{
 			if (_game->isCtrlPressed())
 			{
-				Craft* c = _base->getCrafts()->at(_craft);
-				if (s->getCraft() == c)
+				if (_game->getMod()->getIsFTAGame() && s->hasPendingTransformation())
 				{
-					s->setCraft(0);
-					_lstSoldiers->setCellText(_lstSoldiers->getSelectedRow(), 1, tr("STR_NONE_UC"));
-					_lstSoldiers->setRowColor(_lstSoldiers->getSelectedRow(), _lstSoldiers->getColor());
+					_game->pushState(new ErrorMessageState(tr("STR_SOLDIER_HAS_PENDING_TRANSFORMATION"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
 				}
-				else if (s->hasFullHealth())
+				else
 				{
-					auto space = c->getSpaceAvailable();
-					auto armorSize = s->getArmor()->getSize();
-					if (space >= s->getArmor()->getTotalSize() && (armorSize == 1 || (c->getNumVehicles() < c->getRules()->getVehicles())))
+					Craft *c = _base->getCrafts()->at(_craft);
+					if (s->getCraft() == c)
 					{
-						s->setCraft(c);
-						_lstSoldiers->setCellText(_lstSoldiers->getSelectedRow(), 1, c->getName(_game->getLanguage()));
-						_lstSoldiers->setRowColor(_lstSoldiers->getSelectedRow(), _lstSoldiers->getSecondaryColor());
+						s->setCraft(0);
+						_lstSoldiers->setCellText(_lstSoldiers->getSelectedRow(), 1, tr("STR_NONE_UC"));
+						_lstSoldiers->setRowColor(_lstSoldiers->getSelectedRow(), _lstSoldiers->getColor());
 					}
-					else if (armorSize == 2 && space > 0)
+					else if (s->hasFullHealth())
 					{
-						_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_CRAFT_SPACE"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
+						auto space = c->getSpaceAvailable();
+						auto armorSize = s->getArmor()->getSize();
+						if (space >= s->getArmor()->getTotalSize() && (armorSize == 1 || (c->getNumVehicles() < c->getRules()->getVehicles())))
+						{
+							s->setCraft(c);
+							_lstSoldiers->setCellText(_lstSoldiers->getSelectedRow(), 1, c->getName(_game->getLanguage()));
+							_lstSoldiers->setRowColor(_lstSoldiers->getSelectedRow(), _lstSoldiers->getSecondaryColor());
+						}
+						else if (armorSize == 2 && space > 0)
+						{
+							_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_CRAFT_SPACE"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
+						}
 					}
 				}
 			}

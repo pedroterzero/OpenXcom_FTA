@@ -186,21 +186,37 @@ void MasterMind::newGameHelper(int diff, GeoscapeState* gs)
 * Process event script from different sources
 * @param engine - Game.
 * @param scripts - a vector of event script's string IDs.
-* @param source is the reason we are running process (mothly, factional, xcom).
+* @param source is the reason we are running process (monthly, factional, xcom).
 */
 void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scripts, ProcessorSource source)
 {
-	const Mod& mod = *engine.getMod();
-	SavedGame& save = *engine.getSavedGame();
-
 	if (!scripts.empty())
 	{
+		const Mod &mod = *engine.getMod();
+		SavedGame &save = *engine.getSavedGame();
+		std::set<std::string> xcomBaseCountries;
+		std::set<std::string> xcomBaseRegions;
+
+		for (auto &xcomBase : *save.getBases())
+		{
+			auto region = save.locateRegion(*xcomBase);
+			if (region)
+			{
+				xcomBaseRegions.insert(region->getRules()->getType());
+			}
+			auto country = save.locateCountry(*xcomBase);
+			if (country)
+			{
+				xcomBaseCountries.insert(country->getRules()->getType());
+			}
+		}
+
 		for (auto& name : scripts)
 		{
 			auto ruleScript = mod.getEventScript(name);
 			int allowedProcessor = ruleScript->getAllowedProcessor();
 			// check allowed processor first!
-			if ((source == MOTHLY && allowedProcessor != 0) ||
+			if ((source == MONTHLY && allowedProcessor != 0) ||
 				(source == FACTIONAL && allowedProcessor != 1) ||
 				(source == XCOM && allowedProcessor != 2))
 			{
@@ -271,6 +287,28 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 						triggerHappy = (save.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
 						if (!triggerHappy)
 							continue;
+					}
+				}
+				if (triggerHappy)
+				{
+					// xcom base requirements by region
+					for (auto &triggerXcomBase : ruleScript->getXcomBaseInRegionTriggers())
+					{
+						bool found = (xcomBaseRegions.find(triggerXcomBase.first) != xcomBaseRegions.end());
+						triggerHappy = (found == triggerXcomBase.second);
+						if (!triggerHappy)
+							break;
+					}
+				}
+				if (triggerHappy)
+				{
+					// xcom base requirements by country
+					for (auto &triggerXcomBase2 : ruleScript->getXcomBaseInCountryTriggers())
+					{
+						bool found = (xcomBaseCountries.find(triggerXcomBase2.first) != xcomBaseCountries.end());
+						triggerHappy = (found == triggerXcomBase2.second);
+						if (!triggerHappy)
+							break;
 					}
 				}
 				// ok, we still want event from this script, now let`s actually choose one.

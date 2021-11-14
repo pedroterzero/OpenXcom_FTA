@@ -26,7 +26,7 @@ namespace OpenXcom
 {
 
 enum LoyaltySource {XCOM_BATTLESCAPE, XCOM_DOGFIGHT, XCOM_GEOSCAPE, XCOM_RESEARCH, ALIEN_MISSION_DESPAWN, ALIEN_UFO_ACTIVITY, ALIEN_BASE};
-enum ProcessorSource {MOTHLY, FACTIONAL, XCOM};
+enum ProcessorSource {MONTHLY, FACTIONAL, XCOM};
 
 class Game;
 class GeoscapeState;
