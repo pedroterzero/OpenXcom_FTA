@@ -214,6 +214,7 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 	SavedGame& save = *engine.getSavedGame();
 	MasterMind& mind = *engine.getMasterMind();
 	_commandsToProcess.clear();
+	_availableMissionScripts.clear();
 	_eventsToProcess.clear();
 	_avoidRepeatVars.clear();
 
@@ -231,7 +232,7 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 				bool success = mind.spawnEvent(_rule->getDiscoverEvent());
 			}
 			// update reputation level for just discovered fraction
-			mind.updateReputationLvl(this, false);;
+			mind.updateReputationLvl(this, false);
 			// and if it turns friendly at start we sign help treaty by default
 			if (_reputationLvL > 0)
 			{
@@ -490,7 +491,7 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 					ruleScript->getMinDifficulty() <= save.getDifficulty())
 				{
 					// don't forget about FTA-specific stuff
-					if (ruleScript->getAllowedProcessor() != 1 || save.getMissionScriptGapped(ruleScript->getType()))
+					if (save.getMissionScriptGapped(ruleScript->getType()))
 					{
 						//nope, we dont want such mission
 						continue;
