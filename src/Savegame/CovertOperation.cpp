@@ -423,6 +423,33 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 		}
 	}
 
+	if (!_rule->getRequiredItemList().empty())
+	{
+		bool removeItems = false;
+		
+		if (operationResult)
+		{
+			removeItems = _rule->getRemoveRequiredItemsOnSuccess();
+		}
+		else
+		{
+			removeItems = _rule->getRemoveRequiredItemsOnFailure();
+		}
+
+		if (removeItems)
+		{
+			auto items = _rule->getRequiredItemList();
+			for (auto &item : items)
+			{
+				auto ruleItem = mod.getItem(item.first);
+				if (ruleItem != nullptr)
+				{
+					_items->removeItem(ruleItem, item.second);
+				}
+			}
+		}
+	}
+
 	if (!missionName.empty())
 	{
 		// let's define variables for alien mission first
@@ -648,9 +675,9 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	expRolls += expRollsRandom; //add more random
 	//experience is reduced for fail and critical fail
 	if (!operationResult && !criticalFail)
-		expRolls = round(expRolls / 3);
+		expRolls = round(expRolls / 2);
 	else if (criticalFail)
-		expRolls = round(expRolls / 4) - 2;
+		expRolls = round(expRolls / 3) - 2;
 
 	//processing soldiers change before returning home
 	std::vector<Soldier*> soldiersToKill;
@@ -768,8 +795,11 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 					if (stats->bravery < caps.bravery && !braveryExp)
 					{
 						int braveryRoll = 1;
+						if (wound > 0)
+						{
 							braveryRoll += 1;
-						if (RNG::generate(0, 10) > braveryRoll)
+						}
+						if (RNG::generate(0, 12) > braveryRoll)
 							braveryExp += expGain;
 					}
 					break;

@@ -43,7 +43,7 @@ private:
 	int _soldierSlots, _optionalSoldierSlots, _scientistSlots, _engineerSlots, _optionalSoldierEffect, _scientistEffect, _engineerEffect, _itemSpaceEffect, _armorEffect;
 	double _itemSpaceLimit;
 	int _baseChances, _costs, _successScore, _failureScore, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger, _concealedItemsBonus, _bonusItemsEffect;
-	bool _repeatProgressEvent, _allowAllEquipment;
+	bool _repeatProgressEvent, _allowAllEquipment, _removeRequiredItemsOnSuccess, _removeRequiredItemsOnFailure;
 	WeightedOptions _successMissions, _failureMissions, _successWeightedItemList, _failureWeightedItemList, _instantTrapDeployment, _instantSuccessDeployment, _progressEvent;
 	std::map<std::string, int> _requiredReputationLvl, _successReputationScore, _failureReputationScore, _successEveryItemList, _failureEveryItemList, _requiredItems, _bonusItems, _soldierTypeEffectiveness;
 	int _listOrder;
@@ -120,6 +120,11 @@ public:
 	int getProgressEventChance() const { return _progressEventChance; };
 	/// Gets if progress event should be repeated in progress of running covert operation.
 	bool getRepeatProgressEvent() const { return _repeatProgressEvent; };
+
+	/// Gets if required items for operation should be removed from the game.
+	bool getRemoveRequiredItemsOnSuccess() const { return _removeRequiredItemsOnSuccess; };
+	bool getRemoveRequiredItemsOnFailure() const { return _removeRequiredItemsOnFailure; };
+
 	/// Gets operation item space limit.
 	double getItemSpaceLimit() const { return _itemSpaceLimit; }
 	/// Gets operation item space limit.
