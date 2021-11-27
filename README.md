@@ -46,30 +46,47 @@ All rights for the original game and its resources belong to their respective ow
 ## Overview and Features 
 The X-Com initiative failed, with alien agents infiltrating the ranks of the governments of most major powers. The agency's base is in poor condition due to lack of funding. Most of the personnel were dismissed or killed. To win, the player will have to revive X-Com literally from the ashes ...
 
-- Expand the gaming experience while maintaining the original setting and spirit of the game.
-- The mod adding new content, missions and mechanics.
-- The game has an alternative start and a prototype of the faction and diplomacy system.
-- A covert operations system and some other original features are planned.
+The mod adding new content, missions and mechanics. Its expand the gaming experience while maintaining the original setting and spirit of the game. Here some features:
+
+- The game has an alternative start. 
+- Loyalty system of your troops and stuff.For instance, mission results, events, and research affect it every time, but the alien activity count only it was detected.
+- Custom Geoscape dialogue system that will spawn events depending on the player's choice.
+- Faction Diplomacy. It represents dynamic factions for the player to interact that replace the Council of Funding Nations and its Countries.
+  - Factions live their own life with custom geoscape AI system - they have resources, like funds, power and vigilance, as well as stash of items a personnel, and they manage those resources to keep growing and balance things.
+  - Geoscape Events and Covert Operations can affect reputation scores directly.
+  - There can be hidden factions and can be discovered for diplomacy.
+  - Negotiations system with full dialogue to interact with faction.
+  - Interfaction relations. When the player rises reputation score with one faction, another goes down.
+  - ...
+- A covert operations system. The operation can be launched from each base and can involve soldiers, scientists, and engineers. 
+  - Once operation launched, some events can occur in its process, and once finished operation the game would decide its results.
+  - All covert operations can end with success, failure, or critical failure.
+  - Each covert operation can have its own geoscape entities to be added to the game on success or failure - score, funds, research, faction reputation, items, spawn events, and alien missions.
+  - It can even push the battlescape game with defined alien deployment!
+- BattleScripts a special command that is processing in the battlescape layer after the end of each player's turn. 
+- New handy animated cutscene system.
+- The game now process ongoing researchers not every day, but every hour. 
+- Hide alien base from every vanilla way to discover alien bases, but not for special ways introduced in FtA
 - ...
 
 ## FAQ
 Q: At what stage is the development of the game?
-> the game is in pre-alpha stage.
+> the mod is in pre-alpha stage.
 
 Q: Where can I join the community and chat or participate in development?
-> join to our Discord channel https://discord.gg/epmtzH9 where you can find more then 180 fans.
+> [join to our Discord channel](https://discord.gg/epmtzH9) where you can find more then 180 fans. (Its can be opened in browser and does not require registration)
 
 Q: How and where can I translate the game into my language?
-> answer.
+> we must achieve the implementation of most ideas and mechanics after which it will be possible to start translating into languages
 
 Q: I am an artist, how can I help the project?
-> answer.
+> [join to our Discord channel](https://discord.gg/epmtzH9) and we will discuss specifically your case
 
 Q: I can help the development if I test the game, where can I post bug reports?
-> answer.
+> You can post bugreports [here](https://github.com/723Studio/OpenXcom_FTA/issues)
 
 Q: I have some great ideas where can I share them?
-> answer.
+> [join to our Discord channel](https://discord.gg/epmtzH9) (Its can be opened in browser and does not require registration)
 
 ## Installation
 
