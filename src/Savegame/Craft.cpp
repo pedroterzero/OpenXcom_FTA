@@ -61,6 +61,7 @@ Craft::Craft(const RuleCraft *rules, Base *base, int id) : MovingTarget(),
 	_status("STR_READY"), _lowFuel(false), _mission(false),
 	_inBattlescape(false), _inDogfight(false), _stats(),
 	_isAutoPatrolling(false), _lonAuto(0.0), _latAuto(0.0),
+	_scientists(0), _engineers(0),
 	_skinIndex(0)
 {
 	_stats = rules->getStats();
@@ -245,6 +246,8 @@ void Craft::load(const YAML::Node &node, const ScriptGlobal *shared, const Mod *
 	_lonAuto = node["lonAuto"].as<double>(_lonAuto);
 	_latAuto = node["latAuto"].as<double>(_latAuto);
 	_pilots = node["pilots"].as< std::vector<int> >(_pilots);
+	_scientists = node["scientists"].as<int>(_scientists);
+	_engineers = node["engineers"].as<int>(_engineers);
 	_skinIndex = node["skinIndex"].as<int>(_skinIndex);
 	if (_skinIndex > _rules->getMaxSkinIndex())
 	{
@@ -350,6 +353,8 @@ YAML::Node Craft::save(const ScriptGlobal *shared) const
 	{
 		node["pilots"].push_back((*i));
 	}
+	node["scientists"] = _scientists;
+	node["engineers"] = _engineers;
 	if (_skinIndex != 0)
 		node["skinIndex"] = _skinIndex;
 
@@ -1010,6 +1015,16 @@ void Craft::evacuateCrew(const Mod *mod)
 			++s; // next
 		}
 	}
+	// care scientists and engineers that might be onboard
+	Transfer *ts = new Transfer(mod->getPersonnelTime());
+	ts->setScientists(_scientists);
+	_base->getTransfers()->push_back(ts);
+	_scientists = 0;
+	Transfer *te = new Transfer(mod->getPersonnelTime());
+	te->setEngineers(_engineers);
+	_base->getTransfers()->push_back(te);
+	_engineers = 0;
+
 	removeAllPilots(); // just in case
 }
 
@@ -1048,7 +1063,7 @@ bool Craft::think()
 void Craft::checkup()
 {
 	int available = 0, full = 0;
-	for (std::vector<CraftWeapon*>::iterator i = _weapons.begin(); i != _weapons.end(); ++i)
+	for (std::vector<CraftWeapon *>::iterator i = _weapons.begin(); i != _weapons.end(); ++i)
 	{
 		if ((*i) == 0)
 			continue;
@@ -1078,6 +1093,42 @@ void Craft::checkup()
 	else
 	{
 		_status = "STR_READY";
+	}
+
+	if (_scientists > 0)
+	{
+		_base->setScientists(_base->getScientists() + _scientists);
+	}
+	if (_engineers > 0)
+	{
+		_base->setEngineers(_base->getEngineers() + _engineers);
+	}
+
+	if (getSpaceAvailable() < 0)
+	{
+		int shortage = abs(getSpaceAvailable());
+		for (std::vector<Soldier *>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+		{
+			if (shortage < 0)
+			{
+				break;
+			}
+			else
+			{
+				if ((*i)->isJustSaved())
+				{
+					(*i)->setCraft(0);
+					shortage--;
+				}
+			}
+		}
+	}
+	for (std::vector<Soldier *>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+	{
+		if ((*i)->isJustSaved())
+		{
+			(*i)->setJustSaved(false);
+		}
 	}
 }
 

@@ -74,6 +74,7 @@ private:
 	double _lonAuto, _latAuto;
 	std::vector<int> _pilots;
 	int _skinIndex;
+	int _scientists, _engineers;
 	ScriptValues<Craft> _scriptValues;
 
 	void recalcSpeedMaxRadian();
@@ -194,6 +195,14 @@ public:
 	int getFuelLimit() const;
 	/// Gets the craft's minimum fuel limit to go to a base.
 	int getFuelLimit(Base *base) const;
+	/// Gets the craft's scientists on board
+	int getScientists() const { return _scientists; };
+	/// Sets the craft's scientists on board
+	void setScientists(int scientists) { _scientists = scientists; };
+	/// Gets the craft's engineers on board
+	int getEngineers() const { return _engineers; };
+	/// Sets the craft's engineers on board
+	void setEngineers(int engineers) { _engineers = engineers; };
 
 	double getBaseRange() const;
 	/// Returns the craft to its base.

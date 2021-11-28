@@ -77,7 +77,7 @@ private:
 	int _healthMissing = 0; // amount of health missing until full health recovery, this is less serious than wound recovery.
 	int _manaMissing = 0;   // amount of mana missing until full mana recovery
 	float _recovery = 0.0;  // amount of hospital attention soldier needs... used to calculate recovery time
-	bool _recentlyPromoted, _psiTraining, _training, _returnToTrainingWhenHealed;
+	bool _recentlyPromoted, _psiTraining, _training, _returnToTrainingWhenHealed, _justSaved;
 	ReturnToTrainings _returnToTrainingsWhenOperationOver;
 	Armor *_armor;
 	Armor *_replacedArmor;
@@ -266,8 +266,12 @@ public:
 	bool isFullyTrained();
 	/// Returns whether the unit is in training or not
 	bool isInTraining();
-	/// set the training status
+	/// Set the training status
 	void setTraining(bool training);
+	/// Returns whether the soldier was just saved
+	bool isJustSaved() { return _justSaved; };
+	/// Set the "Just saved" status - we recover this soldier on battlescape, but not deliverid him/her to the base yet
+	void setJustSaved(bool saved) { _justSaved = saved; };
 	/// Should the soldier return to martial training automatically when fully healed?
 	bool getReturnToTrainingWhenHealed() const;
 	/// Sets whether the soldier should return to martial training automatically when fully healed.

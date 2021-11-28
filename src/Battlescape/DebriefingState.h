@@ -60,7 +60,7 @@ struct RecoveryItem { std::string name; int value; };
 class DebriefingState : public State
 {
 private:
-	typedef std::pair<std::string, UnitStats> SoldierStatsEntry;
+	typedef std::pair<Soldier *, UnitStats> SoldierStatsEntry;
 
 	Region *_region;
 	Country *_country;
@@ -99,7 +99,7 @@ private:
 	/// Recovers an alien from the battlescape.
 	void recoverAlien(BattleUnit *from, Base *base);
 	/// Handle friendly non X-COM unit  (VIP) recovery from the battlescape.
-	bool handleVipRecovery(BattleUnit* unit, Base* base, bool result);
+	bool handleVipRecovery(BattleUnit *unit, Base *base, Craft *craft, bool result);
 	/// Reequips a craft after a mission.
 	void reequipCraft(Base *base, Craft *craft, bool vehicleItemsCanBeDestroyed);
 	/// 0 = score, 1 = stat improvement, 2 = recovered items

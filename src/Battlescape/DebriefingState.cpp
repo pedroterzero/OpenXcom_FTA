@@ -413,6 +413,7 @@ void DebriefingState::init()
 
 	prepareDebriefing();
 
+	int row = 0;
 	for (std::vector<SoldierStatsEntry>::iterator i = _soldierStats.begin(); i != _soldierStats.end(); ++i)
 	{
 		auto tmp = (*i).second.psiStrength;
@@ -420,7 +421,8 @@ void DebriefingState::init()
 		{
 			tmp = (*i).second.mana;
 		}
-		_lstSoldierStats->addRow(13, (*i).first.c_str(),
+		auto soldier = (*i).first;
+		_lstSoldierStats->addRow(13, soldier->getName().c_str(),
 				makeSoldierString((*i).second.tu).c_str(),
 				makeSoldierString((*i).second.stamina).c_str(),
 				makeSoldierString((*i).second.health).c_str(),
@@ -434,6 +436,11 @@ void DebriefingState::init()
 				makeSoldierString((*i).second.psiSkill).c_str(),
 				"");
 		// note: final dummy element to cause dot filling until the end of the line
+		if (soldier->isJustSaved())
+		{
+			_lstSoldierStats->setRowColor(row, _lstSoldierStats->getSecondaryColor());
+		}
+		row++;
 	}
 
 	// compare stuff from after and before recovery
@@ -1599,10 +1606,10 @@ void DebriefingState::prepareDebriefing()
 					|| (aborted && (*j)->isInExitArea(END_POINT)))
 				{ // so game is not aborted or aborted and unit is on exit area
 					bool notOver = true;
-					if (evacObj)
+					if (evacObj) //FtA Logic
 					{
 						addStat("STR_VIP_SAVED", 1, value);
-						notOver = handleVipRecovery((*j), base, true);
+						notOver = handleVipRecovery((*j), base, craft, true);
 						vipsSaved++;
 						if (notOver)
 						{
@@ -1614,7 +1621,7 @@ void DebriefingState::prepareDebriefing()
 						StatAdjustment statIncrease;
 						(*j)->postMissionProcedures(_game->getMod(), save, battle, statIncrease);
 						if ((*j)->getGeoscapeSoldier())
-							_soldierStats.push_back(std::pair<std::string, UnitStats>((*j)->getGeoscapeSoldier()->getName(), statIncrease.statGrowth));
+							_soldierStats.push_back(std::pair<Soldier*, UnitStats>((*j)->getGeoscapeSoldier(), statIncrease.statGrowth));
 						playersInExitArea++;
 
 						recoverItems((*j)->getInventory(), base);
@@ -2908,7 +2915,7 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
  * @param result Case of recovery (unit dead/lost or recovered)
  * @return true if new geoscape soldier was created
  */
-bool DebriefingState::handleVipRecovery(BattleUnit* unit, Base* base, bool result)
+bool DebriefingState::handleVipRecovery(BattleUnit *unit, Base *base, Craft *craft, bool result)
 {
 	bool created = false;
 	if (result) //unit recovered safely
@@ -2917,16 +2924,12 @@ bool DebriefingState::handleVipRecovery(BattleUnit* unit, Base* base, bool resul
 		std::string type = rules->getCivilianRecoveryType();
 		if (type == "STR_SCIENTIST")
 		{
-			Transfer* t = new Transfer(4);
-			t->setScientists(1);
-			base->getTransfers()->push_back(t);
+			craft->setScientists(craft->getScientists() + 1);
 			addStat("STR_SCIENTIST_JOINED_XCOM", 1, rules->getValue() / 3);
 		}
 		else if (type == "STR_ENGINEER")
 		{
-			Transfer* t = new Transfer(4);
-			t->setEngineers(1);
-			base->getTransfers()->push_back(t);
+			craft->setEngineers(craft->getEngineers() + 1);
 			addStat("STR_ENGINEER_JOINED_XCOM", 1, rules->getValue() / 3);
 		}
 		else
@@ -2934,15 +2937,14 @@ bool DebriefingState::handleVipRecovery(BattleUnit* unit, Base* base, bool resul
 			RuleSoldier* ruleSoldier = _game->getMod()->getSoldier(type);
 			if (ruleSoldier != 0)
 			{
-				Transfer* t = new Transfer(4);
-				Soldier* s = _game->getMod()->genSoldier(_game->getSavedGame(), ruleSoldier->getType());
+				Soldier *s = _game->getMod()->genSoldier(_game->getSavedGame(), ruleSoldier->getType());
 				unit->setGeoscapeSoldied(s);
-				created = true;
-				UnitStats* stats = rules->getStats();
+				UnitStats *stats = rules->getStats();
 				s->setBothStats(stats);
-				auto test = unit->getGeoscapeSoldier();
-				t->setSoldier(s);
-				base->getTransfers()->push_back(t);
+				s->setJustSaved(true);
+				created = true;
+				base->getSoldiers()->push_back(s);
+				s->setCraft(craft);
 				addStat("STR_SOLDIER_JOINED_XCOM", 1, rules->getValue() / 3);
 			}
 		}
