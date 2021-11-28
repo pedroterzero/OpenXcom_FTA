@@ -49,7 +49,7 @@ public:
 	/// Generate Geoscape event from it's name if everything is ok with it.
 	bool spawnEvent(std::string name);
 	/// Loyalty update handler
-	void updateLoyalty(int score, LoyaltySource source = XCOM_GEOSCAPE);
+	int updateLoyalty(int score, LoyaltySource source = XCOM_GEOSCAPE);
 	/// Return bonus that would be applied to base service performance because of loyalty level.
 	int getLoyaltyPerformanceBonus();
 	/// Update reputations level based on its current reputation score.

@@ -109,7 +109,17 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 	_txtQuantity = new Text(60, 9, 200, 24);
 	_txtScore = new Text(55, 9, 270, 24);
 	_txtRecovery = new Text(180, 9, 16, 60);
-	_txtRating = new Text(200, 9, 64, 180);
+	if (!_game->getMod()->getIsFTAGame())
+	{
+		_txtRating = new Text(200, 9, 64, 180);
+		_txtLoyalty = new Text(200, 9, 64, 180);
+	}
+	else
+	{
+		_txtRating = new Text(94, 9, 64, 180);
+		_txtLoyalty = new Text(78, 9, 163, 180);
+	}
+	
 	_lstStats = new TextList(290, 80, 16, 32);
 	_lstRecovery = new TextList(290, 80, 16, 32);
 	_lstTotal = new TextList(290, 9, 16, 12);
@@ -153,6 +163,7 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 	add(_txtScore, "text", "debriefing");
 	add(_txtRecovery, "text", "debriefing");
 	add(_txtRating, "text", "debriefing");
+	add(_txtLoyalty, "text", "debriefing");
 	add(_lstStats, "list", "debriefing");
 	add(_lstRecovery, "list", "debriefing");
 	add(_lstTotal, "totals", "debriefing");
@@ -345,6 +356,7 @@ void DebriefingState::applyVisibility()
 	_txtScore->setVisible(showScore);
 	_txtRecovery->setVisible(showScore);
 	_txtRating->setVisible(showScore);
+	_txtLoyalty->setVisible(showScore && _game->getMod()->getIsFTAGame());
 	_lstStats->setVisible(showScore);
 	_lstRecovery->setVisible(showScore);
 	_lstTotal->setVisible(showScore);
@@ -551,7 +563,8 @@ void DebriefingState::init()
 	}
 
 	// update FtA Loyalty
-	_game->getMasterMind()->updateLoyalty(total, XCOM_BATTLESCAPE);
+	int loyalty = _game->getMasterMind()->updateLoyalty(total, XCOM_BATTLESCAPE);
+	_txtLoyalty->setText(tr("STR_LOYALTY_UPDATE").arg(loyalty));
 
 	// Resize (if needed)
 	if (statsY > 80) statsY = 80;
