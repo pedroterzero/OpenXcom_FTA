@@ -262,6 +262,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 	bool operationResult = _successChance > roll;
 	bool criticalFail = roll > (_successChance + critFailCoef);
 	int score = 0;
+	int loyalty = 0;
 	int funds = 0;
 	std::string eventName;
 	std::vector<std::string> researchList;
@@ -279,6 +280,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 	if (operationResult)
 	{
 		score = _rule->getSuccessScore();
+		loyalty = _rule->getSuccessLoyalty();
 		funds = _rule->getSuccessFunds();
 		researchList = _rule->getSuccessResearchList();
 		eventName = _rule->getSuccessEvent();
@@ -306,6 +308,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 	{
 		score = _rule->getFailureScore();
 		if (criticalFail) score = score - 300;
+		loyalty = _rule->getFailureLoyalty();
 		funds = _rule->getFailureFunds();
 		researchList = _rule->getFailureResearchList();
 		eventName = _rule->getFailureEvent();
@@ -335,6 +338,11 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 		save.addResearchScore(score);
 		_results->addScore(score);
 		engine.getMasterMind()->updateLoyalty(score, XCOM_GEOSCAPE);
+	}
+
+	if (loyalty != 0)
+	{
+		engine.getMasterMind()->updateLoyalty(loyalty, ABSOLUTE_COEF);
 	}
 
 	if (funds != 0)

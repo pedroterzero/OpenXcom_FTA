@@ -34,7 +34,8 @@ namespace OpenXcom
 RuleCovertOperation::RuleCovertOperation(const std::string& name) : _name(name), _soldierSlots(1), _optionalSoldierSlots(0),
 	_scientistSlots(0), _engineerSlots(0), _optionalSoldierEffect(10), _scientistEffect(5), _engineerEffect(5),
 	_baseChances(50), _costs(0), _itemSpaceLimit(-1), _itemSpaceEffect(10), _danger(0), _trapChance(0), _armorEffect(20),
-	_successScore(0), _failureScore(0), _progressEventChance(0), _repeatProgressEvent(false), _removeRequiredItemsOnSuccess(true), _removeRequiredItemsOnFailure(false),
+	_successScore(0), _failureScore(0), _successLoyalty(0), _failureLoyalty(0), _progressEventChance(0), _repeatProgressEvent(false),
+	_removeRequiredItemsOnSuccess(true), _removeRequiredItemsOnFailure(false),
 	_allowAllEquipment(false), _concealedItemsBonus(10), _bonusItemsEffect(5), _successFunds(0), _failureFunds(0), _listOrder(0) 
 {
 }
@@ -95,6 +96,8 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_danger = node["danger"].as<int>(_danger);
 	_successScore = node["successScore"].as<int>(_successScore);
 	_failureScore = node["failureScore"].as<int>(_failureScore);
+	_successLoyalty = node["successLoyalty"].as<int>(_successLoyalty);
+	_failureLoyalty = node["failureLoyalty"].as<int>(_failureLoyalty);
 	_successFunds = node["successFunds"].as<int>(_successFunds);
 	_failureFunds = node["failureFunds"].as<int>(_failureFunds);
 	_successEveryItemList = node["successEveryItemList"].as<std::map<std::string, int> >(_successEveryItemList);

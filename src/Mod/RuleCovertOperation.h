@@ -42,7 +42,7 @@ private:
 	RuleBaseFacilityFunctions _requiresBaseFunc;
 	int _soldierSlots, _optionalSoldierSlots, _scientistSlots, _engineerSlots, _optionalSoldierEffect, _scientistEffect, _engineerEffect, _itemSpaceEffect, _armorEffect;
 	double _itemSpaceLimit;
-	int _baseChances, _costs, _successScore, _failureScore, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger, _concealedItemsBonus, _bonusItemsEffect;
+	int _baseChances, _costs, _successScore, _failureScore, _successLoyalty, _failureLoyalty, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger, _concealedItemsBonus, _bonusItemsEffect;
 	bool _repeatProgressEvent, _allowAllEquipment, _removeRequiredItemsOnSuccess, _removeRequiredItemsOnFailure;
 	WeightedOptions _successMissions, _failureMissions, _successWeightedItemList, _failureWeightedItemList, _instantTrapDeployment, _instantSuccessDeployment, _progressEvent;
 	std::map<std::string, int> _requiredReputationLvl, _successReputationScore, _failureReputationScore, _successEveryItemList, _failureEveryItemList, _requiredItems, _bonusItems, _soldierTypeEffectiveness;
@@ -112,6 +112,10 @@ public:
 	int getSuccessScore() const { return _successScore; };
 	/// Gets the operation's global score, that is awarded on failure.
 	int getFailureScore() const { return _failureScore; };
+	/// Gets the operation's loyalty score, that is awarded on success result.
+	int getSuccessLoyalty() const { return _successLoyalty; };
+	/// Gets the operation's loyalty score, that is awarded on failure.
+	int getFailureLoyalty() const { return _failureLoyalty; };
 	/// Gets the operation's funds, that is awarded on success result.
 	int getSuccessFunds() const { return _successFunds; };
 	/// Gets the operation's funds, that is awarded on failure.

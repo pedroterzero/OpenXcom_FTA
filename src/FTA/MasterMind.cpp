@@ -443,6 +443,10 @@ int MasterMind::updateLoyalty(int score, LoyaltySource source)
 		coef = _game->getMod()->getLoyaltyCoefAlienBase() * (-1);
 		reason = "ALIEN_BASE";
 		break;
+	case OpenXcom::ABSOLUTE_COEF:
+		coef = 1;
+		reason = "ABSOLUTE";
+		break;
 	default:
 		break;
 	}
