@@ -2190,7 +2190,7 @@ void GeoscapeState::time1Hour()
 				{
 					if (rules)
 					{
-						(*j)->transform(_game->getMod(), rules, (*j));
+						(*j)->transform(_game->getMod(), rules, (*j), (*i));
 						trainingFinishedList.push_back(std::make_pair(*j, rules));
 					}
 					else

@@ -914,7 +914,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			else
 			{
 				_results->addSoldierDamage((*j)->getName(), -10);
-				save.killSoldier(*j); //RIP
+				save.killSoldier(&mod, (*j)); //RIP
 			}
 			++it;
 		}
