@@ -935,6 +935,14 @@ void Mod::playMusic(const std::string &name, int id)
 		if (music != _muteMusic)
 		{
 			_playingMusic = name;
+			for (auto& item : _musics)
+			{
+				if (item.second == music)
+				{
+					setCurrentMusicTrack(item.first);
+					break;
+				}
+			}
 		}
 		Log(LOG_VERBOSE)<<"Mod::playMusic('" << name << "'): playing " << _playingMusic;
 	}
@@ -2185,6 +2193,10 @@ void Mod::loadMod(const std::vector<FileMap::FileRecord> &rulesetFiles, ModScrip
 		{
 			loadFile(*i, parsers);
 		}
+		catch (Exception &e)
+		{
+			throw Exception(i->fullpath + ": " + std::string(e.what()));
+		}
 		catch (YAML::Exception &e)
 		{
 			throw Exception(i->fullpath + ": " + std::string(e.what()));
@@ -3363,9 +3375,16 @@ SavedGame *Mod::newSave(GameDifficulty diff) const
 		else if (node.IsScalar())
 		{
 			int randomSoldiers = node.as<int>(0);
-			for (int s = 0; s < randomSoldiers; ++s)
+			if (randomSoldiers > 0 && soldierTypes.empty())
 			{
-				randomTypes.push_back(soldierTypes[RNG::generate(0, soldierTypes.size() - 1)]);
+				Log(LOG_ERROR) << "Cannot generate soldiers for the starting base. There are no available soldier types. Maybe all of them are locked by research?";
+			}
+			else
+			{
+				for (int s = 0; s < randomSoldiers; ++s)
+				{
+					randomTypes.push_back(soldierTypes[RNG::generate(0, soldierTypes.size() - 1)]);
+				}
 			}
 		}
 		// Generate soldiers

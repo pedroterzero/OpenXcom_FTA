@@ -3207,6 +3207,7 @@ void SavedBattleGame::resetUnitHitStates()
 
 namespace
 {
+
 template<typename... Args>
 void flashMessageVariadicScriptImpl(SavedBattleGame* sbg, ScriptText message, Args... args)
 {
@@ -3219,6 +3220,21 @@ void flashMessageVariadicScriptImpl(SavedBattleGame* sbg, ScriptText message, Ar
 	(translated.arg(args), ...);
 	sbg->getBattleState()->warningRaw(translated);
 }
+
+template<typename... Args>
+void flashLongMessageVariadicScriptImpl(SavedBattleGame* sbg, ScriptText message, Args... args)
+{
+	if (!sbg || !sbg->getBattleState())
+	{
+		return;
+	}
+	const Language *lang = sbg->getBattleState()->getGame()->getLanguage();
+	LocalizedText translated = lang->getString(message);
+	(translated.arg(args), ...);
+	sbg->getBattleState()->warningLongRaw(translated);
+}
+
+
 
 void randomChanceScript(SavedBattleGame* sbg, int& val)
 {
@@ -3357,6 +3373,12 @@ void SavedBattleGame::ScriptRegister(ScriptParserBase* parser)
 	sbg.add<void(*)(SavedBattleGame*, ScriptText, int, int), &flashMessageVariadicScriptImpl>("flashMessage");
 	sbg.add<void(*)(SavedBattleGame*, ScriptText, int, int, int), &flashMessageVariadicScriptImpl>("flashMessage");
 	sbg.add<void(*)(SavedBattleGame*, ScriptText, int, int, int, int), &flashMessageVariadicScriptImpl>("flashMessage");
+
+	sbg.add<void(*)(SavedBattleGame*, ScriptText), &flashLongMessageVariadicScriptImpl>("flashLongMessage");
+	sbg.add<void(*)(SavedBattleGame*, ScriptText, int), &flashLongMessageVariadicScriptImpl>("flashLongMessage");
+	sbg.add<void(*)(SavedBattleGame*, ScriptText, int, int), &flashLongMessageVariadicScriptImpl>("flashLongMessage");
+	sbg.add<void(*)(SavedBattleGame*, ScriptText, int, int, int), &flashLongMessageVariadicScriptImpl>("flashLongMessage");
+	sbg.add<void(*)(SavedBattleGame*, ScriptText, int, int, int, int), &flashLongMessageVariadicScriptImpl>("flashLongMessage");
 
 	sbg.add<&randomChanceScript>("randomChance", "first argument is percent in range 0 - 100, then return in that argument random 1 or 0 based on percent");
 	sbg.add<&randomRangeScript>("randomRange", "set in first argument random value from range given in two last arguments");

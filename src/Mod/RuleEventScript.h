@@ -40,6 +40,8 @@ private:
 	int _spawnGap, _randomSpawnGap;
 	int64_t _minFunds, _maxFunds;
 	std::map<std::string, int> _requiredReputation;
+	std::string _missionVarName;
+	int _missionMinRuns, _missionMaxRuns;
 	std::map<std::string, bool> _researchTriggers;
 	std::map<std::string, bool> _itemTriggers;
 	std::map<std::string, bool> _facilityTriggers;
@@ -81,15 +83,21 @@ public:
 	int64_t getMinFunds() const { return _minFunds; }
 	/// Gets the maximum funds (from current month) for this command to run.
 	int64_t getMaxFunds() const { return _maxFunds; }
-	/// Get allowed procesor (monthly/factional) that is allowed to process this command.
+	/// Get allowed processor (monthly/factional) that is allowed to process this command.
 	int getAllowedProcessor() const { return _allowedProcessor; }
 	/// Gets interval in what the event script command should not be processed.
 	int getSpawnGap() const { return _spawnGap; }
-	/// Gets random ammount of gap for event script command.
+	/// Gets random amount of gap for event script command.
 	int getRandomSpawnGap() const { return _randomSpawnGap; }
+	/// Gets the name of the mission script tracking variable.
+	const std::string& getMissionVarName() const { return _missionVarName; }
+	/// Gets the minimum number of missions generated for this command to run.
+	int getMissionMinRuns() const { return _missionMinRuns; }
+	/// Gets the maximum number of missions generated for this command to run.
+	int getMissionMaxRuns() const { return _missionMaxRuns; }
 	/// Gets the research triggers that may apply to this command.
 	const std::map<std::string, bool> &getResearchTriggers() const { return _researchTriggers; }
-	/// Gets the diplomacy faction requirments that may apply to this command.
+	/// Gets the diplomacy faction requirements that may apply to this command.
 	const std::map<std::string, int>& getReputationRequirments() const { return _requiredReputation; }
 	/// Gets the item triggers that may apply to this command.
 	const std::map<std::string, bool> &getItemTriggers() const { return _itemTriggers; }

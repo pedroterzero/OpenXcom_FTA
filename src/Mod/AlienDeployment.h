@@ -95,6 +95,7 @@ private:
 	std::string _enviroEffects, _startingCondition;
 	std::string _unlockedResearch, _missionBountyItem;
 	std::string _alternativeDeployment, _alternativeDeploymentResearch;
+	int _missionBountyItemCount;
 	int _bughuntMinTurn;
 	std::vector<DeploymentData> _data;
 	std::vector<ReinforcementsData> _reinforcements;
@@ -125,6 +126,7 @@ private:
 	int _baseDetectionRange, _baseDetectionChance, _huntMissionMaxFrequency;
 	std::vector<std::pair<size_t, WeightedOptions*> > _huntMissionDistribution;
 	std::vector<std::pair<size_t, WeightedOptions*> > _alienBaseUpgrades;
+	bool _resetAlienBaseAgeAfterUpgrade, _resetAlienBaseAge;
 public:
 	/// Creates a blank Alien Deployment ruleset.
 	AlienDeployment(const std::string &type);
@@ -148,6 +150,8 @@ public:
 	const std::string& getAlternativeDeploymentName() const { return _alternativeDeployment; };
 	/// Gets the Alien Deployment's research, that would update alien deployment to alternative.
 	const std::string& getAlternativeDeploymentResearchName() const { return _alternativeDeploymentResearch; };
+	/// Gets the number of items to be recovered/given after a successful mission.
+	int getMissionBountyItemCount() const { return _missionBountyItemCount; }
 	/// Gets the bug hunt mode minimum turn requirement (default = 0 = not used).
 	int getBughuntMinTurn() const;
 	/// Gets a pointer to the data.
@@ -276,6 +280,10 @@ public:
 
 	/// Generates an alien base upgrade.
 	std::string generateAlienBaseUpgrade(const size_t baseAgeInMonths) const;
+	/// Should the age of an alien base be reset after an upgrade (from this type)?
+	bool resetAlienBaseAgeAfterUpgrade() const { return _resetAlienBaseAgeAfterUpgrade; }
+	/// Should the age of an alien base be reset after an upgrade (into this type)?
+	bool resetAlienBaseAge() const { return _resetAlienBaseAge; }
 
 };
 

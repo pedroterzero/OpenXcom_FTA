@@ -44,6 +44,7 @@ class SoldierDiary;
 class SavedGame;
 class RuleSoldierTransformation;
 class RuleSoldierBonus;
+class Base;
 struct BaseSumDailyRecovery;
 
 /**
@@ -287,7 +288,7 @@ public:
 	/// Returns whether the unit is eligible for a certain transformation
 	bool isEligibleForTransformation(RuleSoldierTransformation *transformationRule);
 	/// Performs a transformation on this soldier
-	void transform(const Mod *mod, RuleSoldierTransformation *transformationRule, Soldier *sourceSoldier);
+	void transform(const Mod *mod, RuleSoldierTransformation *transformationRule, Soldier *sourceSoldier, Base *base);
 	/// Create pending transformation on this soldier
 	void postponeTransformation(RuleSoldierTransformation* transformationRule);
 	/// Handles pending transformation - reducing timer, performing transformation once finished

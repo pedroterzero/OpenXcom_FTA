@@ -39,6 +39,7 @@
 #include "../Mod/RuleSoldierTransformation.h"
 #include "../Mod/RuleCommendations.h"
 #include "Base.h"
+#include "ItemContainer.h"
 
 namespace OpenXcom
 {
@@ -1599,7 +1600,7 @@ bool Soldier::isEligibleForTransformation(RuleSoldierTransformation *transformat
 /**
  * Performs a transformation on this unit
  */
-void Soldier::transform(const Mod *mod, RuleSoldierTransformation *transformationRule, Soldier *sourceSoldier)
+void Soldier::transform(const Mod *mod, RuleSoldierTransformation *transformationRule, Soldier *sourceSoldier, Base *base)
 {
 	if (_death)
 	{
@@ -1698,6 +1699,7 @@ void Soldier::transform(const Mod *mod, RuleSoldierTransformation *transformatio
 
 	if (!transformationRule->isKeepingSoldierArmor())
 	{
+		auto* oldArmor = _armor;
 		if (Mod::isEmptyRuleName(transformationRule->getProducedSoldierArmor()))
 		{
 			// default armor of the soldier's type
@@ -1707,6 +1709,13 @@ void Soldier::transform(const Mod *mod, RuleSoldierTransformation *transformatio
 		{
 			// explicitly defined armor
 			_armor = mod->getArmor(transformationRule->getProducedSoldierArmor());
+		}
+		if (oldArmor != _armor && !transformationRule->isCreatingClone())
+		{
+			if (oldArmor->getStoreItem())
+			{
+				base->getStorageItems()->addItem(oldArmor->getStoreItem());
+			}
 		}
 	}
 

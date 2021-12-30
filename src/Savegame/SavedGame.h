@@ -480,7 +480,7 @@ public:
 	/// Checks if a UFO is on the ignore list.
 	bool isUfoOnIgnoreList(int ufoId);
 	/// Handles a soldier's death.
-	std::vector<Soldier*>::iterator killSoldier(Soldier *soldier, BattleUnitKills *cause = 0);
+	std::vector<Soldier*>::iterator killSoldier(const Mod* mod, Soldier *soldier, BattleUnitKills *cause = 0);
 	/// enables/disables autosell for an item type
 	void setAutosell(const RuleItem *itype, const bool enabled);
 	/// get autosell state for an item type
@@ -505,6 +505,8 @@ public:
 	int getCurrentScore(int monthsPassed) const;
 	/// Clear links for the given alien base. Use this before deleting the alien base.
 	void clearLinksForAlienBase(AlienBase* alienBase, const Mod* mod);
+	/// Delete the given retaliation mission.
+	void deleteRetaliationMission(AlienMission* am, Base* base);
 	/// Gets the list of user notes.
 	std::vector<std::string>& getUserNotes() { return _userNotes; }
 };

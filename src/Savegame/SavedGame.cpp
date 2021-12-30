@@ -509,7 +509,7 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 		{
 			const RuleAlienMission &mRule = *mod->getAlienMission(missionType);
 			AlienMission *mission = new AlienMission(mRule);
-			mission->load(*it, *this);
+			mission->load(*it, *this, mod);
 			_activeMissions.push_back(mission);
 		}
 		else
@@ -714,7 +714,7 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 			Log(LOG_ERROR) << "Failed to load research " << id;
 		}
 	}
-	_alienStrategy->load(doc["alienStrategy"]);
+	_alienStrategy->load(doc["alienStrategy"], mod);
 
 	for (YAML::const_iterator i = doc["deadSoldiers"].begin(); i != doc["deadSoldiers"].end(); ++i)
 	{
@@ -3097,8 +3097,13 @@ bool SavedGame::isUfoOnIgnoreList(int ufoId)
  * @param soldier Pointer to dead soldier.
  * @param cause Pointer to cause of death, NULL if missing in action.
  */
-std::vector<Soldier*>::iterator SavedGame::killSoldier(Soldier *soldier, BattleUnitKills *cause)
+std::vector<Soldier*>::iterator SavedGame::killSoldier(const Mod* mod, Soldier *soldier, BattleUnitKills *cause)
 {
+	// OXCE: soldiers are buried in their default armor (...nicer stats in the Memorial GUI; no free armor if resurrected)
+	soldier->setArmor(mod->getArmor(soldier->getRules()->getArmor()));
+	soldier->setReplacedArmor(0);
+	soldier->setTransformedArmor(0);
+
 	std::vector<Soldier*>::iterator j;
 	for (std::vector<Base*>::const_iterator i = _bases.begin(); i != _bases.end(); ++i)
 	{
@@ -3258,6 +3263,38 @@ void SavedGame::clearLinksForAlienBase(AlienBase* alienBase, const Mod* mod)
 				break;
 			}
 		}
+	}
+}
+
+/**
+ * Delete the given retaliation mission.
+ */
+void SavedGame::deleteRetaliationMission(AlienMission* am, Base* base)
+{
+	for (std::vector<Ufo*>::iterator i = _ufos.begin(); i != _ufos.end();)
+	{
+		if ((*i)->getMission() == am)
+		{
+			delete (*i);
+			i = _ufos.erase(i);
+		}
+		else
+		{
+			++i;
+		}
+	}
+	for (std::vector<AlienMission*>::iterator i = _activeMissions.begin(); i != _activeMissions.end(); ++i)
+	{
+		if ((*i) == am)
+		{
+			delete (*i);
+			_activeMissions.erase(i);
+			break;
+		}
+	}
+	if (base)
+	{
+		base->setRetaliationMission(nullptr);
 	}
 }
 

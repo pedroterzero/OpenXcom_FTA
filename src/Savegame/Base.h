@@ -42,6 +42,7 @@ class ResearchProject;
 class Production;
 class Vehicle;
 class Ufo;
+class AlienMission;
 
 enum UfoDetection : int;
 enum BasePlacementErrors : int
@@ -100,6 +101,7 @@ private:
 	std::vector<Production *> _productions;
 	bool _inBattlescape;
 	bool _retaliationTarget;
+	AlienMission* _retaliationMission;
 	bool _fakeUnderwater;
 	std::vector<Vehicle*> _vehicles;
 	std::vector<Vehicle*> _vehiclesFromBase;
@@ -257,7 +259,7 @@ public:
 	/// Gets the total amount of Containment space.
 	int getAvailableContainment(int prisonType) const;
 	/// Gets the total amount of used Containment space.
-	int getUsedContainment(int prisonType) const;
+	int getUsedContainment(int prisonType, bool onlyExternal = false) const;
 	/// Sets the craft's battlescape status.
 	void setInBattlescape(bool inbattle);
 	/// Gets if the craft is in battlescape.
@@ -266,6 +268,10 @@ public:
 	void setRetaliationTarget(bool mark = true);
 	/// Gets the retaliation status of this base.
 	bool getRetaliationTarget() const;
+	/// Sets the corresponding alien retaliation mission.
+	void setRetaliationMission(AlienMission* retaliationMission) { _retaliationMission = retaliationMission; }
+	/// Gets the corresponding alien retaliation mission.
+	AlienMission* getRetaliationMission() const { return _retaliationMission; }
 	/// Mark/unmark this base as a fake underwater base.
 	void setFakeUnderwater(bool fakeUnderwater) { _fakeUnderwater = fakeUnderwater; }
 	/// Is this a fake underwater base?
@@ -275,7 +281,7 @@ public:
 	/// Gets how many Grav Shields the base has
 	int getGravShields() const;
 	/// Setup base defenses.
-	void setupDefenses();
+	void setupDefenses(AlienMission* am);
 	/// Get a list of Defensive Facilities
 	std::vector<BaseFacility*> *getDefenses();
 	/// Gets the base's vehicles.
@@ -292,6 +298,7 @@ public:
 	std::list<std::vector<BaseFacility*>::iterator> getDisconnectedFacilities(BaseFacility *remove);
 	/// destroy a facility and deal with the side effects.
 	void destroyFacility(std::vector<BaseFacility*>::iterator facility);
+	void cleanupPrisons(int prisonType);
 	/// Cleans up the defenses vector and optionally reclaims the tanks and their ammo.
 	void cleanupDefenses(bool reclaimItems);
 

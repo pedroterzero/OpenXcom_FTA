@@ -1574,11 +1574,9 @@ void DebriefingState::prepareDebriefing()
 					}
 					// transformed armor doesn't get recovered
 					soldier->setTransformedArmor(0);
-					// soldiers are buried in the default armor (...nicer stats in memorial)
-					soldier->setArmor(_game->getMod()->getArmor(soldier->getRules()->getArmor()));
 
 					(*j)->getStatistics()->KIA = true;
-					save->killSoldier(soldier); // in case we missed the soldier death on battlescape
+					save->killSoldier(_game->getMod(), soldier); // in case we missed the soldier death on battlescape
 				}
 				else if (evacObj) //friendly vip case
 				{
@@ -1701,11 +1699,9 @@ void DebriefingState::prepareDebriefing()
 							}
 							// transformed armor doesn't get recovered
 							soldier->setTransformedArmor(0);
-							// soldiers are buried in the default armor (...nicer stats in memorial)
-							soldier->setArmor(_game->getMod()->getArmor(soldier->getRules()->getArmor()));
 
 							(*j)->getStatistics()->MIA = true;
-							save->killSoldier(soldier);
+							save->killSoldier(_game->getMod(), soldier);
 						}
 					}
 				}
@@ -2132,6 +2128,11 @@ void DebriefingState::prepareDebriefing()
 				(*i)->qty = (*i)->qty / aadivider;
 				(*i)->score = (*i)->score / aadivider;
 			}
+			else if (aadivider < -1)
+			{
+				(*i)->qty = (*i)->qty * (-1) * aadivider;
+				(*i)->score = (*i)->score * (-1) * aadivider;
+			}
 
 			// recoverable battlescape tiles are now converted to items and put in base inventory
 			if ((*i)->recovery && (*i)->qty > 0)
@@ -2205,8 +2206,25 @@ void DebriefingState::prepareDebriefing()
 		}
 	}
 
-	if (target == "STR_BASE")
+	if (base && target == "STR_BASE")
 	{
+		AlienMission* am = base->getRetaliationMission();
+		if (!am && _region)
+		{
+			// backwards-compatibility
+			am = _game->getSavedGame()->findAlienMission(_region->getRules()->getType(), OBJECTIVE_RETALIATION);
+		}
+		if (!_destroyBase && am && am->getRules().isMultiUfoRetaliation())
+		{
+			// Remember that more UFOs may be coming (again, just in case)
+			am->setMultiUfoRetaliationInProgress(true);
+		}
+		else
+		{
+			// Delete the mission and any live UFOs
+			_game->getSavedGame()->deleteRetaliationMission(am, base);
+		}
+
 		if (!_destroyBase)
 		{
 			// reequip crafts (only those on the base) after a base defense mission
@@ -2226,34 +2244,6 @@ void DebriefingState::prepareDebriefing()
 					delete (*i);
 					base = 0; // To avoid similar (potential) problems as with the deleted craft
 					_game->getSavedGame()->getBases()->erase(i);
-					break;
-				}
-			}
-		}
-
-		if (_region)
-		{
-			AlienMission* am = _game->getSavedGame()->findAlienMission(_region->getRules()->getType(), OBJECTIVE_RETALIATION);
-			for (std::vector<Ufo*>::iterator i = _game->getSavedGame()->getUfos()->begin(); i != _game->getSavedGame()->getUfos()->end();)
-			{
-				if ((*i)->getMission() == am)
-				{
-					// Note: no need to check for mission interruption here, the mission is over and will be deleted in the next step
-					delete *i;
-					i = _game->getSavedGame()->getUfos()->erase(i);
-				}
-				else
-				{
-					++i;
-				}
-			}
-			for (std::vector<AlienMission*>::iterator i = _game->getSavedGame()->getAlienMissions().begin();
-				i != _game->getSavedGame()->getAlienMissions().end(); ++i)
-			{
-				if ((AlienMission*)(*i) == am)
-				{
-					delete (*i);
-					_game->getSavedGame()->getAlienMissions().erase(i);
 					break;
 				}
 			}
@@ -2343,13 +2333,14 @@ void DebriefingState::prepareDebriefing()
 		const RuleItem *bountyItem = _game->getMod()->getItem(ruleDeploy->getMissionBountyItem());
 		if (bountyItem)
 		{
-			addItemsToBaseStores(bountyItem, base, 1, true);
+			int bountyQty = std::max(1, ruleDeploy->getMissionBountyItemCount());
+			addItemsToBaseStores(bountyItem, base, bountyQty, true);
 			auto specialType = bountyItem->getSpecialType();
 			if (specialType > 1)
 			{
 				if (_recoveryStats.find(specialType) != _recoveryStats.end())
 				{
-					addStat(_recoveryStats[specialType]->name, 1, _recoveryStats[specialType]->value);
+					addStat(_recoveryStats[specialType]->name, bountyQty, bountyQty * _recoveryStats[specialType]->value);
 				}
 			}
 		}

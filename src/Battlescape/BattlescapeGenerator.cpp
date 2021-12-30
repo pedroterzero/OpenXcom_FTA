@@ -748,6 +748,7 @@ void BattlescapeGenerator::run()
 			}
 			else // trouble: no texture and no deployment terrain, most likely scenario is a UFO landing on water: use the first available terrain
 			{
+				Log(LOG_WARNING) << "Trouble: no texture and no deployment terrain, most likely scenario is a UFO landing on water: using the first available terrain...";
 				_terrain = _game->getMod()->getTerrain(_game->getMod()->getTerrainList().front(), true);
 			}
 		}
@@ -2821,7 +2822,7 @@ void BattlescapeGenerator::generateMap(const std::vector<MapScript*> *script, co
 								{
 									for (std::vector<int>::const_iterator z = command->getGroups()->begin(); z != command->getGroups()->end() && !success; ++z)
 									{
-										success = _blocks[x][y]->isInGroup((*z));
+										success = _blocks[x][y] && _blocks[x][y]->isInGroup((*z));
 									}
 								}
 								else if (!command->getBlocks()->empty())
