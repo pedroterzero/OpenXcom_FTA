@@ -3298,6 +3298,57 @@ void SavedGame::deleteRetaliationMission(AlienMission* am, Base* base)
 	}
 }
 
+/**
+ * Spawn a Geoscape event from the event rules.
+ * @return True if successful.
+ */
+bool SavedGame::spawnEvent(const RuleEvent* eventRules)
+{
+	if (!eventRules)
+	{
+		return false;
+	}
+
+	GeoscapeEvent* newEvent = new GeoscapeEvent(*eventRules);
+	int minutes = (eventRules->getTimer() + (RNG::generate(0, eventRules->getTimerRandom()))) / 30 * 30;
+	if (minutes < 60) minutes = 60; // just in case
+	newEvent->setSpawnCountdown(minutes);
+	_geoscapeEvents.push_back(newEvent);
+
+	// remember that it has been generated
+	addGeneratedEvent(eventRules);
+
+	return true;
+}
+
+/**
+ * Checks if an instant Geoscape event can be spawned.
+ */
+bool SavedGame::canSpawnInstantEvent(const RuleEvent* eventRules)
+{
+	if (!eventRules)
+	{
+		return false;
+	}
+
+	bool interrupted = false;
+	if (!eventRules->getInterruptResearch().empty())
+	{
+		if (isResearched(eventRules->getInterruptResearch(), false))
+		{
+			interrupted = true;
+		}
+	}
+
+	if (!interrupted)
+	{
+		addGeneratedEvent(eventRules);
+		return true;
+	}
+
+	return false;
+}
+
 ////////////////////////////////////////////////////////////
 //					Script binding
 ////////////////////////////////////////////////////////////

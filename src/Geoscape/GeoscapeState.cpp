@@ -1779,6 +1779,17 @@ bool GeoscapeState::processMissionSite(MissionSite *site)
 			removeSite = noFollowers; // CHEEKY EXPLOIT
 		}
 	}
+	if (removeSite)
+	{
+		// Generate a despawn event
+		auto eventRules = _game->getMod()->getEvent(site->getDeployment()->chooseDespawnEvent());
+		bool canSpawn = _game->getSavedGame()->canSpawnInstantEvent(eventRules);
+		if (canSpawn)
+		{
+			timerReset();
+			popup(new GeoscapeEventState(*eventRules));
+		}
+	}
 
 	int score = removeSite ? site->getDeployment()->getDespawnPenalty() : site->getDeployment()->getPoints();
 
@@ -2040,7 +2051,7 @@ void GeoscapeState::time30Minutes()
 			if (!interrupted)
 			{
 				timerReset();
-				popup(new GeoscapeEventState(ge));
+				popup(new GeoscapeEventState(ge->getRules()));
 			}
 		}
 	}

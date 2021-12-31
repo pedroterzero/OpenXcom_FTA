@@ -34,7 +34,6 @@
 #include "../Mod/RuleSoldier.h"
 #include "../Mod/RuleDiplomacyFaction.h"
 #include "../Savegame/Base.h"
-#include "../Savegame/GeoscapeEvent.h"
 #include "../Savegame/Region.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Soldier.h"
@@ -47,10 +46,10 @@ namespace OpenXcom
 {
 
 /**
-	* Initializes all the elements in the Geoscape Event window.
-	* @param geoEvent Pointer to the event.
-	*/
-GeoscapeEventState::GeoscapeEventState(GeoscapeEvent* geoEvent) : _eventRule(geoEvent->getRules())
+ * Initializes all the elements in the Geoscape Event window.
+ * @param geoEvent Pointer to the event.
+ */
+GeoscapeEventState::GeoscapeEventState(const RuleEvent& eventRule) : _eventRule(eventRule)
 {
 	_screen = false;
 
