@@ -1768,11 +1768,6 @@ bool GeoscapeState::processMissionSite(MissionSite *site)
 			{
 				popup(new UfoLostState(site->getName(_game->getLanguage())));
 			}
-			auto eventName = alienCustomMission->chooseDespawnEvent();
-			if (!eventName.empty())
-			{
-				_game->getMasterMind()->spawnEvent(eventName);
-			}
 		}
 		else
 		{
@@ -4425,14 +4420,7 @@ void GeoscapeState::handleResearch(Base* base)
 			RuleEvent* spawnedEventRule = _game->getMod()->getEvent(myResearchRule->getSpawnedEvent());
 			if (spawnedEventRule)
 			{
-				GeoscapeEvent* newEvent = new GeoscapeEvent(*spawnedEventRule);
-				int minutes = (spawnedEventRule->getTimer() + (RNG::generate(0, spawnedEventRule->getTimerRandom()))) / 30 * 30;
-				if (minutes < 60) minutes = 60; // just in case
-				newEvent->setSpawnCountdown(minutes);
-				saveGame->getGeoscapeEvents().push_back(newEvent);
-
-				// remember that it has been generated
-				saveGame->addGeneratedEvent(spawnedEventRule);
+				saveGame->spawnEvent(spawnedEventRule);
 			}
 		}
 	}

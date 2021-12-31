@@ -416,7 +416,7 @@ void GeoscapeEventState::spawnCustomEvents(int playerChoice)
 {
 	for (auto eventName : _customAnswers[playerChoice].spawnEvent)
 	{
-		bool success = _game->getMasterMind()->spawnEvent(eventName);
+		bool success = _game->getSavedGame()->spawnEvent(_game->getMod()->getEvent(eventName));
 	}
 }
 /**
