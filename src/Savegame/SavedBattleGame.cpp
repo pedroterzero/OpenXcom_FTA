@@ -166,7 +166,6 @@ void SavedBattleGame::load(const YAML::Node &node, Mod *mod, SavedGame* savedGam
 	_battleScriptVars = node["battleScriptVars"].as< std::map<std::string, int> >(_battleScriptVars);
 	_bughuntMinTurn = node["bughuntMinTurn"].as<int>(_bughuntMinTurn);
 	_bughuntMode = node["bughuntMode"].as<bool>(_bughuntMode);
-	_itemObjectivesNumber = node["itemObjectivesNumber"].as<int>(_itemObjectivesNumber);
 	_depth = node["depth"].as<int>(_depth);
 	_animFrame = node["animFrame"].as<int>(_animFrame);
 	int selectedUnit = node["selectedUnit"].as<int>();
@@ -643,7 +642,6 @@ YAML::Node SavedBattleGame::save() const
 	node["baseItems"] = _baseItems->save();
 	node["turnLimit"] = _turnLimit;
 	node["chronoTrigger"] = int(_chronoTrigger); 
-	node["itemObjectivesNumber"] = int(_itemObjectivesNumber);
 	node["cheatTurn"] = _cheatTurn;
 	_scriptValues.save(node, _rule->getScriptGlobal());
 
@@ -1792,10 +1790,6 @@ BattleItem *SavedBattleGame::createItemForUnit(const RuleItem *rule, BattleUnit 
 	{
 		_items.push_back(item);
 		initItem(item, unit);
-		if (item->getRules()->isMissionObjective())
-		{
-			++_itemObjectivesNumber;
-		}
 	}
 	return item;
 }
@@ -1830,10 +1824,6 @@ BattleItem *SavedBattleGame::createItemForTile(const RuleItem *rule, Tile *tile)
 	{
 		RuleInventory *ground = _rule->getInventoryGround();
 		tile->addItem(item, ground);
-	}
-	if (item->getRules()->isMissionObjective())
-	{
-		++_itemObjectivesNumber;
 	}
 	_items.push_back(item);
 	initItem(item);

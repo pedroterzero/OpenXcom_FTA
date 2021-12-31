@@ -1997,79 +1997,74 @@ void DebriefingState::prepareDebriefing()
 	}
 	// Extended mission types handling
 	int extraPoints = 0;
-	if (ruleDeploy && ruleDeploy->getExtendedObjectiveType() == "STR_EVACUATION" && (vipsLost > 0 || vipsSaved > 0))
+	if (ruleDeploy)
 	{
-		success = true;
-		if (vipsSaved == 0 || (vipsSaved * 4) < vipsLost)
+		if (ruleDeploy->getExtendedObjectiveType() == "STR_EVACUATION" && (vipsLost > 0 || vipsSaved > 0))
 		{
-			_txtTitle->setText(tr("STR_EVACUATION_FAILED"));
-			success = false;
-			if (!objectiveFailedText.empty())
+			success = true;
+			if (vipsSaved == 0 || (vipsSaved * 4) < vipsLost)
 			{
-				addStat(objectiveFailedText, 1, objectiveFailedScore);
+				_txtTitle->setText(tr("STR_EVACUATION_FAILED"));
+				success = false;
+				if (!objectiveFailedText.empty())
+				{
+					addStat(objectiveFailedText, 1, objectiveFailedScore);
+				}
+			}
+			else if (vipsLost == 0 || (vipsLost * 4) < vipsSaved)
+			{
+				_txtTitle->setText(tr("STR_EVACUATION_SUCCESSFUL"));
+				if (!objectiveCompleteText.empty())
+				{
+					addStat(objectiveCompleteText, 1, objectiveCompleteScore);
+				}
+			}
+			else
+			{
+				_txtTitle->setText(tr("STR_EVACUATION_COMPLETE"));
 			}
 		}
-		else if (vipsLost == 0 || (vipsLost * 4) < vipsSaved)
+		else if (ruleDeploy->getExtendedObjectiveType() == "STR_EXTRACTION")
 		{
-			_txtTitle->setText(tr("STR_EVACUATION_SUCCESSFUL"));
-			if (!objectiveCompleteText.empty())
+			success = true;
+			if (playersSurvived == 0)
 			{
-				addStat(objectiveCompleteText, 1, objectiveCompleteScore);
+				_txtTitle->setText(tr("STR_EXTRACTION_FAILED"));
+				success = false;
+				if (!objectiveFailedText.empty())
+				{
+					addStat(objectiveFailedText, 1, objectiveFailedScore);
+				}
+			}
+			else if (deadSoldiers == 0 && playersMIA == 0)
+			{
+				_txtTitle->setText(tr("STR_EXTRACTION_SUCCESSFUL"));
+				if (!objectiveCompleteText.empty())
+				{
+					addStat(objectiveCompleteText, 1, objectiveCompleteScore);
+				}
+			}
+			else
+			{
+				_txtTitle->setText(tr("STR_EXTRACTION_COMPLETE"));
 			}
 		}
-		else
+		else if (ruleDeploy->getExtendedObjectiveType() == "STR_ITEM_EXTRACTION")
 		{
-			_txtTitle->setText(tr("STR_EVACUATION_COMPLETE"));
-		}
-	}
-	else if (ruleDeploy && ruleDeploy->getExtendedObjectiveType() == "STR_EXTRACTION")
-	{
-		success = true;
-		if (playersSurvived == 0)
-		{
-			_txtTitle->setText(tr("STR_EXTRACTION_FAILED"));
-			success = false;
-			if (!objectiveFailedText.empty())
+			if (_recoveredItemObjs < 1)
 			{
-				addStat(objectiveFailedText, 1, objectiveFailedScore);
+				_txtTitle->setText(tr("STR_MISSION_FAILED"));
+				success = false;
+				if (!objectiveFailedText.empty())
+				{
+					addStat(objectiveFailedText, 1, objectiveFailedScore);
+				}
 			}
-		}
-		else if (deadSoldiers == 0 && playersMIA == 0)
-		{
-			_txtTitle->setText(tr("STR_EXTRACTION_SUCCESSFUL"));
-			if (!objectiveCompleteText.empty())
+			else
 			{
-				addStat(objectiveCompleteText, 1, objectiveCompleteScore);
+				success = true;
+				_txtTitle->setText(tr("STR_MISSION_ACCOMPLISHED"));
 			}
-		}
-		else
-		{
-			_txtTitle->setText(tr("STR_EXTRACTION_COMPLETE"));
-		}
-	}
-	else if (ruleDeploy && ruleDeploy->getExtendedObjectiveType() == "STR_ITEM_EXTRACTION" && (_game->getSavedGame()->getSavedBattle()->getItemObjectivesNumber() > 0))
-	{
-		success = true;
-		if (_recoveredItemObjs == 0)
-		{
-			_txtTitle->setText(tr("STR_ITEM_EXTRACTION_FAILED"));
-			success = false;
-			if (!objectiveFailedText.empty())
-			{
-				addStat(objectiveFailedText, 1, objectiveFailedScore);
-			}
-		}
-		else if (_recoveredItemObjs >= _game->getSavedGame()->getSavedBattle()->getItemObjectivesNumber())
-		{
-			_txtTitle->setText(tr("STR_ALL_OBJECTIVES_SECURED"));
-			if (!objectiveCompleteText.empty())
-			{
-				addStat(objectiveCompleteText, 1, objectiveCompleteScore);
-			}
-		}
-		else
-		{
-			_txtTitle->setText(tr("STR_OBJECTIVES_PARTIALLY_RECOVERED"));
 		}
 	}
 
