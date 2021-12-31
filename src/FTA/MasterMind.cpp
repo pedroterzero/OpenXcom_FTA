@@ -411,7 +411,7 @@ int MasterMind::updateLoyalty(int score, LoyaltySource source)
 	{
 		return 0;
 	}
-	int coef = 1;
+	double coef = 1;
 	std::string reason = "";
 	switch (source)
 	{
@@ -451,8 +451,8 @@ int MasterMind::updateLoyalty(int score, LoyaltySource source)
 		break;
 	}
 
-	coef = std::round(coef / 100);
-	int change = coef * score;
+	coef /= 100;
+	int change = std::round(coef * score);
 	int loyalty = _game->getSavedGame()->getLoyalty();
 	loyalty += change;
 	Log(LOG_DEBUG) << "Loyalty updating to:  " << loyalty << " from coef: " << coef << ", change value: " << change << " and score value : " << score << " with reason : " << reason; //#CLEARLOGS

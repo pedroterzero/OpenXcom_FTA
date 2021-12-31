@@ -116,8 +116,8 @@ DebriefingState::DebriefingState() : _region(0), _country(0), _positiveScore(tru
 	}
 	else
 	{
-		_txtRating = new Text(94, 9, 64, 180);
-		_txtLoyalty = new Text(78, 9, 163, 180);
+		_txtRating = new Text(104, 9, 64, 180);
+		_txtLoyalty = new Text(73, 9, 173, 180);
 	}
 	
 	_lstStats = new TextList(290, 80, 16, 32);
