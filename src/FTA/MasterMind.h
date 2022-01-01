@@ -46,8 +46,6 @@ public:
 
 	/// Process event script from different sources
 	void eventScriptProcessor(Game& engine, std::vector<std::string> scripts, ProcessorSource source);
-	/// Generate Geoscape event from it's name if everything is ok with it.
-	bool spawnEvent(std::string name);
 	/// Loyalty update handler
 	int updateLoyalty(int score, LoyaltySource source = XCOM_GEOSCAPE);
 	/// Return bonus that would be applied to base service performance because of loyalty level.

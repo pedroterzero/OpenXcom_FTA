@@ -361,7 +361,7 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 					bool generated = false;
 					for (auto eventRules : toBeGenerated)
 					{
-						if (spawnEvent(eventRules->getName()))
+						if (save.spawnEvent(eventRules))
 						{
 							generated = true;
 						}
@@ -380,29 +380,6 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 			}
 		}
 	}
-}
-
-/**
-* Handle request for generation of Geoscape Event.
-* @param eventName - string with rules name of the event.
-* @return true is event was generater successfully.
-*/
-bool MasterMind::spawnEvent(std::string name)
-{
-	RuleEvent* eventRules = _game->getMod()->getEvent(name);
-	if (eventRules == 0)
-	{
-		throw Exception("Error processing spawning of event: " + name + ", no such rules defined!");
-		return false;
-	}
-	GeoscapeEvent* newEvent = new GeoscapeEvent(*eventRules);
-	int minutes = (eventRules->getTimer() + (RNG::generate(0, eventRules->getTimerRandom()))) / 30 * 30;
-	if (minutes < 30) minutes = 30; // just in case
-	newEvent->setSpawnCountdown(minutes);
-	_game->getSavedGame()->getGeoscapeEvents().push_back(newEvent);
-	_game->getSavedGame()->addGeneratedEvent(eventRules);
-
-	return true;
 }
 
 int MasterMind::updateLoyalty(int score, LoyaltySource source)

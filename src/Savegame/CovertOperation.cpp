@@ -220,7 +220,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 			{
 				if (RNG::percent(_rule->getProgressEventChance()))
 				{
-					_progressEventSpawned = engine.getMasterMind()->spawnEvent(progressEvent);
+					_progressEventSpawned = save.spawnEvent(mod.getEvent(progressEvent));
 				}
 			}
 		}
@@ -362,7 +362,7 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 
 	if (!eventName.empty())
 	{
-		bool spawnEvent = engine.getMasterMind()->spawnEvent(eventName);
+		bool spawnEvent = save.spawnEvent(mod.getEvent(eventName));
 	}
 
 	if (!researchList.empty())
