@@ -229,7 +229,7 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 			//spawn celebration event if faction wants it
 			if (!_rule->getDiscoverEvent().empty())
 			{
-				bool success = mind.spawnEvent(_rule->getDiscoverEvent());
+				bool success = save.spawnEvent(engine.getMod()->getEvent(_rule->getDiscoverEvent()));
 			}
 			// update reputation level for just discovered fraction
 			mind.updateReputationLvl(this, false);
@@ -327,7 +327,7 @@ void DiplomacyFaction::processDailyReputation(Game& engine)
 		_repLvlChanged = mind.updateReputationLvl(this, false);;
 		if (!events.empty())
 		{
-			mind.spawnEvent(events.at(RNG::generate(0, events.size() - 1)));
+			save.spawnEvent(engine.getMod()->getEvent(events.at(RNG::generate(0, events.size() - 1))));
 		}
 	}
 }
@@ -819,7 +819,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 				auto researchEvent = research->getSpawnedEvent();
 				if (!researchEvent.empty())
 				{
-					mind.spawnEvent(researchEvent);
+					save.spawnEvent(engine.getMod()->getEvent(researchEvent));
 				}
 
 				// process getOneFree
