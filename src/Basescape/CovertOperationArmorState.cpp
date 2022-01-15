@@ -845,25 +845,13 @@ void CovertOperationSoldierArmorState::lstArmorClick(Action*)
 	Soldier* soldier = _base->getSoldiers()->at(_soldier);
 	Armor* prev = soldier->getArmor();
 	Armor* next = _game->getMod()->getArmor(_armors[_lstArmor->getSelectedRow()].type);
-	Craft* craft = soldier->getCraft();
-	if (craft != 0 && next->getSize() > prev->getSize())
+	if (prev->getStoreItem())
 	{
-		if (craft->getNumVehicles() >= craft->getRules()->getVehicles() || craft->getSpaceAvailable() < 3)
-		{
-			_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_CRAFT_SPACE"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
-			return;
-		}
+		_base->getStorageItems()->addItem(prev->getStoreItem());
 	}
-	if (_game->getSavedGame()->getMonthsPassed() != -1)
+	if (next->getStoreItem())
 	{
-		if (prev->getStoreItem())
-		{
-			_base->getStorageItems()->addItem(prev->getStoreItem());
-		}
-		if (next->getStoreItem())
-		{
-			_base->getStorageItems()->removeItem(next->getStoreItem());
-		}
+		_base->getStorageItems()->removeItem(next->getStoreItem());
 	}
 	soldier->setArmor(next);
 	_game->getSavedGame()->setLastSelectedArmor(next->getType());

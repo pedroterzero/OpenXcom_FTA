@@ -390,14 +390,6 @@ void GeoscapeEventState::eventLogic()
 			}
 		}
 	}
-
-	// Side effects:
-	// 1. remove obsolete research projects from all bases
-	// 2. handle items spawned by research
-	// 3. handle events spawned by research
-	save->handlePrimaryResearchSideEffects(topicsToCheck, mod, hq);
-}
-
 	// 7. Add reputation
 	auto reputationScore = _eventRule.getReputationScore();
 	if (!reputationScore.empty())
@@ -416,6 +408,12 @@ void GeoscapeEventState::eventLogic()
 			}
 		}
 	}
+
+	// Side effects:
+	// 1. remove obsolete research projects from all bases
+	// 2. handle items spawned by research
+	// 3. handle events spawned by research
+	save->handlePrimaryResearchSideEffects(topicsToCheck, mod, hq);
 }
 /**
 	* Spawns custom events based on the chosen button.

@@ -256,7 +256,6 @@ void AlienDeployment::load(const YAML::Node &node, Mod *mod)
 	_winCutscene = node["winCutscene"].as<std::string>(_winCutscene);
 	_loseCutscene = node["loseCutscene"].as<std::string>(_loseCutscene);
 	_abortCutscene = node["abortCutscene"].as<std::string>(_abortCutscene);
-	_script = node["script"].as<std::string>(_script);
 	_battleScript = node["battleScript"].as<std::string>(_battleScript);
 	_mapScript = node["script"].as<std::string>(_mapScript);
 	_mapScripts = node["mapScripts"].as<std::vector<std::string> >(_mapScripts);

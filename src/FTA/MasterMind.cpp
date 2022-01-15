@@ -194,6 +194,7 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 	{
 		const Mod &mod = *engine.getMod();
 		SavedGame &save = *engine.getSavedGame();
+		AlienStrategy &strategy = save.getAlienStrategy();
 		std::set<std::string> xcomBaseCountries;
 		std::set<std::string> xcomBaseRegions;
 
@@ -268,28 +269,27 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 							continue;
 					}
 				}
-
 				if (triggerHappy)
 				{
 					// check counters
-					if (eventScript->getMissionMinRuns() > 0)
+					if (ruleScript->getCounterMin() > 0)
 					{
-						if (!eventScript->getMissionVarName().empty() && eventScript->getMissionMinRuns() > strategy.getMissionsRun(eventScript->getMissionVarName()))
+						if (!ruleScript->getMissionVarName().empty() && ruleScript->getCounterMin() > strategy.getMissionsRun(ruleScript->getMissionVarName()))
 						{
 							triggerHappy = false;
 						}
-						if (!eventScript->getMissionMarkerName().empty() && eventScript->getMissionMinRuns() > save->getLastId(eventScript->getMissionMarkerName()))
+						if (!ruleScript->getMissionMarkerName().empty() && ruleScript->getCounterMin() > save.getLastId(ruleScript->getMissionMarkerName()))
 						{
 							triggerHappy = false;
 						}
 					}
-					if (triggerHappy && eventScript->getMissionMaxRuns() != -1)
+					if (triggerHappy && ruleScript->getCounterMax() != -1)
 					{
-						if (!eventScript->getMissionVarName().empty() && eventScript->getMissionMaxRuns() < strategy.getMissionsRun(eventScript->getMissionVarName()))
+						if (!ruleScript->getMissionVarName().empty() && ruleScript->getCounterMax() < strategy.getMissionsRun(ruleScript->getMissionVarName()))
 						{
 							triggerHappy = false;
 						}
-						if (!eventScript->getMissionMarkerName().empty() && eventScript->getMissionMaxRuns() < save->getLastId(eventScript->getMissionMarkerName()))
+						if (!ruleScript->getMissionMarkerName().empty() && ruleScript->getCounterMax() < save.getLastId(ruleScript->getMissionMarkerName()))
 						{
 							triggerHappy = false;
 						}
