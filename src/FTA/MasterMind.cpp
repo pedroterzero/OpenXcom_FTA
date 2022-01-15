@@ -271,6 +271,32 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 
 				if (triggerHappy)
 				{
+					// check counters
+					if (eventScript->getMissionMinRuns() > 0)
+					{
+						if (!eventScript->getMissionVarName().empty() && eventScript->getMissionMinRuns() > strategy.getMissionsRun(eventScript->getMissionVarName()))
+						{
+							triggerHappy = false;
+						}
+						if (!eventScript->getMissionMarkerName().empty() && eventScript->getMissionMinRuns() > save->getLastId(eventScript->getMissionMarkerName()))
+						{
+							triggerHappy = false;
+						}
+					}
+					if (triggerHappy && eventScript->getMissionMaxRuns() != -1)
+					{
+						if (!eventScript->getMissionVarName().empty() && eventScript->getMissionMaxRuns() < strategy.getMissionsRun(eventScript->getMissionVarName()))
+						{
+							triggerHappy = false;
+						}
+						if (!eventScript->getMissionMarkerName().empty() && eventScript->getMissionMaxRuns() < save->getLastId(eventScript->getMissionMarkerName()))
+						{
+							triggerHappy = false;
+						}
+					}
+				}
+				if (triggerHappy)
+				{
 					// item requirements
 					for (auto& triggerItem : ruleScript->getItemTriggers())
 					{
