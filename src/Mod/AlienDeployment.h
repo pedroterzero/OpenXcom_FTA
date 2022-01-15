@@ -93,8 +93,10 @@ private:
 	std::string _type;
 	std::string _customUfo;
 	std::string _enviroEffects, _startingCondition;
-	std::string _unlockedResearch, _missionBountyItem;
 	std::string _alternativeDeployment, _alternativeDeploymentResearch;
+	std::string _unlockedResearchOnSuccess, _unlockedResearchOnFailure, _unlockedResearchOnDespawn;
+	std::string _counterSuccess, _counterFailure, _counterDespawn, _counterAll;
+	std::string _missionBountyItem;
 	int _missionBountyItemCount;
 	int _bughuntMinTurn;
 	std::vector<DeploymentData> _data;
@@ -105,7 +107,8 @@ private:
 	std::map<std::string, int> _civiliansByType;
 	std::vector<std::string> _terrains, _music;
 	int _shade, _minShade, _maxShade;
-	std::string _nextStage, _race, _script, _battleScript, _extendedObjectiveType;
+	std::string _nextStage, _race, _mapScript, _battleScript, _extendedObjectiveType;
+	std::vector<std::string> _mapScripts;
 	std::vector<std::string> _randomRaces;
 	bool _finalDestination, _isAlienBase, _isHidden;
 	int _fakeUnderwaterSpawnChance;
@@ -143,7 +146,19 @@ public:
 	/// Gets the Alien Deployment's starting condition.
 	const std::string& getStartingCondition() const;
 	/// Gets the research topic to be unlocked after a successful mission.
-	std::string getUnlockedResearch() const;
+	const std::string& getUnlockedResearchOnSuccess() const { return _unlockedResearchOnSuccess; }
+	/// Gets the research topic to be unlocked after a failed mission.
+	const std::string& getUnlockedResearchOnFailure() const { return _unlockedResearchOnFailure; }
+	/// Gets the research topic to be unlocked after a despawned mission site.
+	const std::string& getUnlockedResearchOnDespawn() const { return _unlockedResearchOnDespawn; }
+	/// Gets the name of a custom counter variable to increase on mission success.
+	const std::string& getCounterSuccess() const { return _counterSuccess; }
+	/// Gets the name of a custom counter variable to increase on mission failure (incl. mission despawn).
+	const std::string& getCounterFailure() const { return _counterFailure; }
+	/// Gets the name of a custom counter variable to increase on mission despawn.
+	const std::string& getCounterDespawn() const { return _counterDespawn; }
+	/// Gets the name of a custom counter variable to increase on any mission result (success, failure and despawn).
+	const std::string& getCounterAll() const { return _counterAll; }
 	/// Gets the item to be recovered/given after a successful mission.
 	std::string getMissionBountyItem() const;
 	/// Gets the Alien Deployment's alternative deployment to show the player.
@@ -182,8 +197,8 @@ public:
 	std::string getNextStage() const;
 	/// Gets the race to use in the next stage.
 	std::string getRace() const;
-	/// Gets the map script to use for this deployment.
-	std::string getScript() const;
+	/// Gets the script to use for this deployment.
+	const std::string& getRandomMapScript() const;
 	/// Gets the battle script to use for this deployment.
 	std::string getBattleScript() const { return _battleScript; };
 	/// Gets the extendedObjective for this deployment.

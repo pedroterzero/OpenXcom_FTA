@@ -287,6 +287,7 @@ private:
 	bool _disableUnderwaterSounds;
 	bool _enableUnitResponseSounds;
 	std::map<std::string, std::vector<int> > _selectUnitSound, _startMovingSound, _selectWeaponSound, _annoyedSound;
+	std::vector<int> _selectBaseSound, _startDogfightSound;
 	std::vector<int> _flagByKills;
 	int _pediaReplaceCraftFuelWithRangeType;
 	std::vector<StatAdjustment> _statAdjustment;
@@ -366,9 +367,11 @@ public:
 	static int SMOKE_OFFSET;
 	static int UNDERWATER_SMOKE_OFFSET;
 
+	/// Empty surface.
+	constexpr static int NO_SURFACE = -1;
 	/// Empty sound.
 	constexpr static int NO_SOUND = -1;
-	/// Special value for defualt string diffrent to empty one.
+	/// Special value for default string different to empty one.
 	static const std::string STR_NULL;
 
 	static int ITEM_DROP;
@@ -443,7 +446,7 @@ public:
 	/// Plays a particular music.
 	void playMusic(const std::string &name, int id = 0);
 	/// Gets a particular sound.
-	Sound *getSound(const std::string &set, int sound, bool error = true) const;
+	Sound *getSound(const std::string &set, int sound) const;
 	/// Gets all palettes.
 	const std::map<std::string, Palette*> &getPalettes() const { return _palettes; }
 	/// Gets a particular palette.
@@ -451,7 +454,7 @@ public:
 	/// Gets list of voxel data.
 	const std::vector<Uint16> *getVoxelData() const;
 	/// Returns a specific sound from either the land or underwater sound set.
-	Sound *getSoundByDepth(unsigned int depth, unsigned int sound, bool error = true) const;
+	Sound *getSoundByDepth(unsigned int depth, unsigned int sound) const;
 	/// Gets list of LUT data.
 	const std::vector<std::vector<Uint8> > *getLUTs() const;
 
@@ -492,6 +495,16 @@ public:
 		}
 		return false;
 	}
+
+	/// Verify if value have defined surface in given set.
+	void verifySpriteOffset(const std::string &parent, const int& sprite, const std::string &set) const;
+	/// Verify if value have defined surface in given set.
+	void verifySpriteOffset(const std::string &parent, const std::vector<int>& sprites, const std::string &set) const;
+	/// Verify if value have defined sound in given set.
+	void verifySoundOffset(const std::string &parent, const int& sound, const std::string &set) const;
+	/// Verify if value have defined sound in given set.
+	void verifySoundOffset(const std::string &parent, const std::vector<int>& sounds, const std::string &set) const;
+
 
 	/// Gets the mod offset.
 	int getModOffset() const;
@@ -1091,6 +1104,8 @@ public:
 	const std::map<std::string, std::vector<int> > &getStartMovingSounds() const { return _startMovingSound; }
 	const std::map<std::string, std::vector<int> > &getSelectWeaponSounds() const { return _selectWeaponSound; }
 	const std::map<std::string, std::vector<int> > &getAnnoyedSounds() const { return _annoyedSound; }
+	const std::vector<int> &getSelectBaseSounds() const { return _selectBaseSound; }
+	const std::vector<int> &getStartDogfightSounds() const { return _startDogfightSound; }
 	const std::vector<int> &getFlagByKills() const;
 	StatAdjustment *getStatAdjustment(int difficulty);
 	int getDefaultFactionPowerCost() const { return _defaultFactionPowerCost; };

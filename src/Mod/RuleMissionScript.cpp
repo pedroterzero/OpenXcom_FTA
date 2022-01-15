@@ -83,6 +83,10 @@ void RuleMissionScript::load(const YAML::Node& node)
 	_requiredReputation = node["requiredReputation"].as<std::map<std::string, int>>(_requiredReputation);
 	_minFunds = node["minFunds"].as<int64_t>(_minFunds);
 	_maxFunds = node["maxFunds"].as<int64_t>(_maxFunds);
+	_missionVarName = node["missionVarName"].as<std::string>(_missionVarName);
+	_missionMarkerName = node["missionMarkerName"].as<std::string>(_missionMarkerName);
+	_counterMin = node["counterMin"].as<int>(_counterMin);
+	_counterMax = node["counterMax"].as<int>(_counterMax);
 	_conditionals = node["conditionals"].as<std::vector<int> >(_conditionals);
 	_allowedProcessor = node["allowedProcessor"].as<int>(_allowedProcessor); //0 - monthly only, 1 - faction only
 	_spawnGap = node["spawnGap"].as<int>(_spawnGap);

@@ -151,18 +151,18 @@ void Unit::afterLoad(const Mod* mod)
 		if (_capturable && _armor->getCorpseBattlescape().front()->isRecoverable() && _spawnUnit == nullptr)
 		{
 			mod->checkForSoftError(
-				_liveAlien == nullptr && Mod::isEmptyRuleName(_civilianRecoveryType),
+				_liveAlien == nullptr,
 				_type,
-				"Unit is capturable but there is no live alien item with same name or civilianRecoveryType",
+				"This unit can be recovered (in theory), but there is no corresponding item to recover.",
 				LOG_INFO
 			);
 		}
 		else
 		{
 			std::string s =
-				!_capturable ? "missing capturable" :
-				!_armor->getCorpseBattlescape().front()->isRecoverable() ? "missing armor recover" :
-				_spawnUnit != nullptr ? "unit have spawn" :
+				!_capturable ? "the unit is marked with 'capturable: false'" :
+				!_armor->getCorpseBattlescape().front()->isRecoverable() ? "the first 'corpseBattle' item of the unit's armor is marked with 'recover: false'" :
+				_spawnUnit != nullptr ? "the unit will be converted into another unit type on stun/kill/capture" :
 				"???";
 
 			mod->checkForSoftError(
@@ -170,12 +170,9 @@ void Unit::afterLoad(const Mod* mod)
 				&& _liveAlien->getVehicleUnit() == nullptr
 				&& _spawnUnit == nullptr, // if unit is `_capturable` we can still get live species even if it can spawn unit
 				_type,
-				"There is live alien item but unit is not recoverable ("+ s +")",
+				"This unit has a corresponding item to recover, but still isn't recoverable. Reason: (" + s + "). Consider marking the unit with 'liveAlien: \"\"'.",
 				LOG_INFO
 			);
-
-			// FIXME: this is too restrictive; I will need to review all the cases and probably refactor civilianRecoveryType functionality a bit too
-			//mod->checkForSoftError(!Mod::isEmptyRuleName(_civilianRecoveryType), _type, "There is civilianRecoveryType but unit is not recoverable (" + s + ")");
 		}
 	}
 }

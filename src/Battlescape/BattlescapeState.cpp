@@ -494,6 +494,7 @@ BattlescapeState::BattlescapeState() :
 	_btnShowLayers->setTooltip(Options::oxceLinks ? "STR_EXTENDED_LINKS" : "STR_MULTI_LEVEL_VIEW");
 	_btnShowLayers->onMouseIn((ActionHandler)&BattlescapeState::txtTooltipIn);
 	_btnShowLayers->onMouseOut((ActionHandler)&BattlescapeState::txtTooltipOut);
+	_btnShowLayers->onKeyboardPress((ActionHandler)&BattlescapeState::btnShowLayersClickOrig, Options::keyBattleShowLayers);
 	_btnShowLayers->onKeyboardPress((ActionHandler)&BattlescapeState::btnUfopaediaClick, Options::keyGeoUfopedia);
 
 	_btnHelp->onMouseClick((ActionHandler)&BattlescapeState::btnHelpClick);
@@ -1329,11 +1330,11 @@ void BattlescapeState::btnShowLayersClick(Action *)
 	}
 	else
 	{
-		btnShowLayersClickOrig();
+		btnShowLayersClickOrig(nullptr);
 	}
 }
 
-void BattlescapeState::btnShowLayersClickOrig()
+void BattlescapeState::btnShowLayersClickOrig(Action *)
 {
 	_numLayers->setValue(_map->getCamera()->toggleShowAllLayers());
 }
@@ -1947,7 +1948,7 @@ void BattlescapeState::drawHandsItems()
 			for (auto& type : typesToCheck)
 			{
 				*emptyHandItemPtr = battleUnit->getSpecialWeapon(type);
-				if (*emptyHandItemPtr && (*emptyHandItemPtr)->getRules()->isSpecialUsingEmptyHand())
+				if (*emptyHandItemPtr && (*emptyHandItemPtr)->getRules()->showSpecialInEmptyHand() && (*emptyHandItemPtr)->getRules()->isSpecialUsingEmptyHand())
 				{
 					break;
 				}

@@ -444,14 +444,14 @@ void CraftArmorState::lstSoldiersClick(Action *action)
 				}
 				else
 				{
-					Craft *c = _base->getCrafts()->at(_craft);
-					if (s->getCraft() == c)
+					auto space = c->getSpaceAvailable();
+					if (c->validateAddingSoldier(space, s))
 					{
 						s->setCraft(0);
 						_lstSoldiers->setCellText(_lstSoldiers->getSelectedRow(), 1, tr("STR_NONE_UC"));
 						_lstSoldiers->setRowColor(_lstSoldiers->getSelectedRow(), _lstSoldiers->getColor());
 					}
-					else if (s->hasFullHealth())
+					else if (space > 0 && s->hasFullHealth())
 					{
 						auto space = c->getSpaceAvailable();
 						auto armorSize = s->getArmor()->getSize();
@@ -483,6 +483,15 @@ void CraftArmorState::lstSoldiersClick(Action *action)
 			if (a && a->getRequiredResearch() && !_game->getSavedGame()->isResearched(a->getRequiredResearch()))
 			{
 				armorUnlocked = false;
+			}
+			if (armorUnlocked && a)
+			{
+				Craft* craft = s->getCraft();
+				if (craft && !craft->validateArmorChange(s->getArmor()->getSize(), a->getSize()))
+				{
+					armorUnlocked = false; // armor not valid due to craft constraints
+					_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_CRAFT_SPACE"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
+				}
 			}
 			if (armorUnlocked && a && a->getCanBeUsedBy(s->getRules()))
 			{
@@ -563,6 +572,12 @@ void CraftArmorState::btnDeequipAllArmorClick(Action *action)
 		{
 			Armor *a = _game->getMod()->getArmor((*i)->getRules()->getArmor());
 
+			if ((*i)->getCraft() && !(*i)->getCraft()->validateArmorChange((*i)->getArmor()->getSize(), a->getSize()))
+			{
+				// silently ignore
+				row++;
+				continue;
+			}
 			if (a->getStoreItem() == nullptr || _base->getStorageItems()->getItem(a->getStoreItem()) > 0)
 			{
 				if ((*i)->getArmor()->getStoreItem())
@@ -597,6 +612,12 @@ void CraftArmorState::btnDeequipCraftArmorClick(Action *action)
 		{
 			Armor *a = _game->getMod()->getArmor(s->getRules()->getArmor());
 
+			if (s->getCraft() && !s->getCraft()->validateArmorChange(s->getArmor()->getSize(), a->getSize()))
+			{
+				// silently ignore
+				row++;
+				continue;
+			}
 			if (a->getStoreItem() == nullptr || _base->getStorageItems()->getItem(a->getStoreItem()) > 0)
 			{
 				if (s->getArmor()->getStoreItem())

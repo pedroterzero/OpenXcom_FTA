@@ -37,6 +37,8 @@ private:
 	int _allowedProcessor;
 	int _spawnGap, _randomSpawnGap;
 	int64_t _minFunds, _maxFunds;
+	std::string _missionVarName, _missionMarkerName;
+	int _counterMin, _counterMax;
 	std::vector<int> _conditionals;
 	std::vector<std::pair<size_t, WeightedOptions*> > _regionWeights, _missionWeights, _raceWeights;
 	std::map<std::string, int> _requiredReputation;
@@ -101,6 +103,14 @@ public:
 	int64_t getMaxFunds() const { return _maxFunds; }
 	/// Get allowed procesor (monthly/factional) that is allowed to process this command.
 	int getAllowedProcessor() const { return _allowedProcessor; }
+	/// Gets the name of the mission script tracking variable.
+	const std::string& getMissionVarName() const { return _missionVarName; }
+	/// Gets the name of the mission marker tracking variable.
+	const std::string& getMissionMarkerName() const { return _missionMarkerName; }
+	/// Gets the minimum number of missions generated for this command to run.
+	int getCounterMin() const { return _counterMin; }
+	/// Gets the maximum number of missions generated for this command to run.
+	int getCounterMax() const { return _counterMax; }
 	/// Gets the list of conditions this command requires in order to run.
 	const std::vector<int> &getConditionals() const;
 	/// Does this command have raceWeights?

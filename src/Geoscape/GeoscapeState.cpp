@@ -206,9 +206,11 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	_dogfightStartTimer = new Timer(Options::dogfightSpeed);
 	_dogfightTimer = new Timer(Options::dogfightSpeed);
 
-	_txtDebug = new Text(200, 32, 0, 0);
+	_txtDebug = new Text(254, 32, 0, 0);
 	_cbxRegion = new ComboBox(this, 150, 16, 0, 36);
-	_cbxZone = new ComboBox(this, 100, 16, 154, 36);
+	_cbxZone = new ComboBox(this, 48, 16, 154, 36);
+	_cbxArea = new ComboBox(this, 48, 16, 206, 36);
+	_cbxCountry = new ComboBox(this, 150, 16, 0, 36);
 
 	// Set palette
 	setInterface("geoscape");
@@ -257,6 +259,8 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	add(_txtDebug, "text", "geoscape");
 	add(_cbxRegion, "button", "geoscape");
 	add(_cbxZone, "button", "geoscape");
+	add(_cbxArea, "button", "geoscape");
+	add(_cbxCountry, "button", "geoscape");
 
 	// Set up objects
 	Surface *geobord = _game->getMod()->getSurface("GEOBORD.SCR");
@@ -458,6 +462,26 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 		_cbxZone->setOptions(zoneList, false);
 		_cbxZone->setVisible(false);
 		_cbxZone->onChange((ActionHandler)&GeoscapeState::cbxZoneChange);
+
+		std::vector<std::string> areaList;
+		areaList.push_back("All areas");
+		for (int z = 0; z < 100; ++z)
+		{
+			areaList.push_back(std::to_string(z));
+		}
+		_cbxArea->setOptions(areaList, false);
+		_cbxArea->setVisible(false);
+		_cbxArea->onChange((ActionHandler)&GeoscapeState::cbxAreaChange);
+
+		std::vector<std::string> countryList;
+		countryList.push_back("All countries");
+		for (auto c : *_game->getSavedGame()->getCountries())
+		{
+			countryList.push_back(c->getRules()->getType());
+		}
+		_cbxCountry->setOptions(countryList, true);
+		_cbxCountry->setVisible(false);
+		_cbxCountry->onChange((ActionHandler)&GeoscapeState::cbxCountryChange);
 	}
 
 	timeDisplay();
@@ -524,8 +548,10 @@ void GeoscapeState::handle(Action *action)
 			{
 				_txtDebug->setText("");
 			}
-			_cbxRegion->setVisible(_game->getSavedGame()->getDebugMode());
-			_cbxZone->setVisible(_game->getSavedGame()->getDebugMode());
+			_cbxRegion->setVisible(_game->getSavedGame()->getDebugMode() && _game->getSavedGame()->debugType >= 1);
+			_cbxZone->setVisible(_game->getSavedGame()->getDebugMode() && _game->getSavedGame()->debugType == 2);
+			_cbxArea->setVisible(_game->getSavedGame()->getDebugMode() && _game->getSavedGame()->debugType == 2);
+			_cbxCountry->setVisible(_game->getSavedGame()->getDebugMode() && _game->getSavedGame()->debugType == 0);
 		}
 		if (Options::debug && _game->getSavedGame()->getDebugMode() && _game->isCtrlPressed())
 		{
@@ -1132,7 +1158,7 @@ void GeoscapeState::time5Seconds()
 					}
 				}
 				// if a transport craft has been shot down, kill all the soldiers on board.
-				if ((*j)->getRules()->getSoldiers() > 0)
+				if ((*j)->getRules()->getMaxUnits() > 0)
 				{
 					for (std::vector<Soldier*>::iterator k = (*i)->getSoldiers()->begin(); k != (*i)->getSoldiers()->end();)
 					{
@@ -1170,7 +1196,7 @@ void GeoscapeState::time5Seconds()
 							w->setLatitude(u->getLatitude());
 							w->setId(u->getId());
 							(*j)->setDestination(0);
-							popup(new GeoscapeCraftState((*j), _globe, w));
+							popup(new GeoscapeCraftState((*j), _globe, w, false));
 						}
 					}
 					if (u->getStatus() == Ufo::LANDED && (*j)->isInDogfight())
@@ -1319,7 +1345,7 @@ void GeoscapeState::time5Seconds()
 					case Ufo::LANDED:
 					case Ufo::CRASHED:
 					case Ufo::DESTROYED: // Just before expiration
-						if (((*j)->getNumSoldiers() > 0 || (*j)->getNumVehicles() > 0) && (*j)->getRules()->getAllowLanding())
+						if ((*j)->getNumTotalUnits() > 0 && (*j)->getRules()->getAllowLanding())
 						{
 							if (!(*j)->isInDogfight())
 							{
@@ -1348,7 +1374,7 @@ void GeoscapeState::time5Seconds()
 				}
 				else if (m != 0)
 				{
-					if (((*j)->getNumSoldiers() > 0 || (*j)->getNumVehicles() > 0) && (*j)->getRules()->getAllowLanding())
+					if ((*j)->getNumTotalUnits() > 0 && (*j)->getRules()->getAllowLanding())
 					{
 						// look up polygons texture
 						int texture, shade;
@@ -1371,7 +1397,7 @@ void GeoscapeState::time5Seconds()
 				{
 					if (b->isDiscovered())
 					{
-						if (((*j)->getNumSoldiers() > 0 || (*j)->getNumVehicles() > 0) && (*j)->getRules()->getAllowLanding())
+						if ((*j)->getNumTotalUnits() > 0 && (*j)->getRules()->getAllowLanding())
 						{
 							int texture, shade;
 							_globe->getPolygonTextureAndShade(b->getLongitude(), b->getLatitude(), &texture, &shade);
@@ -1632,7 +1658,7 @@ void GeoscapeState::ufoHuntingAndEscorting()
 						(*ufo)->setId(_game->getSavedGame()->getId("STR_UFO"));
 					}
 					// inform the player
-					if ((*ufo)->getRules()->getHuntAlertSound() > -1)
+					if ((*ufo)->getRules()->getHuntAlertSound() != Mod::NO_SOUND)
 					{
 						_game->getMod()->getSound("GEO.CAT", (*ufo)->getRules()->getHuntAlertSound())->play();
 					}
@@ -1776,6 +1802,15 @@ bool GeoscapeState::processMissionSite(MissionSite *site)
 	}
 	if (removeSite)
 	{
+		// Unlock research defined in alien deployment, if the mission site despawned
+		const RuleResearch* research = _game->getMod()->getResearch(site->getDeployment()->getUnlockedResearchOnDespawn());
+		_game->getSavedGame()->handleResearchUnlockedByMissions(research, _game->getMod());
+
+		// Increase counters
+		_game->getSavedGame()->increaseCustomCounter(site->getDeployment()->getCounterDespawn());
+		_game->getSavedGame()->increaseCustomCounter(site->getDeployment()->getCounterFailure()); // despawn is also a type of failure
+		_game->getSavedGame()->increaseCustomCounter(site->getDeployment()->getCounterAll());
+
 		// Generate a despawn event
 		auto eventRules = _game->getMod()->getEvent(site->getDeployment()->chooseDespawnEvent());
 		bool canSpawn = _game->getSavedGame()->canSpawnInstantEvent(eventRules);
@@ -2149,9 +2184,8 @@ void GeoscapeState::time1Hour()
 				popup(new ErrorMessageState(tr("STR_STORAGE_EXCEEDED").arg((*i)->getName()), _palette, _game->getMod()->getInterface("geoscape")->getElement("errorMessage")->color, "BACK13.SCR", _game->getMod()->getInterface("geoscape")->getElement("errorPalette")->color));
 				popup(new SellState((*i), 0));
 			}
-			else if (!_game->getSavedGame()->getAlienContainmentChecked())
+			if (!_game->getSavedGame()->getAlienContainmentChecked())
 			{
-				_game->getSavedGame()->setAlienContainmentChecked(true);
 				std::map<int, int> prisonTypes;
 				RuleItem *rule = nullptr;
 				for (auto &item : *(*i)->getStorageItems()->getContents())
@@ -2167,7 +2201,6 @@ void GeoscapeState::time1Hour()
 					int prisonType = p.first;
 					if ((*i)->getUsedContainment(prisonType) > (*i)->getAvailableContainment(prisonType))
 					{
-						_game->getSavedGame()->setAlienContainmentChecked(false);
 						timerReset();
 						popup(new ErrorMessageState(
 							trAlt("STR_CONTAINMENT_EXCEEDED", prisonType).arg((*i)->getName()),
@@ -2211,6 +2244,7 @@ void GeoscapeState::time1Hour()
 			popup(new TransformationFinishedState((*i), std::move(trainingFinishedList)));
 		}
 	}
+	_game->getSavedGame()->setAlienContainmentChecked(true); // check only once after reload
 
 	bool postpone = false;
 	for (std::vector<MissionSite*>::iterator i = _game->getSavedGame()->getMissionSites()->begin(); i != _game->getSavedGame()->getMissionSites()->end(); ++i)
@@ -2480,10 +2514,10 @@ void GeoscapeState::time1Day()
 	// check and interrupt alien missions if necessary (based on discovered research)
 	for (auto am : saveGame->getAlienMissions())
 	{
-		auto researchName = am->getRules().getInterruptResearch();
+		auto& researchName = am->getRules().getInterruptResearch();
 		if (!researchName.empty())
 		{
-			auto research = mod->getResearch(researchName, true);
+			auto* research = mod->getResearch(researchName, true);
 			if (saveGame->isResearched(research, false)) // ignore debug mode
 			{
 				am->setInterrupted(true);
@@ -2744,7 +2778,7 @@ void GeoscapeState::globeClick(Action *action)
 		{
 			// Pass empty vector
 			std::vector<Craft*> crafts;
-			_game->pushState(new MultipleTargetsState(v, crafts, this));
+			_game->pushState(new MultipleTargetsState(v, crafts, this, true));
 		}
 	}
 
@@ -2774,7 +2808,7 @@ void GeoscapeState::btnInterceptClick(Action *)
 	{
 		return;
 	}
-	_game->pushState(new InterceptState(_globe));
+	_game->pushState(new InterceptState(_globe, false));
 }
 
 /**
@@ -3408,6 +3442,32 @@ void GeoscapeState::determineAlienMissions()
 				}
 				if (triggerHappy)
 				{
+					// check counters
+					if (arcScript->getCounterMin() > 0)
+					{
+						if (!arcScript->getMissionVarName().empty() && arcScript->getCounterMin() > strategy.getMissionsRun(arcScript->getMissionVarName()))
+						{
+							triggerHappy = false;
+						}
+						if (!arcScript->getMissionMarkerName().empty() && arcScript->getCounterMin() > save->getLastId(arcScript->getMissionMarkerName()))
+						{
+							triggerHappy = false;
+						}
+					}
+					if (triggerHappy && arcScript->getCounterMax() != -1)
+					{
+						if (!arcScript->getMissionVarName().empty() && arcScript->getCounterMax() < strategy.getMissionsRun(arcScript->getMissionVarName()))
+						{
+							triggerHappy = false;
+						}
+						if (!arcScript->getMissionMarkerName().empty() && arcScript->getCounterMax() < save->getLastId(arcScript->getMissionMarkerName()))
+						{
+							triggerHappy = false;
+						}
+					}
+				}
+				if (triggerHappy)
+				{
 					// item requirements
 					for (auto &triggerItem : arcScript->getItemTriggers())
 					{
@@ -3580,6 +3640,32 @@ void GeoscapeState::determineAlienMissions()
 					}
 					if (!triggerHappy)
 						continue;
+				}
+			}
+			if (triggerHappy)
+			{
+				// check counters
+				if (command->getCounterMin() > 0)
+				{
+					if (!command->getMissionVarName().empty() && command->getCounterMin() > strategy.getMissionsRun(command->getMissionVarName()))
+					{
+						triggerHappy = false;
+					}
+					if (!command->getMissionMarkerName().empty() && command->getCounterMin() > save->getLastId(command->getMissionMarkerName()))
+					{
+						triggerHappy = false;
+					}
+				}
+				if (triggerHappy && command->getCounterMax() != -1)
+				{
+					if (!command->getMissionVarName().empty() && command->getCounterMax() < strategy.getMissionsRun(command->getMissionVarName()))
+					{
+						triggerHappy = false;
+					}
+					if (!command->getMissionMarkerName().empty() && command->getCounterMax() < save->getLastId(command->getMissionMarkerName()))
+					{
+						triggerHappy = false;
+					}
 				}
 			}
 			if (triggerHappy)
@@ -4235,18 +4321,19 @@ void GeoscapeState::handleResearch(Base* base)
 	{
 		saveGame->getAvailableResearchProjects(before, mod, base);
 	}
+
 	// 3. add finished research, including lookups and getonefrees (up to 4x)
-	for (ResearchProject* project : finished)
+	for (ResearchProject *project : finished)
 	{
-		const RuleResearch* bonus = 0;
-		const RuleResearch* research = project->getRules();
+		const RuleResearch *bonus = 0;
+		const RuleResearch *research = project->getRules();
 
 		// 3a. remove finished research from the base where it was researched
 		base->removeResearch(project);
 		project = nullptr;
 
 		// 3b. handle interrogation
-		if (Options::retainCorpses && research->destroyItem())
+		if (Options::retainCorpses && research->needItem() && research->destroyItem())
 		{
 			auto ruleUnit = mod->getUnit(research->getName(), false);
 			if (ruleUnit)
@@ -4269,7 +4356,7 @@ void GeoscapeState::handleResearch(Base* base)
 		}
 		// 3d. determine and remember if the ufopedia article should pop up again or not
 		// Note: because different topics may lead to the same lookup
-		const RuleResearch* newResearch = research;
+		const RuleResearch *newResearch = research;
 		std::string name = research->getLookup().empty() ? research->getName() : research->getLookup();
 		if (saveGame->isResearched(name, false))
 		{
@@ -4277,12 +4364,9 @@ void GeoscapeState::handleResearch(Base* base)
 		}
 		// 3e. handle core research (topic+lookup)
 		saveGame->addFinishedResearch(research, mod, base);
-		_game->getMasterMind()->updateLoyalty(research->getPoints(), XCOM_RESEARCH);
 		if (!research->getLookup().empty())
 		{
-			auto lookup = mod->getResearch(research->getLookup(), true);
-			saveGame->addFinishedResearch(lookup, mod, base);
-			_game->getMasterMind()->updateLoyalty(lookup->getPoints(), XCOM_RESEARCH);
+			saveGame->addFinishedResearch(mod->getResearch(research->getLookup(), true), mod, base);
 		}
 		// 3e. handle cutscene
 		if (!research->getCutscene().empty())
@@ -4312,15 +4396,15 @@ void GeoscapeState::handleResearch(Base* base)
 		// 3g. warning if weapon is researched before its clip
 		if (newResearch)
 		{
-			RuleItem* item = mod->getItem(newResearch->getName());
+			RuleItem *item = mod->getItem(newResearch->getName());
 			if (item && item->getBattleType() == BT_FIREARM && !item->getPrimaryCompatibleAmmo()->empty())
 			{
-				RuleManufacture* man = mod->getManufacture(item->getType());
+				RuleManufacture *man = mod->getManufacture(item->getType());
 				if (man && !man->getRequirements().empty())
 				{
-					const auto& req = man->getRequirements();
-					const RuleItem* ammo = item->getPrimaryCompatibleAmmo()->front();
-					if (std::find_if(req.begin(), req.end(), [&](const RuleResearch* r) { return r->getName() == ammo->getType(); }) != req.end() && !saveGame->isResearched(req, true))
+					const auto &req = man->getRequirements();
+					const RuleItem *ammo = item->getPrimaryCompatibleAmmo()->front();
+					if (std::find_if(req.begin(), req.end(), [&](const RuleResearch* r){ return r->getName() == ammo->getType(); }) != req.end() && !saveGame->isResearched(req, true))
 					{
 						popup(new ResearchRequiredState(item));
 					}
@@ -4328,13 +4412,13 @@ void GeoscapeState::handleResearch(Base* base)
 			}
 		}
 		// 3h. inform about new possible research
-		std::vector<RuleResearch*> after;
+		std::vector<RuleResearch *> after;
 		saveGame->getAvailableResearchProjects(after, mod, base);
-		std::vector<RuleResearch*> newPossibleResearch;
+		std::vector<RuleResearch *> newPossibleResearch;
 		saveGame->getNewlyAvailableResearchProjects(before, after, newPossibleResearch);
 		popup(new NewPossibleResearchState(base, newPossibleResearch));
 		// 3i. inform about new possible manufacture, purchase, craft and facilities
-		std::vector<RuleManufacture*> newPossibleManufacture;
+		std::vector<RuleManufacture *> newPossibleManufacture;
 		saveGame->getDependableManufacture(newPossibleManufacture, research, mod, base);
 		if (bonus)
 		{
@@ -4342,9 +4426,11 @@ void GeoscapeState::handleResearch(Base* base)
 		}
 		if (!newPossibleManufacture.empty())
 		{
+			Collections::sortVector(newPossibleManufacture);
+			Collections::sortVectorMakeUnique(newPossibleManufacture);
 			popup(new NewPossibleManufactureState(base, newPossibleManufacture));
 		}
-		std::vector<RuleItem*> newPossiblePurchase;
+		std::vector<RuleItem *> newPossiblePurchase;
 		_game->getSavedGame()->getDependablePurchase(newPossiblePurchase, research, _game->getMod());
 		if (bonus)
 		{
@@ -4352,9 +4438,11 @@ void GeoscapeState::handleResearch(Base* base)
 		}
 		if (!newPossiblePurchase.empty())
 		{
+			Collections::sortVector(newPossiblePurchase);
+			Collections::sortVectorMakeUnique(newPossiblePurchase);
 			popup(new NewPossiblePurchaseState(base, newPossiblePurchase));
 		}
-		std::vector<RuleCraft*> newPossibleCraft;
+		std::vector<RuleCraft *> newPossibleCraft;
 		_game->getSavedGame()->getDependableCraft(newPossibleCraft, research, _game->getMod());
 		if (bonus)
 		{
@@ -4362,9 +4450,11 @@ void GeoscapeState::handleResearch(Base* base)
 		}
 		if (!newPossibleCraft.empty())
 		{
+			Collections::sortVector(newPossibleCraft);
+			Collections::sortVectorMakeUnique(newPossibleCraft);
 			popup(new NewPossibleCraftState(base, newPossibleCraft));
 		}
-		std::vector<RuleBaseFacility*> newPossibleFacilities;
+		std::vector<RuleBaseFacility *> newPossibleFacilities;
 		_game->getSavedGame()->getDependableFacilities(newPossibleFacilities, research, _game->getMod());
 		if (bonus)
 		{
@@ -4372,59 +4462,23 @@ void GeoscapeState::handleResearch(Base* base)
 		}
 		if (!newPossibleFacilities.empty())
 		{
+			Collections::sortVector(newPossibleFacilities);
+			Collections::sortVectorMakeUnique(newPossibleFacilities);
 			popup(new NewPossibleFacilityState(base, _globe, newPossibleFacilities));
 		}
-		
-		std::vector<const RuleResearch *> topicsToCheck;
+
+		std::vector<const RuleResearch*> topicsToCheck;
 		topicsToCheck.push_back(research);
 		if (bonus)
 		{
 			topicsToCheck.push_back(bonus);
 		}
-
-		for (auto *myResearchRule : topicsToCheck)
-		{
-			// 3j. now iterate through all the bases and remove this project from their labs (unless it can still yield more stuff!)
-			for (Base *otherBase : *saveGame->getBases())
-			{
-				for (ResearchProject *otherProject : otherBase->getResearch())
-				{
-					if (myResearchRule == otherProject->getRules())
-					{
-						if (saveGame->hasUndiscoveredGetOneFree(myResearchRule, true))
-						{
-							// This research topic still has some more undiscovered non-disabled and *AVAILABLE* "getOneFree" topics, keep it!
-						}
-						else if (saveGame->hasUndiscoveredProtectedUnlock(myResearchRule, mod))
-						{
-							// This research topic still has one or more undiscovered non-disabled "protected unlocks", keep it!
-						}
-						else
-						{
-							// This topic can't give you anything else anymore, remove it!
-							otherBase->removeResearch(otherProject);
-							break;
-						}
-					}
-				}
-			}
-			// 3k. handle spawned items
-			RuleItem* spawnedItem = _game->getMod()->getItem(myResearchRule->getSpawnedItem());
-			if (spawnedItem)
-			{
-				Transfer* t = new Transfer(1);
-				t->setItems(myResearchRule->getSpawnedItem());
-				base->getTransfers()->push_back(t);
-			}
-			// 3l. handle spawned events
-			RuleEvent* spawnedEventRule = _game->getMod()->getEvent(myResearchRule->getSpawnedEvent());
-			if (spawnedEventRule)
-			{
-				saveGame->spawnEvent(spawnedEventRule);
-			}
-		}
+		// Side effects:
+		// 1. remove obsolete research projects from all bases
+		// 2. handle items spawned by research
+		// 3. handle events spawned by research
+		saveGame->handlePrimaryResearchSideEffects(topicsToCheck, _game->getMod(), base);
 	}
-
 }
 
 void GeoscapeState::cbxRegionChange(Action *)
@@ -4438,11 +4492,94 @@ void GeoscapeState::cbxRegionChange(Action *)
 	{
 		_game->getSavedGame()->debugRegion = (*_game->getSavedGame()->getRegions())[index-1];
 	}
+	updateZoneInfo();
 }
 
 void GeoscapeState::cbxZoneChange(Action *)
 {
 	_game->getSavedGame()->debugZone = _cbxZone->getSelected();
+	updateZoneInfo();
+}
+
+void GeoscapeState::cbxAreaChange(Action *)
+{
+	_game->getSavedGame()->debugArea = _cbxArea->getSelected();
+	updateZoneInfo();
+}
+
+void GeoscapeState::updateZoneInfo()
+{
+	std::ostringstream ss;
+	auto* save = _game->getSavedGame();
+	if (save->debugRegion)
+	{
+		auto* regionRule = save->debugRegion->getRules();
+		if (save->debugType >= 1)
+		{
+			ss << "region: " << tr(regionRule->getType()) << " [" << regionRule->getType() << "]" << std::endl;
+		}
+		if (save->debugType == 2)
+		{
+			if (save->debugZone > 0 && save->debugZone <= regionRule->getMissionZones().size())
+			{
+				auto& selectedZone = regionRule->getMissionZones().at(save->debugZone - 1);
+				ss << "zone: " << save->debugZone - 1 << std::endl;
+				if (save->debugArea > 0 && save->debugArea <= selectedZone.areas.size())
+				{
+					auto& selectedArea = selectedZone.areas.at(save->debugArea - 1);
+					ss << "area: " << save->debugArea - 1;
+					ss << ", texture: " << selectedArea.texture;
+					ss << ", name: " << tr(selectedArea.name) << " [" << selectedArea.name << "]" << std::endl;
+					if (selectedArea.isPoint())
+					{
+						ss << "point = [" << selectedArea.lonMin / M_PI * 180 << ", " << selectedArea.latMin / M_PI * 180 << "]";
+						int texture, shade;
+						_globe->getPolygonTextureAndShade(selectedArea.lonMin, selectedArea.latMin, &texture, &shade);
+						ss << ", globe texture: " << texture;
+					}
+					else
+					{
+						ss << "rect = [" << selectedArea.lonMin / M_PI * 180 << ", " << selectedArea.lonMax / M_PI * 180;
+						ss << ", " << selectedArea.latMin / M_PI * 180 << ", " << selectedArea.latMax / M_PI * 180 << "]";
+					}
+				}
+				else
+				{
+					ss << "total areas: " << selectedZone.areas.size() << std::endl;
+				}
+			}
+			else
+			{
+				ss << "total zones: " << regionRule->getMissionZones().size() << std::endl;
+			}
+		}
+	}
+	_txtDebug->setText(ss.str());
+}
+
+void GeoscapeState::cbxCountryChange(Action *)
+{
+	int index = _cbxCountry->getSelected();
+	if (index < 1)
+	{
+		_game->getSavedGame()->debugCountry = nullptr;
+	}
+	else
+	{
+		_game->getSavedGame()->debugCountry = (*_game->getSavedGame()->getCountries())[index - 1];
+	}
+
+	std::ostringstream ss;
+	auto* save = _game->getSavedGame();
+	if (save->debugCountry)
+	{
+		auto* countryRule = save->debugCountry->getRules();
+		if (save->debugType == 0)
+		{
+			ss << "country: " << tr(countryRule->getType()) << " [" << countryRule->getType() << "]" << std::endl;
+		}
+	}
+	_txtDebug->setText(ss.str());
 }
 
 }
