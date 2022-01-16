@@ -565,7 +565,14 @@ void DebriefingState::init()
 
 	// update FtA Loyalty
 	int loyalty = _game->getMasterMind()->updateLoyalty(total, XCOM_BATTLESCAPE);
-	_txtLoyalty->setText(tr("STR_LOYALTY_UPDATE").arg(loyalty));
+	if (_game->getMod()->getIsFTAGame() && _game->getSavedGame()->isResearched("STR_LOYALTY"))
+	{
+		_txtLoyalty->setText(tr("STR_LOYALTY_UPDATE").arg(loyalty));
+	}
+	else
+	{
+		_txtLoyalty->setVisible(false);
+	}
 
 	// Resize (if needed)
 	if (statsY > 80) statsY = 80;
