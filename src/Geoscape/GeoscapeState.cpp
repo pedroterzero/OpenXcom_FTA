@@ -1558,7 +1558,7 @@ void GeoscapeState::time10Minutes()
 					{
 						if ((*j)->getDistance(*b) <= range)
 						{
-							if (RNG::percent(50-((*j)->getDistance(*b) / range) * 50) && (!(*b)->isDiscovered() && !(*b)->getDeployment()->isHidden()))
+							if (RNG::percent(50-((*j)->getDistance(*b) / range) * 50) && (!(*b)->isDiscovered() && !(*b)->getDeployment()->isHiddenAlienBase()))
 							{
 								(*b)->setDiscovered(true);
 							}
@@ -2583,7 +2583,10 @@ void GeoscapeState::time1Day()
 	// Handle alien base detection (by xcom base facilities).
 	for (auto alienBase : *_game->getSavedGame()->getAlienBases())
 	{
-		if (alienBase->isDiscovered() || alienBase->getDeployment()->isHidden()) continue;
+		if (alienBase->isDiscovered() || alienBase->getDeployment()->isHiddenAlienBase())
+		{
+			continue;
+		}
 		for (auto xcomBase : *_game->getSavedGame()->getBases())
 		{
 			int distance = XcomDistance(xcomBase->getDistance(alienBase));
@@ -2712,11 +2715,11 @@ void GeoscapeState::time1Month()
 	}
 
 	// Handle Xcom Operatives discovering bases
-	if (!_game->getSavedGame()->getAlienBases()->empty() && RNG::percent(20) && !_game->getMod()->getIsFTAGame()) // #FINNIKTODO for now let's disable it in FtA
+	if (!_game->getSavedGame()->getAlienBases()->empty() && RNG::percent(20))
 	{
 		for (std::vector<AlienBase*>::const_iterator b = _game->getSavedGame()->getAlienBases()->begin(); b != _game->getSavedGame()->getAlienBases()->end(); ++b)
 		{
-			if (!(*b)->isDiscovered())
+			if (!(*b)->isDiscovered() && !(*b)->getDeployment()->isHiddenAlienBase())
 			{
 				(*b)->setDiscovered(true);
 				popup(new AlienBaseState(*b, this));

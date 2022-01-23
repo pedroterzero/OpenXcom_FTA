@@ -110,7 +110,7 @@ private:
 	std::string _nextStage, _race, _mapScript, _battleScript, _extendedObjectiveType;
 	std::vector<std::string> _mapScripts;
 	std::vector<std::string> _randomRaces;
-	bool _finalDestination, _isAlienBase, _isHidden;
+	bool _finalDestination, _isAlienBase, _isHidden, _isHiddenAlienBase;
 	int _fakeUnderwaterSpawnChance;
 	std::string _winCutscene, _loseCutscene, _abortCutscene;
 	std::string _alert, _alertBackground, _alertDescription;
@@ -267,6 +267,8 @@ public:
 	bool isAlienBase() const;
 	/// Gets whether or not this mission should be hidden (purely for new battle mode)
 	bool isHidden() const { return _isHidden; }
+	/// Gets whether or not this mission site (alien base) would be hidden from all sources, but special rules.
+	bool isHiddenAlienBase() const { return _isHiddenAlienBase; }
 	/// Gets the chance for deciding to spawn an alien base on fakeUnderwater globe texture.
 	int getFakeUnderwaterSpawnChance() const { return _fakeUnderwaterSpawnChance; }
 
