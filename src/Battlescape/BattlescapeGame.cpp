@@ -48,6 +48,7 @@
 #include "../Savegame/BattleUnit.h"
 #include "../Savegame/BattleItem.h"
 #include "../Savegame/Ufo.h"
+#include "../Savegame/Node.h"
 #include "../Mod/RuleItem.h"
 #include "../Mod/RuleInventory.h"
 #include "../Mod/RuleSoldier.h"
@@ -3348,15 +3349,7 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 					Log(LOG_ERROR) << "Sorry, there is no support of processing spawnItem command yet! :] ";
 					break;
 				case BSC_SPAWN_UNIT:					
-					//finding a spot
-					validBlocks = getValidBlocks(command);		
-					if (validBlocks.empty())
-					{
-						Log(LOG_DEBUG) << "No valid location for the unit spawning with battlScript.";
-						continue;
-					}
-					//spawn units
-					if (scriptSpawnUnit(command, validBlocks))
+					if (scriptSpawnUnit(command))
 					{
 						_save->updateBattleScriptVariable(varName, 1);
 					}
@@ -3503,8 +3496,15 @@ std::vector<std::pair<int, int>> OpenXcom::BattlescapeGame::getValidBlocks(Battl
 	return validBlocks;
 }
 
-bool OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock)
+bool OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command)
 {
+	// lets first define spawning method
+	bool spawnByNodes = false;
+	if (!command->getSpawnNodeRanks()->empty())
+	{
+		spawnByNodes = true;
+	}
+
 	auto units = command->getUnitSet();
 	if (units.empty())
 	{
@@ -3512,26 +3512,25 @@ bool OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 	}
 	int zMin = command->getMinLevel();
 	int zMax = command->getMaxLevel();
-	int z = 0;
-	if (zMin == zMax)
-	{
-		z = zMin;
-	}
-	else if (zMin <= zMax)
-	{
-		z = RNG::generate(zMin, zMax);
-	}
-	else
-	{
-		throw Exception("BattleScript generator encountered an error: zMax set lower, than zMin: " + command->getType());
-	}
+
 	//choosing 10x10 block on the map
 	int tries = 100;
 	bool placed = false;
 	while (tries && !placed)
 	{
-		//chosing tile inside block
-		std::pair<int, int> selBlock = validBlock.at(RNG::generate(0, validBlock.size() - 1));
+		std::pair<int, int> selBlock;
+		if (!spawnByNodes)
+		{
+			std::vector<std::pair<int, int> > validBlocks = getValidBlocks(command);
+			if (validBlocks.empty())
+			{
+				Log(LOG_DEBUG) << "No valid location for the unit spawning with battlScript.";
+				break;
+			}
+			//chosing map block block
+			 selBlock = validBlocks.at(RNG::generate(0, validBlocks.size() - 1));
+		}
+		
 		int currentPackSize = 0;
 		int packSize = command->getPackSize();
 		if (command->getRandomPackSize())
@@ -3541,12 +3540,44 @@ bool OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command, std::vect
 		int iter = 100;
 		while (iter && !placed) // now we look for fine place inside mapblock
 		{
+			Position pos = Position(0, 0, 0);
+			if (spawnByNodes)
+			{
+				for (auto node : *this->getSave()->getNodes())
+				{
+					if (node->isDummy())
+					{
+						continue;
+					}
+					if (std::find(command->getSpawnNodeRanks()->begin(), command->getSpawnNodeRanks()->end(), (int)node->getRank()) == command->getSpawnNodeRanks()->end())
+					{
+						continue;
+					}
+					if (zMin > node->getPosition().z || zMax < node->getPosition().z)
+					{
+						continue;
+					}
+					pos = node->getPosition();
+					break;
+				}
+			}
+			else
+			{
+				int localX = RNG::generate(0, 10);
+				int localY = RNG::generate(0, 10);
+				int z = 0;
+				if (zMin == zMax)
+				{
+					z = zMin;
+				}
+				else
+				{
+					z = RNG::generate(zMin, zMax);
+				}
+				pos = Position(localX + (selBlock.first * 10), localY + (selBlock.second * 10), z);
+			}
 			int unitPick = RNG::generate(0, units.size()-1);
 			auto unitRule = _save->getBattleGame()->getMod()->getUnit(units.at(unitPick));
-			int localX = RNG::generate(0, 10);
-			int localY = RNG::generate(0, 10);
-			//init unit
-			Position pos = Position(localX + (selBlock.first * 10), localY + (selBlock.second * 10), z);
 			// Check which faction the new unit will be
 			UnitFaction faction;
 			switch (command->getSide())

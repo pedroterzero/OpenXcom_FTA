@@ -102,6 +102,7 @@ void BattleScript::load(const YAML::Node& node)
 	_maxDifficulty = node["maxDifficulty"].as<int>(_maxDifficulty);
 	_minAlarmLevel = node["minAlarmLevel"].as<int>(_minAlarmLevel);
 	_maxAlarmLevel = node["maxAlarmLevel"].as<int>(_maxAlarmLevel);
+	_spawnNodeRanks = node["spawnNodeRanks"].as<std::vector<int> >(_spawnNodeRanks);
 	if (const YAML::Node& messages = node["messages"])
 	{
 		for (YAML::const_iterator i = messages.begin(); i != messages.end(); ++i)

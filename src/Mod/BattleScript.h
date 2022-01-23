@@ -65,6 +65,7 @@ private:
 	int _startTurn, _endTurn, _unitSide, _packSize, _minLevel, _maxLevel;
 	int _minDifficulty, _maxDifficulty, _minAlarmLevel, _maxAlarmLevel;
 	bool _randomPackSize;
+	std::vector<int> _spawnNodeRanks;
 	std::string _variable;
 public:
 	BattleScript();
@@ -113,6 +114,8 @@ public:
 	int getMinAlarm() const { return _minAlarmLevel; };
 	/// Gets the max alarm level for this command to run.
 	int getMaxAlarm() const { return _maxAlarmLevel; };
+	/// Gets what conditions apply to this command.
+	const std::vector<int> *getSpawnNodeRanks() const { return &_spawnNodeRanks; };
 	/// Gets the list of battle messages for command.
 	std::map<int, BattleMessage> getBattleMessages() const { return _message; };
 	/// Gets the script variable name.

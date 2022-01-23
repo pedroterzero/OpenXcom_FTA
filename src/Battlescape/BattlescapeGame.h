@@ -193,7 +193,7 @@ private:
 	/// Gets valid blocks to process the battlescript command.
 	std::vector<std::pair<int, int>> getValidBlocks(BattleScript* command);
 	/// Spawn units as part of battlescript commands.
-	bool scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock);
+	bool scriptSpawnUnit(BattleScript* command);
 	/// Display message fro the battlescript
 	void displayScriptMessage(BattleScript* command);
 public:
