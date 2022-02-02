@@ -492,7 +492,6 @@ void BattlescapeGame::endTurn()
 	_parentState->showLaunchButton(false);
 	_currentAction.targeting = false;
 	_AISecondMove = false;
-	//auto side = _save->getSide();
 	bool toDoScripts = scriptsToProcess();
 
 	if (_triggerProcessed.tryRun())
@@ -685,15 +684,7 @@ void BattlescapeGame::endTurn()
 	// objective type MUST_DESTROY was already handled above
 	bool killingAllAliensIsNotEnough = (_save->getVIPSurvivalPercentage() > 0 && _save->getVIPEscapeType() != ESCAPE_NONE);
 
-	bool battleComplete = (!killingAllAliensIsNotEnough && tally.liveAliens == 0) || tally.liveSoldiers == 0;
-
-	if (battleComplete)
-	{
-		if (toDoScripts)
-		{
-			battleComplete = false;
-		}
-	}
+	bool battleComplete = (!killingAllAliensIsNotEnough && tally.liveAliens == 0 && !toDoScripts) || tally.liveSoldiers == 0;
 
 	if ((_save->getSide() != FACTION_NEUTRAL || battleComplete)
 		&& _endTurnRequested)
