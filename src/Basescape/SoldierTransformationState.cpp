@@ -155,6 +155,18 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 	_lstStatChanges->setAlign(ALIGN_RIGHT);
 	_lstStatChanges->setAlign(ALIGN_LEFT, 0);
 
+	if (!_transformationRule->getDescription().empty())
+	{
+		_txtDescription->setText(tr(_transformationRule->getDescription()));
+		_txtDescription->setWordWrap(true);
+	}
+	else
+	{
+		_txtTransferTime->setY(_txtTransferTime->getY() - 24);
+		_txtRecoveryTime->setY(_txtRecoveryTime->getY() - 24);
+		_txtCost->setY(_txtCost->getY() - 24);
+	}
+
 	initTransformationData();
 }
 
@@ -198,18 +210,6 @@ void SoldierTransformationState::initTransformationData()
 		(_transformationRule->isAllowingDeadSoldiers() && _sourceSoldier->getDeath())))
 	{
 		transformationPossible = false;
-	}
-
-	if (!_transformationRule->getDescription().empty())
-	{
-		_txtDescription->setText(tr(_transformationRule->getDescription()));
-		_txtDescription->setWordWrap(true);
-	}
-	else
-	{
-		_txtTransferTime->setY(_txtTransferTime->getY() - 24);
-		_txtRecoveryTime->setY(_txtRecoveryTime->getY() - 24);
-		_txtCost->setY(_txtCost->getY() - 24);
 	}
 
 	_txtCost->setText(tr("STR_COST_").arg(Unicode::formatFunding(_transformationRule->getCost())));
