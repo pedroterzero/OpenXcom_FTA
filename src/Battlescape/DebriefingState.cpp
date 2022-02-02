@@ -2287,7 +2287,19 @@ void DebriefingState::prepareDebriefing()
 	{
 		// Unlock research defined in alien deployment, if the mission was a success
 		const RuleResearch *research = _game->getMod()->getResearch(ruleDeploy->getUnlockedResearchOnSuccess());
+		bool showPedia = !_game->getSavedGame()->isResearched(research);
 		save->handleResearchUnlockedByMissions(research, _game->getMod());
+		if (showPedia)
+		{
+			if (!research->getLookup().empty())
+			{
+				Ufopaedia::openArticle(_game, research->getLookup());
+			}
+			else
+			{
+				Ufopaedia::openArticle(_game, research->getName());
+			}
+		}
 
 		// Give bounty item defined in alien deployment, if the mission was a success
 		const RuleItem *bountyItem = _game->getMod()->getItem(ruleDeploy->getMissionBountyItem());
