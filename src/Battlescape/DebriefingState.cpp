@@ -2920,7 +2920,7 @@ bool DebriefingState::handleVipRecovery(BattleUnit *unit, Base *base, Craft *cra
 			{
 				Soldier *s = _game->getMod()->genSoldier(_game->getSavedGame(), ruleSoldier->getType());
 				unit->setGeoscapeSoldied(s);
-				UnitStats *stats = rules->getStats();
+				UnitStats *stats = unit->getBaseStats();
 				s->setBothStats(stats);
 				s->setJustSaved(true);
 				created = true;
