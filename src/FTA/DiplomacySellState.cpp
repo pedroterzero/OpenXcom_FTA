@@ -172,7 +172,7 @@ void DiplomacySellState::delayedInit()
 
 	_txtSell->setText(tr("STR_SELL"));
 
-	_txtValue->setText(tr("STR_VALUE_OF_SALES_LC"));
+	_txtValue->setText(tr("STR_COST_LC"));
 
 	_lstItems->setArrowColumn(182, ARROW_VERTICAL);
 	_lstItems->setColumns(4, 156, 54, 24, 53);
