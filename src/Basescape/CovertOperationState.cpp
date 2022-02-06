@@ -193,6 +193,7 @@ void CovertOperationState::fillProjectList(size_t scrl)
 		sstr << (*iter)->getOddsName();*/
 
 		std::string wstr = tr((*iter)->getOperationName());
+		auto test = (*iter)->getOddsName();
 		_lstOperations->addRow(3, wstr.c_str(), tr((*iter)->getOddsName()).c_str(), tr((*iter)->getTimeLeftName()).c_str());
 	}
 	_txtSoldiersAvailable->setText(tr("STR_SOLDIERS_AVAILABLE").arg(_base->getAvailableSoldiers()));
