@@ -2235,7 +2235,7 @@ void GeoscapeState::time1Hour()
 					else
 					{
 						throw Exception("Attempting to transform soldier " + (*j)->getName() + ". ERROR! No rules found for transformation!");
-					}				
+					}			
 				}
 			}
 		}
