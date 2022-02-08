@@ -144,7 +144,7 @@ bool haveReserchVector(const std::vector<const RuleResearch*> &vec,  const std::
 /**
  * Initializes a brand new saved game according to the specified difficulty.
  */
-SavedGame::SavedGame() : _difficulty(DIFF_BEGINNER), _end(END_NONE), _ironman(false), _globeLon(0.0),
+SavedGame::SavedGame() : _difficulty(DIFF_BEGINNER), _end(END_NONE), _ironman(false), _ftaGame(false), _globeLon(0.0),
 						 _globeLat(0.0), _globeZoom(0), _battleGame(0), _debug(false),
 						 _warned(false), _monthsPassed(-1), _selectedBase(0), _autosales(), _disableSoldierEquipment(false), _alienContainmentChecked(false),
 						 _loyalty(0), _lastMonthsLoyalty(0)
@@ -441,6 +441,7 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 	_graphCountryToggles = doc["graphCountryToggles"].as<std::string>(_graphCountryToggles);
 	_graphFinanceToggles = doc["graphFinanceToggles"].as<std::string>(_graphFinanceToggles);
 	_loyalty = doc["loyalty"].as<int>(_loyalty);
+	_ftaGame = doc["ftaGame"].as<bool>(_ftaGame);
 	_lastMonthsLoyalty = doc["lastMonthsLoyalty"].as<int>(_lastMonthsLoyalty);
 	_funds = doc["funds"].as< std::vector<int64_t> >(_funds);
 	_maintenance = doc["maintenance"].as< std::vector<int64_t> >(_maintenance);
@@ -866,6 +867,8 @@ void SavedGame::save(const std::string &filename, Mod *mod) const
 	brief["mods"] = modsList;
 	if (_ironman)
 		brief["ironman"] = _ironman;
+	if (_ftaGame)
+		brief["ftaGame"] = _ftaGame;
 	out << brief;
 	// Saves the full game data to the save
 	out << YAML::BeginDoc;

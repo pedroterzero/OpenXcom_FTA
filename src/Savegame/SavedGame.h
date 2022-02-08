@@ -163,7 +163,7 @@ private:
 	std::vector<GeoscapeEvent*> _geoscapeEvents;
 	std::vector<CovertOperation*> _covertOperations;
 	std::vector<DiplomacyFaction*> _diplomacyFactions;
-	bool _debug, _warned;
+	bool _debug, _warned, _ftaGame;
 	int _monthsPassed;
 	int _loyalty, _lastMonthsLoyalty;
 	std::string _graphRegionToggles;
@@ -220,6 +220,10 @@ public:
 	bool isIronman() const;
 	/// Sets if the game is in ironman mode.
 	void setIronman(bool ironman);
+	/// Gets if the game is FtA game.
+	bool isFtAGame() const { return _ftaGame; };
+	/// Sets if the game is FtA game.
+	void setFtAGame(bool ftaGame) { _ftaGame = ftaGame; };
 	/// Gets the current funds.
 	int64_t getFunds() const;
 	/// Gets the list of funds from previous months.

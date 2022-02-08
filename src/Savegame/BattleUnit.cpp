@@ -1538,6 +1538,13 @@ int BattleUnit::damage(Position relative, int damage, const RuleDamageType *type
 		return 0;
 	}
 
+	if (attack.attacker->getFaction() == FACTION_PLAYER && this->getFaction() == FACTION_PLAYER && save->getGeoscapeSave()->isFtAGame())
+	{
+		int baseChange = -5;
+		this->moraleChange(baseChange - (2 * save->getGeoscapeSave()->getDifficultyCoefficient()) - RNG::generate(0, 5));
+		attack.attacker->moraleChange(baseChange + (2 * save->getGeoscapeSave()->getDifficultyCoefficient()) + RNG::generate(0, 5));
+	}
+
 	damage = reduceByResistance(damage, type->ResistType);
 
 	if (!type->IgnoreDirection)

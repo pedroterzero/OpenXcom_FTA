@@ -196,6 +196,7 @@ void NewGameState::btnOkClick(Action *)
 	if (_game->getMod()->getIsFTAGame())
 	{
 		_game->getMasterMind()->newGameHelper(diff, gs);
+		save->setFtAGame(true);
 	}
 	else //vanilla
 	{
