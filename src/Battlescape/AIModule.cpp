@@ -578,7 +578,7 @@ void AIModule::setupPatrol()
 		{
 			// after turn 20 or if the morale is low, everyone moves out the UFO and scout
 			// also anyone standing in fire should also probably move
-			if (_save->isCheating() || !_fromNode || _fromNode->getRank() == 0 ||
+			if (!_fromNode || _fromNode->getRank() == 0 || //_save->isCheating() || 
 				(_save->getTile(_unit->getPosition()) && _save->getTile(_unit->getPosition())->getFire()))
 			{
 				scout = true;
