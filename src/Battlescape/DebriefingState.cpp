@@ -2899,7 +2899,7 @@ void DebriefingState::recoverAlien(BattleUnit *from, Base *base)
 bool DebriefingState::handleVipRecovery(BattleUnit *unit, Base *base, Craft *craft, bool result)
 {
 	bool created = false;
-	if (result) //unit recovered safely
+	if (result && !unit->wasFriendlyFired()) //unit recovered safely and without direct harm
 	{
 		auto rules = unit->getUnitRules();
 		std::string type = rules->getCivilianRecoveryType();

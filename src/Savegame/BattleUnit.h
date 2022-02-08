@@ -97,6 +97,7 @@ private:
 	Position _destination;
 	UnitStatus _status;
 	bool _wantsToSurrender, _isSurrendering;
+	bool _wasFriendlyFired;
 	int _walkPhase, _fallPhase;
 	std::vector<BattleUnit *> _visibleUnits, _unitsSpottedThisTurn;
 	std::vector<Tile *> _visibleTiles;
@@ -257,6 +258,10 @@ public:
 	void setAlarmed(bool isAlarmed) { _alarmed = isAlarmed; };
 	/// Gets the unit's alarmed status.
 	bool getAlarmed() const { return _alarmed; };
+	/// Sets if the unit was under direct friendly fire.
+	void setFrienlyFired(bool wasFriendlyFired) { _wasFriendlyFired = wasFriendlyFired; };
+	/// Gets if the unit was under direct friendly fire.
+	bool wasFriendlyFired() const { return _wasFriendlyFired; };
 	/// Start the walkingPhase
 	void startWalking(int direction, Position destination, SavedBattleGame *savedBattleGame);
 	/// Increase the walkingPhase
