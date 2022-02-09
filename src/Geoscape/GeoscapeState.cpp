@@ -316,7 +316,14 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 	_btnOptions->setGeoscapeButton(true);
 
 	_btnFunding->initText(_game->getMod()->getFont("FONT_GEO_BIG"), _game->getMod()->getFont("FONT_GEO_SMALL"), _game->getLanguage());
-	_btnFunding->setText(Options::oxceLinks ? tr("STR_EXTENDED_UC") : tr("STR_FUNDING_UC"));
+	if (Options::oxceLinks || fta)
+	{
+		_btnFunding->setText(tr("STR_EXTENDED_UC"));
+	}
+	else
+	{
+		_btnFunding->setText(tr("STR_FUNDING_UC"));
+	}
 	
 	_btnFunding->onMouseClick((ActionHandler)&GeoscapeState::btnFundingClick);
 	_btnFunding->onKeyboardPress((ActionHandler)&GeoscapeState::btnFundingClick, Options::keyGeoFunding);
