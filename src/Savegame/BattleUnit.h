@@ -30,6 +30,7 @@ namespace OpenXcom
 
 class Tile;
 class BattleItem;
+class BattleObject;
 class Armor;
 class Unit;
 class BattlescapeGame;
@@ -101,6 +102,7 @@ private:
 	std::vector<BattleUnit *> _visibleUnits, _unitsSpottedThisTurn;
 	std::vector<Tile *> _visibleTiles;
 	std::unordered_set<Tile *> _visibleTilesLookup;
+	std::vector<BattleObject*> _visibleBattleObjects;
 	int _tu, _energy, _health, _morale, _stunlevel, _mana;
 	bool _kneeled, _floating, _dontReselect;
 	bool _haveNoFloorBelow = false;
@@ -764,6 +766,7 @@ public:
 	void disableIndicators();
 	/// Checks if this unit can be hacked.
 	bool canBeHacked() const;
+	bool addToVisibleBattleObjects(BattleObject* battleObject);
 };
 
 } //namespace OpenXcom

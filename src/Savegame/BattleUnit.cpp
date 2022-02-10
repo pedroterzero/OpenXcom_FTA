@@ -18,6 +18,7 @@
  */
 #include "BattleUnit.h"
 #include "BattleItem.h"
+#include "BattleObject.h"
 #include <sstream>
 #include <algorithm>
 #include "../Engine/Surface.h"
@@ -5113,6 +5114,19 @@ bool BattleUnit::canBeHacked() const
 	return (_armor->getHackingDefense() != 0 &&
 			getFaction() != FACTION_PLAYER &&
 			getOriginalFaction() != FACTION_PLAYER);
+}
+
+bool BattleUnit::addToVisibleBattleObjects(BattleObject* battleObject)
+{
+	for (std::vector<BattleObject*>::iterator i = _visibleBattleObjects.begin(); i != _visibleBattleObjects.end(); ++i)
+	{
+		if ((BattleObject*)(*i) == battleObject)
+		{
+			return false;
+		}
+	}
+	_visibleBattleObjects.push_back(battleObject);
+	return true;
 }
 
 ////////////////////////////////////////////////////////////
