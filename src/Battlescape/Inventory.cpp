@@ -880,7 +880,12 @@ void Inventory::mouseClick(Action *action, State *state)
 				}
 				BattleItem *item = _selUnit->getItem(slot, x, y);
 				bool canStack = (slot->getType() == INV_GROUND && canBeStacked(item, _selItem)) || (canBeStacked(item, _selItem, slot, x, y));
-
+				// If item can be stacked, update slot coordinates to existing item
+				if (item && canStack)
+				{
+					x = item->getSlotX();
+					y = item->getSlotY();
+				}
 				// Check if this inventory section supports the item
 				if (!_selItem->getRules()->canBePlacedIntoInventorySection(slot))
 				{
