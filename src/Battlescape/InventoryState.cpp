@@ -400,9 +400,17 @@ void InventoryState::init()
 	_txtName->setBig();
 	_txtName->setText(unit->getName(_game->getLanguage()));
 	bool resetGroundOffset = _tu;
+	static bool s_prevUnitIsSummoned = false;
 	if (unit->isSummonedPlayerUnit())
 	{
 		resetGroundOffset = true; // this unit is likely not standing on the shared inventory tile, just re-arrange it every time
+		s_prevUnitIsSummoned = true; // when we switch between units we need to remember which is summoned (for FtA missions)
+	}
+	else
+	{
+		if (s_prevUnitIsSummoned)  // if we switch back from a summoned unit during the starting equipment phase (FtA possibility) we require re-arrangement. In other cases it's already set to re-arrange.
+			resetGroundOffset = true;
+		s_prevUnitIsSummoned = false;
 	}
 	_inv->setSelectedUnit(unit, resetGroundOffset);
 	Soldier *s = unit->getGeoscapeSoldier();
