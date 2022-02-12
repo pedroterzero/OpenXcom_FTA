@@ -181,10 +181,19 @@ BattlescapeState::BattlescapeState() :
 	const int visibleUnitY = _game->getMod()->getInterface("battlescape")->getElement("visibleUnits")->y;
 	for (int i = 0; i < VISIBLE_MAX; ++i)
 	{
-		_btnVisibleUnit[i] = new InteractiveSurface(15, 12, x + visibleUnitX, y + visibleUnitY - (i * 13));
-		_numVisibleUnit[i] = new NumberText(15, 12, _btnVisibleUnit[i]->getX() + 6 , _btnVisibleUnit[i]->getY() + 4);
+		_btnVisibleUnit[i] = new InteractiveSurface(15, 12, x + visibleUnitX - (i * 16), y + visibleUnitY);
+		if (i > 9) //case we have more than 10 blocks - make second line, dont expect VISIBLE_MAX > 20 =)
+		{
+			_btnVisibleUnit[i]->setX(_btnVisibleUnit[i]->getX() + 160);
+			_btnVisibleUnit[i]->setY(_btnVisibleUnit[i]->getY() - 13);
+		}
+		_numVisibleUnit[i] = new NumberText(15, 12, _btnVisibleUnit[i]->getX() + 6, _btnVisibleUnit[i]->getY() + 4);
+		if (i >= 9) // center number 10+
+		{
+			_numVisibleUnit[i]->setX(_numVisibleUnit[i]->getX() - 2);
+		}
 	}
-	_numVisibleUnit[9]->setX(_numVisibleUnit[9]->getX() - 2); // center number 10
+	
 	_warning = new WarningMessage(224, 24, x + 48, y + 32);
 	_btnLaunch = new BattlescapeButton(32, 24, screenWidth - 32, 0); // we need screenWidth, because that is independent of the black bars on the screen
 	_btnLaunch->setVisible(false);

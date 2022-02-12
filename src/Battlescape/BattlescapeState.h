@@ -62,7 +62,7 @@ private:
 	static const int SPECIAL_BUTTONS_MAX = 3;
 	int _posSpecialActions[SPECIAL_BUTTONS_MAX];
 
-	static const int VISIBLE_MAX = 10;
+	static const int VISIBLE_MAX = 20;
 	std::string _txtVisibleUnitTooltip[VISIBLE_MAX+2];
 	InteractiveSurface *_btnVisibleUnit[VISIBLE_MAX];
 	NumberText *_numVisibleUnit[VISIBLE_MAX];
