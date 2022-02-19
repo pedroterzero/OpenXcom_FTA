@@ -562,12 +562,18 @@ void CovertOperationArmorState::lstSoldiersMousePress(Action* action)
 void CovertOperationArmorState::btnDeequipAllArmorClick(Action* action)
 {
 	int row = 0;
-	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+	for (std::vector<Soldier *>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 	{
-		if (!((*i)->getCraft() && (*i)->getCraft()->getStatus() == "STR_OUT") && (*i)->getCovertOperation() != 0)
+		if (!((*i)->getCraft() && (*i)->getCraft()->getStatus() == "STR_OUT"))
 		{
-			Armor* a = _game->getMod()->getArmor((*i)->getRules()->getArmor());
+			Armor *a = (*i)->getRules()->getDefaultArmor();
 
+			if ((*i)->getCraft() && !(*i)->getCraft()->validateArmorChange((*i)->getArmor()->getSize(), a->getSize()))
+			{
+				// silently ignore
+				row++;
+				continue;
+			}
 			if (a->getStoreItem() == nullptr || _base->getStorageItems()->getItem(a->getStoreItem()) > 0)
 			{
 				if ((*i)->getArmor()->getStoreItem())
@@ -579,7 +585,7 @@ void CovertOperationArmorState::btnDeequipAllArmorClick(Action* action)
 					_base->getStorageItems()->removeItem(a->getStoreItem());
 				}
 
-				(*i)->setArmor(a);
+				(*i)->setArmor(a, true);
 				(*i)->prepareStatsWithBonuses(_game->getMod()); // refresh stats for sorting
 				_lstSoldiers->setCellText(row, 2, tr(a->getType()));
 			}
@@ -604,10 +610,16 @@ void CovertOperationArmorState::btnDeequipCraftArmorClick(Action* action)
 		if (iter != std::end(opSoldiers)) {
 			matched = true;
 		}
-		if (matched || s->getCraft() == 0)
+		if ((matched || s->getCraft() == 0) && s->getCovertOperation() == 0)
 		{
-			Armor* a = _game->getMod()->getArmor(s->getRules()->getArmor());
+			Armor *a = s->getRules()->getDefaultArmor();
 
+			if (s->getCraft() && !s->getCraft()->validateArmorChange(s->getArmor()->getSize(), a->getSize()))
+			{
+				// silently ignore
+				row++;
+				continue;
+			}
 			if (a->getStoreItem() == nullptr || _base->getStorageItems()->getItem(a->getStoreItem()) > 0)
 			{
 				if (s->getArmor()->getStoreItem())
@@ -619,7 +631,7 @@ void CovertOperationArmorState::btnDeequipCraftArmorClick(Action* action)
 					_base->getStorageItems()->removeItem(a->getStoreItem());
 				}
 
-				s->setArmor(a);
+				s->setArmor(a, true);
 				s->prepareStatsWithBonuses(_game->getMod()); // refresh stats for sorting
 				_lstSoldiers->setCellText(row, 2, tr(a->getType()));
 			}

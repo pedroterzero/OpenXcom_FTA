@@ -607,7 +607,7 @@ void CraftArmorState::btnDeequipCraftArmorClick(Action *action)
 	int row = 0;
 	for (auto s : *_base->getSoldiers())
 	{
-		if (s->getCraft() == c || s->getCraft() == 0)
+		if ((s->getCraft() == c || s->getCraft() == 0) && s->getCovertOperation() == 0)
 		{
 			Armor *a = s->getRules()->getDefaultArmor();
 
