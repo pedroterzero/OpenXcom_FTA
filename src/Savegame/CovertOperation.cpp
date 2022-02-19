@@ -696,7 +696,6 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 		bool dead = false;
 		int wound = 0;
 		int damage = 0;
-		bool saved = false;
 		++operationSoldierN;
 		UnitStats* stats = (*i)->getCurrentStats();
 		const UnitStats caps = (*i)->getRules()->getStatCaps();
@@ -744,14 +743,16 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			if (dead)
 			{
 				//Check for divine protection
-				int protection = (*i)->getRank();
+				int protection = (*i)->getRank() - 2;
 				//lets add save if we have psi. Btw, there is a place for additional perks
 				if (_hasPsi)
-					protection += 2;
-				int requiredProtection = RNG::generate(1, 8);
+				{
+					protection += 3;
+				}
+				int requiredProtection = RNG::generate(1, 7 + save.getDifficultyCoefficient());
 				if (criticalFail)
 				{
-					requiredProtection += 2;
+					requiredProtection += 3;
 				}
 				if (requiredProtection > protection)
 				{ //RIP...
@@ -760,8 +761,10 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 				else
 				{
 					dead = false;
-					saved = true;
-					++braveryExp;
+					if ((*i)->getStatsWithAllBonuses()->bravery <= 20 || RNG::percent(5))
+					{
+						++braveryExp;
+					}
 				}
 			}
 		}
