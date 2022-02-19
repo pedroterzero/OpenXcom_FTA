@@ -74,7 +74,7 @@ private:
 	SoldierGender _gender;
 	SoldierLook _look;
 	int _lookVariant;
-	int _missions, _kills;
+	int _missions, _kills, _stuns;
 	int _healthMissing = 0; // amount of health missing until full health recovery, this is less serious than wound recovery.
 	int _manaMissing = 0;   // amount of mana missing until full mana recovery
 	float _recovery = 0.0;  // amount of hospital attention soldier needs... used to calculate recovery time
@@ -119,7 +119,7 @@ public:
 	/// Gets the soldier's craft.
 	Craft *getCraft() const;
 	/// Sets the soldier's craft.
-	void setCraft(Craft *craft);
+	void setCraft(Craft *craft, bool resetCustomDeployment = false);
 	/// Gets the soldier's Covert Operation.
 	CovertOperation* getCovertOperation() const { return _covertOperation; };
 	/// Sets the soldier's Covert Operation.
@@ -142,6 +142,8 @@ public:
 	int getMissions() const;
 	/// Gets the soldier's kills.
 	int getKills() const;
+	/// Gets the soldier's stuns.
+	int getStuns() const;
 	/// Gets the soldier's gender.
 	SoldierGender getGender() const;
 	/// Sets the soldier's gender.
@@ -162,6 +164,8 @@ public:
 	void addMissionCount();
 	/// Add a kill to the counter.
 	void addKillCount(int count);
+	/// Add a stun to the counter.
+	void addStunCount(int count);
 	/// Get pointer to initial stats.
 	UnitStats *getInitStats();
 	/// Get pointer to current stats.
@@ -173,9 +177,9 @@ public:
 	/// Gets the soldier armor.
 	Armor *getArmor() const;
 	/// Sets the soldier armor.
-	void setArmor(Armor *armor);
+	void setArmor(Armor *armor, bool resetCustomDeployment = false);
 	/// Gets the armor layers (sprite names).
-	const std::vector<std::string> getArmorLayers(Armor *customArmor = nullptr) const;
+	const std::vector<std::string>& getArmorLayers(Armor *customArmor = nullptr) const;
 	/// Gets the soldier's original armor (before replacement).
 	Armor *getReplacedArmor() const;
 	/// Backs up the soldier's original armor (before replacement).

@@ -759,6 +759,7 @@ void DebriefingState::init()
 					soldierAlienStuns++;
 				}
 			}
+			(*j)->getGeoscapeSoldier()->addStunCount(soldierAlienStuns);
 
 			if (aliensKilled != 0 && aliensKilled == soldierAlienKills && _missionStatistics->success == true && aliensStunned == soldierAlienStuns)
 			{
@@ -1592,7 +1593,7 @@ void DebriefingState::prepareDebriefing()
 					soldier->setTransformedArmor(0);
 
 					(*j)->getStatistics()->KIA = true;
-					save->killSoldier(_game->getMod(), soldier); // in case we missed the soldier death on battlescape
+					save->killSoldier(true, soldier); // in case we missed the soldier death on battlescape
 				}
 				else if (evacObj) //friendly vip case
 				{
@@ -1615,11 +1616,17 @@ void DebriefingState::prepareDebriefing()
 			{
 				if ((*j)->killedBy() == FACTION_PLAYER)
 				{
-					addStat("STR_CIVILIANS_KILLED_BY_XCOM_OPERATIVES", 1, -value - (2 * (value / 3)));
+					if (!(*j)->isCosmetic())
+					{
+						addStat("STR_CIVILIANS_KILLED_BY_XCOM_OPERATIVES", 1, -(*j)->getValue() - (2 * ((*j)->getValue() / 3)));
+					}
 				}
 				else // if civilians happen to kill themselves XCOM shouldn't get penalty for it
 				{
-					addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -value);
+					if (!(*j)->isCosmetic())
+					{
+						addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -(*j)->getValue());
+					}
 				}
 			}
 		}
@@ -1717,7 +1724,7 @@ void DebriefingState::prepareDebriefing()
 							soldier->setTransformedArmor(0);
 
 							(*j)->getStatistics()->MIA = true;
-							save->killSoldier(_game->getMod(), soldier);
+							save->killSoldier(true, soldier);
 						}
 					}
 				}
@@ -1762,14 +1769,14 @@ void DebriefingState::prepareDebriefing()
 				// if mission fails, all civilians die
 				if ((aborted && !success) || playersSurvived == 0)
 				{
-					if (!(*j)->isResummonedFakeCivilian())
+					if (!(*j)->isResummonedFakeCivilian() && !(*j)->isCosmetic())
 					{
 						addStat("STR_CIVILIANS_KILLED_BY_ALIENS", 1, -value);
 					}
 				}
 				else
 				{
-					if (!(*j)->isResummonedFakeCivilian())
+					if (!(*j)->isResummonedFakeCivilian() && !(*j)->isCosmetic())
 					{
 						addStat("STR_CIVILIANS_SAVED", 1, value);
 					}
@@ -2320,6 +2327,9 @@ void DebriefingState::prepareDebriefing()
 		// Increase counters
 		save->increaseCustomCounter(ruleDeploy->getCounterSuccess());
 		save->increaseCustomCounter(ruleDeploy->getCounterAll());
+		// Decrease counters
+		save->decreaseCustomCounter(ruleDeploy->getDecreaseCounterSuccess());
+		save->decreaseCustomCounter(ruleDeploy->getDecreaseCounterAll());
 
 		// Generate a success event
 		_eventToSpawn = _game->getMod()->getEvent(ruleDeploy->chooseSuccessEvent());
@@ -2333,6 +2343,9 @@ void DebriefingState::prepareDebriefing()
 		// Increase counters
 		save->increaseCustomCounter(ruleDeploy->getCounterFailure());
 		save->increaseCustomCounter(ruleDeploy->getCounterAll());
+		// Decrease counters
+		save->decreaseCustomCounter(ruleDeploy->getDecreaseCounterFailure());
+		save->decreaseCustomCounter(ruleDeploy->getDecreaseCounterAll());
 
 		// Generate a failure event
 		_eventToSpawn = _game->getMod()->getEvent(ruleDeploy->chooseFailureEvent());

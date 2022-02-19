@@ -34,7 +34,7 @@ Unit::Unit(const std::string &type) :
 	_moraleLossWhenKilled(100), _moveSound(-1), _intelligence(0), _aggression(0),
 	_spotter(0), _sniper(0), _energyRecovery(30), _specab(SPECAB_NONE), _livingWeapon(false),
 	_psiWeapon("ALIEN_PSI_WEAPON"), _capturable(true), _canSurrender(false), _autoSurrender(false),
-	_isLeeroyJenkins(false), _waitIfOutsideWeaponRange(false), _pickUpWeaponsMoreActively(-1), _vip(false),
+	_isLeeroyJenkins(false), _waitIfOutsideWeaponRange(false), _pickUpWeaponsMoreActively(-1), _vip(false), _cosmetic(false), _ignoredByAI(false),
 	_canPanic(true), _canBeMindControlled(true), _berserkChance(33)
 {
 }
@@ -103,6 +103,8 @@ void Unit::load(const YAML::Node &node, Mod *mod)
 	_altRecoveredUnit = node["altRecoveredUnit"].as<std::string>(_altRecoveredUnit);
 	_specialObjectiveType = node["specialObjectiveType"].as<std::string>(_specialObjectiveType); //FtA way to specify units
 	_vip = node["vip"].as<bool>(_vip); //OXCE variant
+	_cosmetic = node["cosmetic"].as<bool>(_cosmetic);
+	_ignoredByAI = node["ignoredByAI"].as<bool>(_ignoredByAI);
 	_canPanic = node["canPanic"].as<bool>(_canPanic);
 	_canBeMindControlled = node["canBeMindControlled"].as<bool>(_canBeMindControlled);
 	_berserkChance = node["berserkChance"].as<int>(_berserkChance);

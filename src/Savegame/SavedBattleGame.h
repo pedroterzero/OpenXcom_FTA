@@ -22,6 +22,7 @@
 #include <yaml-cpp/yaml.h>
 #include "Tile.h"
 #include "../Mod/AlienDeployment.h"
+#include "../Mod/RuleCraft.h"
 
 namespace OpenXcom
 {
@@ -41,11 +42,13 @@ class BattleUnit;
 class Mod;
 class State;
 class ItemContainer;
+class Craft;
 class RuleItem;
 class AlienDeployment;
 class Ufo;
 class HitLog;
 enum HitLogEntryType : int;
+struct BattlescapeTally;
 
 /**
  * The battlescape data that gets written to disk when the game is saved.
@@ -61,6 +64,11 @@ public:
 	static void ScriptRegister(ScriptParserBase* parser);
 
 private:
+	bool _isPreview;
+	SDL_Rect _craftPos;
+	int _craftZ;
+	Craft* _craftForPreview;
+	std::vector<Position> _craftTiles;
 	BattlescapeState *_battleState;
 	Mod *_rule;
 	int _mapsize_x, _mapsize_y, _mapsize_z;
@@ -124,7 +132,7 @@ private:
 	void updateAlarm();
 public:
 	/// Creates a new battle save, based on the current generic save.
-	SavedBattleGame(Mod *rule, Language *lang);
+	SavedBattleGame(Mod *rule, Language *lang, bool isPreview = false);
 	/// Cleans up the saved game.
 	~SavedBattleGame();
 	/// Loads a saved battle game from YAML.
@@ -218,6 +226,21 @@ public:
 	int getMapSizeZ() const;
 	/// Gets terrain x*y*z
 	int getMapSizeXYZ() const;
+
+	/// Is this just a craft or base deployment preview?
+	bool isPreview() const { return _isPreview; }
+	/// Sets craft position.
+	void setCraftPos(SDL_Rect craftPos) { _craftPos = craftPos; }
+	/// Sets craft elevation.
+	void setCraftZ(int craftZ) { _craftZ = craftZ; }
+	/// Sets craft for preview.
+	void setCraftForPreview(Craft* craftForPreview) { _craftForPreview = craftForPreview; }
+	/// Gets craft for preview.
+	const Craft* getCraftForPreview() const { return _craftForPreview; }
+	/// Pre-calculate all valid tiles for later use in map drawing.
+	void calculateCraftTiles();
+	/// Gets craft tiles.
+	const std::vector<Position>& getCraftTiles() const { return _craftTiles; }
 
 	/**
 	 * Converts coordinates into a unique index.
@@ -365,6 +388,16 @@ public:
 	int getBughuntMinTurn() const;
 	/// Start first turn of battle.
 	void startFirstTurn();
+	/// Check count of units in different state for craft deployment preview.
+	BattlescapeTally tallyUnitsForPreview();
+	/// Saves the custom craft deployment.
+	void saveCustomCraftDeployment();
+	/// Saves the custom RuleCraft deployment. Invalidates corresponding custom craft deployments.
+	void saveDummyCraftDeployment();
+	/// Does the given craft type have a custom deployment?
+	bool hasCustomDeployment(const RuleCraft* rule) const;
+	/// Gets a custom deployment for the given craft type.
+	const RuleCraftDeployment& getCustomDeployment(const RuleCraft* rule) const;
 	/// Ends the turn.
 	void endTurn();
 	/// Gets animation frame.
@@ -373,6 +406,7 @@ public:
 	void nextAnimFrame();
 	/// Sets debug mode.
 	void setDebugMode();
+	void revealMap();
 	/// Gets debug mode.
 	bool getDebugMode() const;
 	/// Sets bug hunt mode.
@@ -396,8 +430,6 @@ public:
 	void initItem(BattleItem *item, BattleUnit *unit = nullptr);
 	/// Create new item for unit.
 	BattleItem *createItemForUnit(const RuleItem *rule, BattleUnit *unit, bool fixedWeapon = false);
-	/// Create new item for unit.
-	BattleItem *createItemForUnit(const std::string& type, BattleUnit *unit, bool fixedWeapon = false);
 	/// Create new special built-in item for unit.
 	BattleItem *createItemForUnitSpecialBuiltin(const RuleItem *rule, BattleUnit *unit);
 	/// Create new item for tile.
@@ -453,8 +485,12 @@ public:
 	bool isBattlescapeStateBusy() const;
 	/// Sets the pointer to the BattlescapeState.
 	void setBattleState(BattlescapeState *bs);
+
 	/// Is CTRL pressed?
 	bool isCtrlPressed(bool considerTouchButtons = false) const;
+	/// Is SHIFT pressed?
+	bool isShiftPressed(bool considerTouchButtons = false) const;
+
 	/// Gets the highest ranked, living XCom unit.
 	BattleUnit* getHighestRankedXCom();
 	/// Gets the morale modifier for the unit passed to this function.

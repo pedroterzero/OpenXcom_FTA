@@ -131,6 +131,7 @@
 #include "../Mod/RuleGlobe.h"
 #include "../Engine/Exception.h"
 #include "../Mod/AlienDeployment.h"
+#include "../Mod/AlienRace.h"
 #include "../Mod/RuleInterface.h"
 #include "../Mod/RuleVideo.h"
 #include "../FTA/MasterMind.h"
@@ -484,9 +485,9 @@ GeoscapeState::GeoscapeState() : _pause(false), _zoomInEffectDone(false), _zoomO
 		countryList.push_back("All countries");
 		for (auto c : *_game->getSavedGame()->getCountries())
 		{
-			countryList.push_back(c->getRules()->getType());
+			countryList.push_back(tr(c->getRules()->getType()));
 		}
-		_cbxCountry->setOptions(countryList, true);
+		_cbxCountry->setOptions(countryList, false);
 		_cbxCountry->setVisible(false);
 		_cbxCountry->onChange((ActionHandler)&GeoscapeState::cbxCountryChange);
 	}
@@ -1171,7 +1172,7 @@ void GeoscapeState::time5Seconds()
 					{
 						if ((*k)->getCraft() == (*j))
 						{
-							k = _game->getSavedGame()->killSoldier(_game->getMod(), *k);
+							k = _game->getSavedGame()->killSoldier(true, *k);
 						}
 						else
 						{
@@ -1736,7 +1737,14 @@ void GeoscapeState::baseHunting()
 								AlienMission *mission = new AlienMission(rule);
 								mission->setRegion(_game->getSavedGame()->locateRegion(*(*ab))->getRules()->getType(), *_game->getMod());
 								mission->setId(_game->getSavedGame()->getId("ALIEN_MISSIONS"));
-								mission->setRace((*ab)->getAlienRace());
+								if (!(*ab)->getDeployment()->isHuntMissionRaceFromAlienBase() && rule.hasRaceWeights())
+								{
+									mission->setRace(rule.generateRace(_game->getSavedGame()->getMonthsPassed()));
+								}
+								else
+								{
+									mission->setRace((*ab)->getAlienRace());
+								}
 								mission->setAlienBase((*ab));
 								int targetZone = -1;
 								if (mission->getRules().getObjective() == OBJECTIVE_SITE)
@@ -1817,6 +1825,10 @@ bool GeoscapeState::processMissionSite(MissionSite *site)
 		_game->getSavedGame()->increaseCustomCounter(site->getDeployment()->getCounterDespawn());
 		_game->getSavedGame()->increaseCustomCounter(site->getDeployment()->getCounterFailure()); // despawn is also a type of failure
 		_game->getSavedGame()->increaseCustomCounter(site->getDeployment()->getCounterAll());
+		// Decrease counters
+		_game->getSavedGame()->decreaseCustomCounter(site->getDeployment()->getDecreaseCounterDespawn());
+		_game->getSavedGame()->decreaseCustomCounter(site->getDeployment()->getDecreaseCounterFailure()); // despawn is also a type of failure
+		_game->getSavedGame()->decreaseCustomCounter(site->getDeployment()->getDecreaseCounterAll());
 
 		// Generate a despawn event
 		auto eventRules = _game->getMod()->getEvent(site->getDeployment()->chooseDespawnEvent());
@@ -2260,6 +2272,10 @@ void GeoscapeState::time1Hour()
 		{
 			postpone = true;
 			(*i)->setDetected(true);
+			if ((*i)->getSecondsRemaining() < 3600)
+			{
+				(*i)->setSecondsRemaining(3600); // minimum 1 hour since detection
+			}
 			popup(new MissionDetectedState(*i, this));
 			break; // only one popup per hour!
 		}
@@ -2351,7 +2367,14 @@ void GenerateSupplyMission::operator()(AlienBase *base) const
 			}
 			mission->setRegion(targetRegion, _mod);
 			mission->setId(_save.getId("ALIEN_MISSIONS"));
-			mission->setRace(base->getAlienRace());
+			if (!base->getDeployment()->isGenMissionRaceFromAlienBase() && rule.hasRaceWeights())
+			{
+				mission->setRace(rule.generateRace(_save.getMonthsPassed()));
+			}
+			else
+			{
+				mission->setRace(base->getAlienRace());
+			}
 			mission->setAlienBase(base);
 			int targetZone = -1;
 			if (mission->getRules().getObjective() == OBJECTIVE_SITE)
@@ -3792,6 +3815,11 @@ void GeoscapeState::determineAlienMissions()
 					alienBase->setStartMonth(month);
 				}
 				alienBase->setDeployment(upgrade);
+				auto* upgradeRace = mod->getAlienRace(upgrade->getUpgradeRace(), false);
+				if (upgradeRace)
+				{
+					alienBase->setAlienRace(upgradeRace->getId());
+				}
 			}
 		}
 	}

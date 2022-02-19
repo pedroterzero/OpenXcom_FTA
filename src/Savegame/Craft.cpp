@@ -45,6 +45,35 @@
 #include "SerializationHelper.h"
 #include "../Engine/Logger.h"
 
+namespace YAML
+{
+	template<>
+	struct convert<OpenXcom::VehicleDeploymentData>
+	{
+		static Node encode(const OpenXcom::VehicleDeploymentData& rhs)
+		{
+			Node node;
+			node["type"] = rhs.type;
+			node["pos"] = rhs.pos;
+			node["dir"] = rhs.dir;
+			//node["used"] = rhs.used; // not needed
+			return node;
+		}
+
+		static bool decode(const Node& node, OpenXcom::VehicleDeploymentData& rhs)
+		{
+			if (!node.IsMap())
+				return false;
+
+			rhs.type = node["type"].as<std::string>(rhs.type);
+			rhs.pos = node["pos"].as<OpenXcom::Position>(rhs.pos);
+			rhs.dir = node["dir"].as<int>(rhs.dir);
+			//rhs.used = node["used"].as<bool>(rhs.used); // not needed
+			return true;
+		}
+	};
+}
+
 namespace OpenXcom
 {
 
@@ -248,6 +277,14 @@ void Craft::load(const YAML::Node &node, const ScriptGlobal *shared, const Mod *
 	_pilots = node["pilots"].as< std::vector<int> >(_pilots);
 	_scientists = node["scientists"].as<int>(_scientists);
 	_engineers = node["engineers"].as<int>(_engineers);
+	if (const YAML::Node& customSoldierDeployment = node["customSoldierDeployment"])
+	{
+		_customSoldierDeployment = customSoldierDeployment.as< std::map<int, SoldierDeploymentData> >();
+	}
+	if (const YAML::Node& customVehicleDeployment = node["customVehicleDeployment"])
+	{
+		_customVehicleDeployment = customVehicleDeployment.as< std::vector<VehicleDeploymentData> >();
+	}
 	_skinIndex = node["skinIndex"].as<int>(_skinIndex);
 	if (_skinIndex > _rules->getMaxSkinIndex())
 	{
@@ -355,6 +392,14 @@ YAML::Node Craft::save(const ScriptGlobal *shared) const
 	}
 	node["scientists"] = _scientists;
 	node["engineers"] = _engineers;
+	if (!_customSoldierDeployment.empty())
+	{
+		node["customSoldierDeployment"] = _customSoldierDeployment;
+	}
+	if (!_customVehicleDeployment.empty())
+	{
+		node["customVehicleDeployment"] = _customVehicleDeployment;
+	}
 	if (_skinIndex != 0)
 		node["skinIndex"] = _skinIndex;
 
@@ -1824,6 +1869,40 @@ int Craft::getHunterKillerAttraction(int huntMode) const
 int Craft::getSkinSprite() const
 {
 	return getRules()->getSprite(_skinIndex);
+}
+
+/**
+ * Does this craft have a custom deployment set?
+ */
+bool Craft::hasCustomDeployment() const
+{
+	return !_customSoldierDeployment.empty() || !_customVehicleDeployment.empty();
+}
+
+/**
+ * Resets the craft's custom deployment.
+ */
+void Craft::resetCustomDeployment()
+{
+	if (!_customSoldierDeployment.empty())
+	{
+		_customSoldierDeployment.clear();
+	}
+	if (!_customVehicleDeployment.empty())
+	{
+		_customVehicleDeployment.clear();
+	}
+}
+
+/**
+ * Resets the craft's custom deployment of vehicles temp variables.
+ */
+void Craft::resetTemporaryCustomVehicleDeploymentFlags()
+{
+	for (auto& depl : _customVehicleDeployment)
+	{
+		depl.used = false;
+	}
 }
 
 /**
