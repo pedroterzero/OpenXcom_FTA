@@ -280,7 +280,7 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 			//generate missions and events
 			factionMissionGenerator(engine);
 
-			if (!_rule->getFactionalEvents().empty())
+			if (!_rule->getUsualEventScripts().empty())
 			{
 				for (auto& s : _rule->getUsualEventScripts())
 				{
