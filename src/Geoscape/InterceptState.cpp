@@ -20,6 +20,7 @@
 #include <sstream>
 #include "../Engine/Game.h"
 #include "../Mod/Mod.h"
+#include "../FTA/MasterMind.h"
 #include "../Engine/LocalizedText.h"
 #include "../Interface/TextButton.h"
 #include "../Interface/Window.h"
@@ -243,7 +244,8 @@ InterceptState::InterceptState(Globe *globe, bool useCustomSound, Base *base, Ta
 
 				if (Options::oxceInterceptGuiMaintenanceTimeHidden == 2 || (*j)->getStatus() == "STR_REPAIRS")
 				{
-					maintenanceHours += (*j)->calcRepairTime();
+					int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
+					maintenanceHours += (*j)->calcRepairTime(bonus);
 				}
 				if (Options::oxceInterceptGuiMaintenanceTimeHidden == 2 || (*j)->getStatus() == "STR_REFUELLING")
 				{

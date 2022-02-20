@@ -1203,13 +1203,13 @@ void Craft::consumeFuel(int escortSpeed)
  * Returns how long in hours until the
  * craft is repaired.
  */
-unsigned int Craft::calcRepairTime()
+unsigned int Craft::calcRepairTime(int bonus)
 {
 	unsigned int repairTime = 0;
 
 	if (_damage > 0)
 	{
-		repairTime = (int)ceil((double)_damage / _rules->getRepairRate());
+		repairTime = (int)ceil((double)_damage / ((_rules->getRepairRate() * bonus)) / 100);
 	}
 	return repairTime;
 }

@@ -231,7 +231,7 @@ public:
 	/// Consumes the craft's fuel.
 	void consumeFuel(int escortSpeed);
 	/// Calculates the time to repair
-	unsigned int calcRepairTime();
+	unsigned int calcRepairTime(int bonus);
 	/// Calculates the time to refuel
 	unsigned int calcRefuelTime();
 	/// Calculates the time to rearm
