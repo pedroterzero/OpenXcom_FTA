@@ -1160,7 +1160,7 @@ void DiplomacySellState::updateItemStrings()
 	_lstItems->setCellText(_sel, 2, ss.str());
 	ss2 << getRow().qtySrc - getRow().amount;
 	_lstItems->setCellText(_sel, 1, ss2.str());
-	_txtSales->setText(tr("STR_VALUE_OF_SALES").arg(Unicode::formatFunding(_total)));
+	_txtSales->setText(tr("STR_VALUE_OF_SALES_LC").arg(Unicode::formatFunding(_total)));
 
 	if (getRow().amount > 0)
 	{
