@@ -2541,6 +2541,20 @@ void GeoscapeState::time1Day()
 		}
 	}
 
+	// ... and daily loyalty nerfing
+	if (RNG::percent(50))
+	{
+		int loyalty = _game->getSavedGame()->getLoyalty();
+		if (loyalty > 20)
+		{
+			_game->getSavedGame()->setLoyalty(loyalty - RNG::generate(1, 3));
+		}
+		else if (loyalty < -20)
+		{
+			_game->getSavedGame()->setLoyalty(loyalty + RNG::generate(1, 2));
+		}
+	}
+
 	// check and interrupt alien missions if necessary (based on discovered research)
 	for (auto am : saveGame->getAlienMissions())
 	{
