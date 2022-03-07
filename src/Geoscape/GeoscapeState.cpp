@@ -2542,7 +2542,7 @@ void GeoscapeState::time1Day()
 	}
 
 	// ... and daily loyalty nerfing
-	if (RNG::percent(50))
+	if (RNG::percent(40))
 	{
 		int loyalty = _game->getSavedGame()->getLoyalty();
 		if (loyalty > 20)
