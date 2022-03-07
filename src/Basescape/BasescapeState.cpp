@@ -26,6 +26,7 @@
 #include "../Interface/TextButton.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextEdit.h"
+#include "../FTA/MasterMind.h"
 #include "BaseView.h"
 #include "MiniBaseView.h"
 #include "../Savegame/SavedGame.h"
@@ -236,7 +237,10 @@ void BasescapeState::init()
 	_txtFunds->setText(tr("STR_FUNDS").arg(Unicode::formatFunding(_game->getSavedGame()->getFunds())));
 	if (_game->getMod()->getIsFTAGame() && _game->getSavedGame()->isResearched("STR_LOYALTY"))
 	{
-		_txtLoyalty->setText(tr("STR_LOYALTY_RATING").arg(_game->getSavedGame()->getLoyalty()));
+		std::ostringstream ss;
+		ss << tr("STR_LOYALTY_RATING").arg(_game->getSavedGame()->getLoyalty()) <<  " (" << _game->getMasterMind()->getLoyaltyPerformanceBonus() - 100 << "%)";
+		_txtLoyalty->setText(ss.str());
+		//_txtLoyalty->setText(tr("STR_LOYALTY_RATING").arg(_game->getSavedGame()->getLoyalty()));
 	}
 	else
 	{
