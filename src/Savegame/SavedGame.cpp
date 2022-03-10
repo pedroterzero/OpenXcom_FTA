@@ -1733,6 +1733,7 @@ void SavedGame::addFinishedResearch(const RuleResearch * research, const Mod * m
 			if (score)
 			{
 				addResearchScore(currentQueueItem->getPoints());
+				setLoyalty(getLoyalty() + (score * mod->getLoyaltyCoefResearch() / 100));
 			}
 			// process "disables"
 			for (auto& dis : currentQueueItem->getDisabled())
