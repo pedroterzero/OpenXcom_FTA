@@ -187,6 +187,7 @@ void NewGameState::btnOkClick(Action *)
 	save->setDifficulty(diff);
 	save->setIronman(_btnIronman->getPressed());
 	_game->setSavedGame(save);
+	save->setGamePtr(_game);
 	const Mod* mod = _game->getMod();
 
 	GeoscapeState* gs = new GeoscapeState;

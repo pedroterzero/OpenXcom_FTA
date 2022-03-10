@@ -32,6 +32,8 @@
 #include "../Engine/Options.h"
 #include "../Engine/CrossPlatform.h"
 #include "../Engine/ScriptBind.h"
+#include "../Engine/Game.h"
+#include "../FTA/MasterMind.h"
 #include "SavedBattleGame.h"
 #include "SerializationHelper.h"
 #include "GameTime.h"
@@ -71,6 +73,8 @@
 
 namespace OpenXcom
 {
+/// Initializes static member
+Game *SavedGame::_game = 0;
 
 const std::string SavedGame::AUTOSAVE_GEOSCAPE = "_autogeo_.asav",
 				  SavedGame::AUTOSAVE_BATTLESCAPE = "_autobattle_.asav",
@@ -1733,7 +1737,7 @@ void SavedGame::addFinishedResearch(const RuleResearch * research, const Mod * m
 			if (score)
 			{
 				addResearchScore(currentQueueItem->getPoints());
-				setLoyalty(getLoyalty() + (score * mod->getLoyaltyCoefResearch() / 100));
+				_game->getMasterMind()->updateLoyalty(score, XCOM_RESEARCH);
 			}
 			// process "disables"
 			for (auto& dis : currentQueueItem->getDisabled())

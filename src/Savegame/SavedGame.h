@@ -35,7 +35,9 @@
 namespace OpenXcom
 {
 
+class Game;
 class Mod;
+class MasterMind;
 class GameTime;
 class Country;
 class Base;
@@ -115,7 +117,10 @@ struct PromotionInfo
  */
 class SavedGame
 {
-public:
+  protected:
+	static Game *_game;
+
+  public:
 	Country *debugCountry = nullptr;
 	Region *debugRegion = nullptr;
 	int debugType = 0;
@@ -227,6 +232,8 @@ public:
 	bool isFtAGame() const { return _ftaGame; };
 	/// Sets if the game is FtA game.
 	void setFtAGame(bool ftaGame) { _ftaGame = ftaGame; };
+	/// Sets game object pointer
+	static void setGamePtr(Game *game) { _game = game; };
 	/// Gets the current funds.
 	int64_t getFunds() const;
 	/// Gets the list of funds from previous months.

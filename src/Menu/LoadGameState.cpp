@@ -186,6 +186,7 @@ void LoadGameState::think()
 					origBattleState->resetPalettes();
 				}
 				_game->setState(new GeoscapeState);
+				s->setGamePtr(_game);
 				if (_game->getSavedGame()->getSavedBattle() != 0)
 				{
 					_game->getSavedGame()->getSavedBattle()->loadMapResources(_game->getMod());

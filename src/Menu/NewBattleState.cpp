@@ -396,6 +396,7 @@ void NewBattleState::load(const std::string &filename)
 				}
 
 				_game->setSavedGame(save);
+				save->setGamePtr(_game);
 			}
 			else
 			{
@@ -524,6 +525,7 @@ void NewBattleState::initSave()
 	}
 
 	_game->setSavedGame(save);
+	save->setGamePtr(_game);
 	cbxMissionChange(0);
 }
 
