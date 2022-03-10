@@ -181,7 +181,7 @@ std::string CovertOperation::getTimeLeftName()
 	if (time > 45 * 24)
 		return ("STR_SEVERAL_MONTHS");
 	else if (time > 20 * 24)
-		return ("STR_MONTH");
+		return ("STR_A_MONTH");
 	else if (time > 10 * 24)
 		return ("STR_SEVERAL_WEEKS");
 	else if (time > 6 * 24)
