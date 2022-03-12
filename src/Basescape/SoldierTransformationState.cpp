@@ -167,6 +167,14 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 		_txtCost->setY(_txtCost->getY() - 24);
 	}
 
+	if (_transformationRule->getRequiredItems().empty())
+	{
+		_txtTransferTime->setY(_txtTransferTime->getY() + 24);
+		_txtRecoveryTime->setY(_txtRecoveryTime->getY() + 24);
+		_txtCost->setY(_txtCost->getY() + 24);
+		_txtDescription->setHeight(_txtDescription->getHeight() + 24);
+	}
+
 	initTransformationData();
 }
 
@@ -238,15 +246,18 @@ void SoldierTransformationState::initTransformationData()
 	{
 		_txtTransferTime->setVisible(false);
 		_txtRecoveryTime->setX(_txtRecoveryTime->getX() - 152);
-		if (_transformationRule->getRecoveryTime() <= 0)
+		if (_transformationRule->getRecoveryTime() == 0)
 		{
-			_txtRecoveryTime->setVisible(false);
 			_txtCost->setY(_txtCost->getY() - 10);
 		}
 	}
 	if (_transformationRule->getCost() == 0)
 	{
 		_txtCost->setVisible(false);
+	}
+	if (_transformationRule->getRecoveryTime() == 0)
+	{
+		_txtRecoveryTime->setVisible(false);
 	}
 
 	const std::map<std::string, int> & requiredItems(_transformationRule->getRequiredItems());
@@ -270,7 +281,13 @@ void SoldierTransformationState::initTransformationData()
 			row++;
 		}
 	}
-	
+	else
+	{
+		_txtRequiredItems->setVisible(false);
+		_txtItemNameColumn->setVisible(false);
+		_txtUnitRequiredColumn->setVisible(false);
+		_txtUnitAvailableColumn->setVisible(false);
+	}
 
 	_btnStart->setVisible(transformationPossible);
 
