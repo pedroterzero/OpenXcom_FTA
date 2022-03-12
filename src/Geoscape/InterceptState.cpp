@@ -243,8 +243,7 @@ InterceptState::InterceptState(Globe *globe, bool useCustomSound, Base *base, Ta
 
 				if (Options::oxceInterceptGuiMaintenanceTimeHidden == 2 || (*j)->getStatus() == "STR_REPAIRS")
 				{
-					//int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
-					maintenanceHours += (*j)->calcRepairTime(100);
+					maintenanceHours += (*j)->calcRepairTime();
 				}
 				if (Options::oxceInterceptGuiMaintenanceTimeHidden == 2 || (*j)->getStatus() == "STR_REFUELLING")
 				{
