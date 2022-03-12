@@ -214,6 +214,8 @@ public:
 	void updateSoldierInfo(bool checkFOV = true);
 	/// Updates the special/psi/skill button display based on the battle unit
 	void updateUiButton(const BattleUnit* battleUnit);
+	/// Updates the visible unit indicators. Used for LoS Preview.
+	void updateVisibleUnits(std::vector<BattleUnit *> *units);
 	/// Animates map objects on the map, also smoke,fire, ...
 	void animate();
 	/// Handles the battle game state.
