@@ -231,13 +231,13 @@ public:
 	/// Consumes the craft's fuel.
 	void consumeFuel(int escortSpeed);
 	/// Calculates the time to repair
-	unsigned int calcRepairTime(int bonus);
+	unsigned int calcRepairTime();
 	/// Calculates the time to refuel
 	unsigned int calcRefuelTime();
 	/// Calculates the time to rearm
 	unsigned int calcRearmTime();
 	/// Repairs the craft.
-	void repair(int bonus = 100);
+	void repair();
 	/// Refuels the craft.
 	std::string refuel();
 	/// Rearms the craft.

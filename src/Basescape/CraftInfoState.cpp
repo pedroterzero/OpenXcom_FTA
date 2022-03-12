@@ -21,7 +21,6 @@
 #include <sstream>
 #include "../Engine/Game.h"
 #include "../Mod/Mod.h"
-#include "../FTA/MasterMind.h"
 #include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Engine/Unicode.h"
@@ -214,7 +213,7 @@ void CraftInfoState::init()
 	firlsLine << tr("STR_DAMAGE_UC_").arg(Unicode::formatPercentage(_craft->getDamagePercentage()));
 	if (_craft->getStatus() == "STR_REPAIRS" && _craft->getDamage() > 0)
 	{
-		int damageHours = (int)ceil((double)_craft->getDamage() / ((_craft->getRules()->getRepairRate() * _game->getMasterMind()->getLoyaltyPerformanceBonus()) / 100));
+		int damageHours = (int)ceil((double)_craft->getDamage() / _craft->getRules()->getRepairRate());
 		firlsLine << formatTime(damageHours);
 	}
 	_txtDamage->setText(firlsLine.str());

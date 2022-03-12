@@ -2137,8 +2137,7 @@ void GeoscapeState::time1Hour()
 		{
 			if ((*j)->getStatus() == "STR_REPAIRS")
 			{
-				int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
-				(*j)->repair(bonus);
+				(*j)->repair();
 			}
 			else if ((*j)->getStatus() == "STR_REARMING")
 			{
@@ -2183,7 +2182,16 @@ void GeoscapeState::time1Hour()
 		std::map<Production*, productionProgress_e> toRemove;
 		for (std::vector<Production*>::const_iterator j = (*i)->getProductions().begin(); j != (*i)->getProductions().end(); ++j)
 		{
-			int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
+			int rating = _game->getMasterMind()->getLoyaltyPerformanceBonus();
+			int bonus = 0;
+			if (rating > 100 && RNG::percent(rating - 100))
+			{
+				bonus = 1;
+			}
+			if (rating < 100 && RNG::percent(100 - rating))
+			{
+				bonus = -1;
+			}
 			toRemove[(*j)] = (*j)->step((*i), _game->getSavedGame(), _game->getMod(), _game->getLanguage(), bonus);
 		}
 		for (std::map<Production*, productionProgress_e>::iterator j = toRemove.begin(); j != toRemove.end(); ++j)
@@ -4361,7 +4369,16 @@ void GeoscapeState::handleResearch(Base* base)
 	std::vector<ResearchProject*> finished;
 	for (ResearchProject* project : base->getResearch())
 	{
-		int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
+		int rating = _game->getMasterMind()->getLoyaltyPerformanceBonus();
+		int bonus = 0;
+		if (rating > 100 && RNG::percent(rating - 100))
+		{
+			bonus = 1;
+		}
+		if (rating < 100 && RNG::percent(100 - rating))
+		{
+			bonus = -1;
+		}
 		if (project->step(bonus))
 		{
 			finished.push_back(project);

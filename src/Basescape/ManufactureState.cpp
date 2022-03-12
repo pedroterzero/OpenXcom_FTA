@@ -21,7 +21,6 @@
 #include "../Engine/Action.h"
 #include "../Engine/Game.h"
 #include "../Mod/Mod.h"
-#include "../FTA/MasterMind.h"
 #include "../Engine/LocalizedText.h"
 #include "../Engine/Unicode.h"
 #include "../Interface/TextButton.h"
@@ -208,8 +207,7 @@ void ManufactureState::fillProductionList(size_t scrl)
 		}
 		else if ((*iter)->getAssignedEngineers() > 0)
 		{
-			int bonus = _game->getMasterMind()->getLoyaltyPerformanceBonus();
-			int timeLeft = (((*iter)->getAmountTotal() * (*iter)->getRules()->getManufactureTime() - (*iter)->getTimeSpent()) * 100) / bonus;
+			int timeLeft = (*iter)->getAmountTotal() * (*iter)->getRules()->getManufactureTime() - (*iter)->getTimeSpent();
 			int numEffectiveEngineers = (*iter)->getAssignedEngineers();
 			// ensure we round up since it takes an entire hour to manufacture any part of that hour's capacity
 			int hoursLeft = (timeLeft + numEffectiveEngineers - 1) / numEffectiveEngineers;

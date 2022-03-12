@@ -1203,13 +1203,13 @@ void Craft::consumeFuel(int escortSpeed)
  * Returns how long in hours until the
  * craft is repaired.
  */
-unsigned int Craft::calcRepairTime(int bonus)
+unsigned int Craft::calcRepairTime()
 {
 	unsigned int repairTime = 0;
 
 	if (_damage > 0)
 	{
-		repairTime = (int)ceil((double)_damage / ((_rules->getRepairRate() * bonus)) / 100);
+		repairTime = (int)ceil((double)_damage / _rules->getRepairRate());
 	}
 	return repairTime;
 }
@@ -1258,9 +1258,9 @@ unsigned int Craft::calcRearmTime()
  * Repairs the craft's damage every hour
  * while it's docked in the base.
  */
-void Craft::repair(int bonus)
+void Craft::repair()
 {
-	setDamage(_damage - ((_rules->getRepairRate() * bonus) / 100));
+	setDamage(_damage - _rules->getRepairRate());
 	if (_damage <= 0)
 	{
 		_status = "STR_REARMING";
