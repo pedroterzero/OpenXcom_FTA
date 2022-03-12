@@ -56,6 +56,7 @@
 #include "../Mod/Armor.h"
 #include "../Engine/Options.h"
 #include "../Engine/RNG.h"
+#include "../FTA/MasterMind.h"
 #include "InfoboxState.h"
 #include "InfoboxOKState.h"
 #include "CustomBattleMessageState.h"
@@ -830,6 +831,11 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 			if ((*j)->getHealth() <= 0)
 			{
 				int moraleLossModifierWhenKilled = _save->getMoraleLossModifierWhenKilled(victim);
+				int loyaltyFactor = (this->getSave()->getGeoscapeSave()->getGame()->getMasterMind()->getLoyaltyPerformanceBonus() - 100) / 2;
+				if (loyaltyFactor < -10)
+				{
+					loyaltyFactor = -10; // should not be way too much
+				}
 
 				if (murderer)
 				{
@@ -847,7 +853,7 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 					if (victim->getOriginalFaction() == murderer->getOriginalFaction())
 					{
 						// morale loss by friendly fire
-						murderer->moraleChange(-(2000 * moraleLossModifierWhenKilled / modifier / 100));
+						murderer->moraleChange(-(2000 * moraleLossModifierWhenKilled / modifier / 100) + loyaltyFactor);
 					}
 					if (victim->getOriginalFaction() == FACTION_NEUTRAL)
 					{
@@ -877,7 +883,7 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 							{
 								// morale loss by losing a team member (not counting mind-controlled units)
 								int bravery = (*i)->reduceByBravery(10);
-								(*i)->moraleChange(-(modifier * moraleLossModifierWhenKilled * 200 * bravery / loserMod / 100 / 100));
+								(*i)->moraleChange(-(modifier * moraleLossModifierWhenKilled * 200 * bravery / loserMod / 100 / 100) + loyaltyFactor);
 
 								if (victim->getFaction() == FACTION_HOSTILE && murderer)
 								{
