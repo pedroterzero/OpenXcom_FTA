@@ -234,6 +234,8 @@ public:
 	void setFtAGame(bool ftaGame) { _ftaGame = ftaGame; };
 	/// Sets game object pointer
 	static void setGamePtr(Game *game) { _game = game; };
+	/// Gets our game.
+	Game *getGame() { return _game; };
 	/// Gets the current funds.
 	int64_t getFunds() const;
 	/// Gets the list of funds from previous months.
