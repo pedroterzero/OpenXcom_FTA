@@ -2226,6 +2226,7 @@ int BattlescapeGenerator::loadMAP(MapBlock *mapblock, int xoff, int yoff, int zo
 			// mixed = false
 			int index = RNG::generate(0, i->itemList.size() - 1);
 			RuleItem *rule = _game->getMod()->getItem(i->itemList[index], true);
+			std::map<std::string, std::pair<int, int> >::const_iterator prime = mapblock->getItemsFuseTimers()->find((*i).itemList[index]);
 
 			for (int j = 0; j < i->amount; ++j)
 			{
@@ -2247,7 +2248,11 @@ int BattlescapeGenerator::loadMAP(MapBlock *mapblock, int xoff, int yoff, int zo
 					ss << mapblock->getSizeX() << "," << mapblock->getSizeY() << "," << mapblock->getSizeZ() << "]";
 					throw Exception(ss.str());
 				}
-				_save->createItemForTile(rule, _save->getTile(i->position + Position(xoff, yoff, zoff)));
+				BattleItem *item = _save->createItemForTile(rule, _save->getTile(i->position + Position(xoff, yoff, zoff)));
+				if (_game->getMod()->getIsFTAGame() && prime != primeEnd)
+				{
+					item->setFuseTimer(RNG::generate(prime->second.first, prime->second.second));
+				}
 			}
 		}
 	}
