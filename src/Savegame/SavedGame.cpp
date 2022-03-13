@@ -1737,7 +1737,7 @@ void SavedGame::addFinishedResearch(const RuleResearch * research, const Mod * m
 			if (score)
 			{
 				addResearchScore(currentQueueItem->getPoints());
-				_game->getMasterMind()->updateLoyalty(score, XCOM_RESEARCH);
+				_game->getMasterMind()->updateLoyalty(currentQueueItem->getPoints(), XCOM_RESEARCH);
 			}
 			// process "disables"
 			for (auto& dis : currentQueueItem->getDisabled())
