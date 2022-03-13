@@ -2687,18 +2687,23 @@ bool AIModule::validTarget(BattleUnit *target, bool assessDanger, bool includeCi
 	if (target->isOut() ||
 		(assessDanger && target->getTile()->getDangerous()) ||
 		(target->getFaction() != FACTION_PLAYER && target->isIgnoredByAI()) ||
-		target->getFaction() == _unit->getFaction())
+		(target->getFaction() == _unit->getFaction() && !target->isTreatedByAI()))
 	{
 		return false;
 	}
 
 	// ignore units that we don't "know" about...
 	// ... unless we are a sniper and the spotters know about them
-	if (_unit->getFaction() == FACTION_HOSTILE &&
+	if ((_unit->getFaction() == FACTION_HOSTILE && !target->isTreatedByAI()) &&
 		_intelligence < target->getTurnsSinceSpotted() &&
 		(!_unit->isSniper() || !target->getTurnsLeftSpottedForSnipers()))
 	{
 		return false;
+	}
+
+	if (target->isTreatedByAI())
+	{
+		return true;
 	}
 
 	if (includeCivs)

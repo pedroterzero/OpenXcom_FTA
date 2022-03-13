@@ -5438,6 +5438,14 @@ bool BattleUnit::isIgnoredByAI() const
 }
 
 /**
+ * Should this AI unit (alien or civilian) be treated as an enemy by other AI units?
+ */
+bool BattleUnit::isTreatedByAI() const
+{
+	return _unitRules && _unitRules->isTreatedByAI();
+}
+
+/**
  * Disable showing indicators for this unit.
  */
 void BattleUnit::disableIndicators()
