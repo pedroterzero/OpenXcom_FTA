@@ -86,7 +86,7 @@ public:
 	/// Checks if this ResearchProject consumes the corresponding Item when research completes.
 	bool destroyItem() const;
 	/// Checks if this ResearchProject is unavalible for manual research and would be discovered with a special condition (event, mission reward, research bonus or with YS).
-	bool hidden() const { return _hidden; };
+	bool isHidden() const { return _hidden; };
 	/// Gets the list of ResearchProjects unlocked by this research.
 	const std::vector<const RuleResearch*> &getUnlocked() const;
 	/// Gets the list of ResearchProjects disabled by this research.

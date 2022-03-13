@@ -447,7 +447,7 @@ int MasterMind::updateLoyalty(int score, LoyaltySource source)
 		reason = "ALIEN_BASE";
 		break;
 	case OpenXcom::ABSOLUTE_COEF:
-		coef = 1;
+		coef = 100;
 		reason = "ABSOLUTE";
 		break;
 	default:
