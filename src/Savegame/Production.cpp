@@ -129,11 +129,11 @@ productionProgress_e Production::step(Base * b, SavedGame * g, const Mod *m, Lan
 {
 	int done = getAmountProduced();
 	int progress = _engineers;
-	if (bonus > 1)
+	if (bonus > 0)
 	{
 		progress *= 2;
 	}
-	else if (bonus < 1)
+	else if (bonus < 0)
 	{
 		progress = 0;
 	}
