@@ -40,6 +40,7 @@ class BattleItem;
 class Timer;
 class WarningMessage;
 class BattlescapeGame;
+class BattleObject;
 
 /**
  * Battlescape screen which shows the tactical battle.
@@ -62,10 +63,11 @@ private:
 	BattlescapeButton *_btnReserveNone, *_btnReserveSnap, *_btnReserveAimed, *_btnReserveAuto, *_btnReserveKneel, *_btnZeroTUs;
 	InteractiveSurface *_btnLeftHandItem, *_btnRightHandItem;
 	static const int VISIBLE_MAX = 10;
-	std::string _txtVisibleUnitTooltip[VISIBLE_MAX+2];
+	std::string _txtVisibleUnitTooltip[VISIBLE_MAX+3];
 	InteractiveSurface *_btnVisibleUnit[VISIBLE_MAX];
 	NumberText *_numVisibleUnit[VISIBLE_MAX];
 	BattleUnit *_visibleUnit[VISIBLE_MAX];
+	BattleObject *_visibleBattleObject[VISIBLE_MAX]{ 0 };
 	WarningMessage *_warning;
 	Text *_txtName;
 	NumberText *_numTimeUnits, *_numEnergy, *_numHealth, *_numMorale, *_numLayers;
@@ -94,8 +96,8 @@ private:
 	Position _cursorPosition;
 	Uint8 _barHealthColor;
 	int _autosave;
-	int _numberOfDirectlyVisibleUnits, _numberOfEnemiesTotal, _numberOfEnemiesTotalPlusWounded;
-	Uint8 _indicatorTextColor, _indicatorGreen, _indicatorBlue, _indicatorPurple;
+	int _numberOfDirectlyVisibleUnits, _numberOfEnemiesTotal, _numberOfEnemiesTotalPlusWounded, _numberOfUnitsTotal;
+	Uint8 _indicatorTextColor, _indicatorGreen, _indicatorBlue, _indicatorPurple, _indicatorGray;
 	/// Popups a context sensitive list of actions the user can choose from.
 	void handleItemClick(BattleItem *item, bool rightClick);
 	/// Shifts the red colors of the visible unit buttons backgrounds.
