@@ -976,7 +976,7 @@ void TileEngine::calculateTilesInFOV(BattleUnit *unit, const Position eventPos, 
 	else if (unit->isOut())
 	{
 		unit->clearVisibleTiles();
-		// unit->clearVisibleBattleObjects()
+		unit->clearVisibleBattleObjects();
 		return;
 	}
 	Position posSelf = unit->getPosition();
@@ -984,7 +984,7 @@ void TileEngine::calculateTilesInFOV(BattleUnit *unit, const Position eventPos, 
 	{
 		//Asked to do a full check. Or unit within event. Should update all.
 		unit->clearVisibleTiles();
-		// unit->clearVisibleBattleObjects()
+		unit->clearVisibleBattleObjects();
 		skipNarrowArcTest = true;
 	}
 
@@ -1855,6 +1855,7 @@ void TileEngine::calculateFOV(Position position, int eventRadius, const bool upd
 				if (!appendToTileVisibility)
 				{
 					(*i)->clearVisibleTiles();
+					(*i)->clearVisibleBattleObjects();
 				}
 				calculateTilesInFOV((*i), position, eventRadius);
 			}
