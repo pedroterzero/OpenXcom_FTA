@@ -853,7 +853,7 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 					if (victim->getOriginalFaction() == murderer->getOriginalFaction())
 					{
 						// morale loss by friendly fire
-						if (murderer->getOriginalFaction() != FACTION_PLAYER)
+						if (victim->getOriginalFaction() != FACTION_PLAYER)
 						{
 							loyaltyFactor = 0;
 						}
@@ -887,7 +887,7 @@ void BattlescapeGame::checkForCasualties(const RuleDamageType *damageType, Battl
 							{
 								// morale loss by losing a team member (not counting mind-controlled units)
 								int bravery = (*i)->reduceByBravery(10);
-								if (murderer->getOriginalFaction() != FACTION_PLAYER)
+								if (victim->getOriginalFaction() != FACTION_PLAYER)
 								{
 									loyaltyFactor = 0;
 								}
