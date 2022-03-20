@@ -2956,10 +2956,10 @@ BattlescapeTally BattlescapeGame::tallyUnits()
 		//TODO: add handling of stunned units for display purposes in AbortMissionState
 		if (!(*j)->isOut() && (!(*j)->isOutThresholdExceed() || ((*j)->getUnitRules() && (*j)->getUnitRules()->getSpawnUnit())))
 		{
-			bool vip = false;
+			bool ftaVIP = false;
 			if ((*j)->getGeoscapeSoldier() == 0)
 			{
-				vip = (*j)->getUnitRules()->getSpecialObjectiveType() == "STR_FRIENDLY_VIP";
+				ftaVIP = (*j)->getUnitRules()->getSpecialObjectiveType() == "STR_FRIENDLY_VIP" && (*j)->getOriginalFaction() == FACTION_PLAYER;
 			}
 			if ((*j)->getOriginalFaction() == FACTION_HOSTILE)
 			{
@@ -2976,9 +2976,9 @@ BattlescapeTally BattlescapeGame::tallyUnits()
 					tally.liveAliens++;
 				}
 			}
-			else if ((*j)->getOriginalFaction() == FACTION_PLAYER || vip)
+			else if ((*j)->getOriginalFaction() == FACTION_PLAYER || ftaVIP)
 			{
-				if ((*j)->isSummonedPlayerUnit() && !vip) //a little mess with merging OXCE and FtA VIPs =(
+				if ((*j)->isSummonedPlayerUnit() && !ftaVIP) // a little mess with merging OXCE and FtA VIPs =(
 				{
 					if ((*j)->isVIP())
 					{
