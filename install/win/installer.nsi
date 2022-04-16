@@ -258,7 +258,7 @@ Section "$(SETUP_GAME)" SecMain
 
 	SetOutPath "$INSTDIR"
 
-	File "OpenXcomFta.exe"
+	;File "OpenXcomFta.exe"
 	;File "..\..\LICENSE.txt"
 	;File "..\..\CHANGELOG.txt"
 	;File /oname=README.txt "..\..\README.md"
@@ -332,7 +332,7 @@ ${EndIf}
 
         ;Download mod files
  	;(uses inetc.dll)
-	inetc::get "https://github.com/723Studio/X-Com-From-the-Ashes/archive/refs/heads/master.zip" "$TEMP\X-Com-From-the-Ashes.zip" /end
+	inetc::get "https://github.com/723Studio/X-Com-From-the-Ashes/archive/refs/tags/v0.1.0.zip" "$TEMP\X-Com-From-the-Ashes.zip" /end
 	Pop $0
 	StrCmp $0 "OK" 0 download_mod_fail1
 
