@@ -43,7 +43,7 @@ class RuleSkill;
 class BattleScript;
 class RuleTerrain;
 
-enum BattleActionMove { BAM_NORMAL = 0, BAM_RUN = 1, BAM_STRAFE = 2 };
+enum BattleActionMove : char { BAM_NORMAL = 0, BAM_RUN = 1, BAM_STRAFE = 2, BAM_MISSILE = 3 };
 
 struct BattleActionCost : RuleItemUseCost
 {
@@ -168,7 +168,6 @@ private:
 	std::list<BattleState*> _states, _deleted;
 	bool _playerPanicHandled;
 	int _AIActionCounter;
-	int _itemObjectivesNumber;
 	BattleAction _currentAction;
 	bool _AISecondMove, _playedAggroSound;
 	bool _endTurnRequested;
@@ -194,7 +193,7 @@ private:
 	/// Gets valid blocks to process the battlescript command.
 	std::vector<std::pair<int, int>> getValidBlocks(BattleScript* command);
 	/// Spawn units as part of battlescript commands.
-	bool scriptSpawnUnit(BattleScript* command, std::vector<std::pair<int, int> > validBlock);
+	bool scriptSpawnUnit(BattleScript* command);
 	/// Display message fro the battlescript
 	void displayScriptMessage(BattleScript* command);
 public:
@@ -285,7 +284,7 @@ public:
 	/// Returns whether panic has been handled.
 	bool getPanicHandled() const { return _playerPanicHandled; }
 	/// Tries to find an item and pick it up if possible.
-	bool findItem(BattleAction *action, bool pickUpWeaponsMoreActively);
+	bool findItem(BattleAction *action, bool pickUpWeaponsMoreActively, bool& walkToItem);
 	/// Checks through all the items on the ground and picks one.
 	BattleItem *surveyItems(BattleAction *action, bool pickUpWeaponsMoreActively);
 	/// Evaluates if it's worthwhile to take this item.
@@ -298,7 +297,7 @@ public:
 	BattleActionType getReservedAction();
 	/// Tallies the living units, converting them if necessary.
 	bool isSurrendering(BattleUnit* bu);
-	/// Check count of units in diffrent state
+	/// Check count of units in different state
 	BattlescapeTally tallyUnits();
 	bool convertInfected();
 	/// Sets the kneel reservation setting.

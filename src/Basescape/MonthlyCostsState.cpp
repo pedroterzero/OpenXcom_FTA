@@ -130,7 +130,7 @@ MonthlyCostsState::MonthlyCostsState(Base *base) : _base(base)
 	for (std::vector<std::string>::const_iterator i = crafts.begin(); i != crafts.end(); ++i)
 	{
 		RuleCraft *craft = _game->getMod()->getCraft(*i);
-		if (craft->getRentCost() != 0 && _game->getSavedGame()->isResearched(craft->getRequirements()))
+		if (craft->getRentCost() != 0 && (_game->getSavedGame()->isResearched(craft->getRequirements()) || _game->getMod()->getIsFTAGame()))
 		{
 			auto count = _base->getCraftCount(craft);
 			if (count > 0 || craft->forceShowInMonthlyCosts())

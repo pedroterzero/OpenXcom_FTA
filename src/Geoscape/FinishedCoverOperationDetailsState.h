@@ -28,6 +28,7 @@ namespace OpenXcom
 	class TextList;
 	class CovertOperation;
 	class CovertOperationResults;
+	class CommendationLateState;
 
 	/**
 	 * Displays info about complete Covert Operations.
@@ -44,7 +45,7 @@ namespace OpenXcom
 		Text* _txtTooltip;
 		TextButton* _btnOk, * _btnPage;
 		int _pageNumber;
-		bool _hasItems, _hasRep, _hasFunds, _hasScore, _hasSStatus, _hasMessage;
+		bool _hasItems, _hasRep, _hasFunds, _hasScore, _hasSStatus, _hasMessage, _hasMIA;
 		std::string _researchName;
 		CovertOperation* _operation;
 		CovertOperationResults* _results;

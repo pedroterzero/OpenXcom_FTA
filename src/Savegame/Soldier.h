@@ -44,6 +44,7 @@ class SoldierDiary;
 class SavedGame;
 class RuleSoldierTransformation;
 class RuleSoldierBonus;
+class Base;
 struct BaseSumDailyRecovery;
 
 /**
@@ -73,11 +74,11 @@ private:
 	SoldierGender _gender;
 	SoldierLook _look;
 	int _lookVariant;
-	int _missions, _kills;
+	int _missions, _kills, _stuns;
 	int _healthMissing = 0; // amount of health missing until full health recovery, this is less serious than wound recovery.
 	int _manaMissing = 0;   // amount of mana missing until full mana recovery
 	float _recovery = 0.0;  // amount of hospital attention soldier needs... used to calculate recovery time
-	bool _recentlyPromoted, _psiTraining, _training, _returnToTrainingWhenHealed;
+	bool _recentlyPromoted, _psiTraining, _training, _returnToTrainingWhenHealed, _justSaved;
 	ReturnToTrainings _returnToTrainingsWhenOperationOver;
 	Armor *_armor;
 	Armor *_replacedArmor;
@@ -118,7 +119,7 @@ public:
 	/// Gets the soldier's craft.
 	Craft *getCraft() const;
 	/// Sets the soldier's craft.
-	void setCraft(Craft *craft);
+	void setCraft(Craft *craft, bool resetCustomDeployment = false);
 	/// Gets the soldier's Covert Operation.
 	CovertOperation* getCovertOperation() const { return _covertOperation; };
 	/// Sets the soldier's Covert Operation.
@@ -141,6 +142,8 @@ public:
 	int getMissions() const;
 	/// Gets the soldier's kills.
 	int getKills() const;
+	/// Gets the soldier's stuns.
+	int getStuns() const;
 	/// Gets the soldier's gender.
 	SoldierGender getGender() const;
 	/// Sets the soldier's gender.
@@ -161,6 +164,8 @@ public:
 	void addMissionCount();
 	/// Add a kill to the counter.
 	void addKillCount(int count);
+	/// Add a stun to the counter.
+	void addStunCount(int count);
 	/// Get pointer to initial stats.
 	UnitStats *getInitStats();
 	/// Get pointer to current stats.
@@ -172,9 +177,9 @@ public:
 	/// Gets the soldier armor.
 	Armor *getArmor() const;
 	/// Sets the soldier armor.
-	void setArmor(Armor *armor);
+	void setArmor(Armor *armor, bool resetCustomDeployment = false);
 	/// Gets the armor layers (sprite names).
-	const std::vector<std::string> getArmorLayers(Armor *customArmor = nullptr) const;
+	const std::vector<std::string>& getArmorLayers(Armor *customArmor = nullptr) const;
 	/// Gets the soldier's original armor (before replacement).
 	Armor *getReplacedArmor() const;
 	/// Backs up the soldier's original armor (before replacement).
@@ -266,8 +271,12 @@ public:
 	bool isFullyTrained();
 	/// Returns whether the unit is in training or not
 	bool isInTraining();
-	/// set the training status
+	/// Set the training status
 	void setTraining(bool training);
+	/// Returns whether the soldier was just saved
+	bool isJustSaved() { return _justSaved; };
+	/// Set the "Just saved" status - we recover this soldier on battlescape, but not deliverid him/her to the base yet
+	void setJustSaved(bool saved) { _justSaved = saved; };
 	/// Should the soldier return to martial training automatically when fully healed?
 	bool getReturnToTrainingWhenHealed() const;
 	/// Sets whether the soldier should return to martial training automatically when fully healed.
@@ -283,7 +292,7 @@ public:
 	/// Returns whether the unit is eligible for a certain transformation
 	bool isEligibleForTransformation(RuleSoldierTransformation *transformationRule);
 	/// Performs a transformation on this soldier
-	void transform(const Mod *mod, RuleSoldierTransformation *transformationRule, Soldier *sourceSoldier);
+	void transform(const Mod *mod, RuleSoldierTransformation *transformationRule, Soldier *sourceSoldier, Base *base);
 	/// Create pending transformation on this soldier
 	void postponeTransformation(RuleSoldierTransformation* transformationRule);
 	/// Handles pending transformation - reducing timer, performing transformation once finished

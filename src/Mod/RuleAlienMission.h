@@ -65,6 +65,11 @@ struct MissionWave
 	 * The UFO executes a special action based on the mission objective.
 	 */
 	bool objective;
+	/// This wave performs the mission objective in a rectangular (non-point) area.
+	/**
+	 * Make the UFO land on a random landing site (instead of always top left). Make the mission site spawn exactly on the landing site.
+	 */
+	bool objectiveOnTheLandingSite;
 	/// The chance to become a hunter-killer UFO upon spawning.
 	/**
 	 * -1 (default): take the info from RuleUfo
@@ -118,6 +123,8 @@ public:
 	~RuleAlienMission();
 	/// Gets the mission's type.
 	const std::string &getType() const { return _type; }
+	/// Does this mission have raceWeights?
+	bool hasRaceWeights() const;
 	/// Gets a race based on the game time and the racial distribution.
 	std::string generateRace(const size_t monthsPassed) const;
 	/// Loads alien mission data from YAML.
@@ -140,8 +147,12 @@ public:
 	int getRetaliationOdds() const;
 	/// Should the infiltration end after first cycle or continue indefinitely?
 	bool isEndlessInfiltration() const;
+	/// Should the retaliation mission end after the first base defense or continue until all already spawned UFOs disappear?
+	bool isMultiUfoRetaliation() const { return _multiUfoRetaliation; }
 	/// Should the mission site despawn even if targeted?
 	bool despawnEvenIfTargeted() const { return _despawnEvenIfTargeted; }
+	/// Should the spawned alien base be revealed immediately?
+	bool showAlienBase() const { return _showAlienBase; }
 	/// Gets the ID of the research topic that interrupts this mission (if any).
 	const std::string &getInterruptResearch() const { return _interruptResearch; }
 	/// the type of missionSite to spawn (if any)
@@ -179,8 +190,12 @@ private:
 	int _retaliationOdds;
 	/// Should the infiltration end after first cycle or continue indefinitely?
 	bool _endlessInfiltration;
+	/// Should the retaliation mission end after the first base defense or continue until all already spawned UFOs disappear?
+	bool _multiUfoRetaliation;
 	/// Should the mission site despawn even if targeted?
 	bool _despawnEvenIfTargeted;
+	/// Should the spawned alien base be revealed immediately?
+	bool _showAlienBase;
 	/// the research topic that interrupts this mission type (when discovered)
 	std::string _interruptResearch;
 	/// the type of missionSite to spawn (if any)

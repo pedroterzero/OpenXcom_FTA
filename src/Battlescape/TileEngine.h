@@ -89,10 +89,11 @@ private:
 		BattleActionType attackType;
 		double reactionScore;
 		double reactionReduction;
+		int count;
 	};
 
 	SavedBattleGame *_save;
-	std::vector<Uint16> *_voxelData;
+	const std::vector<Uint16> *_voxelData;
 	std::vector<VisibilityBlockCache> _blockVisibility;
 	RuleInventory *_inventorySlotGround;
 	constexpr static int heightFromCenter[11] = {0,-2,+2,-4,+4,-6,+6,-8,+8,-12,+12};
@@ -159,6 +160,8 @@ public:
 	void calculateTilesInFOV(BattleUnit *unit, const Position eventPos = invalid, const int eventRadius = 0);
 	/// Calculates visible units within the field of view. Supply an eventPosition to do an update limited to a small slice of the view sector.
 	bool calculateUnitsInFOV(BattleUnit* unit, const Position eventPos = invalid, const int eventRadius = 0);
+	/// Calculates visible units within a 360 field of view around the originPos. Used for LoS Previews.
+	void calculateUnitsForLoSPreview(std::vector<BattleUnit *> *visibleUnits, BattleUnit *unit, const Position originPos);
 	/// Calculates the field of view from a units view point.
 	bool calculateFOV(BattleUnit *unit, bool doTileRecalc = true, bool doUnitRecalc = true);
 	/// Calculates the field of view within range of a certain position.
@@ -193,8 +196,10 @@ public:
 	int calculateParabolaVoxel(Position origin, Position target, bool storeTrajectory, std::vector<Position> *trajectory, BattleUnit *excludeUnit, double curvature, const Position delta);
 	/// Gets the origin voxel of a unit's eyesight.
 	Position getSightOriginVoxel(BattleUnit *currentUnit);
+	Position getSightOriginVoxel(BattleUnit *currentUnit, Position originPos);
 	/// Checks visibility of a unit on this tile.
 	bool visible(BattleUnit *currentUnit, Tile *tile);
+	bool visible(BattleUnit *currentUnit, Position originPosition, Tile *tile);
 	/// Checks visibility of a tile.
 	bool isTileInLOS(BattleAction *action, Tile *tile);
 	/// Turn XCom soldier's personal lighting on or off.
@@ -230,9 +235,6 @@ public:
 	void itemDropInventory(Tile *t, BattleUnit *unit, bool unprimeItems = false, bool deleteFixedItems = false);
 	/// Move item to other place in inventory or ground.
 	void itemMoveInventory(Tile *t, BattleUnit *unit, BattleItem *item, RuleInventory *slot, int x, int y);
-
-	/// Get inventory slot for ground.
-	RuleInventory *getInvenotrySlotGround() const { return _inventorySlotGround; }
 
 	/// Add moving unit.
 	void addMovingUnit(BattleUnit* unit);

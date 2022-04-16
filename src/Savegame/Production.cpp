@@ -128,7 +128,16 @@ bool Production::haveEnoughMaterialsForOneMoreUnit(Base * b, const Mod *m) const
 productionProgress_e Production::step(Base * b, SavedGame * g, const Mod *m, Language *lang, int bonus)
 {
 	int done = getAmountProduced();
-	_timeSpent += (_engineers * bonus) / 100;
+	int progress = _engineers;
+	if (bonus > 0)
+	{
+		progress *= 2;
+	}
+	else if (bonus < 0)
+	{
+		progress = 0;
+	}
+	_timeSpent += progress;
 
 	if (done < getAmountProduced())
 	{

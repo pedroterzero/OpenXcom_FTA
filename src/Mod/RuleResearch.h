@@ -44,6 +44,8 @@ class RuleResearch
 {
  private:
 	std::string _name, _lookup, _cutscene, _spawnedItem, _spawnedEvent;
+	int _spawnedItemCount;
+	std::vector<std::string> _spawnedItemList;
 	int _cost, _points;
 	std::vector<std::string> _dependenciesName, _unlocksName, _disablesName, _reenablesName, _getOneFreeName, _requiresName;
 	RuleBaseFacilityFunctions _requiresBaseFunc;
@@ -84,7 +86,7 @@ public:
 	/// Checks if this ResearchProject consumes the corresponding Item when research completes.
 	bool destroyItem() const;
 	/// Checks if this ResearchProject is unavalible for manual research and would be discovered with a special condition (event, mission reward, research bonus or with YS).
-	bool hidden() const { return _hidden; };
+	bool isHidden() const { return _hidden; };
 	/// Gets the list of ResearchProjects unlocked by this research.
 	const std::vector<const RuleResearch*> &getUnlocked() const;
 	/// Gets the list of ResearchProjects disabled by this research.
@@ -109,6 +111,10 @@ public:
 	const std::string & getCutscene() const;
 	/// Gets the item to spawn in the base stores when this topic is researched.
 	const std::string & getSpawnedItem() const;
+	/// Gets the number of items to spawn in the base stores when this topic is researched.
+	int getSpawnedItemCount() const { return _spawnedItemCount; }
+	/// Gets the list of items to spawn in the base stores when this topic is researched.
+	const std::vector<std::string>& getSpawnedItemList() const { return _spawnedItemList; }
 	/// Gets the geoscape event to spawn when this topic is researched.
 	const std::string& getSpawnedEvent() const { return _spawnedEvent; }
 };

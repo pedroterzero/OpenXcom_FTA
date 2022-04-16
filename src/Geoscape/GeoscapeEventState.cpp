@@ -34,7 +34,6 @@
 #include "../Mod/RuleSoldier.h"
 #include "../Mod/RuleDiplomacyFaction.h"
 #include "../Savegame/Base.h"
-#include "../Savegame/GeoscapeEvent.h"
 #include "../Savegame/Region.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Soldier.h"
@@ -47,10 +46,10 @@ namespace OpenXcom
 {
 
 /**
-	* Initializes all the elements in the Geoscape Event window.
-	* @param geoEvent Pointer to the event.
-	*/
-GeoscapeEventState::GeoscapeEventState(GeoscapeEvent* geoEvent) : _eventRule(geoEvent->getRules())
+ * Initializes all the elements in the Geoscape Event window.
+ * @param geoEvent Pointer to the event.
+ */
+GeoscapeEventState::GeoscapeEventState(const RuleEvent& eventRule) : _eventRule(eventRule)
 {
 	_screen = false;
 
@@ -353,6 +352,7 @@ void GeoscapeEventState::eventLogic()
 		}
 	}
 
+	std::vector<const RuleResearch*> topicsToCheck;
 	if (!possibilities.empty())
 	{
 		size_t pickResearch = RNG::generate(0, possibilities.size() - 1);
@@ -366,6 +366,7 @@ void GeoscapeEventState::eventLogic()
 		}
 
 		save->addFinishedResearch(eventResearch, mod, hq, true);
+		topicsToCheck.push_back(eventResearch);
 		_researchName = alreadyResearched ? "" : eventResearch->getName();
 
 		if (!eventResearch->getLookup().empty())
@@ -378,6 +379,7 @@ void GeoscapeEventState::eventLogic()
 		if (auto bonus = save->selectGetOneFree(eventResearch))
 		{
 			save->addFinishedResearch(bonus, mod, hq, true);
+			topicsToCheck.push_back(bonus);
 			_bonusResearchName = bonus->getName();
 
 			if (!bonus->getLookup().empty())
@@ -388,7 +390,6 @@ void GeoscapeEventState::eventLogic()
 			}
 		}
 	}
-
 	// 7. Add reputation
 	auto reputationScore = _eventRule.getReputationScore();
 	if (!reputationScore.empty())
@@ -407,6 +408,12 @@ void GeoscapeEventState::eventLogic()
 			}
 		}
 	}
+
+	// Side effects:
+	// 1. remove obsolete research projects from all bases
+	// 2. handle items spawned by research
+	// 3. handle events spawned by research
+	save->handlePrimaryResearchSideEffects(topicsToCheck, mod, hq);
 }
 /**
 	* Spawns custom events based on the chosen button.
@@ -417,7 +424,7 @@ void GeoscapeEventState::spawnCustomEvents(int playerChoice)
 {
 	for (auto eventName : _customAnswers[playerChoice].spawnEvent)
 	{
-		bool success = _game->getMasterMind()->spawnEvent(eventName);
+		bool success = _game->getSavedGame()->spawnEvent(_game->getMod()->getEvent(eventName));
 	}
 }
 /**

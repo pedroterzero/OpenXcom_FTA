@@ -62,7 +62,7 @@ const std::string Armor::NONE = "STR_NONE";
  */
 Armor::Armor(const std::string &type) :
 	_type(type), _infiniteSupply(false), _frontArmor(0), _sideArmor(0), _leftArmorDiff(0), _rearArmor(0), _underArmor(0),
-	_drawingRoutine(0), _drawBubbles(false), _movementType(MT_WALK), _turnBeforeFirstStep(false), _turnCost(1), _moveSound(-1), _size(1), _weight(0),
+	_drawingRoutine(0), _drawBubbles(false), _movementType(MT_WALK), _specab(SPECAB_NONE), _turnBeforeFirstStep(false), _turnCost(1), _moveSound(-1), _size(1), _weight(0),
 	_visibilityAtDark(0), _visibilityAtDay(0), _personalLight(15),
 	_camouflageAtDay(0), _camouflageAtDark(0), _antiCamouflageAtDay(0), _antiCamouflageAtDark(0), _heatVision(0), _psiVision(0), _psiCamouflage(0),
 	_deathFrames(3), _constantAnimation(false), _hasInventory(true), _forcedTorso(TORSO_USE_GENDER),
@@ -82,7 +82,7 @@ Armor::Armor(const std::string &type) :
 	_energyRecovery.setEnergyRecovery();
 	_stunRecovery.setStunRecovery();
 
-	_customArmorPreviewIndex.push_back(0);
+	_customArmorPreviewIndex.push_back(Mod::NO_SURFACE);
 }
 
 /**
@@ -137,6 +137,7 @@ void Armor::load(const YAML::Node &node, const ModScript &parsers, Mod *mod)
 	_drawingRoutine = node["drawingRoutine"].as<int>(_drawingRoutine);
 	_drawBubbles = node["drawBubbles"].as<bool>(_drawBubbles);
 	_movementType = (MovementType)node["movementType"].as<int>(_movementType);
+	_specab = (SpecialAbility)node["specab"].as<int>(_specab);
 
 	_turnBeforeFirstStep = node["turnBeforeFirstStep"].as<bool>(_turnBeforeFirstStep);
 	_turnCost = node["turnCost"].as<int>(_turnCost);
@@ -165,6 +166,8 @@ void Armor::load(const YAML::Node &node, const ModScript &parsers, Mod *mod)
 	_heatVision = node["heatVision"].as<int>(_heatVision);
 	_psiVision = node["psiVision"].as<int>(_psiVision);
 	_psiCamouflage = node["psiCamouflage"].as<int>(_psiCamouflage);
+	_isAlwaysVisible =  node["alwaysVisible"].as<bool>(_isAlwaysVisible);
+
 	_stats.merge(node["stats"].as<UnitStats>(_stats));
 	if (const YAML::Node &dmg = node["damageModifier"])
 	{
@@ -175,7 +178,7 @@ void Armor::load(const YAML::Node &node, const ModScript &parsers, Mod *mod)
 	}
 	mod->loadInts(_type, _loftempsSet, node["loftempsSet"]);
 	if (node["loftemps"])
-		_loftempsSet.push_back(node["loftemps"].as<int>());
+		_loftempsSet = { node["loftemps"].as<int>() };
 	_deathFrames = node["deathFrames"].as<int>(_deathFrames);
 	_constantAnimation = node["constantAnimation"].as<bool>(_constantAnimation);
 	_forcedTorso = (ForcedTorso)node["forcedTorso"].as<int>(_forcedTorso);
@@ -249,6 +252,22 @@ void Armor::load(const YAML::Node &node, const ModScript &parsers, Mod *mod)
  */
 void Armor::afterLoad(const Mod* mod)
 {
+	mod->verifySoundOffset(_type, _moveSound, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _deathSoundMale, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _deathSoundFemale, "BATTLE.CAT");
+
+	mod->verifySoundOffset(_type, _selectUnitSoundMale, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _selectUnitSoundFemale, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _startMovingSoundMale, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _startMovingSoundFemale, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _selectWeaponSoundMale, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _selectWeaponSoundFemale, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _annoyedSoundMale, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _annoyedSoundFemale, "BATTLE.CAT");
+
+	mod->verifySpriteOffset(_type, _customArmorPreviewIndex, "CustomArmorPreviews");
+
+
 	mod->linkRule(_corpseBattle, _corpseBattleNames);
 	mod->linkRule(_corpseGeo, _corpseGeoName);
 	mod->linkRule(_builtInWeapons, _builtInWeaponsNames);
@@ -262,15 +281,16 @@ void Armor::afterLoad(const Mod* mod)
 	mod->linkRule(_specWeapon, _specWeaponName);
 
 
-	if (_corpseBattle.size() != (size_t)getTotalSize())
 	{
-		if (_corpseBattle.size() != 0)
+		auto totalSize = (size_t)getTotalSize();
+
+		mod->checkForSoftError(_corpseBattle.size() != totalSize, _type, "Number of battle corpse items for 'corpseBattle' does not match the armor size.", LOG_ERROR);
+		mod->checkForSoftError(_loftempsSet.size() != totalSize, _type, "Number of defined templates for 'loftempsSet' or 'loftemps' does not match the armor size.", LOG_ERROR);
+
+		auto s = mod->getVoxelData()->size() / 16;
+		for (auto& lof : _loftempsSet)
 		{
-			throw Exception("Number of battle corpse items does not match the armor size.");
-		}
-		else
-		{
-			throw Exception("Missing battle corpse item(s).");
+			mod->checkForSoftError((size_t)lof >= s, _type, "Value " + std::to_string(lof) + " in 'loftempsSet' or 'loftemps' is larger than number of avaiable templates.", LOG_ERROR);
 		}
 	}
 
@@ -284,8 +304,8 @@ void Armor::afterLoad(const Mod* mod)
 
 		if (!numCorpse++)
 		{
-			// only first item need be corpse
-			mod->checkForSoftError(c->getBattleType() != BT_CORPSE, _type, "First Battle corpse item need have corpse item type");
+			// only the first item needs to be a corpse item
+			mod->checkForSoftError(c->getBattleType() != BT_CORPSE, _type, "The first battle corpse item must be of item type 'corpse' (battleType: 11)");
 		}
 		else
 		{
@@ -295,6 +315,47 @@ void Armor::afterLoad(const Mod* mod)
 	if (!_corpseGeo)
 	{
 		throw Exception("Geo corpse item cannot be empty.");
+	}
+
+	// calcualte final surfaces used by layers
+	if (!_layersDefaultPrefix.empty())
+	{
+		std::stringstream ss;
+		for (auto& version : _layersDefinition)
+		{
+			int layerIndex = 0;
+			for (auto& layerItem : version.second)
+			{
+				if (!layerItem.empty())
+				{
+					ss.str("");
+					auto pre = _layersSpecificPrefix.find(layerIndex);
+					if (pre != _layersSpecificPrefix.end())
+					{
+						ss << pre->second;
+					}
+					else
+					{
+						ss << _layersDefaultPrefix;
+					}
+					ss << "__" << layerIndex << "__" << layerItem;
+
+					//override element in vector
+					layerItem = ss.str();
+
+					//check if surface is valid
+					if (Options::lazyLoadResources == false)
+					{
+						//TODO: remove `const_cast`
+						mod->checkForSoftError(const_cast<Mod*>(mod)->getSurface(layerItem, false) == nullptr, _type, "Missing surface definition for '" + layerItem + "'", LOG_ERROR);
+					}
+				}
+				layerIndex++;
+			}
+			//clean unused layers
+			Collections::removeIf(version.second, [](const std::string& s) { return s.empty(); });
+			version.second.shrink_to_fit();
+		}
 	}
 
 	Collections::sortVector(_units);
@@ -482,6 +543,15 @@ bool Armor::drawBubbles() const
 MovementType Armor::getMovementType() const
 {
 	return _movementType;
+}
+
+/**
+ * Gets the armor's special ability.
+ * @return The armor's specab.
+ */
+int Armor::getSpecialAbility() const
+{
+	return (int)_specab;
 }
 
 /**

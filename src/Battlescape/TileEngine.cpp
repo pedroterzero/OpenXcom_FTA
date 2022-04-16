@@ -495,7 +495,7 @@ void TileEngine::calculateLighting(LightLayers layer, Position position, int eve
 				cache.height = -tile->getTerrainLevel();
 				if (mapData)
 				{
-					if (mapData->getTUCost(MT_WALK) == 255)
+					if (mapData->getTUCost(MT_WALK) == Pathfinding::INVALID_MOVE_COST)
 					{
 						cache.height = 24;
 					}
@@ -910,6 +910,43 @@ bool TileEngine::calculateUnitsInFOV(BattleUnit* unit, const Position eventPos, 
 }
 
 /**
+ * Beginning with the units which are currently visible to the player,
+ * this fills visibleUnits with all units of the hostile faction which
+ * could be visible from originPos by unit.
+ */
+void TileEngine::calculateUnitsForLoSPreview(std::vector<BattleUnit *> *visibleUnits, BattleUnit *unit, const Position originPos)
+{
+	// Loop through all units specified and figure out which ones we could potentially see.
+	for (std::vector<BattleUnit *>::iterator i = _save->getUnits()->begin(); i != _save->getUnits()->end(); ++i)
+	{
+		if (!(*i)->getVisible() || (*i)->getFaction() != FACTION_HOSTILE)
+			continue;
+
+		Position posOther = (*i)->getPosition();
+		int sizeOther = (*i)->getArmor()->getSize();
+		for (int x = 0; x < sizeOther; ++x)
+		{
+			for (int y = 0; y < sizeOther; ++y)
+			{
+				Position posToCheck = posOther + Position(x, y, 0);
+				for (int directionView = 0; directionView < 8; directionView++)
+				{
+					if (unit->checkViewSector(originPos, posToCheck, directionView))
+					{
+						if (visible(unit, originPos, _save->getTile(posToCheck)))
+						{
+							visibleUnits->push_back((*i));
+							x = y = sizeOther; // If a unit's tile is visible there's no need to check the others: break the loops.
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+/**
 * Calculates line of sight of tiles for a player controlled soldier.
 * If supplied with an event position differing from the soldier's position, it will only
 * calculate tiles within a narrow arc.
@@ -1054,28 +1091,22 @@ bool TileEngine::calculateFOV(BattleUnit *unit, bool doTileRecalc, bool doUnitRe
 	return doUnitRecalc ? calculateUnitsInFOV(unit) : false;
 }
 
-/**
- * Gets the origin voxel of a unit's eyesight (from just one eye or something? Why is it x+7??
- * @param currentUnit The watcher.
- * @return Approximately an eyeball voxel.
- */
-Position TileEngine::getSightOriginVoxel(BattleUnit *currentUnit)
+Position TileEngine::getSightOriginVoxel(BattleUnit *currentUnit, Position originPosition)
 {
-	// determine the origin and target voxels for the raytrace
 	Position originVoxel;
-	originVoxel = Position((currentUnit->getPosition().x * 16) + 7, (currentUnit->getPosition().y * 16) + 8, currentUnit->getPosition().z*24);
-	originVoxel.z += -_save->getTile(currentUnit->getPosition())->getTerrainLevel();
+	originVoxel = Position((originPosition.x * 16) + 7, (originPosition.y * 16) + 8, originPosition.z * 24);
+	originVoxel.z += -_save->getTile(originPosition)->getTerrainLevel();
 	originVoxel.z += currentUnit->getHeight() + currentUnit->getFloatHeight() - 1; //one voxel lower (eye level)
-	Tile *tileAbove = _save->getTile(currentUnit->getPosition() + Position(0,0,1));
+	Tile *tileAbove = _save->getTile(originPosition + Position(0, 0, 1));
 	if (currentUnit->getArmor()->getSize() > 1)
 	{
 		originVoxel.x += 8;
 		originVoxel.y += 8;
 		originVoxel.z += 1; //topmost voxel
 	}
-	if (originVoxel.z >= (currentUnit->getPosition().z + 1)*24 && (!tileAbove || !tileAbove->hasNoFloor(0)))
+	if (originVoxel.z >= (originPosition.z + 1) * 24 && (!tileAbove || !tileAbove->hasNoFloor(0)))
 	{
-		while (originVoxel.z >= (currentUnit->getPosition().z + 1)*24)
+		while (originVoxel.z >= (originPosition.z + 1) * 24)
 		{
 			originVoxel.z--;
 		}
@@ -1085,12 +1116,30 @@ Position TileEngine::getSightOriginVoxel(BattleUnit *currentUnit)
 }
 
 /**
+ * Gets the origin voxel of a unit's eyesight (from just one eye or something? Why is it x+7??
+ * @param currentUnit The watcher.
+ * @return Approximately an eyeball voxel.
+ */
+Position TileEngine::getSightOriginVoxel(BattleUnit *currentUnit)
+{
+	// determine the origin and target voxels for the raytrace
+	OpenXcom::Position originPosition = currentUnit->getPosition();
+	return getSightOriginVoxel(currentUnit, originPosition);
+}
+
+/**
  * Checks for an opposing unit on this tile.
  * @param currentUnit The watcher.
  * @param tile The tile to check for
  * @return True if visible.
  */
 bool TileEngine::visible(BattleUnit *currentUnit, Tile *tile)
+{
+	Position originPosition = currentUnit->getPosition();
+	return visible(currentUnit, originPosition, tile);
+}
+
+bool TileEngine::visible(BattleUnit *currentUnit, Position originPosition, Tile *tile)
 {
 	// if there is no tile or no unit, we can't see it
 	if (!tile || !tile->getUnit())
@@ -1102,7 +1151,7 @@ bool TileEngine::visible(BattleUnit *currentUnit, Tile *tile)
 	if (currentUnit->getFaction() == tile->getUnit()->getFaction()) return true;
 
 	// if beyond global max. range, nobody can see anyone
-	int currentDistanceSq = Position::distance2dSq(currentUnit->getPosition(), tile->getPosition());
+	int currentDistanceSq = Position::distance2dSq(originPosition, tile->getPosition());
 	if (currentDistanceSq > getMaxViewDistanceSq())
 	{
 		return false;
@@ -1150,7 +1199,7 @@ bool TileEngine::visible(BattleUnit *currentUnit, Tile *tile)
 		return false;
 	}
 
-	Position originVoxel = getSightOriginVoxel(currentUnit);
+	Position originVoxel = getSightOriginVoxel(currentUnit, originPosition);
 
 	Position scanVoxel;
 	std::vector<Position> _trajectory;
@@ -1814,6 +1863,11 @@ void TileEngine::calculateFOV(Position position, int eventRadius, const bool upd
  */
 bool TileEngine::checkReactionFire(BattleUnit *unit, const BattleAction &originalAction)
 {
+	if (_save->isPreview())
+	{
+		return false;
+	}
+
 	// reaction fire only triggered when the actioning unit is of the currently playing side, and is still on the map (alive)
 	if (unit->getFaction() != _save->getSide() || unit->getTile() == 0)
 	{
@@ -1832,7 +1886,7 @@ bool TileEngine::checkReactionFire(BattleUnit *unit, const BattleAction &origina
 		// start iterating through the possible reactors until the current unit is the one with the highest score.
 		while (reactor != 0)
 		{
-			if (!tryReaction(reactor, unit, originalAction))
+			if (reactor->count > 10 || !tryReaction(reactor, unit, originalAction))
 			{
 				for (std::vector<ReactionScore>::iterator i = spotters.begin(); i != spotters.end(); ++i)
 				{
@@ -1851,6 +1905,7 @@ bool TileEngine::checkReactionFire(BattleUnit *unit, const BattleAction &origina
 			// nice shot, kid. don't get cocky.
 			result = true;
 			reactor->reactionScore -= reactor->reactionReduction;
+			reactor->count += 1;
 			reactor = getReactor(spotters, unit);
 		}
 	}
@@ -1880,8 +1935,8 @@ std::vector<TileEngine::ReactionScore> TileEngine::getSpottingUnits(BattleUnit* 
 				(*i)->getReactionScore() >= threshold &&
 				// not a friend
 				(*i)->getFaction() != _save->getSide() &&
-				// not a civilian, or a civilian shooting at bad guys
-				((*i)->getFaction() != FACTION_NEUTRAL || unit->getFaction() == FACTION_HOSTILE) &&
+				// not a civilian, or a civilian shooting at bad non-ignored guys
+				((*i)->getFaction() != FACTION_NEUTRAL || (unit->getFaction() == FACTION_HOSTILE && !unit->isIgnoredByAI())) &&
 				// closer than 20 tiles
 				Position::distance2dSq(unit->getPosition(), (*i)->getPosition()) <= getMaxViewDistanceSq())
 			{
@@ -2012,8 +2067,15 @@ TileEngine::ReactionScore TileEngine::determineReactionType(BattleUnit *unit, Ba
 		nullptr,
 		BA_NONE,
 		unit->getReactionScore(),
-		0,
+		0.0,
+		1,
 	};
+
+	// to avoid 0 that cause infinite loop we set minimal reaction handled by logic, should correctly handle units with 1 point in reaction and 1/1000 TU
+	if (reaction.reactionScore <= 0.001)
+	{
+		return reaction;
+	}
 
 	auto setReaction = [](ReactionScore& re, BattleActionType type, BattleItem* weapon)
 	{
@@ -2134,7 +2196,7 @@ bool TileEngine::tryReaction(ReactionScore *reaction, BattleUnit *target, const 
 			auto *origTarg = _save->getTile(originalAction.target) ? _save->getTile(originalAction.target)->getUnit() : nullptr;
 
 			ModScript::ReactionCommon::Output arg{ reactionChance, dist };
-			ModScript::ReactionCommon::Worker worker{ target, unit, action.weapon, action.type, originalAction.weapon, originalAction.skillRules, originalAction.type, origTarg, moveType, arc, _save };
+			ModScript::ReactionCommon::Worker worker{ target, unit, action.weapon, action.type, reaction->count, originalAction.weapon, originalAction.skillRules, originalAction.type, origTarg, moveType, arc, _save };
 			if (originalAction.weapon)
 			{
 				worker.execute(originalAction.weapon->getRules()->getScript<ModScript::ReactionWeaponAction>(), arg);
@@ -2213,6 +2275,11 @@ int TileEngine::hitTile(Tile* tile, int damage, const RuleDamageType* type)
  */
 bool TileEngine::awardExperience(BattleActionAttack attack, BattleUnit *target, bool rangeAtack)
 {
+	if (_save->isPreview())
+	{
+		return false;
+	}
+
 	auto unit = attack.attacker;
 	auto weapon = attack.weapon_item;
 
@@ -2384,6 +2451,10 @@ bool TileEngine::awardExperience(BattleActionAttack attack, BattleUnit *target, 
  */
 bool TileEngine::hitUnit(BattleActionAttack attack, BattleUnit *target, const Position &relative, int damage, const RuleDamageType *type, bool rangeAtack)
 {
+	if (_save->isPreview())
+	{
+		return false;
+	}
 	if (!target || target->getHealth() <= 0)
 	{
 		return false;
@@ -2391,7 +2462,8 @@ bool TileEngine::hitUnit(BattleActionAttack attack, BattleUnit *target, const Po
 
 	const int healthOrig = target->getHealth();
 	const int stunLevelOrig = target->getStunlevel();
-	const int adjustedDamage = target->damage(relative, damage, type, _save, attack);
+
+	target->damage(relative, damage, type, _save, attack);
 
 	const int healthDamage = healthOrig - target->getHealth();
 	const int stunDamage = target->getStunlevel() - stunLevelOrig;
@@ -2421,53 +2493,6 @@ bool TileEngine::hitUnit(BattleActionAttack attack, BattleUnit *target, const Po
 	if (attack.attacker && attack.attacker->getOriginalFaction() == FACTION_PLAYER)
 	{
 		awardExperience(attack, target, rangeAtack);
-	}
-
-	if (type->IgnoreNormalMoraleLose == false)
-	{
-		const int bravery = target->reduceByBravery(10);
-		const int modifier = target->getFaction() == FACTION_PLAYER ? _save->getFactionMoraleModifier(true) : 100;
-		const int morale_loss = 100 * (adjustedDamage * bravery / 10) / modifier;
-
-		target->moraleChange(-morale_loss);
-	}
-
-	if ((target->getSpecialAbility() == SPECAB_EXPLODEONDEATH || target->getSpecialAbility() == SPECAB_BURN_AND_EXPLODE) && !target->isOut() && target->isOutThresholdExceed())
-	{
-		if (type->IgnoreSelfDestruct == false && !target->hasAlreadyExploded())
-		{
-			target->setAlreadyExploded(true);
-			Position p = Position(target->getPosition().x * 16, target->getPosition().y * 16, target->getPosition().z * 24);
-			_save->getBattleGame()->statePushNext(new ExplosionBState(_save->getBattleGame(), p, BattleActionAttack{ BA_NONE, target, }, 0));
-		}
-	}
-
-	if (adjustedDamage >= type->FireThreshold)
-	{
-		float resistance = target->getArmor()->getDamageModifier(type->ResistType);
-		if (resistance > 0.0)
-		{
-			int burnTime = RNG::generate(0, int(5.0f * resistance));
-			if (target->getFire() < burnTime)
-			{
-				target->setFire(burnTime); // catch fire and burn
-			}
-		}
-	}
-
-	// fire extinguisher
-	if (target && target->getFire())
-	{
-		if (attack.weapon_item && attack.weapon_item->getRules()->isFireExtinguisher())
-		{
-			// firearm, melee weapon, or even a grenade...
-			target->setFire(0);
-		}
-		else if (attack.damage_item && attack.damage_item->getRules()->isFireExtinguisher())
-		{
-			// bullet/ammo
-			target->setFire(0);
-		}
 	}
 
 	// Use case: an xcom soldier throwing a smoke grenade on a dying unit should not override the previously remembered murderer
@@ -2591,7 +2616,7 @@ void TileEngine::hit(BattleActionAttack attack, Position center, int power, cons
 		{
 			layer = LL_AMBIENT; // roof destroyed, update sunlight in this tile column
 		}
-		else if (effectGenerated)
+		else if (terrainChanged || effectGenerated)
 		{
 			layer = LL_FIRE; // spawned fire or smoke that can block light.
 		}
@@ -2695,9 +2720,15 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 						toRemove.clear();
 						if (bu)
 						{
-							if (Position::distance2d(dest->getPosition(), centetTile) < 2)
+							if (
+									(
+										Position::distance2dSq(dest->getPosition(), centetTile) < 4
+										&& dest->getPosition().z == centetTile.z
+									)
+									|| dest->getPosition().z > centetTile.z
+								)
 							{
-								// ground zero effect is in effect
+								// ground zero effect is in effect, or unit is above explosion
 								hitUnit(attack, bu, Position(0, 0, 0), damage, type, rangeAtack);
 							}
 							else
@@ -2942,6 +2973,11 @@ bool TileEngine::detonate(Tile* tile, int explosive)
  */
 Tile *TileEngine::checkForTerrainExplosions()
 {
+	if (_save->isPreview())
+	{
+		return 0;
+	}
+
 	for (int i = 0; i < _save->getMapSizeXYZ(); ++i)
 	{
 		if (_save->getTile(i)->getExplosive())
@@ -3744,7 +3780,7 @@ int TileEngine::calculateParabolaVoxel(Position origin, Position target, bool st
 
 			if (storeTrajectory && trajectory)
 			{
-				//remove end point of previus trajectory part, becasue next one will add this point again
+				//remove end point of previous trajectory part, because next one will add this point again
 				trajectory->pop_back();
 			}
 			result = calculateLineVoxel(lastPosition, nextPosition, storeTrajectory, storeTrajectory ? trajectory : nullptr, excludeUnit);
@@ -3996,6 +4032,11 @@ int TileEngine::psiAttackCalculate(BattleActionAttack::ReadOnly attack, const Ba
  */
 bool TileEngine::psiAttack(BattleActionAttack attack, BattleUnit *victim)
 {
+	if (_save->isPreview())
+	{
+		return false;
+	}
+
 	if (!victim)
 		return false;
 
@@ -4058,7 +4099,10 @@ bool TileEngine::psiAttack(BattleActionAttack attack, BattleUnit *victim)
 			if (!attack.attacker->getStatistics()->duplicateEntry(STATUS_PANICKING, victim->getId()))
 			{
 				killStat.status = STATUS_PANICKING;
-				attack.attacker->getStatistics()->kills.push_back(new BattleUnitKills(killStat));
+				if (!victim->isCosmetic())
+				{
+					attack.attacker->getStatistics()->kills.push_back(new BattleUnitKills(killStat));
+				}
 			}
 		}
 		else if (attack.type == BA_MINDCONTROL)
@@ -4067,7 +4111,10 @@ bool TileEngine::psiAttack(BattleActionAttack attack, BattleUnit *victim)
 			if (!attack.attacker->getStatistics()->duplicateEntry(STATUS_TURNING, victim->getId()))
 			{
 				killStat.status = STATUS_TURNING;
-				attack.attacker->getStatistics()->kills.push_back(new BattleUnitKills(killStat));
+				if (!victim->isCosmetic())
+				{
+					attack.attacker->getStatistics()->kills.push_back(new BattleUnitKills(killStat));
+				}
 			}
 			victim->setMindControllerId(attack.attacker->getId());
 			victim->convertToFaction(attack.attacker->getFaction());
@@ -4178,6 +4225,11 @@ void TileEngine::medikitRemoveIfEmpty(BattleAction *action)
 
 bool TileEngine::medikitUse(BattleAction *action, BattleUnit *target, BattleMediKitAction originalMedikitAction, UnitBodyPart bodyPart)
 {
+	if (_save->isPreview())
+	{
+		return false;
+	}
+
 	BattleActionAttack attack;
 	attack.type = action->type;
 	attack.attacker = action->actor;
@@ -4301,6 +4353,11 @@ bool TileEngine::medikitUse(BattleAction *action, BattleUnit *target, BattleMedi
  */
 bool TileEngine::skillUse(BattleAction *action, const RuleSkill *skill)
 {
+	if (_save->isPreview())
+	{
+		return false;
+	}
+
 	bool continueAction = true;
 	bool spendTu = false;
 	std::string message;
@@ -4765,12 +4822,20 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 	}
 	if (originTile && neighbouringTile)
 	{
-		auto setTarget = [](Tile* tt, TilePart tp, BattleAction* aa) -> bool
+		auto setTarget = [](Tile* tt, TilePart tp, BattleAction* aa, int dir = -1) -> bool
 		{
 			MapData* obj = tt->getMapData(tp);
 			if (obj)
 			{
-				if (tp != O_OBJECT && !obj->isDoor() && !obj->isUFODoor() && tt->getTUCost(tp, MT_WALK) < 255)
+				if (dir > -1 && tp == O_OBJECT)
+				{
+					auto bigWall = obj->getBigWall();
+					if (dir == 0 /*north*/ && bigWall != Pathfinding::BIGWALLNORTH && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
+					if (dir == 2 /*east */ && bigWall != Pathfinding::BIGWALLEAST  && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
+					if (dir == 4 /*south*/ && bigWall != Pathfinding::BIGWALLSOUTH && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
+					if (dir == 6 /*west */ && bigWall != Pathfinding::BIGWALLWEST  && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
+				}
+				if (tp != O_OBJECT && !obj->isDoor() && !obj->isUFODoor() && tt->getTUCost(tp, MT_WALK) != Pathfinding::INVALID_MOVE_COST)
 				{
 					// it is possible to walk through this (rubble) wall... no need to attack it
 					return false;
@@ -4793,6 +4858,20 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			}
 			return false;
 		};
+
+		if (setTarget(originTile, O_OBJECT, action, direction))
+		{
+			// All directions: target the object (marked as big wall) on the current tile
+			return true;
+		}
+		if (size > 1)
+		{
+			if (setTarget(originTile2, O_OBJECT, action, direction))
+			{
+				// All directions
+				return true;
+			}
+		}
 
 		if (direction == 0 && setTarget(originTile, O_NORTHWALL, action))
 		{
@@ -4909,7 +4988,7 @@ bool TileEngine::validateThrow(BattleAction &action, Position originVoxel, Posit
 	if (action.type == BA_THROW
 		&& targetTile
 		&& targetTile->getMapData(O_OBJECT)
-		&& targetTile->getMapData(O_OBJECT)->getTUCost(MT_WALK) == 255
+		&& targetTile->getMapData(O_OBJECT)->getTUCost(MT_WALK) == Pathfinding::INVALID_MOVE_COST
 		&& !(targetTile->isBigWall()
 		&& (targetTile->getMapData(O_OBJECT)->getBigWall()<1
 		|| targetTile->getMapData(O_OBJECT)->getBigWall()>3)))
@@ -5221,7 +5300,7 @@ bool TileEngine::isPositionValidForUnit(Position &position, BattleUnit *unit, bo
 				Position positionToCheck = (*i) + Position(x, y, 0);
 				Tile* tileToCheck = _save->getTile(positionToCheck);
 				if (!tileToCheck || (tileToCheck->getUnit() && tileToCheck->getUnit() != unit) ||
-					tileToCheck->getTUCost(O_OBJECT, unit->getMovementType()) == 255 ||
+					tileToCheck->getTUCost(O_OBJECT, unit->getMovementType()) == Pathfinding::INVALID_MOVE_COST ||
 					(tileToCheck->getMapData(O_OBJECT) && tileToCheck->getMapData(O_OBJECT)->getBigWall() && tileToCheck->getMapData(O_OBJECT)->getBigWall() <= 3))
 				{
 					passedCheck = false;
@@ -5232,10 +5311,10 @@ bool TileEngine::isPositionValidForUnit(Position &position, BattleUnit *unit, bo
 		// Extra test for large units
 		if (passedCheck && unitSize > 1)
 		{
-			_save->getPathfinding()->setUnit(unit);
+			_save->getPathfinding()->setUnit(unit); //TODO: remove as was required by `isBlockedDirection`
 			for (int dir = 2; dir <= 4; ++dir)
 			{
-				if (_save->getPathfinding()->isBlockedDirection(_save->getTile(*i), dir, 0))
+				if (_save->getPathfinding()->isBlockedDirection(unit, _save->getTile(*i), dir, 0))
 				{
 					passedCheck = false;
 				}
@@ -5258,7 +5337,7 @@ bool TileEngine::isPositionValidForUnit(Position &position, BattleUnit *unit, bo
  * For now we assume that Light and FOV is affected only in small area,
  * this mean we could glitch if multiple units are affected by script logic.
  * @param battleActionAttack Data of action that triggeted script hook.
- * @param pos Postion to update light and Fov, can be invaild if we do not update light
+ * @param pos Postion to update light and Fov, can be invalid if we do not update light
  */
 void TileEngine::updateGameStateAfterScript(BattleActionAttack battleActionAttack, Position pos)
 {

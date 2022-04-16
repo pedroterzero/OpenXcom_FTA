@@ -41,6 +41,17 @@ struct UnitStats
 	using Type = Sint16;
 	using Ptr = Type UnitStats::*;
 
+	/// Max value that is allowed to set to stat, less that max value allowed by type.
+	constexpr static int BaseStatLimit = 8000;
+
+	/// How much more stun can be than health.
+	constexpr static int StunMultipler = 4;
+	/// Max value allowed for stun value.
+	constexpr static int StunStatLimit = BaseStatLimit * StunMultipler;
+
+	/// How much more over kill can go to negative than health.
+	constexpr static int OverkillMultipler = 4;
+
 	Type tu, stamina, health, bravery, reactions, firing, throwing, strength, psiStrength, psiSkill, melee, mana;
 
 	UnitStats() : tu(0), stamina(0), health(0), bravery(0), reactions(0), firing(0), throwing(0), strength(0), psiStrength(0), psiSkill(0), melee(0), mana(0) {};
@@ -263,7 +274,7 @@ struct UnitStats
 	{
 		if (t)
 		{
-			val = std::min(std::max(val, 1), 1000);
+			val = std::min(std::max(val, 1), BaseStatLimit);
 			((t->*Stat).*StatMax) = val;
 		}
 	}
@@ -274,7 +285,7 @@ struct UnitStats
 		if (t)
 		{
 			//limit range to prevent overflow
-			val = std::min(std::max(val, -1000), 1000);
+			val = std::min(std::max(val, -BaseStatLimit), BaseStatLimit);
 			setMaxStatScript<T, Stat, StatMax>(t, val + ((t->*Stat).*StatMax));
 		}
 	}
@@ -284,7 +295,7 @@ struct UnitStats
 	{
 		if (t)
 		{
-			val = std::min(std::max(val, 1), 1000);
+			val = std::min(std::max(val, 1), BaseStatLimit);
 			((t->*Stat).*StatMax) = val;
 
 			//update current value
@@ -301,7 +312,7 @@ struct UnitStats
 		if (t)
 		{
 			//limit range to prevent overflow
-			val = std::min(std::max(val, -1000), 1000);
+			val = std::min(std::max(val, -BaseStatLimit), BaseStatLimit);
 			setMaxAndCurrStatScript<T, Stat, Curr, StatMax>(t, val + ((t->*Stat).*StatMax));
 		}
 	}
@@ -409,9 +420,9 @@ private:
 	std::string _armorName;
 	const Armor* _armor;
 	int _standHeight, _kneelHeight, _floatHeight;
-	std::vector<int> _deathSound, _panicSound, _berserkSound;
+	std::vector<int> _deathSound, _panicSound, _berserkSound, _aggroSound;
 	std::vector<int> _selectUnitSound, _startMovingSound, _selectWeaponSound, _annoyedSound, _spawnedUnitSound;
-	int _value, _moraleLossWhenKilled, _aggroSound, _moveSound;
+	int _value, _moraleLossWhenKilled, _moveSound;
 	int _intelligence, _aggression, _spotter, _sniper, _energyRecovery;
 	SpecialAbility _specab;
 	const RuleItem* _liveAlien = nullptr;
@@ -429,6 +440,7 @@ private:
 	bool _waitIfOutsideWeaponRange;
 	int _pickUpWeaponsMoreActively;
 	bool _vip;
+	bool _cosmetic, _ignoredByAI, _treatedByAI;
 	bool _canPanic;
 	bool _canBeMindControlled;
 	int _berserkChance;
@@ -503,8 +515,8 @@ public:
 	const RuleItem* getLiveAlienGeoscape() const { return _liveAlien; }
 	/// Gets the unit's spawn unit.
 	const Unit *getSpawnUnit() const;
-	/// Gets the unit's war cry.
-	int getAggroSound() const;
+	/// Gets the unit's warcries.
+	const std::vector<int> &getAggroSounds() const;
 	/// Gets how much energy this unit recovers per turn.
 	int getEnergyRecovery() const;
 	/// Checks if this unit has a built in weapon.
@@ -535,6 +547,12 @@ public:
 	bool getShowFullNameInAlienInventory(Mod *mod) const;
 	/// Is this a VIP unit?
 	bool isVIP() const { return _vip; }
+	/// Is this only a cosmetic unit?
+	bool isCosmetic() const { return _cosmetic; }
+	/// Should this unit be ignored by the AI?
+	bool isIgnoredByAI() const { return _ignoredByAI; }
+	/// Should this unit be treated by the AI as an enemy no matter side?
+	bool isTreatedByAI() const { return _treatedByAI; }
 	/// Checks if this unit can panic.
 	bool canPanic() const { return _canPanic; }
 	/// Checks if this unit can be mind controlled.

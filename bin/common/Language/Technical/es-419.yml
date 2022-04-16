@@ -53,6 +53,8 @@ es-419:
   DRT_NONE: "sin daño"
   DRT_UFO_WITH_TWO_DICE: "0-200% dispersión(2 tiradas de dados)"
   DRT_EASY: "50-200% dispersión"
+  DRT_STANDARD: ""
+  DRT_EXPLOSION: ""
 #
   BFT_NONE: "ningún"
   BFT_INSTANT: "instante"
@@ -221,6 +223,7 @@ es-419:
   spendPerShot: ""
   followProjectiles: ""
   name: ""
+  shortName: ""
   ammoSlot: ""
   arcing: ""
 #
@@ -265,6 +268,11 @@ es-419:
   monthlySalary: ""
   monthlyMaintenance: ""
 #
+  SPECAB_NONE: "Nada"
+  SPECAB_EXPLODEONDEATH: ""
+  SPECAB_BURNFLOOR: ""
+  SPECAB_BURN_AND_EXPLODE: ""
+#
   MT_WALK: ""
   MT_FLY: ""
   MT_SLIDE: ""
@@ -300,6 +308,7 @@ es-419:
   DRAWING_ROUTINE_INVERTED_CYBERDISC: ""
 #
   stats: ""
+  specab: ""
   movementType: ""
   allowsRunning: ""
   allowsStrafing: ""
@@ -333,6 +342,11 @@ es-419:
   stun: ""
   mana: ""
   units: ""
+  frontArmor: ""
+  sideArmor: ""
+  leftArmorDiff: ""
+  rearArmor: ""
+  underArmor: ""
 #
   buildCost: ""
   buildCostItems: ""
@@ -389,6 +403,14 @@ es-419:
   soldiers: ""
   pilots: ""
   vehicles: ""
+  maxSmallSoldiers: ""
+  maxLargeSoldiers: ""
+  maxSmallVehicles: ""
+  maxLargeVehicles: ""
+  maxSmallUnits: ""
+  maxLargeUnits: ""
+  maxSoldiers: ""
+  maxVehicles: ""
   maxItems: ""
   maxStorageSpace: ""
   maxAltitude: ""

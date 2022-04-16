@@ -161,15 +161,15 @@ int Mod::EXTENDED_UNDERWATER_THROW_FACTOR;
 constexpr size_t MaxDifficultyLevels = 5;
 
 
-/// Special value for defualt string diffrent to empty one.
+/// Special value for default string different to empty one.
 const std::string Mod::STR_NULL = { '\0' };
 /// Predefined name for first loaded mod that have all original data
 const std::string ModNameMaster = "master";
 /// Predefined name for current mod that is loading rulesets.
 const std::string ModNameCurrent = "current";
 
-/// Reduction of size allocated for transparcey LUTs.
-const size_t ModTransparceySizeReduction = 100;
+/// Reduction of size allocated for transparency LUTs.
+const size_t ModTransparencySizeReduction = 100;
 
 void Mod::resetGlobalStatics()
 {
@@ -363,7 +363,7 @@ Mod::Mod() :
 	_enableCloseQuartersCombat(0), _closeQuartersAccuracyGlobal(100), _closeQuartersTuCostGlobal(12), _closeQuartersEnergyCostGlobal(8), _closeQuartersSneakUpGlobal(0),
 	_noLOSAccuracyPenaltyGlobal(-1),
 	_surrenderMode(0), _reputationBreakthroughValue(500),
-	_ftaGame(false), _ironManEnabled(true), _researchTreeDisabled(false), _defaultFactionPowerCost(300000),
+	_ftaGame(false), _ftaGameLength(3), _ironManEnabled(true), _researchTreeDisabled(false), _defaultFactionPowerCost(300000),
 	_coefBattlescape(100), _coefGeoscape(100), _coefDogfight(100), _coefResearch(100), _coefAlienMission(100), _coefUfo(100), _coefAlienBase(100), _noFundsPenalty(200), _noFundsValue(-100000),
 	_bughuntMinTurn(999), _bughuntMaxEnemies(2), _bughuntRank(0), _bughuntLowMorale(40), _bughuntTimeUnitsLeft(60),
 	_manaEnabled(false), _manaBattleUI(false), _manaTrainingPrimary(false), _manaTrainingSecondary(false), _manaReplenishAfterMission(true),
@@ -395,6 +395,7 @@ Mod::Mod() :
 
 	dmg = new RuleDamageType();
 	dmg->ResistType = DT_NONE;
+	dmg->RandomType = DRT_NONE;
 	_damageTypes[dmg->ResistType] = dmg;
 
 	dmg = new RuleDamageType();
@@ -442,6 +443,7 @@ Mod::Mod() :
 
 	dmg = new RuleDamageType();
 	dmg->ResistType = DT_HE;
+	dmg->RandomType = DRT_EXPLOSION;
 	dmg->FixRadius = -1;
 	dmg->IgnoreOverKill = true;
 	dmg->IgnoreSelfDestruct = true;
@@ -452,6 +454,7 @@ Mod::Mod() :
 
 	dmg = new RuleDamageType();
 	dmg->ResistType = DT_SMOKE;
+	dmg->RandomType = DRT_NONE;
 	dmg->FixRadius = -1;
 	dmg->IgnoreOverKill = true;
 	dmg->IgnoreDirection = true;
@@ -469,6 +472,7 @@ Mod::Mod() :
 
 	dmg = new RuleDamageType();
 	dmg->ResistType = DT_IN;
+	dmg->RandomType = DRT_FIRE;
 	dmg->FixRadius = -1;
 	dmg->FireBlastCalc = true;
 	dmg->IgnoreOverKill = true;
@@ -931,6 +935,14 @@ void Mod::playMusic(const std::string &name, int id)
 		if (music != _muteMusic)
 		{
 			_playingMusic = name;
+			for (auto& item : _musics)
+			{
+				if (item.second == music)
+				{
+					setCurrentMusicTrack(item.first);
+					break;
+				}
+			}
 		}
 		Log(LOG_VERBOSE)<<"Mod::playMusic('" << name << "'): playing " << _playingMusic;
 	}
@@ -952,7 +964,7 @@ SoundSet *Mod::getSoundSet(const std::string &name, bool error) const
  * @param sound ID of the sound.
  * @return Pointer to the sound.
  */
-Sound *Mod::getSound(const std::string &set, int sound, bool error) const
+Sound *Mod::getSound(const std::string &set, int sound) const
 {
 	if (Options::mute)
 	{
@@ -966,14 +978,14 @@ Sound *Mod::getSound(const std::string &set, int sound, bool error) const
 			Sound *s = ss->getSound(sound);
 			if (s == 0)
 			{
-				Log(LOG_VERBOSE) << "Sound " << sound << " in " << set << " not found";
+				Log(LOG_ERROR) << "Sound " << sound << " in " << set << " not found";
 				return _muteSound;
 			}
 			return s;
 		}
 		else
 		{
-			Log(LOG_VERBOSE) << "SoundSet " << set << " not found";
+			Log(LOG_ERROR) << "SoundSet " << set << " not found";
 			return _muteSound;
 		}
 	}
@@ -993,7 +1005,7 @@ Palette *Mod::getPalette(const std::string &name, bool error) const
  * Returns the list of voxeldata in the mod.
  * @return Pointer to the list of voxeldata.
  */
-std::vector<Uint16> *Mod::getVoxelData()
+const std::vector<Uint16> *Mod::getVoxelData() const
 {
 	return &_voxelData;
 }
@@ -1004,12 +1016,12 @@ std::vector<Uint16> *Mod::getVoxelData()
  * @param sound ID of the sound.
  * @return Pointer to the sound.
  */
-Sound *Mod::getSoundByDepth(unsigned int depth, unsigned int sound, bool error) const
+Sound *Mod::getSoundByDepth(unsigned int depth, unsigned int sound) const
 {
 	if (depth == 0 || _disableUnderwaterSounds)
-		return getSound("BATTLE.CAT", sound, error);
+		return getSound("BATTLE.CAT", sound);
 	else
-		return getSound("BATTLE2.CAT", sound, error);
+		return getSound("BATTLE2.CAT", sound);
 }
 
 /**
@@ -1021,6 +1033,82 @@ const std::vector<std::vector<Uint8> > *Mod::getLUTs() const
 	return &_transparencyLUTs;
 }
 
+
+/**
+ * Verify if value have defined surface in given set.
+ */
+void Mod::verifySpriteOffset(const std::string &parent, const int& sprite, const std::string &set) const
+{
+	if (Options::lazyLoadResources)
+	{
+		// we can't check if index is correct when set is loaded
+		return;
+	}
+
+	auto* s = getRule(set, "Sprite Set", _sets, true);
+
+	if (s->getTotalFrames() == 0)
+	{
+		// HACK: some sprites should be shared between different sets (for example 'Projectiles' and 'UnderwaterProjectiles'),
+		// but in some cases one set is not used (for example if the weapon is 'underwaterOnly: true').
+		// If there are no surfaces at all, this means this index is not used.
+		// In some corner cases it will not work correcty, for example if someone does not add any surface to the set at all.
+		return;
+	}
+
+	checkForSoftError(sprite != Mod::NO_SURFACE && s->getFrame(sprite) == nullptr, parent, "Wrong index " + std::to_string(sprite) + " for surface set " + set, LOG_ERROR);
+}
+
+/**
+ * Verify if value have defined surface in given set.
+ */
+void Mod::verifySpriteOffset(const std::string &parent, const std::vector<int>& sprites, const std::string &set) const
+{
+	if (Options::lazyLoadResources)
+	{
+		// we can't check if index is correct when set is loaded
+		return;
+	}
+
+	auto* s = getRule(set, "Sprite Set", _sets, true);
+
+	if (s->getTotalFrames() == 0)
+	{
+		// HACK: some sprites should be shared between different sets (for example 'Projectiles' and 'UnderwaterProjectiles'),
+		// but in some cases one set is not used (for example if the weapon is 'underwaterOnly: true').
+		// If there are no surfaces at all, this means this index is not used.
+		// In some corner cases it will not work correcty, for example if someone does not add any surface to the set at all.
+		return;
+	}
+
+	for (auto sprite : sprites)
+	{
+		checkForSoftError(sprite != Mod::NO_SURFACE && s->getFrame(sprite) == nullptr, parent, "Wrong index " + std::to_string(sprite) + " for surface set " + set, LOG_ERROR);
+	}
+}
+
+/**
+ * Verify if value have defined sound in given set.
+ */
+void Mod::verifySoundOffset(const std::string &parent, const int& sound, const std::string &set) const
+{
+	auto* s = getSoundSet(set);
+
+	checkForSoftError(sound != Mod::NO_SOUND && s->getSound(sound) == nullptr, parent, "Wrong index " + std::to_string(sound) + " for sound set " + set, LOG_ERROR);
+}
+
+/**
+ * Verify if value have defined sound in given set.
+ */
+void Mod::verifySoundOffset(const std::string &parent, const std::vector<int>& sounds, const std::string &set) const
+{
+	auto* s = getSoundSet(set);
+
+	for (auto sound : sounds)
+	{
+		checkForSoftError(sound != Mod::NO_SOUND && s->getSound(sound) == nullptr, parent, "Wrong index " + std::to_string(sound) + " for sound set " + set, LOG_ERROR);
+	}
+}
 
 
 /**
@@ -1396,7 +1484,7 @@ void loadHelper(const std::string &parent, std::vector<std::pair<K, V>>& v, cons
  * @param node Node with data
  * @param shared Max offset limit that is shared for every mod
  * @param multiplier Value used by `projectile` surface set to convert projectile offset to index offset in surface.
- * @param sizeScale Value used by transparency colors, reduce total number of avaialbe space for offset.
+ * @param sizeScale Value used by transparency colors, reduce total number of available space for offset.
  */
 void Mod::loadOffsetNode(const std::string &parent, int& offset, const YAML::Node &node, int shared, const std::string &set, size_t multiplier, size_t sizeScale) const
 {
@@ -1447,6 +1535,9 @@ void Mod::loadOffsetNode(const std::string &parent, int& offset, const YAML::Nod
 	{
 		throw LoadRuleException(parent, node, "unsupported yaml node");
 	}
+
+	static_assert(Mod::NO_SOUND == -1, "NO_SOUND need to equal -1");
+	static_assert(Mod::NO_SURFACE == -1, "NO_SURFACE need to equal -1");
 
 	if (offset < -1)
 	{
@@ -1508,9 +1599,9 @@ void Mod::loadSpriteOffset(const std::string &parent, std::vector<int>& sprites,
 		{
 			for (YAML::const_iterator i = node.begin(); i != node.end(); ++i)
 			{
-				sprites.push_back(-1);
+				sprites.push_back(Mod::NO_SURFACE);
 				loadOffsetNode(parent, sprites.back(), *i, maxShared, set, 1);
-				if (checkForSoftError(sprites.back() == -1, parent, *i, "incorrect value in sprite list"))
+				if (checkForSoftError(sprites.back() == Mod::NO_SURFACE, parent, *i, "incorrect value in sprite list"))
 				{
 					sprites.pop_back();
 				}
@@ -1518,7 +1609,7 @@ void Mod::loadSpriteOffset(const std::string &parent, std::vector<int>& sprites,
 		}
 		else
 		{
-			sprites.push_back(-1);
+			sprites.push_back(Mod::NO_SURFACE);
 			loadOffsetNode(parent, sprites.back(), node, maxShared, set, 1);
 		}
 	}
@@ -1583,7 +1674,7 @@ void Mod::loadTransparencyOffset(const std::string &parent, int& index, const YA
 {
 	if (node)
 	{
-		loadOffsetNode(parent, index, node, 0, "TransparencyLUTs", 1, ModTransparceySizeReduction);
+		loadOffsetNode(parent, index, node, 0, "TransparencyLUTs", 1, ModTransparencySizeReduction);
 	}
 }
 
@@ -2026,6 +2117,11 @@ void Mod::loadAll()
 		}
 	}
 
+
+	loadExtraResources();
+
+
+	Log(LOG_INFO) << "After load.";
 	// cross link rule objects
 
 	afterLoadHelper("research", this, _research, &RuleResearch::afterLoad);
@@ -2124,6 +2220,7 @@ void Mod::loadAll()
 	if (!_recommendedUserOptions.empty() && !Options::oxceRecommendedOptionsWereSet)
 	{
 		_recommendedUserOptions.erase("maximizeInfoScreens"); // FIXME: make proper categorisations in the next release
+		_recommendedUserOptions.erase("oxceModValidationLevel");
 
 		const std::vector<OptionInfo> &options = Options::getOptionInfo();
 		for (std::vector<OptionInfo>::const_iterator i = options.begin(); i != options.end(); ++i)
@@ -2144,6 +2241,7 @@ void Mod::loadAll()
 		_fixedUserOptions.erase("oxceLinks");
 		_fixedUserOptions.erase("oxceUpdateCheck");
 		_fixedUserOptions.erase("maximizeInfoScreens"); // FIXME: make proper categorisations in the next release
+		_fixedUserOptions.erase("oxceModValidationLevel");
 		_fixedUserOptions.erase("oxceAutoNightVisionThreshold");
 
 		const std::vector<OptionInfo> &options = Options::getOptionInfo();
@@ -2160,7 +2258,6 @@ void Mod::loadAll()
 	Log(LOG_INFO) << "Loading ended.";
 
 	sortLists();
-	loadExtraResources();
 	modResources();
 }
 
@@ -2178,6 +2275,10 @@ void Mod::loadMod(const std::vector<FileMap::FileRecord> &rulesetFiles, ModScrip
 		try
 		{
 			loadFile(*i, parsers);
+		}
+		catch (Exception &e)
+		{
+			throw Exception(i->fullpath + ": " + std::string(e.what()));
 		}
 		catch (YAML::Exception &e)
 		{
@@ -2262,8 +2363,8 @@ void Mod::loadResourceConfigFile(const FileMap::FileRecord &filerec)
 
 	if (const YAML::Node& luts = doc["transparencyLUTs"])
 	{
-		const size_t start = _modCurrent->offset / ModTransparceySizeReduction;
-		const size_t limit =  _modCurrent->size / ModTransparceySizeReduction;
+		const size_t start = _modCurrent->offset / ModTransparencySizeReduction;
+		const size_t limit =  _modCurrent->size / ModTransparencySizeReduction;
 		size_t curr = 0;
 
 		_transparencies.resize(start + limit);
@@ -2283,7 +2384,7 @@ void Mod::loadResourceConfigFile(const FileMap::FileRecord &filerec)
 					color.g = (*j)[1].as<int>(0);
 					color.b = (*j)[2].as<int>(0);
 					color.unused = (*j)[3].as<int>(2);
-					// technically its breaking change as it always overwritte from offset `start + 0` but no two mods could work correctly before this change.
+					// technically it's a breaking change as it always overwrites from offset `start + 0` but no two mods could work correctly before this change.
 					_transparencies[start + curr++] = color;
 				}
 			}
@@ -2729,6 +2830,7 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	_bughuntLowMorale = doc["bughuntLowMorale"].as<int>(_bughuntLowMorale);
 	_bughuntTimeUnitsLeft = doc["bughuntTimeUnitsLeft"].as<int>(_bughuntTimeUnitsLeft);
 	_ftaGame = doc["ftaGame"].as<bool>(_ftaGame);
+	_ftaGameLength = doc["ftaGameLength"].as<int>(_ftaGameLength);
 	_reputationBreakthroughValue = doc["reputationBreakthroughValue"].as<int>(_reputationBreakthroughValue);
 	_ironManEnabled = doc["ironManEnabled"].as<bool>(_ironManEnabled);
 	_defaultFactionPowerCost = doc["defaultFactionPowerCost"].as<int>(_defaultFactionPowerCost);
@@ -2851,11 +2953,23 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 		if ((*i)["annoyedSound"])
 			loadSoundOffset(type, _annoyedSound[type], (*i)["annoyedSound"], "BATTLE.CAT");
 	}
+	loadSoundOffset("global", _selectBaseSound, doc["selectBaseSound"], "BATTLE.CAT");
+	loadSoundOffset("global", _startDogfightSound, doc["startDogfightSound"], "BATTLE.CAT");
 	_flagByKills = doc["flagByKills"].as<std::vector<int> >(_flagByKills);
 
 	_defeatScore = doc["defeatScore"].as<int>(_defeatScore);
 	_defeatFunds = doc["defeatFunds"].as<int>(_defeatFunds);
 	_difficultyDemigod = doc["difficultyDemigod"].as<bool>(_difficultyDemigod);
+
+	if (const YAML::Node& difficultyCoefficientOverrides = doc["difficultyCoefficientOverrides"])
+	{
+		_monthlyRatingThresholds = difficultyCoefficientOverrides["monthlyRatingThresholds"].as< std::vector<int> >(_monthlyRatingThresholds);
+		_ufoFiringRateCoefficients = difficultyCoefficientOverrides["ufoFiringRateCoefficients"].as< std::vector<int> >(_ufoFiringRateCoefficients);
+		_ufoEscapeCountdownCoefficients = difficultyCoefficientOverrides["ufoEscapeCountdownCoefficients"].as< std::vector<int> >(_ufoEscapeCountdownCoefficients);
+		_retaliationTriggerOdds = difficultyCoefficientOverrides["retaliationTriggerOdds"].as< std::vector<int> >(_retaliationTriggerOdds);
+		_retaliationBaseRegionOdds = difficultyCoefficientOverrides["retaliationBaseRegionOdds"].as< std::vector<int> >(_retaliationBaseRegionOdds);
+		_aliensFacingCraftOdds = difficultyCoefficientOverrides["aliensFacingCraftOdds"].as< std::vector<int> >(_aliensFacingCraftOdds);
+	}
 
 	if (doc["difficultyCoefficient"])
 	{
@@ -3356,9 +3470,16 @@ SavedGame *Mod::newSave(GameDifficulty diff) const
 		else if (node.IsScalar())
 		{
 			int randomSoldiers = node.as<int>(0);
-			for (int s = 0; s < randomSoldiers; ++s)
+			if (randomSoldiers > 0 && soldierTypes.empty())
 			{
-				randomTypes.push_back(soldierTypes[RNG::generate(0, soldierTypes.size() - 1)]);
+				Log(LOG_ERROR) << "Cannot generate soldiers for the starting base. There are no available soldier types. Maybe all of them are locked by research?";
+			}
+			else
+			{
+				for (int s = 0; s < randomSoldiers; ++s)
+				{
+					randomTypes.push_back(soldierTypes[RNG::generate(0, soldierTypes.size() - 1)]);
+				}
 			}
 		}
 		// Generate soldiers
@@ -3389,7 +3510,7 @@ SavedGame *Mod::newSave(GameDifficulty diff) const
 				Craft *found = 0;
 				for (auto& craft : *base->getCrafts())
 				{
-					if (!found && craft->getRules()->getAllowLanding() && craft->getSpaceUsed() < craft->getRules()->getSoldiers())
+					if (!found && craft->getRules()->getAllowLanding() && craft->getSpaceUsed() < craft->getRules()->getMaxUnits())
 					{
 						// Remember transporter as fall-back, but search further for interceptors
 						found = craft;
@@ -3407,7 +3528,7 @@ SavedGame *Mod::newSave(GameDifficulty diff) const
 				Craft *found = 0;
 				for (auto& craft : *base->getCrafts())
 				{
-					if (craft->getRules()->getAllowLanding() && craft->getSpaceUsed() < craft->getRules()->getSoldiers())
+					if (craft->getRules()->getAllowLanding() && craft->getSpaceUsed() < craft->getRules()->getMaxUnits())
 					{
 						// First available transporter will do
 						found = craft;
@@ -4470,7 +4591,7 @@ Soldier *Mod::genSoldier(SavedGame *save, std::string type) const
 	for (int tries = 0; tries < 10 && duplicate; ++tries)
 	{
 		delete soldier;
-		soldier = new Soldier(getSoldier(type, true), getArmor(getSoldier(type, true)->getArmor(), true), newId);
+		soldier = new Soldier(getSoldier(type, true), getSoldier(type, true)->getDefaultArmor(), newId);
 		duplicate = false;
 		for (std::vector<Base*>::iterator i = save->getBases()->begin(); i != save->getBases()->end() && !duplicate; ++i)
 		{
@@ -6067,7 +6188,7 @@ void getSoldierScript(const Mod* mod, const RuleSoldier* &soldier, const std::st
 		soldier = nullptr;
 	}
 }
-void getInvenotryScript(const Mod* mod, const RuleInventory* &inv, const std::string &name)
+void getInventoryScript(const Mod* mod, const RuleInventory* &inv, const std::string &name)
 {
 	if (mod)
 	{
@@ -6096,14 +6217,14 @@ void Mod::ScriptRegister(ScriptParserBase *parser)
 
 	Bind<Mod> mod = { parser };
 
-	mod.add<&offset<&Mod::_soundOffsetBattle>>("getSoundOffsetBattle");
-	mod.add<&offset<&Mod::_soundOffsetGeo>>("getSoundOffsetGeo");
-	mod.add<&offset<&Mod::_surfaceOffsetBasebits>>("getSpriteOffsetBasebits");
-	mod.add<&offset<&Mod::_surfaceOffsetBigobs>>("getSpriteOffsetBigobs");
-	mod.add<&offset<&Mod::_surfaceOffsetFloorob>>("getSpriteOffsetFloorob");
-	mod.add<&offset<&Mod::_surfaceOffsetHandob>>("getSpriteOffsetHandob");
-	mod.add<&offset<&Mod::_surfaceOffsetHit>>("getSpriteOffsetHit");
-	mod.add<&offset<&Mod::_surfaceOffsetSmoke>>("getSpriteOffsetSmoke");
+	mod.add<&offset<&Mod::_soundOffsetBattle>>("getSoundOffsetBattle", "convert mod sound index in first argument to runtime index in given set, second argument is mod id");
+	mod.add<&offset<&Mod::_soundOffsetGeo>>("getSoundOffsetGeo", "convert mod sound index in first argument to runtime index in given set, second argument is mod id");
+	mod.add<&offset<&Mod::_surfaceOffsetBasebits>>("getSpriteOffsetBasebits", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
+	mod.add<&offset<&Mod::_surfaceOffsetBigobs>>("getSpriteOffsetBigobs", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
+	mod.add<&offset<&Mod::_surfaceOffsetFloorob>>("getSpriteOffsetFloorob", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
+	mod.add<&offset<&Mod::_surfaceOffsetHandob>>("getSpriteOffsetHandob", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
+	mod.add<&offset<&Mod::_surfaceOffsetHit>>("getSpriteOffsetHit", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
+	mod.add<&offset<&Mod::_surfaceOffsetSmoke>>("getSpriteOffsetSmoke", "convert mod surface index in first argument to runtime index in given set, second argument is mod id");
 	mod.add<&Mod::getMaxDarknessToSeeUnits>("getMaxDarknessToSeeUnits");
 	mod.add<&Mod::getMaxViewDistance>("getMaxViewDistance");
 	mod.add<&getSmokeReduction>("getSmokeReduction");
@@ -6114,7 +6235,7 @@ void Mod::ScriptRegister(ScriptParserBase *parser)
 	mod.add<&getSkillScript>("getRuleSkill");
 	mod.add<&getRuleResearch>("getRuleResearch");
 	mod.add<&getSoldierScript>("getRuleSoldier");
-	mod.add<&getInvenotryScript>("getRuleInventory");
+	mod.add<&getInventoryScript>("getRuleInventory");
 	mod.add<&Mod::getInventoryRightHand>("getRuleInventoryRightHand");
 	mod.add<&Mod::getInventoryLeftHand>("getRuleInventoryLeftHand");
 	mod.add<&Mod::getInventoryBackpack>("getRuleInventoryBackpack");

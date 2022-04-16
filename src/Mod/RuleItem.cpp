@@ -150,15 +150,16 @@ RuleItem::RuleItem(const std::string &type) :
 	_hitAnimation(0), _hitAnimFrames(-1), _hitMissAnimation(-1), _hitMissAnimFrames(-1),
 	_meleeAnimation(0), _meleeAnimFrames(-1), _meleeMissAnimation(-1), _meleeMissAnimFrames(-1),
 	_psiAnimation(-1), _psiAnimFrames(-1), _psiMissAnimation(-1), _psiMissAnimFrames(-1),
-	_power(0), _hidePower(false), _powerRangeReduction(0), _powerRangeThreshold(0),
-	_coneSize(0),
+	_power(0), _powerForAnimation(0), _hidePower(false), _powerRangeReduction(0), _powerRangeThreshold(0),
+	_coneSize(0), _noiseValue(1), _damageTypeSet(false), _meleeTypeSet(false),
 	_accuracyUse(0), _accuracyMind(0), _accuracyPanic(20), _accuracyThrow(100), _accuracyCloseQuarters(-1),
 	_noLOSAccuracyPenalty(-1),
 	_costUse(25), _costMind(-1, -1), _costPanic(-1, -1), _costThrow(25), _costPrime(50), _costUnprime(25),
 	_clipSize(0), _specialChance(100), _tuLoad{ }, _tuUnload{ },
 	_battleType(BT_NONE), _fuseType(BFT_NONE), _fuseTriggerEvents{ }, _hiddenOnMinimap(false),
 	_medikitActionName("STR_USE_MEDI_KIT"), _psiAttackName(), _primeActionName("STR_PRIME_GRENADE"), _unprimeActionName(), _primeActionMessage("STR_GRENADE_IS_ACTIVATED"), _unprimeActionMessage("STR_GRENADE_IS_DEACTIVATED"),
-	_twoHanded(false), _blockBothHands(false), _fixedWeapon(false), _fixedWeaponShow(false), _isConsumable(false), _isFireExtinguisher(false), _isExplodingInHands(false), _specialUseEmptyHand(false),
+	_twoHanded(false), _blockBothHands(false), _fixedWeapon(false), _fixedWeaponShow(false), _isConsumable(false), _isFireExtinguisher(false),
+	_isExplodingInHands(false), _specialUseEmptyHand(false), _specialUseEmptyHandShow(false),
 	_defaultInvSlotX(0), _defaultInvSlotY(0), _waypoints(0), _invWidth(1), _invHeight(1),
 	_painKiller(0), _heal(0), _stimulant(0), _medikitType(BMT_NORMAL), _medikitTargetSelf(false), _medikitTargetImmune(false), _medikitTargetMatrix(63),
 	_woundRecovery(0), _healthRecovery(0), _stunRecovery(0), _energyRecovery(0), _manaRecovery(0), _moraleRecovery(0), _painKillerRecovery(1.0f),
@@ -211,7 +212,7 @@ RuleItem::RuleItem(const std::string &type) :
 
 	_confAuto.shots = 3;
 
-	_customItemPreviewIndex.push_back(0);
+	_customItemPreviewIndex.push_back(Mod::NO_SURFACE);
 }
 
 /**
@@ -327,6 +328,7 @@ void RuleItem::loadConfAction(RuleItemAction& a, const YAML::Node& node, const s
 		a.spendPerShot = conf["spendPerShot"].as<int>(a.spendPerShot);
 		a.followProjectiles = conf["followProjectiles"].as<bool>(a.followProjectiles);
 		a.name = conf["name"].as<std::string>(a.name);
+		a.shortName = conf["shortName"].as<std::string>(a.shortName);
 		loadAmmoSlotChecked(a.ammoSlot, conf["ammoSlot"], _name);
 		a.arcing = conf["arcing"].as<bool>(a.arcing);
 	}
@@ -405,13 +407,17 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 	mod->loadSpriteOffset(_type, _specialIconSprite, node["specialIconSprite"], "SPICONS.DAT");
 
 	mod->loadSoundOffset(_type, _reloadSound, node["reloadSound"], "BATTLE.CAT");
+	mod->loadSoundOffset(_type, _primeSound, node["primeSound"], "BATTLE.CAT");
+	mod->loadSoundOffset(_type, _unprimeSound, node["unprimeSound"], "BATTLE.CAT");
 	mod->loadSoundOffset(_type, _fireSound, node["fireSound"], "BATTLE.CAT");
 	mod->loadSoundOffset(_type, _hitSound, node["hitSound"], "BATTLE.CAT");
 	mod->loadSoundOffset(_type, _hitMissSound, node["hitMissSound"], "BATTLE.CAT");
 	mod->loadSoundOffset(_type, _meleeSound, node["meleeSound"], "BATTLE.CAT");
+	mod->loadSoundOffset(_type, _meleeHitSound, node["meleeHitSound"], "BATTLE.CAT");
 	mod->loadSoundOffset(_type, _meleeMissSound, node["meleeMissSound"], "BATTLE.CAT");
 	mod->loadSoundOffset(_type, _psiSound, node["psiSound"], "BATTLE.CAT");
 	mod->loadSoundOffset(_type, _psiMissSound, node["psiMissSound"], "BATTLE.CAT");
+	mod->loadSoundOffset(_type, _explosionHitSound, node["explosionHitSound"], "BATTLE.CAT");
 
 	mod->loadSpriteOffset(_type, _hitAnimation, node["hitAnimation"], "SMOKE.PCK");
 	mod->loadSpriteOffset(_type, _hitMissAnimation, node["hitMissAnimation"], "SMOKE.PCK");
@@ -426,9 +432,6 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 	_meleeMissAnimFrames = node["meleeMissAnimFrames"].as<int>(_meleeMissAnimFrames);
 	_psiAnimFrames = node["psiAnimFrames"].as<int>(_psiAnimFrames);
 	_psiMissAnimFrames = node["psiMissAnimFrames"].as<int>(_psiMissAnimFrames);
-
-	mod->loadSoundOffset(_type, _meleeHitSound, node["meleeHitSound"], "BATTLE.CAT");
-	mod->loadSoundOffset(_type, _explosionHitSound, node["explosionHitSound"], "BATTLE.CAT");
 
 	if (node["battleType"])
 	{
@@ -474,14 +477,17 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 		{
 			//compatibility hack for corpse explosion, that didn't have defined damage type
 			_damageType = *mod->getDamageType(DT_HE);
+			_damageTypeSet = true;
 		}
 		_meleeType = *mod->getDamageType(DT_MELEE);
+		_meleeTypeSet = true;
 	}
 
 	if (const YAML::Node &type = node["damageType"])
 	{
 		//load predefined damage type
 		_damageType = *mod->getDamageType((ItemDamageType)type.as<int>());
+		_damageTypeSet = true;
 	}
 	_damageType.FixRadius = node["blastRadius"].as<int>(_damageType.FixRadius);
 	if (const YAML::Node &alter = node["damageAlter"])
@@ -493,6 +499,7 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 	{
 		//load predefined damage type
 		_meleeType = *mod->getDamageType((ItemDamageType)type.as<int>());
+		_meleeTypeSet = true;
 	}
 	if (const YAML::Node &alter = node["meleeAlter"])
 	{
@@ -518,8 +525,10 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 	}
 
 	_power = node["power"].as<int>(_power);
+	_powerForAnimation = node["powerForAnimation"].as<int>(_powerForAnimation);
 	_hidePower = node["hidePower"].as<bool>(_hidePower);
 	_coneSize = node["coneSize"].as<int>(_coneSize);
+	_noiseValue = node["noiseValue"].as<int>(_noiseValue);
 	_medikitActionName = node["medikitActionName"].as<std::string>(_medikitActionName);
 	_psiAttackName = node["psiAttackName"].as<std::string>(_psiAttackName);
 	_primeActionName = node["primeActionName"].as<std::string>(_primeActionName);
@@ -613,6 +622,7 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 	_isFireExtinguisher = node["isFireExtinguisher"].as<bool>(_isFireExtinguisher);
 	_isExplodingInHands = node["isExplodingInHands"].as<bool>(_isExplodingInHands);
 	_specialUseEmptyHand = node["specialUseEmptyHand"].as<bool>(_specialUseEmptyHand);
+	_specialUseEmptyHandShow = node["specialUseEmptyHandShow"].as<bool>(_specialUseEmptyHandShow);
 	_invWidth = node["invWidth"].as<int>(_invWidth);
 	_invHeight = node["invHeight"].as<int>(_invHeight);
 
@@ -724,6 +734,35 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
  */
 void RuleItem::afterLoad(const Mod* mod)
 {
+	mod->verifySpriteOffset(_type, _bigSprite, "BIGOBS.PCK");
+	mod->verifySpriteOffset(_type, _floorSprite, "FLOOROB.PCK");
+	mod->verifySpriteOffset(_type, _handSprite, "HANDOB.PCK");
+	// Projectiles: this will check only if first one is correct
+	if (!isWaterOnly()) mod->verifySpriteOffset(_type, _bulletSprite, "Projectiles");
+	if (isWaterOnly()) mod->verifySpriteOffset(_type, _bulletSprite, "UnderwaterProjectiles");
+	mod->verifySpriteOffset(_type, _specialIconSprite, "SPICONS.DAT");
+
+	mod->verifySoundOffset(_type, _reloadSound, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _fireSound, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _hitSound, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _hitMissSound, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _meleeSound, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _meleeHitSound, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _meleeMissSound, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _psiSound, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _psiMissSound, "BATTLE.CAT");
+	mod->verifySoundOffset(_type, _explosionHitSound, "BATTLE.CAT");
+
+	mod->verifySpriteOffset(_type, _hitAnimation, _damageType.FixRadius ? "X1.PCK" : "SMOKE.PCK");
+	mod->verifySpriteOffset(_type, _hitMissAnimation, _damageType.FixRadius ? "X1.PCK" : "SMOKE.PCK");
+	mod->verifySpriteOffset(_type, _meleeAnimation, "HIT.PCK");
+	mod->verifySpriteOffset(_type, _meleeMissAnimation, "HIT.PCK");
+	mod->verifySpriteOffset(_type, _psiAnimation, "HIT.PCK");
+	mod->verifySpriteOffset(_type, _psiMissAnimation, "HIT.PCK");
+
+	mod->verifySpriteOffset(_type, _customItemPreviewIndex, "CustomItemPreviews");
+
+
 	_requires = mod->getResearch(_requiresName);
 	_requiresBuy = mod->getResearch(_requiresBuyName);
 	// fixedWeapons can mean vehicle
@@ -1073,6 +1112,24 @@ int RuleItem::getRandomSound(const std::vector<int> &vector, int defaultValue) c
 int RuleItem::getReloadSound() const
 {
 	return getRandomSound(_reloadSound);
+}
+
+/**
+ * Gets the item's prime sound.
+ * @return The prime sound id.
+ */
+int RuleItem::getPrimeSound() const
+{
+	return getRandomSound(_primeSound);
+}
+
+/**
+ * Gets the item's unprime sound.
+ * @return The unprime sound id.
+ */
+int RuleItem::getUnprimeSound() const
+{
+	return getRandomSound(_unprimeSound);
 }
 
 /**
@@ -1687,16 +1744,17 @@ int RuleItem::getSpecialChance() const
  * @param texture Pointer to the surface set to get the sprite from.
  * @param surface Pointer to the surface to draw to.
  */
-void RuleItem::drawHandSprite(SurfaceSet *texture, Surface *surface, BattleItem *item, int animFrame) const
+void RuleItem::drawHandSprite(const SurfaceSet *texture, Surface *surface, const BattleItem *item, const SavedBattleGame *save, int animFrame) const
 {
-	Surface *frame = nullptr;
+	//TODO: split this function to one using only `this` and another using only `item`
+	const Surface *frame = nullptr;
 	if (item)
 	{
-		frame = item->getBigSprite(texture, animFrame);
+		frame = item->getBigSprite(texture, save, animFrame);
 		if (frame)
 		{
 			ScriptWorkerBlit scr;
-			BattleItem::ScriptFill(&scr, item, BODYPART_ITEM_INVENTORY, animFrame, 0);
+			BattleItem::ScriptFill(&scr, item, save, BODYPART_ITEM_INVENTORY, animFrame, 0);
 			scr.executeBlit(frame, surface, this->getHandSpriteOffX(), this->getHandSpriteOffY(), 0);
 		}
 	}

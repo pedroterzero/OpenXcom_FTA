@@ -289,7 +289,7 @@ DogfightState::DogfightState(GeoscapeState *state, Craft *craft, Ufo *ufo, bool 
 	// HK options
 	if (_ufoIsAttacking)
 	{
-		if (_ufo->getCraftStats().speedMax > _craft->getCraftStats().speedMax)
+		if (_ufo->getCraftStats().speedMax >= _craft->getCraftStats().speedMax)
 		{
 			_disableDisengage = true;
 		}
@@ -631,6 +631,15 @@ DogfightState::DogfightState(GeoscapeState *state, Craft *craft, Ufo *ufo, bool 
 	{
 		_ufo->setFireCountdown(0);
 		int escapeCountdown = _ufo->getRules()->getBreakOffTime() + RNG::generate(0, _ufo->getRules()->getBreakOffTime()) - 30 * _game->getSavedGame()->getDifficultyCoefficient();
+		{
+			int diff = _game->getSavedGame()->getDifficulty();
+			auto& custom = _game->getMod()->getUfoEscapeCountdownCoefficients();
+			if (custom.size() > diff)
+			{
+				escapeCountdown = _ufo->getRules()->getBreakOffTime() + RNG::generate(0, _ufo->getRules()->getBreakOffTime());
+				escapeCountdown = escapeCountdown * custom[diff] / 100;
+			}
+		}
 		_ufo->setEscapeCountdown(std::max(1, escapeCountdown));
 	}
 
@@ -734,13 +743,24 @@ void DogfightState::think()
 			}
 		}
 		_delayedRecolorDone = true;
+
+		// Note: init() is never called for DogfightState, so we'll do it here instead
+		{
+			auto& sounds = _game->getMod()->getStartDogfightSounds();
+			int soundId = sounds.empty() ? Mod::NO_SOUND : sounds[RNG::generate(0, sounds.size() - 1)];
+			if (soundId != Mod::NO_SOUND)
+			{
+				auto* customSound = _game->getMod()->getSound("GEO.CAT", soundId);
+				customSound->play();
+			}
+		}
 	}
 	if (!_endDogfight)
 	{
 		update();
 		_craftDamageAnimTimer->think(this, 0);
 	}
-	if (!_ufoIsAttacking)
+	if (!_ufoIsAttacking || _ufo->getStatus() == Ufo::LANDED)
 	{
 		if (!_craft->isInDogfight() || _craft->getDestination() != _ufo || _ufo->getStatus() == Ufo::LANDED)
 		{
@@ -942,9 +962,13 @@ void DogfightState::update()
 			int escapeCounter = _ufo->getEscapeCountdown();
 			if (_ufoIsAttacking)
 			{
-				// TODO: rethink: unhardcode run away thresholds?
-				if (_ufo->getDamage() > _ufo->getCraftStats().damageMax / 3 && _ufo->getHuntBehavior() != 1)
+				if (_disableDisengage && _ufo->getSoftlockShotCounter() >= _ufo->getRules()->getSoftlockThreshold())
 				{
+					escapeCounter = 1; // game is in softlock, stop being a hunter-killer and disengage!
+				}
+				else if (_ufo->getDamage() > _ufo->getCraftStats().damageMax / 3 && _ufo->getHuntBehavior() != 1)
+				{
+					// TODO: rethink: unhardcode run away thresholds?
 					if (_craft->getDamage() > _craft->getDamageMax() / 2)
 					{
 						escapeCounter = 999; // it's gonna be tight, continue shooting...
@@ -1383,8 +1407,9 @@ void DogfightState::update()
 		}
 		if (!_destroyCraft && (_destroyUfo || _mode == _btnDisengage))
 		{
-			// keep original target
-			if (_mode == _btnDisengage || _craft->getDestination() == _ufo || !Options::oxceKeepCraftCommandsAfterDogfight)
+			// keep original target if attacked by a HK (and didn't disengage manually)
+			bool keepOriginalTarget = _ufoIsAttacking && _craft->getDestination() != _ufo;
+			if (!keepOriginalTarget || _mode == _btnDisengage)
 			{
 				_craft->returnToBase();
 			}
@@ -1404,9 +1429,7 @@ void DogfightState::update()
 			std::vector<Craft*> followers = _ufo->getCraftFollowers();
 			for (std::vector<Craft*>::iterator i = followers.begin(); i != followers.end(); ++i)
 			{
-				if (((*i)->getNumSoldiers() == 0 && (*i)->getNumVehicles() == 0) ||
-					!(*i)->getRules()->getAllowLanding() ||
-					((*i)->getDestination() != _ufo && Options::oxceKeepCraftCommandsAfterDogfight))
+				if ((*i)->getNumTotalUnits() == 0 || !(*i)->getRules()->getAllowLanding())
 				{
 					(*i)->returnToBase();
 				}
@@ -1462,6 +1485,14 @@ void DogfightState::update()
 				if (retaliationOdds == -1)
 				{
 					retaliationOdds = 100 - (4 * (24 - _game->getSavedGame()->getDifficultyCoefficient()) - race->getRetaliationAggression());
+					{
+						int diff = _game->getSavedGame()->getDifficulty();
+						auto& custom = _game->getMod()->getRetaliationTriggerOdds();
+						if (custom.size() > diff)
+						{
+							retaliationOdds = custom[diff] + race->getRetaliationAggression();
+						}
+					}
 				}
 				// Have mercy on beginners
 				if (_game->getSavedGame()->getMonthsPassed() < Mod::DIFFICULTY_BASED_RETAL_DELAY[_game->getSavedGame()->getDifficulty()])
@@ -1473,7 +1504,16 @@ void DogfightState::update()
 				{
 					// Spawn retaliation mission.
 					std::string targetRegion;
-					if (RNG::percent(50 - 6 * _game->getSavedGame()->getDifficultyCoefficient()))
+					int retaliationUfoMissionRegionOdds = 50 - 6 * _game->getSavedGame()->getDifficultyCoefficient();
+					{
+						int diff = _game->getSavedGame()->getDifficulty();
+						auto& custom = _game->getMod()->getRetaliationBaseRegionOdds();
+						if (custom.size() > diff)
+						{
+							retaliationUfoMissionRegionOdds = 100 - custom[diff];
+						}
+					}
+					if (RNG::percent(retaliationUfoMissionRegionOdds))
 					{
 						// Attack on UFO's mission region
 						targetRegion = _ufo->getMission()->getRegion();
@@ -1715,6 +1755,14 @@ void DogfightState::fireWeapon(int i)
 void DogfightState::ufoFireWeapon()
 {
 	int fireCountdown = std::max(1, (_ufo->getRules()->getWeaponReload() - 2 * _game->getSavedGame()->getDifficultyCoefficient()));
+	{
+		int diff = _game->getSavedGame()->getDifficulty();
+		auto& custom = _game->getMod()->getUfoFiringRateCoefficients();
+		if (custom.size() > diff)
+		{
+			fireCountdown = std::max(1, _ufo->getRules()->getWeaponReload() * custom[diff] / 100);
+		}
+	}
 	_ufo->setFireCountdown(RNG::generate(0, fireCountdown) + fireCountdown);
 
 	setStatus("STR_UFO_RETURN_FIRE");
@@ -1726,6 +1774,10 @@ void DogfightState::ufoFireWeapon()
 	p->setHorizontalPosition(HP_CENTER);
 	p->setPosition(_currentDist - (_ufo->getRules()->getRadius() / 2));
 	_projectiles.push_back(p);
+	if (_ufoIsAttacking && _disableDisengage)
+	{
+		_ufo->increaseSoftlockShotCounter();
+	}
 
 	if (_ufo->getRules()->getFireSound() == -1)
 	{

@@ -61,8 +61,8 @@ const int Node::nodeRank[8][7] = {
 	{ 7, 6, 2, 8, 3, 4, 0 }, //medic
 	{ 3, 4, 5, 2, 7, 8, 0 }, //navigator
 	{ 2, 5, 3, 4, 6, 8, 0 }, //soldier
-	{ 2, 5, 3, 4, 6, 8, 0 }, //terrorist
-	{ 2, 5, 3, 4, 6, 8, 0 }  }; //also terrorist
+	{ 6, 2, 5, 3, 4, 8, 0 }, //terrorist
+	{ 8, 2, 5, 3, 4, 6, 0 }  }; //also terrorist
 
 
 

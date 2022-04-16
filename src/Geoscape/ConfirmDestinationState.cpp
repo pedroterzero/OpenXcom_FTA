@@ -43,6 +43,7 @@
 #include "../Savegame/ItemContainer.h"
 #include "../Savegame/Soldier.h"
 #include "../Engine/Options.h"
+#include "../Engine/Sound.h"
 
 namespace OpenXcom
 {
@@ -152,6 +153,12 @@ std::string ConfirmDestinationState::checkStartingCondition()
 	{
 		// for example just a waypoint
 		return "";
+	}
+
+	if ((m != 0 || b != 0) &&
+		!_crafts.front()->getRules()->getAllowLanding())
+	{
+		return "STR_NOT_ABLE_TO_LAND_HERE";
 	}
 
 	if (ruleDeploy == 0)
@@ -301,6 +308,13 @@ void ConfirmDestinationState::btnOkClick(Action *)
 	else
 	{
 		_crafts.front()->setDestination(_target);
+		if (_crafts.front()->isTakingOff())
+		{
+			if (!_crafts.front()->getRules()->getTakeoffSoundRaw().empty())
+			{
+				_game->getMod()->getSound("GEO.CAT", _crafts.front()->getRules()->getTakeoffSound())->play();
+			}
+		}
 	}
 
 	for (std::vector<Craft*>::iterator i = _crafts.begin(); i != _crafts.end(); ++i)
@@ -337,7 +351,7 @@ void ConfirmDestinationState::btnTransferClick(Action *)
 	{
 		errorMessage = tr("STR_NO_FREE_HANGARS_FOR_TRANSFER");
 	}
-	else if (_crafts.front()->getNumSoldiers() > targetBase->getAvailableQuarters() - targetBase->getUsedQuarters())
+	else if (_crafts.front()->getNumTotalSoldiers() > targetBase->getAvailableQuarters() - targetBase->getUsedQuarters())
 	{
 		errorMessage = tr("STR_NO_FREE_ACCOMODATION_CREW");
 	}

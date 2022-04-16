@@ -199,6 +199,14 @@ NewBattleState::NewBattleState() : _craft(0), _selectType(NewBattleSelectType::M
 			}
 		}
 	}
+	// ignore, hardcoded
+	{
+		auto itr = std::find(_missionTypes.begin(), _missionTypes.end(), RuleCraft::DEFAULT_CRAFT_DEPLOYMENT_PREVIEW);
+		if (itr != _missionTypes.end())
+		{
+			_missionTypes.erase(itr);
+		}
+	}
 	_cbxMission->setOptions(_missionTypes, true);
 	_cbxMission->onChange((ActionHandler)&NewBattleState::cbxMissionChange);
 
@@ -206,7 +214,7 @@ NewBattleState::NewBattleState() : _craft(0), _selectType(NewBattleSelectType::M
 	for (std::vector<std::string>::const_iterator i = crafts.begin(); i != crafts.end(); ++i)
 	{
 		RuleCraft *rule = _game->getMod()->getCraft(*i);
-		if (rule->getSoldiers() > 0 && rule->getAllowLanding())
+		if (rule->getMaxUnits() > 0 && rule->getAllowLanding())
 		{
 			_crafts.push_back(*i);
 		}
@@ -388,6 +396,7 @@ void NewBattleState::load(const std::string &filename)
 				}
 
 				_game->setSavedGame(save);
+				save->setGamePtr(_game);
 			}
 			else
 			{
@@ -485,8 +494,12 @@ void NewBattleState::initSave()
 		soldier->calcStatString(mod->getStatStrings(), psiStrengthEval);
 
 		base->getSoldiers()->push_back(soldier);
-		if (i < _craft->getRules()->getSoldiers())
+
+		auto space = _craft->getSpaceAvailable();
+		if (_craft->validateAddingSoldier(space, soldier))
+		{
 			soldier->setCraft(_craft);
+		}
 	}
 
 	// Generate items
@@ -512,6 +525,7 @@ void NewBattleState::initSave()
 	}
 
 	_game->setSavedGame(save);
+	save->setGamePtr(_game);
 	cbxMissionChange(0);
 }
 
@@ -521,14 +535,23 @@ void NewBattleState::initSave()
  */
 void NewBattleState::btnOkClick(Action *)
 {
+	if (_craft)
+	{
+		// just in case somebody manually edited battle.cfg
+		_craft->resetCustomDeployment();
+	}
 	save();
-	if (_missionTypes[_cbxMission->getSelected()] != "STR_BASE_DEFENSE" && _craft->getNumSoldiers() == 0 && _craft->getNumVehicles() == 0)
+	if (_missionTypes[_cbxMission->getSelected()] != "STR_BASE_DEFENSE" && _craft->getNumTotalUnits() == 0)
 	{
 		return;
 	}
 
 	SavedBattleGame *bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage());
 	_game->getSavedGame()->setBattleGame(bgame);
+	if (_game->getMod()->getIsFTAGame())
+	{
+		_game->getSavedGame()->setFtAGame(true);
+	}
 	bgame->setMissionType(_missionTypes[_cbxMission->getSelected()]);
 	BattlescapeGenerator bgen = BattlescapeGenerator(_game);
 	Base *base = 0;
@@ -707,19 +730,43 @@ void NewBattleState::cbxMissionChange(Action *)
 void NewBattleState::cbxCraftChange(Action *)
 {
 	_craft->changeRules(_game->getMod()->getCraft(_crafts[_cbxCraft->getSelected()]));
-	int current = _craft->getNumSoldiers();
-	int max = _craft->getRules()->getSoldiers();
-	if (current > max)
+
+	int count = 0;
+	Craft* tmpCraft = new Craft(_craft->getRules(), _craft->getBase(), 0);
+
+	// temporarily re-assign all soldiers to a dummy craft
+	for (auto* soldier : *_craft->getBase()->getSoldiers())
 	{
-		for (std::vector<Soldier*>::reverse_iterator i = _craft->getBase()->getSoldiers()->rbegin(); i != _craft->getBase()->getSoldiers()->rend() && current > max; ++i)
+		if (soldier->getCraft() == _craft)
 		{
-			if ((*i)->getCraft() == _craft)
+			soldier->setCraft(tmpCraft);
+			count++;
+		}
+	}
+	// try assigning all soldiers back while validating constraints
+	for (auto* soldier : *_craft->getBase()->getSoldiers())
+	{
+		if (count <= 0)
+		{
+			break;
+		}
+		if (soldier->getCraft() == tmpCraft)
+		{
+			count--;
+			auto space = _craft->getSpaceAvailable();
+			if (_craft->validateAddingSoldier(space, soldier))
 			{
-				(*i)->setCraft(0);
-				current--;
+				soldier->setCraft(_craft);
+			}
+			else
+			{
+				soldier->setCraft(0);
 			}
 		}
 	}
+	delete tmpCraft;
+
+	// FIXME? HWPs can still violate the constraints (e.g. when switching from Avenger to Lightning)
 }
 
 /**

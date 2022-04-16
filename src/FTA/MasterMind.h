@@ -25,8 +25,8 @@
 namespace OpenXcom
 {
 
-enum LoyaltySource {XCOM_BATTLESCAPE, XCOM_DOGFIGHT, XCOM_GEOSCAPE, XCOM_RESEARCH, ALIEN_MISSION_DESPAWN, ALIEN_UFO_ACTIVITY, ALIEN_BASE};
-enum ProcessorSource {MOTHLY, FACTIONAL, XCOM};
+enum LoyaltySource {XCOM_BATTLESCAPE, XCOM_DOGFIGHT, XCOM_GEOSCAPE, XCOM_RESEARCH, ALIEN_MISSION_DESPAWN, ALIEN_UFO_ACTIVITY, ALIEN_BASE, ABSOLUTE_COEF};
+enum ProcessorSource {MONTHLY, FACTIONAL, XCOM};
 
 class Game;
 class GeoscapeState;
@@ -46,10 +46,8 @@ public:
 
 	/// Process event script from different sources
 	void eventScriptProcessor(Game& engine, std::vector<std::string> scripts, ProcessorSource source);
-	/// Generate Geoscape event from it's name if everything is ok with it.
-	bool spawnEvent(std::string name);
 	/// Loyalty update handler
-	void updateLoyalty(int score, LoyaltySource source = XCOM_GEOSCAPE);
+	int updateLoyalty(int score, LoyaltySource source = XCOM_GEOSCAPE);
 	/// Return bonus that would be applied to base service performance because of loyalty level.
 	int getLoyaltyPerformanceBonus();
 	/// Update reputations level based on its current reputation score.

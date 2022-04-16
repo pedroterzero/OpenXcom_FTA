@@ -50,6 +50,12 @@ en-US:
   STR_NORMAL: "Normal"
   STR_BOLD: "Bold (+50%)"
   STR_VERY_BOLD: "Very bold (+100%)"
+#CraftSoldiersState.cpp
+  STR_CRAFT_DEPLOYMENT_PREVIEW: "Preview"
+  STR_CRAFT_DEPLOYMENT_PREVIEW_SAVED: "Preview *"
+  STR_CRAFT_DEPLOYMENT_PREVIEW_BRIEFING: "This feature allows you to preview and customize the deployment of your units at the beginning of a battle. You have unlimited movement. Press and hold 'Alt' to highlight valid unit positions. Click on the 'Abort Mission' icon to save a custom deployment. Click on the 'End Turn' icon to exit the preview.{NEWLINE}Note that adding any new soldiers or vehicles to the craft automatically invalidates the saved custom deployment. Presence of a custom deployment is indicated by an asterisk on the 'Preview' button."
+  STR_CRAFT_DEPLOYMENT_PREVIEW_BRIEFING_DUMMY: "This feature allows you to preview and modify the deployment table of this craft type. Any changes will apply to all your current craft and also to any craft you buy or manufacture later in the campaign. You start with the maximum number of soldiers. Each soldier represents one row in the deployment table. Soldier names correspond to row numbers. To provide space for a 2x2 unit, place 4 soldiers in a 2x2 square. If space is not provided, the 2x2 unit will be missing in a real battle."
+  STR_BASE_DEFENSE_BRIEFING_PREVIEW: "This feature allows you to preview your base.{NEWLINE}Have fun!{NEWLINE}{NEWLINE}Click on the 'End Turn' icon to exit the preview."
 #DismantleFacilityState.cpp
   STR_REFUND_VALUE: "Sales value> {ALT}{0}"
 #GlobalManufactureState.cpp
@@ -60,6 +66,7 @@ en-US:
   STR_KILL_SELECTED: "Kill"
   STR_SELL_SELECTED: "Sell"
   STR_GO_TO_TRANSFERS: "Transfer..."
+  STR_PRISON_CLEANUP: "Prison Cleanup"
 #ManufactureDependenciesTreeState.cpp
   STR_TOPIC: "Topic>{ALT} {0}"
   STR_SHOW_ALL: "Show all"
@@ -85,6 +92,7 @@ en-US:
   STR_FILTER_DEFAULT_NO_SUPPLIES: "Default (no supplies)"
   STR_FILTER_FACILITY_REQUIRED: "Facility Missing"
   STR_FILTER_HIDDEN: "Hidden"
+  STR_FILTER_MISSING: "Missing"
 #NewResearchListState.cpp
   STR_SORT_DEFAULT: "Default"
   STR_SORT_BY_COST: "By cost"
@@ -137,6 +145,7 @@ en-US:
   STR_M_FLAG: " [m]"
   STR_F_FLAG: " [f]"
   STR_I_FLAG: " [i]"
+  STR_C_FLAG: " [c]"
 #TechTreeViewerState.cpp
   STR_THIS_FEATURE_IS_DISABLED_1: "This feature is disabled."
   STR_THIS_FEATURE_IS_DISABLED_2: "This feature is disabled."
@@ -159,9 +168,10 @@ en-US:
   STR_GET_FOR_FREE_FROM: "Get for free from:"
   STR_IS_LOOKUP_OF: "Is lookup of:"
   STR_LOOKUP: "Lookup:"
-  STR_SPAWNED_ITEM: "Spawned item:"
+  STR_SPAWNED_ITEMS: "Spawned items:"
   STR_SPAWNED_EVENT: "Spawned event:"
   STR_REQUIRED_BY: "Required by:"
+  STR_REQUIRED_BY_TRANSFORMATIONS: "Required by transformations:"
   STR_LEADS_TO: "Leads to:"
   STR_UNLOCKS: "Unlocks:"
   STR_DISABLES: "Disables:"
@@ -175,6 +185,9 @@ en-US:
   STR_PRODUCED_BY: "Produced by:"
   STR_SPAWNED_BY: "Spawned by:"
   STR_MATERIALS_REQUIRED: "Materials required:"
+  STR_TTV_COST_PER_UNIT: "Cost per unit:"
+  STR_TTV_ENGINEER_HOURS: "Engineer hours:"
+  STR_TTV_WORK_SPACE_REQUIRED: "Work space required:"
   STR_ITEMS_PRODUCED: "Items produced:"
   STR_PERSON_RECRUITED: "Person recruited:"
   STR_UNLOCKS_ARCS: "Unlocks arcs:"
@@ -189,6 +202,8 @@ en-US:
   STR_PRISONERS: "Prisoners"
   STR_ARMORS: "Armors"
 #=================== Battlescape ===================
+#AbortMissionState.cpp
+  STR_CRAFT_DEPLOYMENT_QUESTION: "Save Craft Deployment?"
 #ActionMenuState.cpp
   STR_MUST_USE_BOTH_HANDS: "Both hands are required for this!"
 #BattlescapeGame.cpp
@@ -292,20 +307,20 @@ en-US:
   STR_REMEMBER_DISABLED_CRAFT_WEAPONS_DESC: "Craft weapons disabled during a dogfight will stay disabled. They will also not be rearmed at the base."
   STR_OFF_CENTRE_SHOOTING: "Off-center shooting"
   STR_OFF_CENTRE_SHOOTING_DESC: "Soldiers will automatically try to adjust the firing angle slightly in case there is no line of fire."
-  STR_KEEP_CRAFT_COMMANDS_AFTER_DOGFIGHT: "Keep Craft Commands after Dogfight"
-  STR_KEEP_CRAFT_COMMANDS_AFTER_DOGFIGHT_DESC: "Crafts will keep their commands despite having been engaged by a Hunter-Killer/UFO. Usually crafts will return to base once they have been in a dogfight."
 #===================
   STR_GRAPHS_ZOOM_IN: "Zoom In (Graphs)"
   STR_GRAPHS_ZOOM_OUT: "Zoom Out (Graphs)"
   STR_MARK_ALL_AS_SEEN: "Mark All As Seen"
   STR_SELL_ALL: "Sell All"
   STR_SELL_ALL_BUT_ONE: "Sell All But One"
+  STR_TRANSFER_ALL: "Transfer All"
   STR_REMOVE_SOLDIERS_FROM_ALL_CRAFTS: "Remove Soldiers From All Crafts"
   STR_REMOVE_SOLDIERS_FROM_CRAFT: "Remove Soldiers From Craft"
   STR_REMOVE_EQUIPMENT_FROM_CRAFT: "Remove Equipment From Craft"
   STR_REMOVE_ARMOR_FROM_ALL_CRAFTS: "Remove Armor From All Crafts"
   STR_REMOVE_ARMOR_FROM_CRAFT: "Remove Armor From Craft"
   STR_REMOVE_SOLDIERS_FROM_TRAINING: "Remove Soldiers From Training"
+  STR_ADD_SOLDIERS_TO_TRAINING: "Add Soldiers To Training"
   STR_INVENTORY_ARMOR: "Change Armor"
   STR_INVENTORY_AVATAR: "Change Avatar"
   STR_ACTION_ITEM_1: "Item Action 1 (Aim/Use)"

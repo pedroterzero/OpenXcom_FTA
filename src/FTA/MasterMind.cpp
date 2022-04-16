@@ -186,21 +186,38 @@ void MasterMind::newGameHelper(int diff, GeoscapeState* gs)
 * Process event script from different sources
 * @param engine - Game.
 * @param scripts - a vector of event script's string IDs.
-* @param source is the reason we are running process (mothly, factional, xcom).
+* @param source is the reason we are running process (monthly, factional, xcom).
 */
 void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scripts, ProcessorSource source)
 {
-	const Mod& mod = *engine.getMod();
-	SavedGame& save = *engine.getSavedGame();
-
 	if (!scripts.empty())
 	{
+		const Mod &mod = *engine.getMod();
+		SavedGame &save = *engine.getSavedGame();
+		AlienStrategy &strategy = save.getAlienStrategy();
+		std::set<std::string> xcomBaseCountries;
+		std::set<std::string> xcomBaseRegions;
+
+		for (auto &xcomBase : *save.getBases())
+		{
+			auto region = save.locateRegion(*xcomBase);
+			if (region)
+			{
+				xcomBaseRegions.insert(region->getRules()->getType());
+			}
+			auto country = save.locateCountry(*xcomBase);
+			if (country)
+			{
+				xcomBaseCountries.insert(country->getRules()->getType());
+			}
+		}
+
 		for (auto& name : scripts)
 		{
 			auto ruleScript = mod.getEventScript(name);
 			int allowedProcessor = ruleScript->getAllowedProcessor();
 			// check allowed processor first!
-			if ((source == MOTHLY && allowedProcessor != 0) ||
+			if ((source == MONTHLY && allowedProcessor != 0) ||
 				(source == FACTIONAL && allowedProcessor != 1) ||
 				(source == XCOM && allowedProcessor != 2))
 			{
@@ -252,7 +269,32 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 							continue;
 					}
 				}
-
+				if (triggerHappy)
+				{
+					// check counters
+					if (ruleScript->getCounterMin() > 0)
+					{
+						if (!ruleScript->getMissionVarName().empty() && ruleScript->getCounterMin() > strategy.getMissionsRun(ruleScript->getMissionVarName()))
+						{
+							triggerHappy = false;
+						}
+						if (!ruleScript->getMissionMarkerName().empty() && ruleScript->getCounterMin() > save.getLastId(ruleScript->getMissionMarkerName()))
+						{
+							triggerHappy = false;
+						}
+					}
+					if (triggerHappy && ruleScript->getCounterMax() != -1)
+					{
+						if (!ruleScript->getMissionVarName().empty() && ruleScript->getCounterMax() < strategy.getMissionsRun(ruleScript->getMissionVarName()))
+						{
+							triggerHappy = false;
+						}
+						if (!ruleScript->getMissionMarkerName().empty() && ruleScript->getCounterMax() < save.getLastId(ruleScript->getMissionMarkerName()))
+						{
+							triggerHappy = false;
+						}
+					}
+				}
 				if (triggerHappy)
 				{
 					// item requirements
@@ -271,6 +313,28 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 						triggerHappy = (save.isFacilityBuilt(triggerFacility.first) == triggerFacility.second);
 						if (!triggerHappy)
 							continue;
+					}
+				}
+				if (triggerHappy)
+				{
+					// xcom base requirements by region
+					for (auto &triggerXcomBase : ruleScript->getXcomBaseInRegionTriggers())
+					{
+						bool found = (xcomBaseRegions.find(triggerXcomBase.first) != xcomBaseRegions.end());
+						triggerHappy = (found == triggerXcomBase.second);
+						if (!triggerHappy)
+							break;
+					}
+				}
+				if (triggerHappy)
+				{
+					// xcom base requirements by country
+					for (auto &triggerXcomBase2 : ruleScript->getXcomBaseInCountryTriggers())
+					{
+						bool found = (xcomBaseCountries.find(triggerXcomBase2.first) != xcomBaseCountries.end());
+						triggerHappy = (found == triggerXcomBase2.second);
+						if (!triggerHappy)
+							break;
 					}
 				}
 				// ok, we still want event from this script, now let`s actually choose one.
@@ -323,7 +387,7 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 					bool generated = false;
 					for (auto eventRules : toBeGenerated)
 					{
-						if (spawnEvent(eventRules->getName()))
+						if (save.spawnEvent(eventRules))
 						{
 							generated = true;
 						}
@@ -344,31 +408,12 @@ void MasterMind::eventScriptProcessor(Game& engine, std::vector<std::string> scr
 	}
 }
 
-/**
-* Handle request for generation of Geoscape Event.
-* @param eventName - string with rules name of the event.
-* @return true is event was generater successfully.
-*/
-bool MasterMind::spawnEvent(std::string name)
+int MasterMind::updateLoyalty(int score, LoyaltySource source)
 {
-	RuleEvent* eventRules = _game->getMod()->getEvent(name);
-	if (eventRules == 0)
+	if (!_game->getMod()->getIsFTAGame())
 	{
-		throw Exception("Error processing spawning of event: " + name + ", no such rules defined!");
-		return false;
+		return 0;
 	}
-	GeoscapeEvent* newEvent = new GeoscapeEvent(*eventRules);
-	int minutes = (eventRules->getTimer() + (RNG::generate(0, eventRules->getTimerRandom()))) / 30 * 30;
-	if (minutes < 30) minutes = 30; // just in case
-	newEvent->setSpawnCountdown(minutes);
-	_game->getSavedGame()->getGeoscapeEvents().push_back(newEvent);
-	_game->getSavedGame()->addGeneratedEvent(eventRules);
-
-	return true;
-}
-
-void MasterMind::updateLoyalty(int score, LoyaltySource source)
-{
 	double coef = 1;
 	std::string reason = "";
 	switch (source)
@@ -401,14 +446,22 @@ void MasterMind::updateLoyalty(int score, LoyaltySource source)
 		coef = _game->getMod()->getLoyaltyCoefAlienBase() * (-1);
 		reason = "ALIEN_BASE";
 		break;
+	case OpenXcom::ABSOLUTE_COEF:
+		coef = 100;
+		reason = "ABSOLUTE";
+		break;
 	default:
 		break;
 	}
-	coef = coef / 100;
+
+	coef /= 100;
+	int change = std::round(coef * score);
 	int loyalty = _game->getSavedGame()->getLoyalty();
-	loyalty += std::round(score * coef);
-	Log(LOG_DEBUG) << "Loyalty updating to:  " << loyalty << " from coef: " << coef << " and score value: " << score << " with reason: " << reason; //#CLEARLOGS remove for next release
+	loyalty += change;
+	Log(LOG_DEBUG) << "Loyalty updating to:  " << loyalty << " from coef: " << coef << ", change value: " << change << " and score value : " << score << " with reason : " << reason; //#CLEARLOGS
 	_game->getSavedGame()->setLoyalty(loyalty);
+
+	return change;
 }
 
 /**
@@ -417,56 +470,23 @@ void MasterMind::updateLoyalty(int score, LoyaltySource source)
 */
 int MasterMind::getLoyaltyPerformanceBonus()
 {
-	int bonus = 100;
+	int performance = 100;
 	if (_game->getMod()->getIsFTAGame())
 	{
 		int loyalty = _game->getSavedGame()->getLoyalty();
-		int cap = _game->getMod()->getLoyaltyPerformanceCap();
-		int factor = _game->getMod()->getLoyaltyPerformanceFactor();
-		int chance = 0;
-
-		if (loyalty > 0)
+		if (loyalty > 100)
 		{
-			if (loyalty > cap)
-			{
-				if (RNG::percent(factor / 3))
-				{
-					bonus = 240;
-					return bonus;
-				}
-				chance = factor;
-			}
-			else
-			{
-				chance = (loyalty * factor) / cap;
-			}
-
-			if (RNG::percent(chance))
-			{
-				bonus = 200;
-			}
+			double ln = log(fabs(loyalty));
+			int bonus = ceil(-9.79 + (2.23 * ln));
+			performance += bonus;
 		}
-		else
+		if (loyalty < 0)
 		{
-			chance = (-loyalty * factor * 1.5) / cap;
-
-			if (RNG::percent(chance))
-			{
-				bonus = 50;
-			}
-			else
-			{
-				chance = (-loyalty * factor) / cap;
-
-				if (RNG::percent(chance))
-				{
-					bonus = 0;
-				}
-			}
+			int penalty = ceil(0.271 * pow(-loyalty, 0.537));
+			performance -= penalty;
 		}
 	}
-	
-	return bonus;
+	return performance;
 }
 
 /**

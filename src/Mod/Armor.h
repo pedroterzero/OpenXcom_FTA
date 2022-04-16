@@ -75,6 +75,7 @@ private:
 	int _frontArmor, _sideArmor, _leftArmorDiff, _rearArmor, _underArmor, _drawingRoutine;
 	bool _drawBubbles;
 	MovementType _movementType;
+	SpecialAbility _specab;
 	bool _turnBeforeFirstStep;
 	int _turnCost;
 	int _moveSound;
@@ -106,6 +107,7 @@ private:
 	bool _isPilotArmor;
 	bool _allowTwoMainWeapons;
 	bool _instantWoundRecovery;
+	bool _isAlwaysVisible = false;
 	int _standHeight, _kneelHeight, _floatHeight;
 public:
 	/// Creates a blank armor ruleset.
@@ -152,6 +154,8 @@ public:
 	/// Gets the research required to be able to equip this armor.
 	const RuleResearch* getRequiredResearch() const;
 
+	/// Armor have layered armor definition. Check by Prefix.
+	bool hasLayersDefinition() const { return !_layersDefaultPrefix.empty(); }
 	/// Gets the default prefix for layered armor sprite names.
 	const std::string &getLayersDefaultPrefix() const { return _layersDefaultPrefix; }
 	/// Gets the overrides for layered armor sprite name prefix, per layer.
@@ -165,6 +169,8 @@ public:
 	bool drawBubbles() const;
 	/// DO NOT USE THIS FUNCTION OUTSIDE THE BATTLEUNIT CONSTRUCTOR OR I WILL HUNT YOU DOWN.
 	MovementType getMovementType() const;
+	/// Gets the armor's special ability.
+	int getSpecialAbility() const;
 
 	/// Should turning before first step cost TU or not?
 	bool getTurnBeforeFirstStep() const { return _turnBeforeFirstStep; }
@@ -242,6 +248,7 @@ public:
 	ForcedTorso getForcedTorso() const;
 	/// Gets built-in weapons of armor.
 	const std::vector<const RuleItem*> &getBuiltInWeapons() const;
+
 	/// Gets max view distance at dark in BattleScape.
 	int getVisibilityAtDark() const;
 	/// Gets max view distance at day in BattleScape.
@@ -262,6 +269,9 @@ public:
 	int getPsiCamouflage() const;
 	/// Gets personal light radius;
 	int getPersonalLight() const;
+	/// Gets if unit should be always visible.
+	bool isAlwaysVisible() const { return _isAlwaysVisible; }
+
 	/// Gets how armor react to fear.
 	bool getFearImmune(bool def = false) const;
 	/// Gets how armor react to bleeding.

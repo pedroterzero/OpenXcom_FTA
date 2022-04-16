@@ -37,6 +37,7 @@ class CovertOperation;
 class Region;
 class Country;
 class RuleItem;
+class RuleEvent;
 class BattleUnit;
 struct UnitStats;
 
@@ -60,8 +61,9 @@ struct RecoveryItem { std::string name; int value; };
 class DebriefingState : public State
 {
 private:
-	typedef std::pair<std::string, UnitStats> SoldierStatsEntry;
+	typedef std::pair<Soldier *, UnitStats> SoldierStatsEntry;
 
+	RuleEvent *_eventToSpawn;
 	Region *_region;
 	Country *_country;
 	Base *_base;
@@ -69,7 +71,7 @@ private:
 	std::vector<SoldierStatsEntry> _soldierStats;
 	TextButton *_btnOk, *_btnStats, *_btnSell, *_btnTransfer;
 	Window *_window;
-	Text *_txtTitle, *_txtItem, *_txtQuantity, *_txtScore, *_txtRecovery, *_txtRating;
+	Text *_txtTitle, *_txtItem, *_txtQuantity, *_txtScore, *_txtRecovery, *_txtRating, *_txtLoyalty;
 	Text *_txtSoldier, *_txtTU, *_txtStamina, *_txtHealth, *_txtBravery, *_txtReactions;
 	Text *_txtFiring, *_txtThrowing, *_txtMelee, *_txtStrength, *_txtPsiStrength, *_txtPsiSkill;
 	TextList *_lstStats, *_lstRecovery, *_lstTotal, *_lstSoldierStats, *_lstRecoveredItems;
@@ -99,7 +101,7 @@ private:
 	/// Recovers an alien from the battlescape.
 	void recoverAlien(BattleUnit *from, Base *base);
 	/// Handle friendly non X-COM unit  (VIP) recovery from the battlescape.
-	bool handleVipRecovery(BattleUnit* unit, Base* base, bool result);
+	bool handleVipRecovery(BattleUnit *unit, Base *base, Craft *craft, bool result);
 	/// Reequips a craft after a mission.
 	void reequipCraft(Base *base, Craft *craft, bool vehicleItemsCanBeDestroyed);
 	/// 0 = score, 1 = stat improvement, 2 = recovered items

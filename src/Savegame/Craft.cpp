@@ -45,6 +45,35 @@
 #include "SerializationHelper.h"
 #include "../Engine/Logger.h"
 
+namespace YAML
+{
+	template<>
+	struct convert<OpenXcom::VehicleDeploymentData>
+	{
+		static Node encode(const OpenXcom::VehicleDeploymentData& rhs)
+		{
+			Node node;
+			node["type"] = rhs.type;
+			node["pos"] = rhs.pos;
+			node["dir"] = rhs.dir;
+			//node["used"] = rhs.used; // not needed
+			return node;
+		}
+
+		static bool decode(const Node& node, OpenXcom::VehicleDeploymentData& rhs)
+		{
+			if (!node.IsMap())
+				return false;
+
+			rhs.type = node["type"].as<std::string>(rhs.type);
+			rhs.pos = node["pos"].as<OpenXcom::Position>(rhs.pos);
+			rhs.dir = node["dir"].as<int>(rhs.dir);
+			//rhs.used = node["used"].as<bool>(rhs.used); // not needed
+			return true;
+		}
+	};
+}
+
 namespace OpenXcom
 {
 
@@ -61,6 +90,7 @@ Craft::Craft(const RuleCraft *rules, Base *base, int id) : MovingTarget(),
 	_status("STR_READY"), _lowFuel(false), _mission(false),
 	_inBattlescape(false), _inDogfight(false), _stats(),
 	_isAutoPatrolling(false), _lonAuto(0.0), _latAuto(0.0),
+	_scientists(0), _engineers(0),
 	_skinIndex(0)
 {
 	_stats = rules->getStats();
@@ -245,6 +275,16 @@ void Craft::load(const YAML::Node &node, const ScriptGlobal *shared, const Mod *
 	_lonAuto = node["lonAuto"].as<double>(_lonAuto);
 	_latAuto = node["latAuto"].as<double>(_latAuto);
 	_pilots = node["pilots"].as< std::vector<int> >(_pilots);
+	_scientists = node["scientists"].as<int>(_scientists);
+	_engineers = node["engineers"].as<int>(_engineers);
+	if (const YAML::Node& customSoldierDeployment = node["customSoldierDeployment"])
+	{
+		_customSoldierDeployment = customSoldierDeployment.as< std::map<int, SoldierDeploymentData> >();
+	}
+	if (const YAML::Node& customVehicleDeployment = node["customVehicleDeployment"])
+	{
+		_customVehicleDeployment = customVehicleDeployment.as< std::vector<VehicleDeploymentData> >();
+	}
 	_skinIndex = node["skinIndex"].as<int>(_skinIndex);
 	if (_skinIndex > _rules->getMaxSkinIndex())
 	{
@@ -349,6 +389,16 @@ YAML::Node Craft::save(const ScriptGlobal *shared) const
 	for (std::vector<int>::const_iterator i = _pilots.begin(); i != _pilots.end(); ++i)
 	{
 		node["pilots"].push_back((*i));
+	}
+	node["scientists"] = _scientists;
+	node["engineers"] = _engineers;
+	if (!_customSoldierDeployment.empty())
+	{
+		node["customSoldierDeployment"] = _customSoldierDeployment;
+	}
+	if (!_customVehicleDeployment.empty())
+	{
+		node["customVehicleDeployment"] = _customVehicleDeployment;
 	}
 	if (_skinIndex != 0)
 		node["skinIndex"] = _skinIndex;
@@ -563,27 +613,6 @@ int Craft::getNumWeapons(bool onlyLoaded) const
 }
 
 /**
- * Returns the amount of soldiers from a list
- * that are currently attached to this craft.
- * @return Number of soldiers.
- */
-int Craft::getNumSoldiers() const
-{
-	if (_rules->getSoldiers() == 0)
-		return 0;
-
-	int total = 0;
-
-	for (Soldier *s : *_base->getSoldiers())
-	{
-		if (s->getCraft() == this && s->getArmor()->getSize() == 1)
-			++total;
-	}
-
-	return total;
-}
-
-/**
  * Returns the amount of equipment currently
  * equipped on this craft.
  * @return Number of items.
@@ -591,23 +620,6 @@ int Craft::getNumSoldiers() const
 int Craft::getNumEquipment() const
 {
 	return _items->getTotalQuantity();
-}
-
-/**
- * Returns the amount of vehicles currently
- * contained in this craft.
- * @return Number of vehicles.
- */
-int Craft::getNumVehicles() const
-{
-	int total = 0;
-
-	for (Soldier *s : *_base->getSoldiers())
-	{
-		if (s->getCraft() == this && s->getArmor()->getSize() == 2)
-			++total;
-	}
-	return _vehicles.size() + total;
 }
 
 /**
@@ -1010,6 +1022,16 @@ void Craft::evacuateCrew(const Mod *mod)
 			++s; // next
 		}
 	}
+	// care scientists and engineers that might be onboard
+	Transfer *ts = new Transfer(mod->getPersonnelTime());
+	ts->setScientists(_scientists);
+	_base->getTransfers()->push_back(ts);
+	_scientists = 0;
+	Transfer *te = new Transfer(mod->getPersonnelTime());
+	te->setEngineers(_engineers);
+	_base->getTransfers()->push_back(te);
+	_engineers = 0;
+
 	removeAllPilots(); // just in case
 }
 
@@ -1042,13 +1064,21 @@ bool Craft::think()
 }
 
 /**
+ * Is the craft about to take off?
+ */
+bool Craft::isTakingOff() const
+{
+	return _takeoff == 60;
+}
+
+/**
  * Checks the condition of all the craft's systems
  * to define its new status (eg. when arriving at base).
  */
 void Craft::checkup()
 {
 	int available = 0, full = 0;
-	for (std::vector<CraftWeapon*>::iterator i = _weapons.begin(); i != _weapons.end(); ++i)
+	for (std::vector<CraftWeapon *>::iterator i = _weapons.begin(); i != _weapons.end(); ++i)
 	{
 		if ((*i) == 0)
 			continue;
@@ -1079,6 +1109,42 @@ void Craft::checkup()
 	{
 		_status = "STR_READY";
 	}
+
+	if (_scientists > 0)
+	{
+		_base->setScientists(_base->getScientists() + _scientists);
+	}
+	if (_engineers > 0)
+	{
+		_base->setEngineers(_base->getEngineers() + _engineers);
+	}
+
+	if (getSpaceAvailable() < 0)
+	{
+		int shortage = abs(getSpaceAvailable());
+		for (std::vector<Soldier *>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+		{
+			if (shortage < 0)
+			{
+				break;
+			}
+			else
+			{
+				if ((*i)->isJustSaved())
+				{
+					(*i)->setCraft(0);
+					shortage--;
+				}
+			}
+		}
+	}
+	for (std::vector<Soldier *>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+	{
+		if ((*i)->isJustSaved())
+		{
+			(*i)->setJustSaved(false);
+		}
+	}
 }
 
 /**
@@ -1087,7 +1153,7 @@ void Craft::checkup()
  * @param target Pointer to target to compare.
  * @return True if it's detected, False otherwise.
  */
-UfoDetection Craft::detect(const Ufo *target, bool alreadyTracked) const
+UfoDetection Craft::detect(const Ufo *target, const SavedGame *save, bool alreadyTracked) const
 {
 	auto distance = XcomDistance(getDistance(target));
 
@@ -1117,7 +1183,7 @@ UfoDetection Craft::detect(const Ufo *target, bool alreadyTracked) const
 	}
 
 	ModScript::DetectUfoFromCraft::Output args { detectionType, detectionChance, };
-	ModScript::DetectUfoFromCraft::Worker work { target, this, distance, alreadyTracked, _stats.radarChance, _stats.radarRange, };
+	ModScript::DetectUfoFromCraft::Worker work { target, save, this, distance, alreadyTracked, _stats.radarChance, _stats.radarRange, };
 
 	work.execute(target->getRules()->getScript<ModScript::DetectUfoFromCraft>(), args);
 
@@ -1192,9 +1258,9 @@ unsigned int Craft::calcRearmTime()
  * Repairs the craft's damage every hour
  * while it's docked in the base.
  */
-void Craft::repair(int bonus)
+void Craft::repair()
 {
-	setDamage(_damage - ((_rules->getRepairRate() * bonus) / 100));
+	setDamage(_damage - _rules->getRepairRate());
 	if (_damage <= 0)
 	{
 		_status = "STR_REARMING";
@@ -1339,7 +1405,7 @@ bool Craft::isDestroyed() const
  */
 int Craft::getSpaceAvailable() const
 {
-	return _rules->getSoldiers() - getSpaceUsed();
+	return _rules->getMaxUnits() - getSpaceUsed();
 }
 
 /**
@@ -1766,10 +1832,10 @@ int Craft::getHunterKillerAttraction(int huntMode) const
 			// craft that can land (i.e. transports) are not attractive
 			attraction += 1000000;
 		}
-		if (_rules->getSoldiers() > 0)
+		if (_rules->getMaxUnits() > 0)
 		{
 			// craft with more crew capacity (i.e. transports) are less attractive
-			attraction += 500000 + (_rules->getSoldiers() * 1000);
+			attraction += 500000 + (_rules->getMaxUnits() * 1000);
 		}
 		// faster craft (i.e. interceptors) are more attractive
 		attraction += 100000 - _stats.speedMax;
@@ -1787,7 +1853,7 @@ int Craft::getHunterKillerAttraction(int huntMode) const
 			attraction += 1000000;
 		}
 		// craft with more crew capacity (i.e. transports) are more attractive
-		attraction += 500000 - (_rules->getSoldiers() * 1000);
+		attraction += 500000 - (_rules->getMaxUnits() * 1000);
 		// faster craft (i.e. interceptors) are less attractive
 		attraction += 100000 + _stats.speedMax;
 	}
@@ -1805,6 +1871,314 @@ int Craft::getSkinSprite() const
 	return getRules()->getSprite(_skinIndex);
 }
 
+/**
+ * Does this craft have a custom deployment set?
+ */
+bool Craft::hasCustomDeployment() const
+{
+	return !_customSoldierDeployment.empty() || !_customVehicleDeployment.empty();
+}
+
+/**
+ * Resets the craft's custom deployment.
+ */
+void Craft::resetCustomDeployment()
+{
+	if (!_customSoldierDeployment.empty())
+	{
+		_customSoldierDeployment.clear();
+	}
+	if (!_customVehicleDeployment.empty())
+	{
+		_customVehicleDeployment.clear();
+	}
+}
+
+/**
+ * Resets the craft's custom deployment of vehicles temp variables.
+ */
+void Craft::resetTemporaryCustomVehicleDeploymentFlags()
+{
+	for (auto& depl : _customVehicleDeployment)
+	{
+		depl.used = false;
+	}
+}
+
+/**
+ * Returns the amount of vehicles and 2x2 soldiers currently contained in this craft.
+ * @return Number of vehicles and 2x2 soldiers.
+ */
+int Craft::getNumVehiclesAndLargeSoldiers() const
+{
+	return getNumTotalVehicles() + getNumLargeSoldiers();
+}
+
+/**
+ * Returns the amount of 1x1 soldiers from a list that are currently attached to this craft.
+ * @return Number of 1x1 soldiers.
+ */
+int Craft::getNumSmallSoldiers() const
+{
+	if (_rules->getMaxUnits() == 0)
+		return 0;
+
+	int total = 0;
+
+	for (Soldier* s : *_base->getSoldiers())
+	{
+		if (s->getCraft() == this && s->getArmor()->getSize() == 1)
+			++total;
+	}
+
+	return total;
+}
+
+/**
+ * Returns the amount of 2x2 soldiers from a list that are currently attached to this craft.
+ * @return Number of 2x2 soldiers.
+ */
+int Craft::getNumLargeSoldiers() const
+{
+	if (_rules->getMaxUnits() == 0)
+		return 0;
+
+	int total = 0;
+
+	for (Soldier* s : *_base->getSoldiers())
+	{
+		if (s->getCraft() == this && s->getArmor()->getSize() == 2)
+			++total;
+	}
+
+	return total;
+}
+
+/**
+ * Returns the amount of 1x1 vehicles from a list that are currently attached to this craft.
+ * @return Number of 1x1 vehicles.
+ */
+int Craft::getNumSmallVehicles() const
+{
+	if (_rules->getMaxUnits() == 0)
+		return 0;
+
+	int total = 0;
+
+	for (Vehicle* v : _vehicles)
+	{
+		if (v->getTotalSize() == 1)
+			++total;
+	}
+
+	return total;
+}
+
+/**
+ * Returns the amount of 2x2 vehicles from a list that are currently attached to this craft.
+ * @return Number of 2x2 vehicles.
+ */
+int Craft::getNumLargeVehicles() const
+{
+	if (_rules->getMaxUnits() == 0)
+		return 0;
+
+	int total = 0;
+
+	for (Vehicle* v : _vehicles)
+	{
+		if (v->getTotalSize() > 1)
+			++total;
+	}
+
+	return total;
+}
+
+/**
+ * Returns the amount of 1x1 units from a list that are currently attached to this craft.
+ * @return Number of 1x1 units.
+ */
+int Craft::getNumSmallUnits() const
+{
+	return getNumSmallSoldiers() + getNumSmallVehicles();
+}
+
+/**
+ * Returns the amount of 2x2 units from a list that are currently attached to this craft.
+ * @return Number of 2x2 units.
+ */
+int Craft::getNumLargeUnits() const
+{
+	return getNumLargeSoldiers() + getNumLargeVehicles();
+}
+
+/**
+ * Returns the total amount of soldiers from a list that are currently attached to this craft.
+ * @return Number of soldiers.
+ */
+int Craft::getNumTotalSoldiers() const
+{
+	if (_rules->getMaxUnits() == 0)
+		return 0;
+
+	int total = 0;
+
+	for (Soldier* s : *_base->getSoldiers())
+	{
+		if (s->getCraft() == this)
+			++total;
+	}
+
+	return total;
+}
+
+/**
+ * Returns the total amount of vehicles from a list that are currently attached to this craft.
+ * @return Number of vehicles.
+ */
+int Craft::getNumTotalVehicles() const
+{
+	return _vehicles.size();
+}
+
+/**
+ * Returns the total amount of units from a list that are currently attached to this craft.
+ * @return Number of units.
+ */
+int Craft::getNumTotalUnits() const
+{
+	return getNumTotalSoldiers() + getNumTotalVehicles();
+}
+
+/**
+ * Validates craft space and craft constraints on soldier armor change.
+ * @return True, if armor change is allowed.
+ */
+bool Craft::validateArmorChange(int sizeFrom, int sizeTo) const
+{
+	if (sizeFrom == sizeTo)
+	{
+		return true;
+	}
+	else
+	{
+		if (sizeFrom < sizeTo)
+		{
+			if (getSpaceAvailable() < 3)
+			{
+				return false;
+			}
+			if (_rules->getMaxVehiclesAndLargeSoldiers() > -1 && getNumVehiclesAndLargeSoldiers() >= _rules->getMaxVehiclesAndLargeSoldiers())
+			{
+				return false;
+			}
+			if (_rules->getMaxLargeSoldiers() > -1 && getNumLargeSoldiers() >= _rules->getMaxLargeSoldiers())
+			{
+				return false;
+			}
+			if (_rules->getMaxLargeUnits() > -1 && getNumLargeUnits() >= _rules->getMaxLargeUnits())
+			{
+				return false;
+			}
+		}
+		else if (sizeFrom > sizeTo)
+		{
+			if (_rules->getMaxSmallSoldiers() > -1 && getNumSmallSoldiers() >= _rules->getMaxSmallSoldiers())
+			{
+				return false;
+			}
+			if (_rules->getMaxSmallUnits() > -1 && getNumSmallUnits() >= _rules->getMaxSmallUnits())
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+/**
+ * Validates craft space and craft constraints on adding soldier to a craft.
+ * @return True, if adding a soldier is allowed.
+ */
+bool Craft::validateAddingSoldier(int space, const Soldier* s) const
+{
+	if (space < s->getArmor()->getTotalSize())
+	{
+		return false;
+	}
+	if (_rules->getMaxSoldiers() > -1 && getNumTotalSoldiers() >= _rules->getMaxSoldiers())
+	{
+		return false;
+	}
+	if (s->getArmor()->getSize() == 1)
+	{
+		if (_rules->getMaxSmallSoldiers() > -1 && getNumSmallSoldiers() >= _rules->getMaxSmallSoldiers())
+		{
+			return false;
+		}
+		if (_rules->getMaxSmallUnits() > -1 && getNumSmallUnits() >= _rules->getMaxSmallUnits())
+		{
+			return false;
+		}
+	}
+	else // armorSize > 1
+	{
+		if (_rules->getMaxVehiclesAndLargeSoldiers() > -1 && getNumVehiclesAndLargeSoldiers() >= _rules->getMaxVehiclesAndLargeSoldiers())
+		{
+			return false;
+		}
+		if (_rules->getMaxLargeSoldiers() > -1 && getNumLargeSoldiers() >= _rules->getMaxLargeSoldiers())
+		{
+			return false;
+		}
+		if (_rules->getMaxLargeUnits() > -1 && getNumLargeUnits() >= _rules->getMaxLargeUnits())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * Validates craft space and craft constraints on adding vehicles to a craft.
+ * @return Maximum allowed number of vehicles to add.
+ */
+int Craft::validateAddingVehicles(int totalSize) const
+{
+	int maximumAllowed = getSpaceAvailable() / totalSize;
+
+	if (_rules->getMaxVehiclesAndLargeSoldiers() > -1)
+	{
+		maximumAllowed = std::min(maximumAllowed, _rules->getMaxVehiclesAndLargeSoldiers() - getNumVehiclesAndLargeSoldiers());
+	}
+	if (_rules->getMaxVehicles() > -1)
+	{
+		maximumAllowed = std::min(maximumAllowed, _rules->getMaxVehicles() - getNumTotalVehicles());
+	}
+	if (totalSize == 1)
+	{
+		if (_rules->getMaxSmallVehicles() > -1)
+		{
+			maximumAllowed = std::min(maximumAllowed, _rules->getMaxSmallVehicles() - getNumSmallVehicles());
+		}
+		if (_rules->getMaxSmallUnits() > -1)
+		{
+			maximumAllowed = std::min(maximumAllowed, _rules->getMaxSmallUnits() - getNumSmallUnits());
+		}
+	}
+	else // armorSize > 1
+	{
+		if (_rules->getMaxLargeVehicles() > -1)
+		{
+			maximumAllowed = std::min(maximumAllowed, _rules->getMaxLargeVehicles() - getNumLargeVehicles());
+		}
+		if (_rules->getMaxLargeUnits() > -1)
+		{
+			maximumAllowed = std::min(maximumAllowed, _rules->getMaxLargeUnits() - getNumLargeUnits());
+		}
+	}
+	return maximumAllowed;
+}
 
 ////////////////////////////////////////////////////////////
 //					Script binding

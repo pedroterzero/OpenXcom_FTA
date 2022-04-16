@@ -38,7 +38,11 @@
 #include "SoldierInfoState.h"
 #include "../Mod/Armor.h"
 #include "../Mod/RuleInterface.h"
+#include "../Mod/RuleCraft.h"
 #include "../Engine/Unicode.h"
+#include "../Battlescape/BattlescapeGenerator.h"
+#include "../Battlescape/BriefingState.h"
+#include "../Savegame/SavedBattleGame.h"
 
 namespace OpenXcom
 {
@@ -52,9 +56,13 @@ namespace OpenXcom
 CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 		:  _base(base), _craft(craft), _otherCraftColor(0), _origSoldierOrder(*_base->getSoldiers()), _dynGetter(NULL)
 {
+	Craft *c = _base->getCrafts()->at(_craft);
+	bool hidePreview = _game->getSavedGame()->getMonthsPassed() == -1 || !c->getRules()->getAllowLanding();
+
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
-	_btnOk = new TextButton(148, 16, 164, 176);
+	_btnOk = new TextButton(hidePreview ? 148 : 30, 16, hidePreview ? 164 : 274, 176);
+	_btnPreview = new TextButton(102, 16, 164, 176);
 	_txtTitle = new Text(300, 17, 16, 7);
 	_txtName = new Text(114, 9, 16, 32);
 	_txtRank = new Text(102, 9, 122, 32);
@@ -69,6 +77,7 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 
 	add(_window, "window", "craftSoldiers");
 	add(_btnOk, "button", "craftSoldiers");
+	add(_btnPreview, "button", "craftSoldiers");
 	add(_txtTitle, "text", "craftSoldiers");
 	add(_txtName, "text", "craftSoldiers");
 	add(_txtRank, "text", "craftSoldiers");
@@ -91,8 +100,11 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 	_btnOk->onKeyboardPress((ActionHandler)&CraftSoldiersState::btnDeassignAllSoldiersClick, Options::keyRemoveSoldiersFromAllCrafts);
 	_btnOk->onKeyboardPress((ActionHandler)&CraftSoldiersState::btnDeassignCraftSoldiersClick, Options::keyRemoveSoldiersFromCraft);
 
+	_btnPreview->setText(tr("STR_CRAFT_DEPLOYMENT_PREVIEW"));
+	_btnPreview->setVisible(!hidePreview);
+	_btnPreview->onMouseClick((ActionHandler)&CraftSoldiersState::btnPreviewClick);
+
 	_txtTitle->setBig();
-	Craft *c = _base->getCrafts()->at(_craft);
 	_txtTitle->setText(tr("STR_SELECT_SQUAD_FOR_CRAFT").arg(c->getName(_game->getLanguage())));
 
 	_txtName->setText(tr("STR_NAME_UC"));
@@ -253,6 +265,35 @@ void CraftSoldiersState::btnOkClick(Action *)
 }
 
 /**
+ * Shows the battlescape preview.
+ * @param action Pointer to an action.
+ */
+void CraftSoldiersState::btnPreviewClick(Action *)
+{
+	Craft* c = _base->getCrafts()->at(_craft);
+	if (c->getSpaceUsed() <= 0)
+	{
+		// at least one unit must be onboard
+		return;
+	}
+
+	SavedBattleGame* bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage(), true);
+	_game->getSavedGame()->setBattleGame(bgame);
+	BattlescapeGenerator bgen = BattlescapeGenerator(_game);
+	bgame->setMissionType(c->getRules()->getCustomPreviewType());
+	bgame->setCraftForPreview(c);
+	bgen.setCraft(c);
+	bgen.run();
+
+	// needed for preview of craft deployment tiles
+	bgame->setCraftPos(bgen.getCraftPos());
+	bgame->setCraftZ(bgen.getCraftZ());
+	bgame->calculateCraftTiles();
+
+	_game->pushState(new BriefingState(c));
+}
+
+/**
  * Shows the soldiers in a list at specified offset/scroll.
  */
 void CraftSoldiersState::initList(size_t scrl)
@@ -319,6 +360,12 @@ void CraftSoldiersState::init()
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
 	initList(0);
 
+	// update the label to indicate presence of a saved craft deployment
+	Craft* c = _base->getCrafts()->at(_craft);
+	if (c->hasCustomDeployment())
+		_btnPreview->setText(tr("STR_CRAFT_DEPLOYMENT_PREVIEW_SAVED"));
+	else
+		_btnPreview->setText(tr("STR_CRAFT_DEPLOYMENT_PREVIEW"));
 }
 
 /**
@@ -455,14 +502,16 @@ void CraftSoldiersState::lstSoldiersClick(Action *action)
 		else if (s->hasFullHealth())
 		{
 			auto space = c->getSpaceAvailable();
-			auto armorSize = s->getArmor()->getSize();
-			if (space >= s->getArmor()->getTotalSize() && (armorSize == 1 || (c->getNumVehicles() < c->getRules()->getVehicles())))
+			if (c->validateAddingSoldier(space, s))
 			{
-				s->setCraft(c);
+				s->setCraft(c, true);
 				_lstSoldiers->setCellText(row, 2, c->getName(_game->getLanguage()));
 				color = _lstSoldiers->getSecondaryColor();
+
+				// update the label to indicate absence of a saved craft deployment
+				_btnPreview->setText(tr("STR_CRAFT_DEPLOYMENT_PREVIEW"));
 			}
-			else if (armorSize == 2 && space > 0)
+			else if (space > 0)
 			{
 				_game->pushState(new ErrorMessageState(tr("STR_NOT_ENOUGH_CRAFT_SPACE"), _palette, _game->getMod()->getInterface("soldierInfo")->getElement("errorMessage")->color, "BACK01.SCR", _game->getMod()->getInterface("soldierInfo")->getElement("errorPalette")->color));
 			}

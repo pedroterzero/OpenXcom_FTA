@@ -223,11 +223,13 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent, Base *base, bo
 	_btnUnload->onMouseIn((ActionHandler)&InventoryState::txtTooltipIn);
 	_btnUnload->onMouseOut((ActionHandler)&InventoryState::txtTooltipOut);
 
-	_btnGround->onMouseClick((ActionHandler)&InventoryState::btnGroundClick, SDL_BUTTON_LEFT);
-	_btnGround->onMouseClick((ActionHandler)&InventoryState::btnGroundClick, SDL_BUTTON_RIGHT);
+	_btnGround->onMouseClick((ActionHandler)&InventoryState::btnGroundClickForward, SDL_BUTTON_LEFT);
+	_btnGround->onMouseClick((ActionHandler)&InventoryState::btnGroundClickBackward, SDL_BUTTON_RIGHT);
 	_btnGround->setTooltip("STR_SCROLL_RIGHT");
 	_btnGround->onMouseIn((ActionHandler)&InventoryState::txtTooltipIn);
 	_btnGround->onMouseOut((ActionHandler)&InventoryState::txtTooltipOut);
+	_btnGround->onKeyboardPress((ActionHandler)&InventoryState::btnGroundClickBackward, Options::keyBattleLeft);
+	_btnGround->onKeyboardPress((ActionHandler)&InventoryState::btnGroundClickForward, Options::keyBattleRight);
 
 	_btnRank->onMouseClick((ActionHandler)&InventoryState::btnRankClick);
 	_btnRank->setTooltip("STR_UNIT_STATS");
@@ -400,9 +402,17 @@ void InventoryState::init()
 	_txtName->setBig();
 	_txtName->setText(unit->getName(_game->getLanguage()));
 	bool resetGroundOffset = _tu;
+	static bool s_prevUnitIsSummoned = false;
 	if (unit->isSummonedPlayerUnit())
 	{
 		resetGroundOffset = true; // this unit is likely not standing on the shared inventory tile, just re-arrange it every time
+		s_prevUnitIsSummoned = true; // when we switch between units we need to remember which is summoned (for FtA missions)
+	}
+	else
+	{
+		if (s_prevUnitIsSummoned)  // if we switch back from a summoned unit during the starting equipment phase (FtA possibility) we require re-arrangement. In other cases it's already set to re-arrange.
+			resetGroundOffset = true;
+		s_prevUnitIsSummoned = false;
 	}
 	_inv->setSelectedUnit(unit, resetGroundOffset);
 	Soldier *s = unit->getGeoscapeSoldier();
@@ -412,7 +422,7 @@ void InventoryState::init()
 		if (_reloadUnit)
 		{
 			// Step 0: update unit's armor
-			unit->updateArmorFromSoldier(_game->getMod(), s, s->getArmor(), _battleGame->getDepth());
+			unit->updateArmorFromSoldier(_game->getMod(), s, s->getArmor(), _battleGame->getDepth(), false);
 
 			// Step 1: remember the unit's equipment (incl. loaded fixed items)
 			_clearInventoryTemplate(_tempInventoryTemplate);
@@ -446,11 +456,9 @@ void InventoryState::init()
 			frame->blitNShade(_btnRank, 0, 0);
 		}
 
-		auto defaultPrefix = s->getArmor()->getLayersDefaultPrefix();
-		if (!defaultPrefix.empty())
+		if (s->getArmor()->hasLayersDefinition())
 		{
-			auto layers = s->getArmorLayers();
-			for (auto layer : layers)
+			for (const auto& layer : s->getArmorLayers())
 			{
 				_game->getMod()->getSurface(layer, true)->blitNShade(_soldier, 0, 0);
 			}
@@ -816,7 +824,7 @@ void InventoryState::saveGlobalLayout(int index, bool includingArmor)
 	_createInventoryTemplate(*tmpl);
 
 	// optionally save armor info too
-	if (includingArmor)
+	if (includingArmor && _battleGame->getSelectedUnit()->getGeoscapeSoldier())
 	{
 		_game->getSavedGame()->setGlobalEquipmentLayoutArmor(index, _battleGame->getSelectedUnit()->getArmor()->getType());
 	}
@@ -891,9 +899,9 @@ bool InventoryState::tryArmorChange(const std::string& armorName)
 	if (armorAvailable)
 	{
 		Craft* craft = soldier->getCraft();
-		if (craft != 0 && next->getSize() > prev->getSize())
+		if (craft)
 		{
-			if (craft->getNumVehicles() >= craft->getRules()->getVehicles() || craft->getSpaceAvailable() < 3)
+			if (!craft->validateArmorChange(prev->getSize(), next->getSize()))
 			{
 				// STR_NOT_ENOUGH_CRAFT_SPACE
 				return false;
@@ -910,7 +918,7 @@ bool InventoryState::tryArmorChange(const std::string& armorName)
 				_base->getStorageItems()->removeItem(next->getStoreItem());
 			}
 		}
-		soldier->setArmor(next);
+		soldier->setArmor(next, true);
 		armorChanged = true;
 	}
 
@@ -1129,14 +1137,9 @@ void InventoryState::btnQuickSearchApply(Action *)
  * Shows more ground items / rearranges them.
  * @param action Pointer to an action.
  */
-void InventoryState::btnGroundClick(Action *action)
+void InventoryState::btnGroundClickForward(Action *action)
 {
-	if (_game->isRightClick(action))
-	{
-		// scroll backwards
-		_inv->arrangeGround(-1);
-	}
-	else if (_game->isShiftPressed())
+	if (_game->isShiftPressed())
 	{
 		// scroll backwards
 		_inv->arrangeGround(-1);
@@ -1146,6 +1149,16 @@ void InventoryState::btnGroundClick(Action *action)
 		// scroll forward
 		_inv->arrangeGround(1);
 	}
+}
+
+/**
+ * Shows more ground items / rearranges them.
+ * @param action Pointer to an action.
+ */
+void InventoryState::btnGroundClickBackward(Action *action)
+{
+	// scroll backwards
+	_inv->arrangeGround(-1);
 }
 
 /**
@@ -2042,7 +2055,7 @@ void InventoryState::think()
 			r.w -= 2;
 			r.h -= 2;
 			_selAmmo->drawRect(&r, Palette::blockOffset(0)+15);
-			firstAmmo->getRules()->drawHandSprite(_game->getMod()->getSurfaceSet("BIGOBS.PCK"), _selAmmo, firstAmmo, anim);
+			firstAmmo->getRules()->drawHandSprite(_game->getMod()->getSurfaceSet("BIGOBS.PCK"), _selAmmo, firstAmmo, _game->getSavedGame()->getSavedBattle(), anim);
 		}
 		else
 		{

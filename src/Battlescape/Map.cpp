@@ -171,6 +171,7 @@ Map::Map(Game *game, int width, int height, int x, int y, int visibleMapHeight) 
 		}
 	}
 
+	_vaporParticlesInit.resize(_camera->getMapSizeY() * _camera->getMapSizeX());
 	_vaporParticles.resize(_camera->getMapSizeY() * _camera->getMapSizeX());
 }
 
@@ -705,8 +706,8 @@ void Map::drawTerrain(Surface *surface)
 	int dummy;
 	BattleUnit *movingUnit = _save->getTileEngine()->getMovingUnit();
 	int tileShade, tileColor, obstacleShade;
-	UnitSprite unitSprite(surface, _game->getMod(), _animFrame, _save->getDepth() != 0);
-	ItemSprite itemSprite(surface, _game->getMod(), _animFrame);
+	UnitSprite unitSprite(surface, _game->getMod(), _save, _animFrame, _save->getDepth() != 0);
+	ItemSprite itemSprite(surface, _game->getMod(), _save, _animFrame);
 
 	const int halfAnimFrame = (_animFrame / 2) % 4;
 	const int halfAnimFrameRest = (_animFrame % 2);
@@ -1449,11 +1450,29 @@ void Map::drawTerrain(Surface *surface)
 							tmpSurface = _game->getMod()->getSurfaceSet("CURSOR.PCK")->getFrame(frameNumber);
 							Surface::blitRaw(surface, tmpSurface, screenPosition.x, screenPosition.y, 0);
 						}
-						if (!_isAltPressed && _cursorType > 2 && _camera->getViewLevel() == itZ)
+						if (!_isAltPressed && _cursorType > CT_AIM && _camera->getViewLevel() == itZ)
 						{
-							int frame[6] = {0, 0, 0, 11, 13, 15};
-							tmpSurface = _game->getMod()->getSurfaceSet("CURSOR.PCK")->getFrame(frame[_cursorType] + (_animFrame / 4) % 2);
-							Surface::blitRaw(surface, tmpSurface, screenPosition.x, screenPosition.y, 0);
+							bool ignore = false;
+							if (_cursorType == CT_PSI || _cursorType == CT_WAYPOINT)
+							{
+								BattleAction* action = _save->getBattleGame()->getCurrentAction();
+								int distanceSq = action->actor->distance3dToPositionSq(Position(itX, itY, itZ));
+								if (action->weapon->getRules()->isOutOfRange(distanceSq))
+								{
+									// weapon doesn't work at this distance, just draw a normal cursor with a red 0% hint text
+									ignore = true;
+									_txtAccuracy->setColor(Palette::blockOffset(Pathfinding::red - 1) - 1);
+									_txtAccuracy->setText("0%");
+									_txtAccuracy->draw();
+									_txtAccuracy->blitNShade(surface, screenPosition.x, screenPosition.y, 0);
+								}
+							}
+							if (!ignore)
+							{
+								int frame[6] = { 0, 0, 0, 11, 13, 15 };
+								tmpSurface = _game->getMod()->getSurfaceSet("CURSOR.PCK")->getFrame(frame[_cursorType] + (_animFrame / 4) % 2);
+								Surface::blitRaw(surface, tmpSurface, screenPosition.x, screenPosition.y, 0);
+							}
 						}
 					}
 
@@ -1587,7 +1606,7 @@ void Map::drawTerrain(Surface *surface)
 	}
 
 	// Draw motion scanner arrows
-	if (_isAltPressed && _save->getSide() == FACTION_PLAYER)
+	if (_isAltPressed && _save->getSide() == FACTION_PLAYER && this->getCursorType() != CT_NONE)
 	{
 		for (auto myUnit : *_save->getUnits())
 		{
@@ -1608,10 +1627,11 @@ void Map::drawTerrain(Surface *surface)
 				{
 					offset.y -= 2;
 				}
-				if (this->getCursorType() != CT_NONE)
-				{
-					_sensorPointer->blitNShade(surface, screenPosition.x + offset.x + (_spriteWidth / 2) - (_sensorPointer->getWidth() / 2), screenPosition.y + offset.y - _sensorPointer->getHeight() + getArrowBobForFrame(_animFrame), 0);
-				}
+				_arrow->blitNShade(
+					surface,
+					screenPosition.x + offset.x + (_spriteWidth / 2) - (_arrow->getWidth() / 2),
+					screenPosition.y + offset.y - _arrow->getHeight() + getArrowBobForFrame(_animFrame),
+					0);
 			}
 		}
 	}
@@ -1642,6 +1662,25 @@ void Map::drawTerrain(Surface *surface)
 		}
 	}
 	delete _numWaypid;
+
+	// Draw craft deployment preview arrows
+	if (_isAltPressed && _save->isPreview() && this->getCursorType() != CT_NONE)
+	{
+		for (auto& pos : _save->getCraftTiles())
+		{
+			if (pos.z == _camera->getViewLevel())
+			{
+				_camera->convertMapToScreen(pos, &screenPosition);
+				screenPosition += _camera->getMapOffset();
+				screenPosition.y += 2; // based on vanilla soldier standHeight
+				_arrow->blitNShade(
+					surface,
+					screenPosition.x + (_spriteWidth / 2) - (_arrow->getWidth() / 2),
+					screenPosition.y - _arrow->getHeight() + getArrowBobForFrame(_animFrame),
+					0);
+			}
+		}
+	}
 
 	// check if we got big explosions
 	if (_explosionInFOV)
@@ -1860,6 +1899,30 @@ void Map::animate(bool redraw)
 		_save->getTile(i)->animate();
 	}
 
+	// init vapor vector
+	for (auto i : Collections::rangeValueLess(_vaporParticlesInit.size()))
+	{
+		auto& vi = _vaporParticlesInit[i];
+		auto& vDest = _vaporParticles[i];
+		if (vi.empty())
+		{
+			continue;
+		}
+
+		if (vDest.empty())
+		{
+			vi.swap(vDest);
+		}
+		else
+		{
+			vDest.insert(std::begin(vDest), std::begin(vi), std::end(vi));
+		}
+
+		std::sort(std::begin(vDest), std::end(vDest), [](const Particle& a, const Particle& b){ return a.getVoxelZ() < b.getVoxelZ(); });
+
+		Collections::removeAll(vi);
+	}
+
 	// animate vapor
 	for (auto& tilePar : _vaporParticles)
 	{
@@ -1908,10 +1971,8 @@ void Map::animate(bool redraw)
 				}
 			}
 		}
-		if (_save->getDepth() > 0 && !(*i)->getFloorAbove())
-		{
-			(*i)->breathe();
-		}
+
+		(*i)->breathe();
 	}
 
 	if (redraw) _redraw = true;
@@ -2106,9 +2167,8 @@ Projectile *Map::getProjectile() const
  */
 void Map::addVaporParticle(const Tile* tile, Particle particle)
 {
-	auto& v = _vaporParticles[_camera->getMapSizeX() * tile->getPosition().y + tile->getPosition().x];
+	auto& v = _vaporParticlesInit[_camera->getMapSizeX() * tile->getPosition().y + tile->getPosition().x];
 	v.push_back(particle);
-	std::sort(v.begin(), v.end(), [](const Particle& a, const Particle& b){ return a.getVoxelZ() < b.getVoxelZ(); });
 }
 
 /**

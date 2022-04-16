@@ -26,6 +26,7 @@
 #include "../Interface/TextButton.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextEdit.h"
+#include "../FTA/MasterMind.h"
 #include "BaseView.h"
 #include "MiniBaseView.h"
 #include "../Savegame/SavedGame.h"
@@ -56,6 +57,11 @@
 #include "../Mod/RuleInterface.h"
 #include "PlaceFacilityState.h"
 #include "../Ufopaedia/Ufopaedia.h"
+#include "../Battlescape/BattlescapeGenerator.h"
+#include "../Battlescape/BriefingState.h"
+#include "../Savegame/SavedBattleGame.h"
+#include "../Geoscape/Globe.h"
+#include "../Mod/RuleGlobe.h"
 
 namespace OpenXcom
 {
@@ -69,12 +75,14 @@ namespace OpenXcom
 BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(globe)
 {
 	// Create objects
+	bool fta = _game->getMod()->getIsFTAGame();
 	_txtFacility = new Text(192, 9, 0, 0);
 	_view = new BaseView(192, 192, 0, 8);
 	_mini = new MiniBaseView(128, 16, 192, 41);
 	_edtBase = new TextEdit(this, 127, 17, 193, 0);
 	_txtLocation = new Text(126, 9, 194, 16);
 	_txtFunds = new Text(126, 9, 194, 24);
+	_txtLoyalty = new Text(126, 9, 194, 32);
 	_btnNewBase = new TextButton(128, 12, 192, 58);
 	_btnBaseInfo = new TextButton(128, 12, 192, 71);
 	_btnSoldiers = new TextButton(128, 12, 192, 84);
@@ -96,6 +104,7 @@ BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(g
 	add(_edtBase, "text1", "basescape");
 	add(_txtLocation, "text2", "basescape");
 	add(_txtFunds, "text3", "basescape");
+	add(_txtLoyalty, "text3", "basescape");
 	add(_btnNewBase, "button", "basescape");
 	add(_btnBaseInfo, "button", "basescape");
 	add(_btnSoldiers, "button", "basescape");
@@ -159,13 +168,22 @@ BasescapeState::BasescapeState(Base *base, Globe *globe) : _base(base), _globe(g
 	_btnTransfer->onMouseClick((ActionHandler)&BasescapeState::btnTransferClick);
 	_btnTransfer->onKeyboardPress((ActionHandler)&BasescapeState::btnTransferClick, Options::keyBasescapeTransfer);
 
-	_btnPurchase->setText(tr("STR_PURCHASE_RECRUIT"));
+	_btnPurchase->setText(fta ? tr("STR_COVERT_OPERATIONS_UC") : tr("STR_PURCHASE_RECRUIT"));
 	_btnPurchase->onMouseClick((ActionHandler)&BasescapeState::btnPurchaseClick);
-	_btnPurchase->onKeyboardPress((ActionHandler)&BasescapeState::btnPurchaseClick, Options::keyBasescapePurchase);
-
-	_btnSell->setText(tr("STR_SELL_SACK_UC"));
+	
+	_btnSell->setText(fta ? tr("STR_DIPLOMACY_UC") : tr("STR_SELL_SACK_UC"));
 	_btnSell->onMouseClick((ActionHandler)&BasescapeState::btnSellClick);
-	_btnSell->onKeyboardPress((ActionHandler)&BasescapeState::btnSellClick, Options::keyBasescapeSell);
+
+	if (fta)
+	{
+		_btnPurchase->onKeyboardPress((ActionHandler)&BasescapeState::btnPurchaseClick, Options::keyBasescapeCovertOperations);
+		_btnSell->onKeyboardPress((ActionHandler)&BasescapeState::btnSellClick, Options::keyDiplomacy);
+	}
+	else
+	{
+		_btnPurchase->onKeyboardPress((ActionHandler)&BasescapeState::btnPurchaseClick, Options::keyBasescapePurchase);
+		_btnSell->onKeyboardPress((ActionHandler)&BasescapeState::btnSellClick, Options::keyBasescapeSell);
+	}
 
 	_btnGeoscape->setText(tr("STR_GEOSCAPE_UC"));
 	_btnGeoscape->onMouseClick((ActionHandler)&BasescapeState::btnGeoscapeClick);
@@ -217,6 +235,17 @@ void BasescapeState::init()
 	}
 
 	_txtFunds->setText(tr("STR_FUNDS").arg(Unicode::formatFunding(_game->getSavedGame()->getFunds())));
+	if (_game->getMod()->getIsFTAGame() && _game->getSavedGame()->isResearched("STR_LOYALTY"))
+	{
+		/*std::ostringstream ss;
+		ss << tr("STR_LOYALTY_RATING").arg(_game->getSavedGame()->getLoyalty()) <<  " (" << _game->getMasterMind()->getLoyaltyPerformanceBonus() - 100 << "%)";
+		_txtLoyalty->setText(ss.str())*/;
+		_txtLoyalty->setText(tr("STR_LOYALTY_RATING").arg(_game->getSavedGame()->getLoyalty()));
+	}
+	else
+	{
+		_txtLoyalty->setVisible(false);
+	}
 
 	_btnNewBase->setVisible(_game->getSavedGame()->getBases()->size() < MiniBaseView::MAX_BASES);
 
@@ -399,6 +428,27 @@ void BasescapeState::viewLeftClick(Action *)
 		}
 		else
 		{
+			if (fac->getRules()->isLift())
+			{
+				// Note: vehicles will not be deployed in the base preview
+				if (_base->getAvailableSoldiers(true, true) > 0/* || !_base->getVehicles()->empty()*/)
+				{
+					int texture, shade;
+					_globe->getPolygonTextureAndShade(_base->getLongitude(), _base->getLatitude(), &texture, &shade);
+					auto* globeTexture = _game->getMod()->getGlobe()->getTexture(texture);
+
+					SavedBattleGame* bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage(), true);
+					_game->getSavedGame()->setBattleGame(bgame);
+					BattlescapeGenerator bgen = BattlescapeGenerator(_game);
+					bgame->setMissionType("STR_BASE_DEFENSE");
+					bgen.setBase(_base);
+					bgen.setWorldTexture(globeTexture, globeTexture);
+					bgen.run();
+
+					_game->pushState(new BriefingState(0, _base));
+				}
+				return;
+			}
 			// Is facility in use?
 			if (fac->inUse())
 			{

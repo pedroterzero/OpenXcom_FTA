@@ -21,6 +21,7 @@
 #include "Map.h"
 #include "Camera.h"
 #include "Particle.h"
+#include "Pathfinding.h"
 #include "../Engine/SurfaceSet.h"
 #include "../Engine/Surface.h"
 #include "../Mod/Mod.h"
@@ -65,7 +66,7 @@ Projectile::Projectile(Mod *mod, SavedBattleGame *save, BattleAction action, Pos
 			}
 
 			// no ammo, or the ammo didn't contain the info we wanted, see what the weapon has on offer.
-			if (_bulletSprite == -1)
+			if (_bulletSprite == Mod::NO_SURFACE)
 			{
 				_bulletSprite = _action.weapon->getRules()->getBulletSprite();
 			}
@@ -314,7 +315,7 @@ int Projectile::calculateThrow(double accuracy)
 		if (_action.type == BA_THROW
 			&& endTile
 			&& endTile->getMapData(O_OBJECT)
-			&& endTile->getMapData(O_OBJECT)->getTUCost(MT_WALK) == 255
+			&& endTile->getMapData(O_OBJECT)->getTUCost(MT_WALK) == Pathfinding::INVALID_MOVE_COST
 			&& !(endTile->isBigWall() && (endTile->getMapData(O_OBJECT)->getBigWall()<1 || endTile->getMapData(O_OBJECT)->getBigWall()>3)))
 		{
 			test = V_OUTOFBOUNDS;
@@ -511,10 +512,10 @@ Position Projectile::getPosition(int offset) const
  */
 int Projectile::getParticle(int i) const
 {
-	if (_bulletSprite != -1)
+	if (_bulletSprite != Mod::NO_SURFACE)
 		return _bulletSprite + i;
 	else
-		return -1;
+		return Mod::NO_SURFACE;
 }
 
 /**

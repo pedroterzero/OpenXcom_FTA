@@ -214,11 +214,12 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 	SavedGame& save = *engine.getSavedGame();
 	MasterMind& mind = *engine.getMasterMind();
 	_commandsToProcess.clear();
+	_availableMissionScripts.clear();
 	_eventsToProcess.clear();
 	_avoidRepeatVars.clear();
 
 	//let's process out daily duty
-	if (period == TIMESTEP_DAILY)
+	if (period == TIMESTEP_DAILY || period == TIMESTEP_10_DAYS)
 	{
 		//check if we discover our faction
 		if (!_discovered && save.isResearched(_mod->getResearch(_rule->getDiscoverResearch())))
@@ -228,10 +229,10 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 			//spawn celebration event if faction wants it
 			if (!_rule->getDiscoverEvent().empty())
 			{
-				bool success = mind.spawnEvent(_rule->getDiscoverEvent());
+				bool success = save.spawnEvent(engine.getMod()->getEvent(_rule->getDiscoverEvent()));
 			}
 			// update reputation level for just discovered fraction
-			mind.updateReputationLvl(this, false);;
+			mind.updateReputationLvl(this, false);
 			// and if it turns friendly at start we sign help treaty by default
 			if (_reputationLvL > 0)
 			{
@@ -248,9 +249,12 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 		processFactionalEvents(engine);
 
 		//it's management time!
-		Log(LOG_DEBUG) << "Handling restock, Faction:  " << _rule->getName() << " has funds: " << _funds << " and power: " << _power << "."; //#CLEARLOGS
 		handleSelling(*engine.getMod());
-		handleRestock();
+		if (period == TIMESTEP_10_DAYS)
+		{
+			Log(LOG_INFO) << "Handling restock, Faction:  " << _rule->getName() << " has funds: " << _funds << " and power: " << _power << "."; //#CLEARLOGS
+			handleRestock();
+		}
 		//manageStaff(); #FINNIKTODO uncomment with alpha 2
 		int64_t reqFunds = managePower(save.getMonthsPassed(), _mod->getDefaultFactionPowerCost());
 		handleResearch(engine, reqFunds);
@@ -276,7 +280,7 @@ void DiplomacyFaction::think(Game& engine, ThinkPeriod period)
 			//generate missions and events
 			factionMissionGenerator(engine);
 
-			if (!_rule->getFactionalEvents().empty())
+			if (!_rule->getUsualEventScripts().empty())
 			{
 				for (auto& s : _rule->getUsualEventScripts())
 				{
@@ -323,7 +327,7 @@ void DiplomacyFaction::processDailyReputation(Game& engine)
 		_repLvlChanged = mind.updateReputationLvl(this, false);;
 		if (!events.empty())
 		{
-			mind.spawnEvent(events.at(RNG::generate(0, events.size() - 1)));
+			save.spawnEvent(engine.getMod()->getEvent(events.at(RNG::generate(0, events.size() - 1))));
 		}
 	}
 }
@@ -340,7 +344,6 @@ void DiplomacyFaction::processFactionalEvents(Game& engine)
 		auto rule = mod.getDiplomacyFactionEvent(i);
 		if (rule != nullptr)
 		{
-			Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " is processing own event: " << rule->getType() << "!"; //#CLEARLOGS
 			if (RNG::percent(rule->getExecutionOdds()))
 			{
 				auto month = save.getMonthsPassed();
@@ -387,7 +390,7 @@ void DiplomacyFaction::processFactionalEvents(Game& engine)
 					//ok, we are happy with this factional event, let's finally process its effects!
 					if (triggerHappy)
 					{
-						Log(LOG_DEBUG) << "Event: " << rule->getType() << " passed all checks!"; //#CLEARLOGS
+						Log(LOG_INFO) << "Faction:  " << _rule->getName() << " got event: " << rule->getType(); //#CLEARLOGS
 						_power += rule->getPowerChange();
 						_funds += rule->getFundsChange();
 						_vigilance += rule->getVigilanceChange();
@@ -488,7 +491,7 @@ void DiplomacyFaction::factionMissionGenerator(Game& engine)
 					ruleScript->getMinDifficulty() <= save.getDifficulty())
 				{
 					// don't forget about FTA-specific stuff
-					if (ruleScript->getAllowedProcessor() != 1 || save.getMissionScriptGapped(ruleScript->getType()))
+					if (save.getMissionScriptGapped(ruleScript->getType()))
 					{
 						//nope, we dont want such mission
 						continue;
@@ -576,11 +579,11 @@ void DiplomacyFaction::handleRestock()
 			{
 				_items->addItem(ruleItem, toBuy);
 				_funds -= toBuy * cost;
-				Log(LOG_DEBUG) << "> We buying items " << ruleItem->getType() << ": " << toBuy << ", and now it stocks: " << _items->getItem(ruleItem); //#CLEARLOGS
+				Log(LOG_INFO) << "> We buying items " << ruleItem->getType() << ": " << toBuy << ", and now it stocks: " << _items->getItem(ruleItem); //#CLEARLOGS
 			}
 		}
 	}
-	Log(LOG_DEBUG) << ">>>> Restock finished, Faction:  " << _rule->getName() << " has funds: " << _funds << "."; //#CLEARLOGS
+	Log(LOG_INFO) << ">>>> Restock finished, Faction:  " << _rule->getName() << " has funds: " << _funds << "."; //#CLEARLOGS
 }
 
 /**
@@ -630,11 +633,11 @@ void DiplomacyFaction::handleSelling(Mod& mod)
 			int64_t dFunds = (*i).second.first;
 			dFunds *= (*i).second.second; // sorry for that, was too lasy to make a structure
 			_funds += dFunds;
-			Log(LOG_DEBUG) << "> We selling items " << (*i).first->getType() << ": " << (*i).second.first; //#CLEARLOGS
+			Log(LOG_INFO) << "> We selling items " << (*i).first->getType() << ": " << (*i).second.first; //#CLEARLOGS
 		}
 	}
 
-	Log(LOG_DEBUG) << ">>>> Sale finished, Faction:  " << _rule->getName() << " has funds: " << _funds; //#CLEARLOGS
+	Log(LOG_INFO) << ">>>> Sale finished, Faction:  " << _rule->getName() << " has funds: " << _funds; //#CLEARLOGS
 }
 
 /**
@@ -752,7 +755,7 @@ int64_t DiplomacyFaction::managePower(int64_t month, int64_t baseCost)
 				dPower = _power;
 			}
 			_power -= dPower;
-			Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " updating power to: " << _power << " with dPower value: " << dPower << " because its funds: " << _funds << " are below limit: " << reqFunds; //#CLEARLOGS
+			Log(LOG_INFO) << "Faction:  " << _rule->getName() << " updating power to: " << _power << " with dPower value: " << dPower << " because its funds: " << _funds << " are below limit: " << reqFunds; //#CLEARLOGS
 			_funds += static_cast<int>(dPower * powerCost * 0.9);
 		}
 		else
@@ -769,11 +772,11 @@ int64_t DiplomacyFaction::managePower(int64_t month, int64_t baseCost)
 			dPower = std::min(cost, _vigilance);
 			_power += dPower;
 			_funds -= dPower * powerCost;
-			Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " updating power to: " << _power << " with dPower value: " << dPower << " because it has vigilance: " << _vigilance << " and funds are above reqFunds value: " << reqFunds; //#CLEARLOGS
+			Log(LOG_INFO) << "Faction:  " << _rule->getName() << " updating power to: " << _power << " with dPower value: " << dPower << " because it has vigilance: " << _vigilance << " and funds are above reqFunds value: " << reqFunds; //#CLEARLOGS
 		}
 		else
 		{
-			Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " has vigilance value : " << _vigilance << ", but can't update power because funds value: " << _funds << " below reqFunds: " << reqFunds; //#CLEARLOGS
+			Log(LOG_INFO) << "Faction:  " << _rule->getName() << " has vigilance value : " << _vigilance << ", but can't update power because funds value: " << _funds << " below reqFunds: " << reqFunds; //#CLEARLOGS
 		}
 	}
 
@@ -803,7 +806,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 
 				// core research first
 				unlockResearch(research->getName());
-				Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " finished research : " << (*p)->getName(); //#CLEARLOGS
+				Log(LOG_INFO) << "Faction:  " << _rule->getName() << " finished research : " << (*p)->getName(); //#CLEARLOGS
 
 				// spawn item
 				RuleItem* spawnedItem = _mod->getItem(research->getSpawnedItem());
@@ -816,7 +819,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 				auto researchEvent = research->getSpawnedEvent();
 				if (!researchEvent.empty())
 				{
-					mind.spawnEvent(researchEvent);
+					save.spawnEvent(engine.getMod()->getEvent(researchEvent));
 				}
 
 				// process getOneFree
@@ -842,7 +845,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 				{
 					if ((*p)->getScientists() > 1) // we can keep lone guy doing his stuff
 					{
-						Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " has too low funds: " << _funds << " < required / 4 = " << reqFunds / 4
+						Log(LOG_INFO) << "Faction:  " << _rule->getName() << " has too low funds: " << _funds << " < required / 4 = " << reqFunds / 4
 							<< " and project: " << (*p)->getName() << " was reduced in funding!"; //#CLEARLOGS
 						int qty = ceil((*p)->getScientists() / 2);
 						_staff->addItem("STR_SCIENTIST", qty);
@@ -938,7 +941,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 				// this one looks fine, let's remember it
 				int priority = rRule->getPoints() / rRule->getCost();
 				researchList.push_back(std::make_pair(priority, rRule));
-				Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " has potential research : " << rRule->getName() << ", processing! It has priority: " << priority; //#CLEARLOGS
+				Log(LOG_INFO) << "Faction:  " << _rule->getName() << " has potential research : " << rRule->getName() << ", processing! It has priority: " << priority; //#CLEARLOGS
 			}
 		}
 
@@ -994,7 +997,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 				_staff->removeItem("STR_SCIENTIST", qty);
 				_funds -= factionCost / 10;
 
-				Log(LOG_DEBUG) << "Faction:  " << _rule->getName() << " has chosen research : " << choice->getName()
+				Log(LOG_INFO) << "Faction:  " << _rule->getName() << " has chosen research : " << choice->getName()
 					<< " with priority: " << priority; //#CLEARLOGS
 			}
 		}

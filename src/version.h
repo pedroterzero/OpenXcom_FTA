@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Copyright 2010-2016 OpenXcom Developers.
+ * Copyright 2010-2021 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -18,16 +18,16 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define OPENXCOM_VERSION_SHORT "Extended 7.0.13"
-#define OPENXCOM_VERSION_LONG "7.0.13.0"
-#define OPENXCOM_VERSION_NUMBER 7,0,13,0
+#define OPENXCOM_VERSION_SHORT "Extended 7.5.6"
+#define OPENXCOM_VERSION_LONG "7.5.6.0"
+#define OPENXCOM_VERSION_NUMBER 7,5,6,0
 
 #ifndef OPENXCOM_VERSION_GIT
-#define OPENXCOM_VERSION_GIT " (v2021-07-16)"
+#define OPENXCOM_VERSION_GIT " (v2022-02-18)"
 #endif
 
-#define OPENXCOM_FTA_VERSION_GIT " (v2021-08-07)"
-#define OPENXCOM_FTA_VERSION_SHORT "FtA 0.2.5"
-#define OPENXCOM_FTA_VERSION_LONG "0.2.5.0"
-#define OPENXCOM_FTA_VERSION_NUMBER 0,2,5,0
+#define OPENXCOM_FTA_VERSION_GIT " (v2022-03-20)"
+#define OPENXCOM_FTA_VERSION_SHORT "FtA 0.6.6"
+#define OPENXCOM_FTA_VERSION_LONG "0.6.6.0"
+#define OPENXCOM_FTA_VERSION_NUMBER 0,6,6,0
 

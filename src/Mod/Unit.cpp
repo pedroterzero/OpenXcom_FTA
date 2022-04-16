@@ -31,10 +31,10 @@ namespace OpenXcom
  */
 Unit::Unit(const std::string &type) :
 	_type(type), _liveAlienName(Mod::STR_NULL), _showFullNameInAlienInventory(-1), _armor(nullptr), _standHeight(0), _kneelHeight(0), _floatHeight(0), _value(0),
-	_moraleLossWhenKilled(100), _aggroSound(-1), _moveSound(-1), _intelligence(0), _aggression(0),
+	_moraleLossWhenKilled(100), _moveSound(-1), _intelligence(0), _aggression(0),
 	_spotter(0), _sniper(0), _energyRecovery(30), _specab(SPECAB_NONE), _livingWeapon(false),
 	_psiWeapon("ALIEN_PSI_WEAPON"), _capturable(true), _canSurrender(false), _autoSurrender(false),
-	_isLeeroyJenkins(false), _waitIfOutsideWeaponRange(false), _pickUpWeaponsMoreActively(-1), _vip(false),
+	_isLeeroyJenkins(false), _waitIfOutsideWeaponRange(false), _pickUpWeaponsMoreActively(-1), _vip(false), _cosmetic(false), _ignoredByAI(false), _treatedByAI(false),
 	_canPanic(true), _canBeMindControlled(true), _berserkChance(33)
 {
 }
@@ -101,8 +101,11 @@ void Unit::load(const YAML::Node &node, Mod *mod)
 	_psiWeapon = node["psiWeapon"].as<std::string>(_psiWeapon);
 	_capturable = node["capturable"].as<bool>(_capturable);
 	_altRecoveredUnit = node["altRecoveredUnit"].as<std::string>(_altRecoveredUnit);
-	_specialObjectiveType = node["specialObjectiveType"].as<std::string>(_specialObjectiveType); //FtA way to specify units
+	_specialObjectiveType = node["specialObjectiveType"].as<std::string>(_specialObjectiveType); //FtA way to define special units
 	_vip = node["vip"].as<bool>(_vip); //OXCE variant
+	_cosmetic = node["cosmetic"].as<bool>(_cosmetic);
+	_ignoredByAI = node["ignoredByAI"].as<bool>(_ignoredByAI);
+	_treatedByAI = node["treatedByAI"].as<bool>(_treatedByAI);
 	_canPanic = node["canPanic"].as<bool>(_canPanic);
 	_canBeMindControlled = node["canBeMindControlled"].as<bool>(_canBeMindControlled);
 	_berserkChance = node["berserkChance"].as<int>(_berserkChance);
@@ -151,18 +154,18 @@ void Unit::afterLoad(const Mod* mod)
 		if (_capturable && _armor->getCorpseBattlescape().front()->isRecoverable() && _spawnUnit == nullptr)
 		{
 			mod->checkForSoftError(
-				_liveAlien == nullptr && Mod::isEmptyRuleName(_civilianRecoveryType),
+				_liveAlien == nullptr,
 				_type,
-				"Unit is capturable but there is no live alien item with same name or civilianRecoveryType",
+				"This unit can be recovered (in theory), but there is no corresponding item to recover.",
 				LOG_INFO
 			);
 		}
 		else
 		{
 			std::string s =
-				!_capturable ? "missing capturable" :
-				!_armor->getCorpseBattlescape().front()->isRecoverable() ? "missing armor recover" :
-				_spawnUnit != nullptr ? "unit have spawn" :
+				!_capturable ? "the unit is marked with 'capturable: false'" :
+				!_armor->getCorpseBattlescape().front()->isRecoverable() ? "the first 'corpseBattle' item of the unit's armor is marked with 'recover: false'" :
+				_spawnUnit != nullptr ? "the unit will be converted into another unit type on stun/kill/capture" :
 				"???";
 
 			mod->checkForSoftError(
@@ -170,10 +173,9 @@ void Unit::afterLoad(const Mod* mod)
 				&& _liveAlien->getVehicleUnit() == nullptr
 				&& _spawnUnit == nullptr, // if unit is `_capturable` we can still get live species even if it can spawn unit
 				_type,
-				"There is live alien item but unit is not recoverable ("+ s +")",
+				"This unit has a corresponding item to recover, but still isn't recoverable. Reason: (" + s + "). Consider marking the unit with 'liveAlien: \"\"'.",
 				LOG_INFO
 			);
-			mod->checkForSoftError(!Mod::isEmptyRuleName(_civilianRecoveryType), _type, "There is civilianRecoveryType but unit is not recoverable ("+ s +")");
 		}
 	}
 }
@@ -361,10 +363,10 @@ const Unit *Unit::getSpawnUnit() const
 }
 
 /**
- * Gets the unit's war cry.
- * @return The id of the unit's aggro sound.
+ * Gets the unit's aggro sounds (warcries).
+ * @return List of sound IDs.
  */
-int Unit::getAggroSound() const
+const std::vector<int> &Unit::getAggroSounds() const
 {
 	return _aggroSound;
 }

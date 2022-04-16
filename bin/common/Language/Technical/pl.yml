@@ -53,6 +53,8 @@ pl:
   DRT_NONE: "brak obrażeń"
   DRT_UFO_WITH_TWO_DICE: "Rozkład 0-200% (2 rzuty kostką)"
   DRT_EASY: "rzut 50-200%"
+  DRT_STANDARD: "zakres obrażeń standardowych"
+  DRT_EXPLOSION: "zakres obrażeń od wybuchu"
 #
   BFT_NONE: "brak"
   BFT_INSTANT: "natychmiastowe"
@@ -221,6 +223,7 @@ pl:
   spendPerShot: "Zużycie na strzał:"
   followProjectiles: "Śledzić pociski?"
   name: "Nazwa"
+  shortName: ""
   ammoSlot: "Użyte miejsce na amunicję"
   arcing: "Trajektoria artyleryjska?"
 #
@@ -265,6 +268,11 @@ pl:
   monthlySalary: "Wypłata/miesiąc"
   monthlyMaintenance: "Utrzymanie/miesiąc"
 #
+  SPECAB_NONE: "Brak"
+  SPECAB_EXPLODEONDEATH: ""
+  SPECAB_BURNFLOOR: ""
+  SPECAB_BURN_AND_EXPLODE: ""
+#
   MT_WALK: "Chodzenie"
   MT_FLY: "Latanie"
   MT_SLIDE: "Ślizganie"
@@ -300,6 +308,7 @@ pl:
   DRAWING_ROUTINE_INVERTED_CYBERDISC: "Odwrócony cyberdysk (animacja napędu na górze)"
 #
   stats: "Modyfikatory statystyk"
+  specab: ""
   movementType: "Typ ruchu"
   allowsRunning: "Pozwala biegać?"
   allowsStrafing: "Pozwala chodzić na boki?"
@@ -333,6 +342,11 @@ pl:
   stun: "oszołomienie"
   mana: "Mana"
   units: "Kompatybilne jednostki"
+  frontArmor: "Pancerz przedni"
+  sideArmor: "Pancerz boczny"
+  leftArmorDiff: "Pancerz lewy (różnica)"
+  rearArmor: "Pancerz tylny"
+  underArmor: "Pancerz dolny"
 #
   buildCost: "Koszt budowy"
   buildCostItems: "Materiały do budowy:"
@@ -389,6 +403,14 @@ pl:
   soldiers: "Przestrzeń ładunkowa"
   pilots: "Rozmiar kabiny"
   vehicles: "CDS-ów"
+  maxSmallSoldiers: ""
+  maxLargeSoldiers: ""
+  maxSmallVehicles: ""
+  maxLargeVehicles: ""
+  maxSmallUnits: ""
+  maxLargeUnits: ""
+  maxSoldiers: ""
+  maxVehicles: ""
   maxItems: "Limit ekwipunku"
   maxStorageSpace: "Przestrzeń magazynowa"
   maxAltitude: "Pułap walki powietrznej"

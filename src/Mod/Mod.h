@@ -149,7 +149,7 @@ class Mod
 private:
 	Music *_muteMusic;
 	Sound *_muteSound;
-	std::string _playingMusic;
+	std::string _playingMusic, _currentMusicTrack;
 
 	std::map<std::string, Palette*> _palettes;
 	std::map<std::string, Font*> _fonts;
@@ -229,6 +229,7 @@ private:
 	bool _allowAlienBasesOnWrongTextures;
 	bool _ftaGame, _researchTreeDisabled;
 	bool _ironManEnabled;
+	int _ftaGameLength;
 	int _kneelBonusGlobal, _oneHandedPenaltyGlobal;
 	int _enableCloseQuartersCombat, _closeQuartersAccuracyGlobal, _closeQuartersTuCostGlobal, _closeQuartersEnergyCostGlobal, _closeQuartersSneakUpGlobal;
 	int _noLOSAccuracyPenaltyGlobal;
@@ -286,9 +287,18 @@ private:
 	bool _disableUnderwaterSounds;
 	bool _enableUnitResponseSounds;
 	std::map<std::string, std::vector<int> > _selectUnitSound, _startMovingSound, _selectWeaponSound, _annoyedSound;
+	std::vector<int> _selectBaseSound, _startDogfightSound;
 	std::vector<int> _flagByKills;
 	int _pediaReplaceCraftFuelWithRangeType;
 	std::vector<StatAdjustment> _statAdjustment;
+
+	// overrides for DIFFICULTY_COEFFICIENT[]
+	std::vector<int> _monthlyRatingThresholds;
+	std::vector<int> _ufoFiringRateCoefficients;
+	std::vector<int> _ufoEscapeCountdownCoefficients;
+	std::vector<int> _retaliationTriggerOdds;
+	std::vector<int> _retaliationBaseRegionOdds;
+	std::vector<int> _aliensFacingCraftOdds;
 
 	std::map<std::string, int> _ufopaediaSections;
 	std::vector<std::string> _countriesIndex, _extraGlobeLabelsIndex, _regionsIndex, _facilitiesIndex, _craftsIndex, _craftWeaponsIndex, _itemCategoriesIndex, _itemsIndex, _invsIndex, _ufosIndex;
@@ -365,9 +375,11 @@ public:
 	static int SMOKE_OFFSET;
 	static int UNDERWATER_SMOKE_OFFSET;
 
+	/// Empty surface.
+	constexpr static int NO_SURFACE = -1;
 	/// Empty sound.
 	constexpr static int NO_SOUND = -1;
-	/// Special value for defualt string diffrent to empty one.
+	/// Special value for default string different to empty one.
 	static const std::string STR_NULL;
 
 	static int ITEM_DROP;
@@ -437,18 +449,20 @@ public:
 	Music *getMusic(const std::string &name, bool error = true) const;
 	/// Gets the available music tracks.
 	const std::map<std::string, Music*> &getMusicTrackList() const;
+	const std::string& getCurrentMusicTrack() const { return _currentMusicTrack; }
+	void setCurrentMusicTrack(const std::string& currentMusicTrack) { _currentMusicTrack = currentMusicTrack; }
 	/// Plays a particular music.
 	void playMusic(const std::string &name, int id = 0);
 	/// Gets a particular sound.
-	Sound *getSound(const std::string &set, int sound, bool error = true) const;
+	Sound *getSound(const std::string &set, int sound) const;
 	/// Gets all palettes.
 	const std::map<std::string, Palette*> &getPalettes() const { return _palettes; }
 	/// Gets a particular palette.
 	Palette *getPalette(const std::string &name, bool error = true) const;
 	/// Gets list of voxel data.
-	std::vector<Uint16> *getVoxelData();
+	const std::vector<Uint16> *getVoxelData() const;
 	/// Returns a specific sound from either the land or underwater sound set.
-	Sound *getSoundByDepth(unsigned int depth, unsigned int sound, bool error = true) const;
+	Sound *getSoundByDepth(unsigned int depth, unsigned int sound) const;
 	/// Gets list of LUT data.
 	const std::vector<std::vector<Uint8> > *getLUTs() const;
 
@@ -489,6 +503,16 @@ public:
 		}
 		return false;
 	}
+
+	/// Verify if value have defined surface in given set.
+	void verifySpriteOffset(const std::string &parent, const int& sprite, const std::string &set) const;
+	/// Verify if value have defined surface in given set.
+	void verifySpriteOffset(const std::string &parent, const std::vector<int>& sprites, const std::string &set) const;
+	/// Verify if value have defined sound in given set.
+	void verifySoundOffset(const std::string &parent, const int& sound, const std::string &set) const;
+	/// Verify if value have defined sound in given set.
+	void verifySoundOffset(const std::string &parent, const std::vector<int>& sounds, const std::string &set) const;
+
 
 	/// Gets the mod offset.
 	int getModOffset() const;
@@ -829,6 +853,9 @@ public:
 	int getBughuntTimeUnitsLeft() const { return _bughuntTimeUnitsLeft; }
 	/// Gets if we are playing FTA scenario.
 	bool getIsFTAGame() const { return _ftaGame; }
+	/// Gets lenght of FtA game (while in alpha) in months
+	int getFTAGameLength() const { return _ftaGameLength; }
+	
 	/// Gets if ironman enabled in a ruleset.
 	bool getIsIronManEnabled() const { return _ironManEnabled; }
 	/// Gets if research tree was disabled.
@@ -1085,12 +1112,21 @@ public:
 	const std::map<std::string, std::vector<int> > &getStartMovingSounds() const { return _startMovingSound; }
 	const std::map<std::string, std::vector<int> > &getSelectWeaponSounds() const { return _selectWeaponSound; }
 	const std::map<std::string, std::vector<int> > &getAnnoyedSounds() const { return _annoyedSound; }
+	const std::vector<int> &getSelectBaseSounds() const { return _selectBaseSound; }
+	const std::vector<int> &getStartDogfightSounds() const { return _startDogfightSound; }
 	const std::vector<int> &getFlagByKills() const;
 	StatAdjustment *getStatAdjustment(int difficulty);
 	int getDefaultFactionPowerCost() const { return _defaultFactionPowerCost; };
 	int getDefeatScore() const;
 	int getDefeatFunds() const;
 	bool isDemigod() const;
+	const std::vector<int>& getMonthlyRatingThresholds() { return _monthlyRatingThresholds; }
+	const std::vector<int>& getUfoFiringRateCoefficients() { return _ufoFiringRateCoefficients; }
+	const std::vector<int>& getUfoEscapeCountdownCoefficients() { return _ufoEscapeCountdownCoefficients; }
+	const std::vector<int>& getRetaliationTriggerOdds() { return _retaliationTriggerOdds; }
+	const std::vector<int>& getRetaliationBaseRegionOdds() { return _retaliationBaseRegionOdds; }
+	const std::vector<int>& getAliensFacingCraftOdds() { return _aliensFacingCraftOdds; }
+
 };
 
 }

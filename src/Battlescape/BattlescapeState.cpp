@@ -70,6 +70,8 @@
 #include "../Mod/AlienDeployment.h"
 #include "../Mod/Armor.h"
 #include "../Mod/RuleUfo.h"
+#include "../Savegame/Base.h"
+#include "../Savegame/Craft.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/Tile.h"
@@ -181,10 +183,19 @@ BattlescapeState::BattlescapeState() :
 	const int visibleUnitY = _game->getMod()->getInterface("battlescape")->getElement("visibleUnits")->y;
 	for (int i = 0; i < VISIBLE_MAX; ++i)
 	{
-		_btnVisibleUnit[i] = new InteractiveSurface(15, 12, x + visibleUnitX, y + visibleUnitY - (i * 13));
-		_numVisibleUnit[i] = new NumberText(15, 12, _btnVisibleUnit[i]->getX() + 6 , _btnVisibleUnit[i]->getY() + 4);
+		_btnVisibleUnit[i] = new InteractiveSurface(15, 12, x + visibleUnitX - (i * 16), y + visibleUnitY);
+		if (i > 9) //case we have more than 10 blocks - make second line, dont expect VISIBLE_MAX > 20 =)
+		{
+			_btnVisibleUnit[i]->setX(_btnVisibleUnit[i]->getX() + 160);
+			_btnVisibleUnit[i]->setY(_btnVisibleUnit[i]->getY() - 13);
+		}
+		_numVisibleUnit[i] = new NumberText(15, 12, _btnVisibleUnit[i]->getX() + 6, _btnVisibleUnit[i]->getY() + 4);
+		if (i >= 9) // center number 10+
+		{
+			_numVisibleUnit[i]->setX(_numVisibleUnit[i]->getX() - 2);
+		}
 	}
-	_numVisibleUnit[9]->setX(_numVisibleUnit[9]->getX() - 2); // center number 10
+	
 	_warning = new WarningMessage(224, 24, x + 48, y + 32);
 	_btnLaunch = new BattlescapeButton(32, 24, screenWidth - 32, 0); // we need screenWidth, because that is independent of the black bars on the screen
 	_btnLaunch->setVisible(false);
@@ -194,6 +205,16 @@ BattlescapeState::BattlescapeState() :
 	_btnSpecial->setVisible(false);
 	_btnSkills = new BattlescapeButton(32, 24, screenWidth - 32, 25); // we need screenWidth, because that is independent of the black bars on the screen
 	_btnSkills->setVisible(false);
+
+	{
+		auto posX = (screenWidth - 32);
+		for (auto& pos :  _posSpecialActions)
+		{
+			pos = posX;
+			posX -= 32;
+		}
+	}
+
 
 	// Reset touch flags
 	_game->resetTouchButtonFlags();
@@ -484,16 +505,24 @@ BattlescapeState::BattlescapeState() :
 	_btnShowLayers->setTooltip(Options::oxceLinks ? "STR_EXTENDED_LINKS" : "STR_MULTI_LEVEL_VIEW");
 	_btnShowLayers->onMouseIn((ActionHandler)&BattlescapeState::txtTooltipIn);
 	_btnShowLayers->onMouseOut((ActionHandler)&BattlescapeState::txtTooltipOut);
+	_btnShowLayers->onKeyboardPress((ActionHandler)&BattlescapeState::btnShowLayersClickOrig, Options::keyBattleShowLayers);
 	_btnShowLayers->onKeyboardPress((ActionHandler)&BattlescapeState::btnUfopaediaClick, Options::keyGeoUfopedia);
 
 	_btnHelp->onMouseClick((ActionHandler)&BattlescapeState::btnHelpClick);
-	_btnHelp->onKeyboardPress((ActionHandler)&BattlescapeState::btnHelpClick, Options::keyBattleOptions);
+	if (!_save->isPreview())
+	{
+		_btnHelp->onKeyboardPress((ActionHandler)&BattlescapeState::btnHelpClick, Options::keyBattleOptions);
+	}
 	_btnHelp->setTooltip("STR_OPTIONS");
 	_btnHelp->onMouseIn((ActionHandler)&BattlescapeState::txtTooltipIn);
 	_btnHelp->onMouseOut((ActionHandler)&BattlescapeState::txtTooltipOut);
 
 	_btnEndTurn->onMouseClick((ActionHandler)&BattlescapeState::btnEndTurnClick);
 	_btnEndTurn->onKeyboardPress((ActionHandler)&BattlescapeState::btnEndTurnClick, Options::keyBattleEndTurn);
+	if (_save->isPreview())
+	{
+		_btnEndTurn->onKeyboardPress((ActionHandler)&BattlescapeState::btnEndTurnClick, Options::keyBattleOptions); // Esc
+	}
 	_btnEndTurn->setTooltip("STR_END_TURN");
 	_btnEndTurn->onMouseIn((ActionHandler)&BattlescapeState::txtTooltipInEndTurn);
 	_btnEndTurn->onMouseOut((ActionHandler)&BattlescapeState::txtTooltipOut);
@@ -599,7 +628,7 @@ BattlescapeState::BattlescapeState() :
 	{
 		std::ostringstream tooltip;
 		_btnVisibleUnit[i]->onMouseClick((ActionHandler)&BattlescapeState::btnVisibleUnitClick);
-		_btnVisibleUnit[i]->onKeyboardPress((ActionHandler)&BattlescapeState::btnVisibleUnitClick, buttons[i]);
+		//_btnVisibleUnit[i]->onKeyboardPress((ActionHandler)&BattlescapeState::btnVisibleUnitClick, buttons[i]);
 		tooltip << "STR_CENTER_ON_ENEMY_" << (i+1);
 		_txtVisibleUnitTooltip[i] = tooltip.str();
 		_btnVisibleUnit[i]->setTooltip(_txtVisibleUnitTooltip[i]);
@@ -801,7 +830,7 @@ void BattlescapeState::init()
 	_txtTooltip->setText("");
 	_btnReserveKneel->toggle(_save->getKneelReserved());
 	_battleGame->setKneelReserved(_save->getKneelReserved());
-	if (_autosave > 0)
+	if (_autosave > 0 && !_save->isPreview())
 	{
 		int currentTurn = _autosave;
 		_autosave = 0;
@@ -1179,7 +1208,7 @@ void BattlescapeState::btnKneelClick(Action *)
 			// update any path preview when unit kneels
 			if (_battleGame->getPathfinding()->isPathPreviewed())
 			{
-				_battleGame->getPathfinding()->calculate(_battleGame->getCurrentAction()->actor, _battleGame->getCurrentAction()->target);
+				_battleGame->getPathfinding()->calculate(_battleGame->getCurrentAction()->actor, _battleGame->getCurrentAction()->target, _battleGame->getCurrentAction()->getMoveType());
 				_battleGame->getPathfinding()->removePreview();
 				_battleGame->getPathfinding()->previewPath();
 			}
@@ -1194,6 +1223,10 @@ void BattlescapeState::btnKneelClick(Action *)
  */
 void BattlescapeState::btnInventoryClick(Action *)
 {
+	if (_save->isPreview())
+	{
+		return;
+	}
 #if 0
 	if (_save->getDebugMode())
 	{
@@ -1319,11 +1352,11 @@ void BattlescapeState::btnShowLayersClick(Action *)
 	}
 	else
 	{
-		btnShowLayersClickOrig();
+		btnShowLayersClickOrig(nullptr);
 	}
 }
 
-void BattlescapeState::btnShowLayersClickOrig()
+void BattlescapeState::btnShowLayersClickOrig(Action *)
 {
 	_numLayers->setValue(_map->getCamera()->toggleShowAllLayers());
 }
@@ -1351,6 +1384,14 @@ void BattlescapeState::btnUfopaediaClick(Action *)
  */
 void BattlescapeState::btnHelpClick(Action *)
 {
+	if (_save->isPreview())
+	{
+		// Notes for future explorers:
+		// 1. saving makes no sense
+		// 2. loading could be enabled, but needs changes in the Game's _states management; make sure you know what you're doing!
+		return;
+	}
+
 	if (allowButtons(true))
 		_game->pushState(new PauseState(OPT_BATTLESCAPE));
 }
@@ -1378,6 +1419,25 @@ void BattlescapeState::btnEndTurnClick(Action *)
  */
 void BattlescapeState::btnAbortClick(Action *)
 {
+	if (_save->isPreview())
+	{
+		if (!_save->getCraftForPreview())
+		{
+			// base preview
+			return;
+		}
+		// Notes for future explorers:
+		// - there are craft, which can have multiple layouts (one is chosen randomly at the start of a battle)
+		// - these layouts are not forced to be compatible
+		// - thus custom craft deployment for one layout may not be compatible with another layout either
+		// - so instead of having multiple custom deployments per craft, I decided to not support it for such craft at all
+		// - if you want to add partial or full support for it... make sure you don't forget all the corner cases
+		if (_save->getCraftForPreview()->getRules()->getBattlescapeTerrainData()->getMapBlocks()->size() > 1)
+		{
+			return;
+		}
+	}
+
 	if (allowButtons())
 		_game->pushState(new AbortMissionState(_save, this));
 }
@@ -1823,7 +1883,7 @@ void BattlescapeState::btnNightVisionClick(Action *action)
 
 /**
  * Determines whether a playable unit is selected. Normally only player side units can be selected, but in debug mode one can play with aliens too :)
- * Is used to see if stats can be displayed and action buttons will work.
+ * Is used to see if action buttons will work.
  * @return Whether a playable unit is selected.
  */
 bool BattlescapeState::playableUnitSelected()
@@ -1849,7 +1909,7 @@ void BattlescapeState::drawItem(BattleItem* item, Surface* hand, std::vector<Num
 	if (item)
 	{
 		const RuleItem *rule = item->getRules();
-		rule->drawHandSprite(_game->getMod()->getSurfaceSet("BIGOBS.PCK"), hand, item, _save->getAnimFrame());
+		rule->drawHandSprite(_game->getMod()->getSurfaceSet("BIGOBS.PCK"), hand, item, _save, _save->getAnimFrame());
 		for (int slot = 0; slot < RuleItem::AmmoSlotMax; ++slot)
 		{
 			if (item->isAmmoVisibleForSlot(slot))
@@ -1918,11 +1978,35 @@ void BattlescapeState::drawItem(BattleItem* item, Surface* hand, std::vector<Num
  */
 void BattlescapeState::drawHandsItems()
 {
-	BattleUnit *battleUnit = playableUnitSelected() ? _save->getSelectedUnit() : nullptr;
-	bool left = battleUnit ? battleUnit->isLeftHandPreferredForReactions() : false;
-	bool right = battleUnit ? battleUnit->isRightHandPreferredForReactions() : false;
-	drawItem(battleUnit ? battleUnit->getLeftHandWeapon() : nullptr, _btnLeftHandItem, _numAmmoLeft, _numMedikitLeft, _numTwoHandedIndicatorLeft, left);
-	drawItem(battleUnit ? battleUnit->getRightHandWeapon() : nullptr, _btnRightHandItem, _numAmmoRight, _numMedikitRight, _numTwoHandedIndicatorRight, right);
+	BattleUnit *battleUnit = _battleGame->playableUnitSelected() ? _save->getSelectedUnit() : nullptr;
+	bool left = false;
+	bool right = false;
+	BattleItem* leftHandItem = nullptr;
+	BattleItem* rightHandItem = nullptr;
+	if (battleUnit)
+	{
+		left = battleUnit->isLeftHandPreferredForReactions();
+		right = battleUnit->isRightHandPreferredForReactions();
+		leftHandItem = battleUnit->getLeftHandWeapon();
+		rightHandItem = battleUnit->getRightHandWeapon();
+		if (!leftHandItem || !rightHandItem)
+		{
+			// even if both hands are empty, draw the special item just in one hand
+			BattleItem** emptyHandItemPtr = leftHandItem ? &rightHandItem : &leftHandItem;
+			auto typesToCheck = { BT_MELEE, BT_PSIAMP, BT_FIREARM, BT_MEDIKIT, BT_SCANNER, BT_MINDPROBE };
+			for (auto& type : typesToCheck)
+			{
+				*emptyHandItemPtr = battleUnit->getSpecialWeapon(type);
+				if (*emptyHandItemPtr && (*emptyHandItemPtr)->getRules()->showSpecialInEmptyHand() && (*emptyHandItemPtr)->getRules()->isSpecialUsingEmptyHand())
+				{
+					break;
+				}
+				*emptyHandItemPtr = nullptr;
+			}
+		}
+	}
+	drawItem(leftHandItem, _btnLeftHandItem, _numAmmoLeft, _numMedikitLeft, _numTwoHandedIndicatorLeft, left);
+	drawItem(rightHandItem, _btnRightHandItem, _numAmmoRight, _numMedikitRight, _numTwoHandedIndicatorRight, right);
 }
 
 /**
@@ -1939,7 +2023,7 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 		_visibleUnit[i] = 0;
 	}
 
-	bool playableUnit = playableUnitSelected();
+	bool playableUnit = _battleGame->playableUnitSelected();
 	_rank->setVisible(playableUnit);
 	_rankTiny->setVisible(playableUnit);
 	_numTimeUnits->setVisible(playableUnit);
@@ -2005,17 +2089,14 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 			customBg->blitNShade(_rank, 0, 0);
 
 			// show avatar
-			auto defaultPrefix = soldier->getArmor()->getLayersDefaultPrefix();
-			Armor *customArmor = nullptr;
+			Armor *customArmor = soldier->getArmor();
 			if (!soldier->getRules()->getArmorForAvatar().empty())
 			{
 				customArmor = _game->getMod()->getArmor(soldier->getRules()->getArmorForAvatar());
-				defaultPrefix = customArmor->getLayersDefaultPrefix();
 			}
-			if (!defaultPrefix.empty())
+			if (customArmor->hasLayersDefinition())
 			{
-				auto layers = soldier->getArmorLayers(customArmor);
-				for (auto layer : layers)
+				for (const auto& layer : soldier->getArmorLayers(customArmor))
 				{
 					auto surf = _game->getMod()->getSurface(layer, true);
 
@@ -2203,11 +2284,14 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 
 void BattlescapeState::updateUiButton(const BattleUnit *battleUnit)
 {
-	bool hasPsiWeapon = battleUnit->getSpecialWeapon(BT_PSIAMP) != 0;
+	BattleItem *psiWeapon = battleUnit->getSpecialWeapon(BT_PSIAMP);
 
 	BattleType type = BT_NONE;
 	BattleItem *specialWeapon = battleUnit->getSpecialIconWeapon(type); // updates type!
 	bool hasSpecialWeapon = specialWeapon && type != BT_NONE && type != BT_AMMO && type != BT_GRENADE && type != BT_PROXIMITYGRENADE && type != BT_FLARE && type != BT_CORPSE;
+
+	// if we have psi amp with icon then it will show one button only, but if we have two psi amps and one with icon is second (this is important) then we will show both buttons.
+	bool hasPsiWeapon = psiWeapon != 0 && psiWeapon != specialWeapon;
 
 	bool hasSkills = false;
 	auto soldier = battleUnit->getGeoscapeSoldier();
@@ -2216,53 +2300,77 @@ void BattlescapeState::updateUiButton(const BattleUnit *battleUnit)
 		hasSkills = soldier->getRules()->isSkillMenuDefined();
 	}
 
+	resetUiButton();
+
+	int offset = 0;
+	auto show = [&](BattlescapeButton* btn, int spriteIndex)
+	{
+		if (offset < SPECIAL_BUTTONS_MAX)
+		{
+			_game->getMod()->getSurfaceSet("SPICONS.DAT")->getFrame(spriteIndex)->blitNShade(btn, 0, 0);
+			btn->setVisible(true);
+			btn->setX(_posSpecialActions[offset]);
+			++offset;
+		}
+	};
+
+
 	if (hasSpecialWeapon)
 	{
-		showUiButton(BTN_SPECIAL, specialWeapon->getRules()->getSpecialIconSprite());
+		show(_btnSpecial, specialWeapon->getRules()->getSpecialIconSprite());
 	}
-	else if (hasSkills)
+	if (hasSkills)
 	{
-		showUiButton(BTN_SKILL, soldier->getRules()->getSkillIconSprite());
+		show(_btnSkills, soldier->getRules()->getSkillIconSprite());
 	}
-	else if (hasPsiWeapon)
+	if (hasPsiWeapon)
 	{
-		showUiButton(BTN_PSI);
-	}
-	else
-	{
-		resetUiButton();
+		show(_btnPsi, 1);
 	}
 }
 
-void BattlescapeState::showUiButton(ButtonType buttonType, int spriteIndex)
+/**
+ * Updates the visible unit indicators from the passed list of units.
+ * Only updates as directly visible units.
+ */
+void BattlescapeState::updateVisibleUnits(std::vector<BattleUnit *> *units)
 {
-	switch (buttonType) {
-		case BTN_PSI:
-			showPsiButton(true);
-			showSpecialButton(false);
-			showSkillsButton(false);
-			break;
-		case BTN_SPECIAL:
-			showPsiButton(false);
-			showSpecialButton(true, spriteIndex);
-			showSkillsButton(false);
-			break;
-		case BTN_SKILL:
-			showPsiButton(false);
-			showSpecialButton(false);
-			showSkillsButton(true, spriteIndex);
-			break;
-		default:
-			resetUiButton();
-			break;
+	for (int i = 0; i < VISIBLE_MAX; ++i)
+	{
+		_btnVisibleUnit[i]->setVisible(false);
+		_numVisibleUnit[i]->setVisible(false);
+		_visibleUnit[i] = 0;
 	}
+
+	if (units->empty())
+		return;
+
+	// go through all units visible
+	int j = 0;
+	for (std::vector<BattleUnit *>::iterator i = units->begin(); i != units->end() && j < VISIBLE_MAX; ++i)
+	{
+		_btnVisibleUnit[j]->setTooltip(_txtVisibleUnitTooltip[j]);
+		_btnVisibleUnit[j]->setVisible(true);
+		_numVisibleUnit[j]->setVisible(true);
+		_visibleUnit[j] = (*i);
+		++j;
+	}
+	_numberOfDirectlyVisibleUnits = j;
 }
 
 void BattlescapeState::resetUiButton()
 {
-	showPsiButton(false);
-	showSpecialButton(false);
-	showSkillsButton(false);
+	BattlescapeButton* btns[] = {
+		_btnPsi,
+		_btnSkills,
+		_btnSpecial,
+	};
+
+	for (auto* btn : btns)
+	{
+		btn->setVisible(false);
+		btn->setX(_posSpecialActions[0]);
+	}
 }
 
 /**
@@ -2431,6 +2539,15 @@ void BattlescapeState::warning(const std::string &message)
 void BattlescapeState::warningRaw(const std::string &message)
 {
 	_warning->showMessage(message);
+}
+
+/**
+ * Shows a warning message without automatic translation.
+ * @param message Warning message.
+ */
+void BattlescapeState::warningLongRaw(const std::string &message)
+{
+	_warning->showMessage(message, 8);
 }
 
 /**
@@ -2653,6 +2770,30 @@ inline void BattlescapeState::handle(Action *action)
 						_game->pushState(new InfoboxState(ss.str()));
 					}
 				}
+				// "ctrl-w" - warp unit
+				else if ((_save->getDebugMode() || _save->isPreview()) && key == SDLK_w && ctrlPressed)
+				{
+					BattleUnit *unit = _save->getSelectedUnit();
+					if (unit)
+					{
+						Position newPos;
+						_map->getSelectorPosition(&newPos);
+						if (_save->getBattleGame()->getTileEngine()->isPositionValidForUnit(newPos, unit))
+						{
+							debug("Beam me up Scotty");
+							_save->getPathfinding()->removePreview();
+
+							unit->setTile(_save->getTile(newPos), _save);
+							unit->setPosition(newPos);
+
+							//free refresh as bonus
+							unit->updateUnitStats(true, false);
+							_save->getTileEngine()->calculateLighting(LL_UNITS);
+							_save->getBattleGame()->handleState();
+							updateSoldierInfo(true);
+						}
+					}
+				}
 				if (Options::debug)
 				{
 					// "ctrl-d" - enable debug mode
@@ -2718,30 +2859,6 @@ inline void BattlescapeState::handle(Action *action)
 						_save->getBattleGame()->checkForCasualties(nullptr, BattleActionAttack{}, true, false);
 						_save->getBattleGame()->handleState();
 					}
-					// "ctrl-w" - warp unit
-					else if (_save->getDebugMode() && key == SDLK_w && ctrlPressed)
-					{
-						BattleUnit *unit = _save->getSelectedUnit();
-						if (unit)
-						{
-							Position newPos;
-							_map->getSelectorPosition(&newPos);
-							if (_save->getBattleGame()->getTileEngine()->isPositionValidForUnit(newPos, unit))
-							{
-								debug("Beam me up Scotty");
-								_save->getPathfinding()->removePreview();
-
-								unit->setTile(_save->getTile(newPos), _save);
-								unit->setPosition(newPos);
-
-								//free refresh as bonus
-								unit->updateUnitStats(true, false);
-								_save->getTileEngine()->calculateLighting(LL_UNITS);
-								_save->getBattleGame()->handleState();
-								updateSoldierInfo(true);
-							}
-						}
-					}
 					// f11 - voxel map dump
 					else if (key == SDLK_F11)
 					{
@@ -2754,7 +2871,7 @@ inline void BattlescapeState::handle(Action *action)
 					}
 				}
 				// quick save and quick load
-				if (!_game->getSavedGame()->isIronman())
+				if (!_game->getSavedGame()->isIronman() && !_save->isPreview())
 				{
 					if (key == Options::keyQuickSave)
 					{
@@ -2825,7 +2942,7 @@ void BattlescapeState::saveAIMap()
 			r.x = x * r.w;
 			r.y = y * r.h;
 
-			if (t->getTUCost(O_FLOOR, MT_FLY) != 255 && t->getTUCost(O_OBJECT, MT_FLY) != 255)
+			if (t->getTUCost(O_FLOOR, MT_FLY) != Pathfinding::INVALID_MOVE_COST && t->getTUCost(O_OBJECT, MT_FLY) != Pathfinding::INVALID_MOVE_COST)
 			{
 				SDL_FillRect(img, &r, SDL_MapRGB(img->format, 255, 0, 0x20));
 				characterRGBA(img, r.x, r.y,'*' , 0x7f, 0x7f, 0x7f, 0x7f);
@@ -2860,12 +2977,12 @@ void BattlescapeState::saveAIMap()
 				if (z > 0 && !t->hasNoFloor(_save)) break; // no seeing through floors
 			}
 
-			if (t->getMapData(O_NORTHWALL) && t->getMapData(O_NORTHWALL)->getTUCost(MT_FLY) == 255)
+			if (t->getMapData(O_NORTHWALL) && t->getMapData(O_NORTHWALL)->getTUCost(MT_FLY) == Pathfinding::INVALID_MOVE_COST)
 			{
 				lineRGBA(img, r.x, r.y, r.x+r.w, r.y, 0x50, 0x50, 0x50, 255);
 			}
 
-			if (t->getMapData(O_WESTWALL) && t->getMapData(O_WESTWALL)->getTUCost(MT_FLY) == 255)
+			if (t->getMapData(O_WESTWALL) && t->getMapData(O_WESTWALL)->getTUCost(MT_FLY) == Pathfinding::INVALID_MOVE_COST)
 			{
 				lineRGBA(img, r.x, r.y, r.x, r.y+r.h, 0x50, 0x50, 0x50, 255);
 			}
@@ -3115,6 +3232,8 @@ void BattlescapeState::popup(State *state)
  */
 void BattlescapeState::finishBattle(bool abort, int inExitArea)
 {
+	bool isPreview = _save->isPreview();
+
 	while (!_game->isState(this))
 	{
 		_game->popState();
@@ -3186,7 +3305,7 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 		nextStage = ruleDeploy->getNextStage();
 	}
 
-	if (!nextStage.empty() && inExitArea)
+	if (!nextStage.empty() && inExitArea && !isPreview)
 	{
 		// if there is a next mission stage + we have people in exit area OR we killed all aliens, load the next stage
 		_popups.clear();
@@ -3202,6 +3321,33 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 		_animTimer->stop();
 		_gameTimer->stop();
 		_game->popState();
+		if (isPreview)
+		{
+			// skip Debriefing
+			Options::baseXResolution = Options::baseXGeoscape;
+			Options::baseYResolution = Options::baseYGeoscape;
+			_game->getScreen()->resetDisplay(false);
+
+			// Restore the cursor in case something weird happened
+			_game->getCursor()->setVisible(true);
+
+			// delete SavedBattleGame
+			_game->getSavedGame()->setBattleGame(0);
+
+			// unmark all craft and all bases (current craft would be enough, but better safe than sorry)
+			for (auto* base : *_game->getSavedGame()->getBases())
+			{
+				base->setInBattlescape(false);
+				for (auto* craft : *base->getCrafts())
+				{
+					craft->setInBattlescape(false);
+				}
+			}
+
+			// reset the music
+			_game->getMod()->playMusic("GMGEO");
+			return;
+		}
 		_game->pushState(new DebriefingState);
 		std::string cutscene;
 		if (ruleDeploy)
@@ -3251,41 +3397,6 @@ void BattlescapeState::finishBattle(bool abort, int inExitArea)
 void BattlescapeState::showLaunchButton(bool show)
 {
 	_btnLaunch->setVisible(show);
-}
-
-/**
- * Shows the PSI button.
- * @param show Show PSI button?
- */
-void BattlescapeState::showPsiButton(bool show)
-{
-	_btnPsi->setVisible(show);
-}
-
-/**
- * Shows the special button.
- * @param show Show special button?
- */
-void BattlescapeState::showSpecialButton(bool show, int sprite)
-{
-	if (show)
-	{
-		_game->getMod()->getSurfaceSet("SPICONS.DAT")->getFrame(sprite)->blitNShade(_btnSpecial, 0, 0);
-	}
-	_btnSpecial->setVisible(show);
-}
-
-/**
- * Shows the skills button.
- * @param show Show skills button?
- */
-void BattlescapeState::showSkillsButton(bool show, int sprite)
-{
-	if (show)
-	{
-		_game->getMod()->getSurfaceSet("SPICONS.DAT")->getFrame(sprite)->blitNShade(_btnSkills, 0, 0);
-	}
-	_btnSkills->setVisible(show);
 }
 
 /**
@@ -3684,6 +3795,11 @@ void BattlescapeState::resize(int &dX, int &dY)
 		{
 			(*i)->setX((*i)->getX() + dX);
 		}
+	}
+
+	for (auto& pos : _posSpecialActions)
+	{
+		pos += dX;
 	}
 
 }

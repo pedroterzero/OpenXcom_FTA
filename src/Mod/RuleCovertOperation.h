@@ -42,10 +42,10 @@ private:
 	RuleBaseFacilityFunctions _requiresBaseFunc;
 	int _soldierSlots, _optionalSoldierSlots, _scientistSlots, _engineerSlots, _optionalSoldierEffect, _scientistEffect, _engineerEffect, _itemSpaceEffect, _armorEffect;
 	double _itemSpaceLimit;
-	int _baseChances, _costs, _successScore, _failureScore, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger, _concealedItemsBonus, _requiredItemsEffect;
-	bool _repeatProgressEvent, _allowAllEquipment;
+	int _baseChances, _costs, _successScore, _failureScore, _successLoyalty, _failureLoyalty, _successFunds, _failureFunds, _progressEventChance, _trapChance, _danger, _concealedItemsBonus, _bonusItemsEffect;
+	bool _repeatProgressEvent, _allowAllEquipment, _removeRequiredItemsOnSuccess, _removeRequiredItemsOnFailure;
 	WeightedOptions _successMissions, _failureMissions, _successWeightedItemList, _failureWeightedItemList, _instantTrapDeployment, _instantSuccessDeployment, _progressEvent;
-	std::map<std::string, int> _requiredReputationLvl, _successReputationScore, _failureReputationScore, _successEveryItemList, _failureEveryItemList, _requiredItems, _soldierTypeEffectiveness; //TODO processing of _requiredReputationLvl
+	std::map<std::string, int> _requiredReputationLvl, _successReputationScore, _failureReputationScore, _successEveryItemList, _failureEveryItemList, _requiredItems, _bonusItems, _soldierTypeEffectiveness;
 	int _listOrder;
 public:
 	/// Creates a blank craft ruleset.
@@ -112,6 +112,10 @@ public:
 	int getSuccessScore() const { return _successScore; };
 	/// Gets the operation's global score, that is awarded on failure.
 	int getFailureScore() const { return _failureScore; };
+	/// Gets the operation's loyalty score, that is awarded on success result.
+	int getSuccessLoyalty() const { return _successLoyalty; };
+	/// Gets the operation's loyalty score, that is awarded on failure.
+	int getFailureLoyalty() const { return _failureLoyalty; };
 	/// Gets the operation's funds, that is awarded on success result.
 	int getSuccessFunds() const { return _successFunds; };
 	/// Gets the operation's funds, that is awarded on failure.
@@ -120,6 +124,11 @@ public:
 	int getProgressEventChance() const { return _progressEventChance; };
 	/// Gets if progress event should be repeated in progress of running covert operation.
 	bool getRepeatProgressEvent() const { return _repeatProgressEvent; };
+
+	/// Gets if required items for operation should be removed from the game.
+	bool getRemoveRequiredItemsOnSuccess() const { return _removeRequiredItemsOnSuccess; };
+	bool getRemoveRequiredItemsOnFailure() const { return _removeRequiredItemsOnFailure; };
+
 	/// Gets operation item space limit.
 	double getItemSpaceLimit() const { return _itemSpaceLimit; }
 	/// Gets operation item space limit.
@@ -154,8 +163,10 @@ public:
 	const WeightedOptions& getFailureWeightedItemList() const { return _failureWeightedItemList; }
 	/// Gets the operation's required item list.
 	const std::map<std::string, int>& getRequiredItemList() const { return _requiredItems; }
+	/// Gets the operation's required item list.
+	const std::map<std::string, int> &getBonusItemList() const { return _bonusItems; }
 	/// Gets bonus for having required items for this operation.
-	int getRequiredItemsEffect() const { return _requiredItemsEffect; };
+	int getBonusItemsEffect() const { return _bonusItemsEffect; };
 	/// Gets if this covert operation does not have any effects for concealed or heavy weapons.
 	bool getAllowAllEquipment() const { return _allowAllEquipment; };
 	/// Gets bonus for concealed-only weapons for this operation.

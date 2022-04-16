@@ -68,7 +68,7 @@ namespace OpenXcom
 CraftEquipmentState::CraftEquipmentState(Base *base, size_t craft) : _lstScroll(0), _sel(0), _craft(craft), _base(base), _totalItems(0), _totalItemStorageSize(0.0), _ammoColor(0), _reload(true)
 {
 	Craft *c = _base->getCrafts()->at(_craft);
-	bool craftHasACrew = c->getNumSoldiers() > 0;
+	bool craftHasACrew = c->getNumTotalSoldiers() > 0;
 	bool isNewBattle = _game->getSavedGame()->getMonthsPassed() == -1;
 
 	// Create objects
@@ -138,7 +138,7 @@ CraftEquipmentState::CraftEquipmentState(Base *base, size_t craft) : _lstScroll(
 	_txtUsed->setText(tr("STR_SPACE_USED").arg(c->getSpaceUsed()));
 
 	std::ostringstream ss3;
-	ss3 << tr("STR_SOLDIERS_UC") << ">" << Unicode::TOK_COLOR_FLIP << c->getNumSoldiers();
+	ss3 << tr("STR_SOLDIERS_UC") << ">" << Unicode::TOK_COLOR_FLIP << c->getNumTotalSoldiers();
 	_txtCrew->setText(ss3.str());
 
 	// populate sort options
@@ -734,7 +734,7 @@ void CraftEquipmentState::moveRightByValue(int change, bool suppressErrors)
 	{
 		int size = item->getVehicleUnit()->getArmor()->getTotalSize();
 		// Check if there's enough room
-		int room = std::min(c->getRules()->getVehicles() - c->getNumVehicles(), c->getSpaceAvailable() / size);
+		int room = c->validateAddingVehicles(size);
 		if (room > 0)
 		{
 			change = std::min(room, change);
@@ -758,6 +758,7 @@ void CraftEquipmentState::moveRightByValue(int change, bool suppressErrors)
 							_base->getStorageItems()->removeItem(_items[_sel]);
 						}
 						c->getVehicles()->push_back(new Vehicle(item, item->getVehicleClipSize(), size));
+						c->resetCustomDeployment(); // adding a vehicle into a craft invalidates a custom craft deployment
 					}
 				}
 				else
@@ -776,6 +777,7 @@ void CraftEquipmentState::moveRightByValue(int change, bool suppressErrors)
 				for (int i = 0; i < change; ++i)
 				{
 					c->getVehicles()->push_back(new Vehicle(item, item->getVehicleClipSize(), size));
+					c->resetCustomDeployment(); // adding a vehicle into a craft invalidates a custom craft deployment
 					if (_game->getSavedGame()->getMonthsPassed() != -1)
 					{
 						_base->getStorageItems()->removeItem(_items[_sel]);
@@ -852,7 +854,7 @@ void CraftEquipmentState::btnClearClick(Action *)
 void CraftEquipmentState::btnInventoryClick(Action *)
 {
 	Craft *craft = _base->getCrafts()->at(_craft);
-	if (craft->getNumSoldiers() != 0)
+	if (craft->getNumTotalSoldiers() > 0)
 	{
 		SavedBattleGame *bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage());
 		_game->getSavedGame()->setBattleGame(bgame);
