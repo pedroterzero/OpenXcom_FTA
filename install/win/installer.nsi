@@ -23,7 +23,7 @@
 ;Defines
 
 	!define GAME_NAME "OpenXcom From the Ashes"
-	!define GAME_VERSION "0.7.0"
+	!define GAME_VERSION "0.1.0.1"
 	!define GAME_AUTHOR "OpenXcom Developers & 723Studio"
 	!include "version.nsh"
 
