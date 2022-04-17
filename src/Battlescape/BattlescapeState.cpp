@@ -628,7 +628,8 @@ BattlescapeState::BattlescapeState() :
 	{
 		std::ostringstream tooltip;
 		_btnVisibleUnit[i]->onMouseClick((ActionHandler)&BattlescapeState::btnVisibleUnitClick);
-		//_btnVisibleUnit[i]->onKeyboardPress((ActionHandler)&BattlescapeState::btnVisibleUnitClick, buttons[i]);
+		if (i < 10)
+			_btnVisibleUnit[i]->onKeyboardPress((ActionHandler)&BattlescapeState::btnVisibleUnitClick, buttons[i]);
 		tooltip << "STR_CENTER_ON_ENEMY_" << (i+1);
 		_txtVisibleUnitTooltip[i] = tooltip.str();
 		_btnVisibleUnit[i]->setTooltip(_txtVisibleUnitTooltip[i]);
@@ -2672,6 +2673,44 @@ inline void BattlescapeState::handle(Action *action)
 						}
 					}
 				}
+				// BUSCHER
+				// Copied from void BattlescapeState::btnVisibleUnitClick(Action *action)
+				// ToDo: Turn copied code into a function and use it in both scenarios
+				else if (key >= SDLK_0 && key <= SDLK_9 && shiftPressed)
+				{
+					int btnID = 10; // offset for 11-20 range; index starts at 0
+					btnID += key - SDLK_1;
+					if (key == SDLK_0)
+						btnID += 10;
+
+					if (_visibleUnit[btnID] != nullptr)
+					{
+						auto position = _visibleUnit[btnID]->getPosition();
+						if (position == TileEngine::invalid)
+						{
+							bool found = false;
+							for (auto& unit : *_save->getUnits())
+							{
+								if (!unit->isOut())
+								{
+									for (auto& invItem : *unit->getInventory())
+									{
+										if (invItem->getUnit() && invItem->getUnit() == _visibleUnit[btnID])
+										{
+											position = unit->getPosition(); // position of a unit that has the wounded unit in the inventory
+											found = true;
+											break;
+										}
+									}
+								}
+								if (found) break;
+							}
+						}
+						_map->getCamera()->centerOnPosition(position);
+					}	
+				}
+
+
 				// "ctrl-Home" - reset default palettes
 				else if (key == SDLK_HOME && ctrlPressed)
 				{
