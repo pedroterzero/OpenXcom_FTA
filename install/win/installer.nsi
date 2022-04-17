@@ -22,9 +22,9 @@
 ;--------------------------------
 ;Defines
 
-	!define GAME_NAME "OpenXcom Extended - From the Ashes"
+	!define GAME_NAME "OpenXcom From the Ashes"
 	!define GAME_VERSION "0.7.0"
-	!define GAME_AUTHOR "OpenXcom Developers"
+	!define GAME_AUTHOR "OpenXcom Developers & 723Studio"
 	!include "version.nsh"
 
 ;--------------------------------
@@ -258,7 +258,7 @@ Section "$(SETUP_GAME)" SecMain
 
 	SetOutPath "$INSTDIR"
 
-	;File "OpenXcomFta.exe"
+	File "OpenXcomFta.exe"
 	;File "..\..\LICENSE.txt"
 	;File "..\..\CHANGELOG.txt"
 	;File /oname=README.txt "..\..\README.md"
@@ -330,7 +330,7 @@ ${If} $PortableMode == ${BST_CHECKED}
 	CreateDirectory "$INSTDIR\user"
 ${EndIf}
 
-        ;Download mod files
+    ;Download mod files
  	;(uses inetc.dll)
 	inetc::get "https://github.com/723Studio/X-Com-From-the-Ashes/archive/refs/tags/v0.1.0.zip" "$TEMP\X-Com-From-the-Ashes.zip" /end
 	Pop $0
