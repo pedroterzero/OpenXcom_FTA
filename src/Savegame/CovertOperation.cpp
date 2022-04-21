@@ -199,9 +199,9 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 {
 	const Mod& mod = *engine.getMod();
 	SavedGame& save = *engine.getSavedGame();
-	// if finished, don't do anything
 	if (_over)
 	{
+		finishOperation(); //case we should over it ASAP
 		return false;
 	}
 
