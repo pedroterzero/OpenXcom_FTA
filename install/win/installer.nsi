@@ -332,7 +332,7 @@ ${EndIf}
 
     ;Download mod files
  	;(uses inetc.dll)
-	inetc::get "https://github.com/723Studio/X-Com-From-the-Ashes/archive/refs/tags/v0.1.0.2.zip" "$TEMP\X-Com-From-the-Ashes.zip" /end
+	inetc::get "https://codeload.github.com/723Studio/X-Com-From-the-Ashes/zip/refs/tags/v0.1.0.2" "$TEMP\X-Com-From-the-Ashes.zip" /end
 	Pop $0
 	StrCmp $0 "OK" 0 download_mod_fail1
 
