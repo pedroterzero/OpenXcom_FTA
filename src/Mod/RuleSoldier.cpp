@@ -262,6 +262,7 @@ void RuleSoldier::afterLoad(const Mod* mod)
 
 void RuleSoldier::loadRoles(const std::vector<int> &r)
 {
+	_roles.clear();
 	for (auto i : r)
 	{
 		SoldierRole role = static_cast<SoldierRole>(i);
