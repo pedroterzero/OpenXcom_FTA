@@ -31,17 +31,18 @@ namespace OpenXcom
 struct CustomAnswer
 {
 	std::string title;
-	std::vector<std::string> spawnEvent;
+	std::vector<std::string> spawnEvents;
+	WeightedOptions weightedEvents;
 	std::string description;
 
 	/// Loads stats from YAML.
 	void load(const YAML::Node& node)
 	{
 		title = node["title"].as<std::string>(title);
-		spawnEvent = node["spawnEvent"].as<std::vector<std::string>>(spawnEvent);
+		spawnEvents = node["spawnEvents"].as<std::vector<std::string>>(spawnEvents);
+		weightedEvents.load(node["weightedEvents"]);
 		description = node["description"].as<std::string>(description);
 	}
-
 };
 
 /**
