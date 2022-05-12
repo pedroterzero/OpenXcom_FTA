@@ -1922,7 +1922,8 @@ bool BattlescapeGenerator::placeItemByLayout(BattleItem *item, const std::vector
 						}
 					}
 				}
-				if (overlaps) continue;
+				if (overlaps && layoutItem->stackSize() == NULL)
+					continue;
 
 				auto toLoad = 0;
 				for (int slot = 0; slot < RuleItem::AmmoSlotMax; ++slot)
