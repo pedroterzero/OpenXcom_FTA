@@ -51,7 +51,8 @@ EquipmentLayoutItem::EquipmentLayoutItem(const BattleItem* item) :
 	_slot(item->getSlot()->getId()),
 	_slotX(item->getSlotX()), _slotY(item->getSlotY()),
 	_ammoItem{}, _fuseTimer(item->getFuseTimer()),
-	_fixed(item->getRules()->isFixed())
+	_fixed(item->getRules()->isFixed()),
+	_stackSize(item->getRules()->getStackSize())
 {
 	for (int slot = 0; slot < RuleItem::AmmoSlotMax; ++slot)
 	{
@@ -134,6 +135,15 @@ int EquipmentLayoutItem::getFuseTimer() const
 bool EquipmentLayoutItem::isFixed() const
 {
 	return _fixed;
+}
+
+/**
+ * Gets Stack size
+ * @return stack size.
+ */
+int EquipmentLayoutItem::stackSize() const
+{
+	return _stackSize;
 }
 
 /**
