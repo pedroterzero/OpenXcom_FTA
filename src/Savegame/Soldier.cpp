@@ -504,13 +504,9 @@ std::string Soldier::getCraftString(Language *lang, const BaseSumDailyRecovery& 
 			ss << lang->getString("STR_IN_TRANSFORMATION_UC");
 			ss << ">";
 			int days = 0;
-			for (auto it = _pendingTransformations.cbegin(); it != _pendingTransformations.cend();)
+			for (auto it = _pendingTransformations.cbegin(); it != _pendingTransformations.cend(); ++it)
 			{
-				if ((*it).second > 0)
-				{
-					days += (*it).second;
-					++it;
-				}
+				days += (*it).second;	
 			}
 			days = ceil(days / 24);
 			ss << days;
@@ -1785,6 +1781,7 @@ bool Soldier::handlePendingTransformation()
 	bool finished = false;
 	for (auto it = _pendingTransformations.cbegin(); it != _pendingTransformations.cend();)
 	{
+		_pendingTransformations.at((*it).first) -= 1;
 		if ((*it).second < 1)
 		{
 			it = _pendingTransformations.erase(it);
@@ -1792,7 +1789,6 @@ bool Soldier::handlePendingTransformation()
 		}
 		else
 		{
-			_pendingTransformations.at((*it).first) -= 1;
 			++it;
 		}
 	}
