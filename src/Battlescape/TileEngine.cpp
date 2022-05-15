@@ -879,7 +879,7 @@ bool TileEngine::calculateUnitsInFOV(BattleUnit* unit, const Position eventPos, 
 								unit->addToVisibleUnits((*i));
 								unit->addToVisibleTiles((*i)->getTile());
 
-								if (unit->getFaction() == FACTION_HOSTILE && (*i)->getFaction() != FACTION_HOSTILE && _save->getSide() == FACTION_HOSTILE))
+								if (unit->getFaction() == FACTION_HOSTILE && (*i)->getFaction() != FACTION_HOSTILE && _save->getSide() == FACTION_HOSTILE)
 								{
 									(*i)->setTurnsSinceSpotted(0);
 
