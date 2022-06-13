@@ -872,6 +872,28 @@ bool TileEngine::calculateUnitsInFOV(BattleUnit* unit, const Position eventPos, 
 							{
 								(*i)->setVisible(true);
 							}
+
+							if (unit->getFaction() == FACTION_HOSTILE
+								&& (*i)->getOriginalFaction() == FACTION_PLAYER
+								&& _save->isStealthMission()
+								&& !unit->getUnitWarned()
+								&& !unit->isOut())
+							{
+								if ((*i)->getUndercover())
+								{
+									if ((*i)->tryUncover())
+									{
+										unit->setUnitWarned(true);
+										Log(LOG_INFO) << "Unit is warned because tryUncover xcom unit " << (*i); //#FINNIKTODO #CLEARLOGS
+									}
+								}
+								else
+								{
+									unit->setUnitWarned(true);
+									Log(LOG_INFO) << "Unit is warned because it sees xcom unit " << (*i); //#FINNIKTODO #CLEARLOGS
+								}
+							}
+
 							if ((( (*i)->getFaction() == FACTION_HOSTILE && unit->getFaction() == FACTION_PLAYER )
 								|| ( (*i)->getFaction() != FACTION_HOSTILE && unit->getFaction() == FACTION_HOSTILE ))
 								&& !unit->hasVisibleUnit((*i)))
@@ -879,11 +901,14 @@ bool TileEngine::calculateUnitsInFOV(BattleUnit* unit, const Position eventPos, 
 								unit->addToVisibleUnits((*i));
 								unit->addToVisibleTiles((*i)->getTile());
 
-								if (unit->getFaction() == FACTION_HOSTILE && (*i)->getFaction() != FACTION_HOSTILE && _save->getSide() == FACTION_HOSTILE)
+								if (unit->getFaction() == FACTION_HOSTILE && (*i)->getFaction() != FACTION_HOSTILE)
 								{
 									(*i)->setTurnsSinceSpotted(0);
 
-									(*i)->setTurnsLeftSpottedForSnipers(std::max(unit->getSpotterDuration(), (*i)->getTurnsLeftSpottedForSnipers())); // defaults to 0 = no information given to snipers
+									if (_save->getSide() == FACTION_HOSTILE)
+									{
+										(*i)->setTurnsLeftSpottedForSnipers(std::max(unit->getSpotterDuration(), (*i)->getTurnsLeftSpottedForSnipers())); // defaults to 0 = no information given to snipers
+									}
 								}
 							}
 
@@ -967,7 +992,8 @@ void TileEngine::calculateTilesInFOV(BattleUnit *unit, const Position eventPos, 
 	{
 		direction = unit->getDirection();
 	}
-	if (unit->getFaction() != FACTION_PLAYER || (eventRadius == 1 && !unit->checkViewSector(eventPos, useTurretDirection)))
+	if ((unit->getFaction() != FACTION_PLAYER && (!_save->isStealthMission()))
+		|| (eventRadius == 1 && !unit->checkViewSector(eventPos, useTurretDirection)))
 	{
 		//The event wasn't meant for us and/or visible for us.
 		return;
@@ -1851,7 +1877,40 @@ void TileEngine::calculateFOV(Position position, int eventRadius, const bool upd
 			}
 
 			calculateUnitsInFOV((*i), position, eventRadius);
+			if (_save->isStealthMission() && (*i)->getFaction() == FACTION_HOSTILE
+				&& !(*i)->getUnitWarned() && !(*i)->isOut())
+			{
+				checkForSuspiciousItems((*i));
+			}
 		}
+	}
+}
+
+void TileEngine::checkForSuspiciousItems(BattleUnit* unit)
+{
+	auto tiles = unit->getVisibleTiles();
+
+	for (std::vector<Tile*>::const_iterator i = tiles->begin(); i != tiles->end(); ++i)
+	{
+		for (std::vector<BattleItem*>::iterator j = (*i)->getInventory()->begin(); j != (*i)->getInventory()->end(); ++j)
+		{
+			if ((*j)->getXCOMProperty()
+				|| (*j)->getRules()->getBattleType() == BT_CORPSE
+				|| ((*j)->getFuseTimer() > -1 && (*j)->getRules()->getSpawnUnit().empty()))
+			{
+				unit->setUnitWarned(true);
+				Log(LOG_INFO) << "Unit is warned because checkForSuspiciousItems (xcom propert, corpse or fused item)"; //#FINNIKTODO #CLEARLOGS
+			}
+			if ((*j)->getPreviousOwner() != nullptr)
+			{
+				if ((*j)->getPreviousOwner()->getOriginalFaction() == FACTION_PLAYER)
+				{
+					unit->setUnitWarned(true);
+					Log(LOG_INFO) << "Unit is warned because checkForSuspiciousItems (previous owner == FACTION_PLAYER)"; //#FINNIKTODO #CLEARLOGS
+				}
+			}
+		}
+		
 	}
 }
 
@@ -1923,7 +1982,7 @@ std::vector<TileEngine::ReactionScore> TileEngine::getSpottingUnits(BattleUnit* 
 	Tile *tile = unit->getTile();
 	int threshold = unit->getReactionScore();
 	// no reaction on civilian turn.
-	if (_save->getSide() != FACTION_NEUTRAL)
+	if (_save->getSide() != FACTION_NEUTRAL || _save->getGeoscapeSave()->isFtAGame())
 	{
 		for (std::vector<BattleUnit*>::const_iterator i = _save->getUnits()->begin(); i != _save->getUnits()->end(); ++i)
 		{
@@ -1978,6 +2037,13 @@ std::vector<TileEngine::ReactionScore> TileEngine::getSpottingUnits(BattleUnit* 
 					// can actually see the unit
 					visible(*i, tile))
 				{
+					bool test1 = (*i)->getFaction() == FACTION_HOSTILE;
+					bool test2 = unit->tryUncover();
+					bool test3 = !(*i)->getUnitWarned();
+					if ((*i)->getFaction() == FACTION_HOSTILE && !unit->tryUncover() && !(*i)->getUnitWarned())
+					{
+						continue;
+					}
 					if ((*i)->getFaction() == FACTION_PLAYER)
 					{
 						unit->setVisible(true);
@@ -2630,6 +2696,29 @@ void TileEngine::hit(BattleActionAttack attack, Position center, int power, cons
 	}
 	//Note: If bu was knocked out this will have no effect on unit visibility quite yet, as it is not marked as out
 	//and will continue to block visibility at this point in time.
+
+	if (_save->isStealthMission())
+	{
+		auto units = _save->getUnits();
+		for (std::vector<BattleUnit*>::iterator i = _save->getUnits()->begin(); i != _save->getUnits()->end(); ++i)
+		{
+			if ((*i)->getFaction() == FACTION_HOSTILE && !(*i)->getUnitWarned() && !(*i)->isOut())
+			{
+				if ((*i)->getPosition() == tilePos || (*i)->checkViewSector(tilePos))
+				{
+					auto visibleTiles = (*i)->getVisibleTiles();
+					for (std::vector<Tile*>::const_iterator j = (*i)->getVisibleTiles()->begin(); j != (*i)->getVisibleTiles()->end(); ++j)
+					{
+						if ((*j) == tile)
+						{
+							(*i)->setUnitWarned(true);
+							Log(LOG_INFO) << "Unit is warned because it sees hit in " << tilePos; //#FINNIKTODO #CLEARLOGS
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 /**
