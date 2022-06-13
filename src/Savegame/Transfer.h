@@ -46,6 +46,8 @@ struct TransferRow
 	int listOrder;
 	double size, totalSize;
 	int64_t totalCost;
+	TransferRow(TransferType type, const void* rule, std::string name, int cost, int qtySrc, int qtyDst, int amount, int stock, int listOrder, double size, double totalSize, int64_t totalCost) :
+		type{ type }, rule{ rule }, name{ name }, cost{ cost }, qtySrc{ qtySrc }, qtyDst{ qtyDst }, amount{ amount }, stock{ stock }, listOrder{ listOrder }, size{ size }, totalSize{ totalSize }, totalCost{ totalCost } { }
 };
 
 class Soldier;
