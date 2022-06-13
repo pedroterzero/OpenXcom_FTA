@@ -128,8 +128,8 @@ class CovertOperationResults
 {
 private:
 	std::string _operationName;
-	std::string _finishDate;
 	bool _result;
+	std::string _finishDate;
 	int _score, _funds;
 	std::map<std::string, int> _bountyItems, _reputation, _soldierDamage;
 	std::string _specialMessage;

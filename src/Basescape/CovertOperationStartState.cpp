@@ -63,7 +63,7 @@ namespace OpenXcom
 * @param base Pointer to the base to get info from.
 * @param rule RuleCovertOperation to start.
 */
-CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOperation* rule) : _base(base), _rule(rule), _chances(0), _cost(0),
+CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOperation* rule) : _base(base), _rule(rule), _cost(0), _chances(0),
 																							  _scientists(0), _engeneers(0), _hasPsiItems(false), _hasPsionics(false)
 {
 	_items = new ItemContainer();

@@ -199,22 +199,6 @@ void DiplomacySellState::delayedInit()
 	_cbxSortBy->onChange((ActionHandler)&DiplomacySellState::cbxSortByChange);
 	_cbxSortBy->setText(tr("STR_SORT_BY"));
 
-
-
-	//for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
-	//{
-	//	if (_debriefingState) break;
-	//	if ((*i)->getCraft() == 0 && (*i)->getCovertOperation() == 0)
-	//	{
-	//		TransferRow row = { TRANSFER_SOLDIER, (*i), (*i)->getName(true), 0, 1, 0, 0 };
-	//		_items.push_back(row);
-	//		std::string cat = getCategory(_items.size() - 1);
-	//		if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-	//		{
-	//			_cats.push_back(cat);
-	//		}
-	//	}
-	//}
 	for (std::vector<Craft*>::iterator i = _base->getCrafts()->begin(); i != _base->getCrafts()->end(); ++i)
 	{
 		if (_debriefingState) break;
@@ -229,26 +213,7 @@ void DiplomacySellState::delayedInit()
 			}
 		}
 	}
-	//if (_base->getAvailableScientists() > 0 && _debriefingState == 0)
-	//{
-	//	TransferRow row = { TRANSFER_SCIENTIST, 0, tr("STR_SCIENTIST"), 0, _base->getAvailableScientists(), 0, 0 };
-	//	_items.push_back(row);
-	//	std::string cat = getCategory(_items.size() - 1);
-	//	if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-	//	{
-	//		_cats.push_back(cat);
-	//	}
-	//}
-	//if (_base->getAvailableEngineers() > 0 && _debriefingState == 0)
-	//{
-	//	TransferRow row = { TRANSFER_ENGINEER, 0, tr("STR_ENGINEER"), 0, _base->getAvailableEngineers(), 0, 0 };
-	//	_items.push_back(row);
-	//	std::string cat = getCategory(_items.size() - 1);
-	//	if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
-	//	{
-	//		_cats.push_back(cat);
-	//	}
-	//}
+
 	const std::vector<std::string>& items = _game->getMod()->getItemsList();
 	for (std::vector<std::string>::const_iterator i = items.begin(); i != items.end(); ++i)
 	{
