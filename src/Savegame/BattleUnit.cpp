@@ -65,7 +65,7 @@ BattleUnit::BattleUnit(const Mod *mod, Soldier *soldier, int depth) :
 	_faction(FACTION_PLAYER), _originalFaction(FACTION_PLAYER), _killedBy(FACTION_PLAYER), _id(0), _tile(0),
 	_lastPos(Position()), _direction(0), _toDirection(0), _directionTurret(0), _toDirectionTurret(0),
 	_verticalDirection(0), _status(STATUS_STANDING), _wantsToSurrender(false), _isSurrendering(false), _walkPhase(0), _fallPhase(0), _kneeled(false), _floating(false),
-	_dontReselect(false), _fire(0), _currentAIState(0), _visible(false), _alarmed(false), _wasFriendlyFired(false), _freshReinforcement(false),
+	_dontReselect(false), _fire(0), _currentAIState(0), _visible(false), _warned(false), _alarmed(false), _wasFriendlyFired(false), _freshReinforcement(false), _undercover(false), _revealed(false),
 	_exp{ }, _expTmp{ },
 	_motionPoints(0), _scannedTurn(-1), _kills(0), _hitByFire(false), _hitByAnything(false), _alreadyExploded(false), _fireMaxHit(0), _smokeMaxHit(0), _moraleRestored(0), _charging(0), _turnsSinceSpotted(255), _turnsLeftSpottedForSnipers(0),
 	_statistics(), _murdererId(0), _mindControllerID(0), _fatalShotSide(SIDE_FRONT), _fatalShotBodyPart(BODYPART_HEAD), _armor(0),
@@ -436,7 +436,7 @@ BattleUnit::BattleUnit(const Mod *mod, Unit *unit, UnitFaction faction, int id, 
 	_faction(faction), _originalFaction(faction), _killedBy(faction), _id(id),
 	_tile(0), _lastPos(Position()), _direction(0), _toDirection(0), _directionTurret(0),
 	_toDirectionTurret(0), _verticalDirection(0), _status(STATUS_STANDING), _wantsToSurrender(false), _isSurrendering(false), _walkPhase(0),
-	_fallPhase(0), _kneeled(false), _floating(false), _dontReselect(false), _fire(0), _currentAIState(0), _alarmed(false), _wasFriendlyFired(false), _freshReinforcement(false),
+	_fallPhase(0), _kneeled(false), _floating(false), _dontReselect(false), _fire(0), _currentAIState(0), _warned(false), _alarmed(false), _undercover(false), _wasFriendlyFired(false), _freshReinforcement(false),
 	_visible(false), _exp{ }, _expTmp{ },
 	_motionPoints(0), _scannedTurn(-1), _kills(0), _hitByFire(false), _hitByAnything(false), _alreadyExploded(false), _fireMaxHit(0), _smokeMaxHit(0),
 	_moraleRestored(0), _charging(0), _turnsSinceSpotted(255), _turnsLeftSpottedForSnipers(0),
@@ -718,6 +718,7 @@ void BattleUnit::load(const YAML::Node &node, const Mod *mod, const ScriptGlobal
 	_turretType = node["turretType"].as<int>(_turretType);
 	_visible = node["visible"].as<bool>(_visible);
 	_wasFriendlyFired = node["wasFriendlyFired"].as<bool>(_wasFriendlyFired);
+	_undercover = node["undercover"].as<bool>(_undercover);
 	_turnsSinceSpotted = node["turnsSinceSpotted"].as<int>(_turnsSinceSpotted);
 	_turnsLeftSpottedForSnipers = node["turnsLeftSpottedForSnipers"].as<int>(_turnsLeftSpottedForSnipers);
 	_turnsSinceStunned = node["turnsSinceStunned"].as<int>(_turnsSinceStunned);
@@ -725,6 +726,7 @@ void BattleUnit::load(const YAML::Node &node, const Mod *mod, const ScriptGlobal
 	_moraleRestored = node["moraleRestored"].as<int>(_moraleRestored);
 	_rankInt = node["rankInt"].as<int>(_rankInt);
 	_kills = node["kills"].as<int>(_kills);
+	_warned = node["warned"].as<bool>(_warned);
 	_alarmed = node["alarmed"].as<bool>(_alarmed);
 	_freshReinforcement = node["freshReinforcement"].as<bool>(_freshReinforcement);
 	_dontReselect = node["dontReselect"].as<bool>(_dontReselect);
@@ -814,6 +816,7 @@ YAML::Node BattleUnit::save(const ScriptGlobal *shared) const
 	node["turretType"] = _turretType;
 	node["visible"] = _visible;
 	node["wasFriendlyFired"] = _wasFriendlyFired;
+	node["undercover"] = _undercover;
 	node["turnsSinceSpotted"] = _turnsSinceSpotted;
 	node["turnsLeftSpottedForSnipers"] = _turnsLeftSpottedForSnipers;
 	node["turnsSinceStunned"] = _turnsSinceStunned;
@@ -830,6 +833,8 @@ YAML::Node BattleUnit::save(const ScriptGlobal *shared) const
 		node["kills"] = _kills;
 	if (_alarmed)
 		node["alarmed"] = _alarmed;
+	if (_warned)
+		node["warned"] = _warned;
 	if (_freshReinforcement)
 		node["freshReinforcement"] = _freshReinforcement;
 	if (_faction == FACTION_PLAYER && _dontReselect)
@@ -1250,6 +1255,29 @@ int BattleUnit::getWalkingPhase() const
 int BattleUnit::getDiagonalWalkingPhase() const
 {
 	return (_walkPhase / 8) * 8;
+}
+
+/**
+ * Gets if the unit can be uncovered.
+ * @return if unit is not undercovered anymore for checking unit.
+ */
+bool BattleUnit::tryUncover()
+{
+	if (!_undercover)
+	{
+		return true;
+	}
+	else
+	{
+		if (getRightHandWeapon() == nullptr && getLeftHandWeapon() == nullptr)
+		{
+			return _revealed;
+		}
+		else
+		{
+			return true;
+		}
+	}
 }
 
 /**
@@ -3646,14 +3674,38 @@ bool BattleUnit::reloadAmmo()
 			int slot = ruleWeapon->getSlotForAmmo(bi->getRules());
 			if (slot != -1 && !weapon->getAmmoForSlot(slot))
 			{
-				int tuTemp = (Mod::EXTENDED_ITEM_RELOAD_COST && bi->getSlot()->getType() != INV_HAND) ? bi->getSlot()->getCost(weapon->getSlot()) : 0;
-				tuTemp += ruleWeapon->getTULoad(slot);
-				if (tuTemp < tuCost)
+				bool extendedItemReloadCostLocal = false;
+				if (weapon->getRules()->getExtendedItemReloadCostLocal() != 0)
 				{
-					tuCost = tuTemp;
-					ammo = bi;
-					slotAmmo = slot;
+					if (weapon->getRules()->getExtendedItemReloadCostLocal() == 1)
+					{
+						extendedItemReloadCostLocal = true;
+					}
+					else if (weapon->getRules()->getExtendedItemReloadCostLocal() == 2)
+					{
+						extendedItemReloadCostLocal = false;
+					}
+					int tuTemp = (extendedItemReloadCostLocal && bi->getSlot()->getType() != INV_HAND) ? bi->getSlot()->getCost(weapon->getSlot()) : 0;
+					tuTemp += ruleWeapon->getTULoad(slot);
+					if (tuTemp < tuCost)
+					{
+						tuCost = tuTemp;
+						ammo = bi;
+						slotAmmo = slot;
+					}
 				}
+				else
+				{
+					int tuTemp = (Mod::EXTENDED_ITEM_RELOAD_COST && bi->getSlot()->getType() != INV_HAND) ? bi->getSlot()->getCost(weapon->getSlot()) : 0;
+					tuTemp += ruleWeapon->getTULoad(slot);
+					if (tuTemp < tuCost)
+					{
+						tuCost = tuTemp;
+						ammo = bi;
+						slotAmmo = slot;
+					}
+				}
+
 			}
 		}
 

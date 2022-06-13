@@ -252,12 +252,6 @@ void AIModule::think(BattleAction *action)
 		Log(LOG_INFO) << "Currently using " << AIMode << " behaviour";
 	}
 
-	if (_visibleEnemies) // || _knownEnemies #FINNIKTODO: Consider
-	{
-		Log(LOG_INFO) << "Unit has " << _visibleEnemies << "/" << _knownEnemies << " known enemies visible, its is now alarmed!";
-		_unit->setAlarmed(true);
-	}
-
 	if (_unit->isLeeroyJenkins())
 	{
 		dont_think(action);
@@ -2687,6 +2681,7 @@ bool AIModule::validTarget(BattleUnit *target, bool assessDanger, bool includeCi
 	if (target->isOut() ||
 		(assessDanger && target->getTile()->getDangerous()) ||
 		(target->getFaction() != FACTION_PLAYER && target->isIgnoredByAI()) ||
+		(target->getUndercover() && !_unit->getUnitWarned()) ||
 		(target->getFaction() == _unit->getFaction() && !target->isTreatedByAI()))
 	{
 		return false;

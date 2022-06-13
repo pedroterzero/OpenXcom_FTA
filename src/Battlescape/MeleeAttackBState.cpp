@@ -158,6 +158,13 @@ void MeleeAttackBState::init()
 		_hitNumber = _weapon->getRules()->getAIMeleeHitCount() - 1;
 	}
 
+	if (_target->getFaction() == FACTION_HOSTILE && _parent->getSave()->isStealthMission()
+		&& !_target->getUnitWarned() && !_target->isOut())
+	{
+		_target->setUnitWarned(true);
+		Log(LOG_INFO) << "Unit is warned because it was attacked by melee."; //#FINNIKTODO #CLEARLOGS
+	}
+
 	performMeleeAttack();
 }
 

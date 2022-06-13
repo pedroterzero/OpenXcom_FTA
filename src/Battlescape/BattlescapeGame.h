@@ -318,6 +318,8 @@ public:
 	void playUnitResponseSound(BattleUnit *unit, int type);
 	/// Returns if we need to proceed battle and there would be more battle scripts to be processed.
 	bool scriptsToProcess();
+	/// Process weapon firing sound.
+	void processWeaponNoise();
 	/// Sets up a mission complete notification.
 	void missionComplete();
 	std::list<BattleState*> getStates();

@@ -23,7 +23,7 @@
 ;Defines
 
 	!define GAME_NAME "OpenXcom From the Ashes"
-	!define GAME_VERSION "0.1.0.1"
+	!define GAME_VERSION "0.1.0.3"
 	!define GAME_AUTHOR "OpenXcom Developers & 723Studio"
 	!include "version.nsh"
 
@@ -332,7 +332,7 @@ ${EndIf}
 
     ;Download mod files
  	;(uses inetc.dll)
-	inetc::get "https://github.com/723Studio/X-Com-From-the-Ashes/archive/refs/tags/v0.1.0.zip" "$TEMP\X-Com-From-the-Ashes.zip" /end
+	inetc::get "https://codeload.github.com/723Studio/X-Com-From-the-Ashes/zip/refs/tags/latest" "$TEMP\X-Com-From-the-Ashes.zip" /end
 	Pop $0
 	StrCmp $0 "OK" 0 download_mod_fail1
 

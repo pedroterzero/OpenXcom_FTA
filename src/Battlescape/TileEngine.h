@@ -166,6 +166,7 @@ public:
 	bool calculateFOV(BattleUnit *unit, bool doTileRecalc = true, bool doUnitRecalc = true);
 	/// Calculates the field of view within range of a certain position.
 	void calculateFOV(Position position, int eventRadius = -1, const bool updateTiles = true, const bool appendToTileVisibility = false);
+	void checkForSuspiciousItems(BattleUnit* unit);
 	/// Checks reaction fire.
 	bool checkReactionFire(BattleUnit *unit, const BattleAction &originalAction);
 	/// Recalculate all lighting in some area.

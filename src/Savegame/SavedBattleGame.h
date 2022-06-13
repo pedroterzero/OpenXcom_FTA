@@ -97,6 +97,7 @@ private:
 	bool _nameDisplay;
 	bool _debugMode, _bughuntMode;
 	bool _aborted;
+	bool _stealthMission;
 	bool _baseCraftInventory = false;
 	int _itemId;
 	EscapeType _vipEscapeType;
@@ -560,6 +561,9 @@ public:
 	void resetCurrentAmbienceDelay();
 	/// Play a random ambient sound.
 	void playRandomAmbientSound();
+	/// Gets if this battle is a stealth mission.
+	bool isStealthMission() const { return _stealthMission; }
+	void defineStealth();
 	// gets ruleset.
 	const Mod *getMod() const;
 	/// gets the list of items we're guaranteed.

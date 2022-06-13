@@ -126,6 +126,7 @@ void BattlescapeGenerator::init(bool resetTerrain)
 	// creates the tile objects
 	_save->initMap(_mapsize_x, _mapsize_y, _mapsize_z, resetTerrain);
 	_save->initUtilities(_mod);
+	_save->defineStealth();
 }
 
 /**
@@ -1119,7 +1120,14 @@ void BattlescapeGenerator::deployXCOM(const RuleStartingCondition* startingCondi
 
 	if (_save->getUnits()->empty())
 	{
-		throw Exception("Map generator encountered an error: no xcom units could be placed on the map.");
+		if (!Options::debug)
+		{
+			throw Exception("Map generator encountered an error: no xcom units could be placed on the map.");
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Map generator encountered an error: no xcom units could be placed on the map.";
+		}
 	}
 
 	// maybe we should assign all units to the first tile of the skyranger before the inventory pre-equip and then reassign them to their correct tile afterwards?
@@ -1408,6 +1416,14 @@ BattleUnit *BattlescapeGenerator::addXCOMUnit(BattleUnit *unit)
 	}
 	else
 	{
+		for (auto a : _save->getAlienDeploymet()->getUndercoverArmors())
+		{
+			if (a == unit->getArmor()->getType())
+			{
+				unit->setUndercover(true);
+				break;
+			}
+		}
 		if ((_craft == 0 || !_craftDeployed) && _covertOperation == 0)
 		{
 			Node* node = _save->getSpawnNode(NR_XCOM, unit);
@@ -1595,7 +1611,7 @@ BattleUnit *BattlescapeGenerator::addXCOMUnit(BattleUnit *unit)
 		}
 	}
 	delete unit;
-	return 0;
+	return nullptr;
 }
 
 /**
@@ -1922,7 +1938,8 @@ bool BattlescapeGenerator::placeItemByLayout(BattleItem *item, const std::vector
 						}
 					}
 				}
-				if (overlaps) continue;
+				if (overlaps && layoutItem->stackSize() == NULL)
+					continue;
 
 				auto toLoad = 0;
 				for (int slot = 0; slot < RuleItem::AmmoSlotMax; ++slot)
