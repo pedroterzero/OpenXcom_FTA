@@ -66,7 +66,7 @@ namespace OpenXcom
 * @param base Pointer to the base to get info from.
 * @param operation Pointer to starting (not comitted) covert operation.
 */
-CovertOperationEquipmentState::CovertOperationEquipmentState(Base* base, CovertOperationStartState* operation) : _lstScroll(0), _sel(0), _operation(operation), _base(base), _totalItems(0), _ammoColor(0), _reload(true)
+CovertOperationEquipmentState::CovertOperationEquipmentState(Base* base, CovertOperationStartState* operation) : _lstScroll(0), _sel(0), _base(base), _operation(operation), _totalItems(0), _ammoColor(0), _reload(true)
 {
 	_rule = operation->getRule();
 	bool hasSoldiers = false; // operation->getSoldiers().size() > 0; //#FINNIKTODO
