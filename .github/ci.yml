@@ -24,6 +24,7 @@ jobs:
 
           - name: Windows
             os: windows-latest
+            packages: ccache
             compiler: cl
             cpp-compiler: cl
             cmake-args: -A Win32
