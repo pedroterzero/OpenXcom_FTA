@@ -94,21 +94,21 @@ jobs:
         run: |
           cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
 
+      - name: Make install
+        if: runner.os == 'Linux' || runner.os == 'macOS' || runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "CMAKE_BINARY_DIR=/usr/local/bin" >> $GITHUB_ENV
+
         # Note, this is bogus on MacOS, as it installs shaders et al twice.
         # Windows installs under C:/Program Files (x86)/OpenXcom/bin (where the
         # 'bin' is pretty redundant) and Linux installs under various dirs under
         # /usr/local
       - name: Make install
-        if: runner.os == 'Linux' || runner.os == 'Windows'
+        if: runner.os == 'Linux' || runner.os == 'macOS' || runner.os == 'Windows'
         shell: bash
         run: |
           $MAYBE_SUDO cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} --target install
-
-      - name: Make install
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          $MAYBE_SUDO cmake --build ${{ matrix.build-dir || 'build' }} -v -DCMAKE_BINARY_DIR=/usr/local/bin --config ${{ matrix.build-config || 'Release' }} --target install
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
