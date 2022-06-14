@@ -783,7 +783,7 @@ void Map::drawTerrain(Surface *surface)
 			}
 			else
 			{
-				bool enough;
+				bool enough = true;
 				do
 				{
 					enough = true;

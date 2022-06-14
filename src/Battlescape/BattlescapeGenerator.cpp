@@ -1938,7 +1938,7 @@ bool BattlescapeGenerator::placeItemByLayout(BattleItem *item, const std::vector
 						}
 					}
 				}
-				if (overlaps && layoutItem->stackSize() == NULL)
+				if (overlaps && layoutItem->stackSize() == 0)
 					continue;
 
 				auto toLoad = 0;
