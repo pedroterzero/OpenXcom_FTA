@@ -33,7 +33,7 @@ jobs:
           - name: macOS
             os: macOS-latest
             packages: yaml-cpp sdl sdl_gfx sdl_image sdl_mixer
-            cmake-args: -DCMAKE_BINARY_DIR=/usr/local/bin
+            # cmake-args: -DCMAKE_BINARY_DIR=/usr/local/bin
             compiler: clang
             cpp-compiler: clang++
             app-bundle: openxcom.app  # all other builds default to bin/

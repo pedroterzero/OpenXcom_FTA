@@ -586,6 +586,9 @@ endif ()
 if (( APPLE AND CREATE_BUNDLE ) OR CPACK_GENERATOR STREQUAL "7Z" )
   set ( CMAKE_INSTALL_BINDIR "." )
 endif ()
+if (( APPLE AND CREATE_BUNDLE AND OVERRIDE_INSTALL_BINDIR ))
+  set ( CMAKE_INSTALL_BINDIR "$OVERRIDE_INSTALL_BINDIR}" )
+endif()
 
 add_executable ( openxcom  ${application_type} ${openxcom_src} ${openxcom_icon} )
 
