@@ -60,7 +60,7 @@ jobs:
           brew install ccache ${{ matrix.packages }}
 
       - name: Setup Cache
-        if: runner.os == 'Linux' || runner.os == 'macOS'
+        if: runner.os == 'Linux' || runner.os == 'macOS' || runner.os == 'Windows'
         uses: actions/cache@v2
         with:
           path: ~/.ccache
@@ -82,12 +82,14 @@ jobs:
       - name: Download dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
+          dir
           Invoke-WebRequest -Uri "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip" -OutFile "openxcom-deps-win-vc2017-newest.zip"
+          dir
           Expand-Archive -Path "openxcom-deps-win-vc2017-newest.zip"
-          Move-Item -Path "openxcom-deps-win-vc2017-newest\deps\*" -Destination "deps\include"
           dir
           dir deps
           dir deps\include
+          Move-Item -Path "openxcom-deps-win-vc2017-newest\deps\*" -Destination "deps\include"
 
       - name: Generate project files
         run: |
