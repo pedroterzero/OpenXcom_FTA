@@ -33,6 +33,8 @@ jobs:
           - name: macOS
             os: macOS-latest
             packages: yaml-cpp sdl sdl_gfx sdl_image sdl_mixer
+            env:
+              CMAKE_BINARY_DIR: /usr/local/bin
             compiler: clang
             cpp-compiler: clang++
             app-bundle: openxcom.app  # all other builds default to bin/
@@ -82,8 +84,6 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip" -OutFile "openxcom-deps-win-vc2017-newest.zip"
           Expand-Archive -Path "openxcom-deps-win-vc2017-newest.zip"
-          mkdir deps
-          mkdir deps\include
           Move-Item -Path "openxcom-deps-win-vc2017-newest\deps\*" -Destination "deps\include"
           dir
           dir deps
@@ -105,6 +105,7 @@ jobs:
         # 'bin' is pretty redundant) and Linux installs under various dirs under
         # /usr/local
       - name: Make install
+        env: ${{ matrix.env }}
         shell: bash
         run: |
           $MAYBE_SUDO cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} --target install
