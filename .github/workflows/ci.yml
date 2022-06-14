@@ -82,6 +82,8 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip" -OutFile "openxcom-deps-win-vc2017-newest.zip"
           Expand-Archive -Path "openxcom-deps-win-vc2017-newest.zip"
+          mkdir deps
+          mkdir deps\include
           Move-Item -Path "openxcom-deps-win-vc2017-newest\deps\*" -Destination "deps\include"
           dir
           dir deps
