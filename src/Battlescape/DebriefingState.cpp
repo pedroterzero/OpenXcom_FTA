@@ -1530,7 +1530,6 @@ void DebriefingState::prepareDebriefing()
 	}
 
 	// time to care for units.
-	bool psiStrengthEval = (Options::psiStrengthEval && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements()));
 	for (std::vector<BattleUnit*>::iterator j = battle->getUnits()->begin(); j != battle->getUnits()->end(); ++j)
 	{
 		UnitStatus status = (*j)->getStatus();
@@ -2019,7 +2018,6 @@ void DebriefingState::prepareDebriefing()
 		}
 	}
 	// Extended mission types handling
-	int extraPoints = 0;
 	if (ruleDeploy)
 	{
 		if (ruleDeploy->getExtendedObjectiveType() == "STR_EVACUATION" && (vipsLost > 0 || vipsSaved > 0))

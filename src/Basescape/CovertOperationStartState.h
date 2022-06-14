@@ -44,9 +44,10 @@ private:
 	TextButton* _btnCancel, * _btnStart, * _btnSoldiers, * _btnEquipmet, * _btnArmor;
 	TextButton* _btnAddScientist, * _btnRemoveScientist, * _btnAddEngineer, * _btnRemoveEngineer, * _btnResearchState, * _btnManufactureState;
 	Text* _txtTitle, * _txtDescription, * _txtSoldiersRequired, * _txtSoldiersAssigned, * _txtOptionalSoldiers, * _txtScientistsAssigned, * _txtEngineersAssigned, * _txtDuration, * _txtChances;
-	int _cost, _scientists, _engeneers;
+	int _cost;
 	double _chances;
-	bool _hasPsionics, _hasPsiItems;
+	int _scientists, _engeneers;
+	bool _hasPsiItems, _hasPsionics;
 	std::vector<Soldier *> _soldiers;
 	ItemContainer* _items;
 	Surface* _crew, * _equip;

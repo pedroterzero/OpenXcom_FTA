@@ -3361,8 +3361,6 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 {
 	// create an array to track command success/failure
 	std::map<int, bool> conditionals;
-	int mapsize_x = _save->getMapSizeX();
-	int mapsize_y = _save->getMapSizeY();
 
 	for (std::vector<BattleScript*>::const_iterator i = script->begin(); i != script->end(); ++i)
 	{
@@ -3403,7 +3401,6 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 		{
 			throw Exception("Battle script processor encountered an error: multiple commands are sharing the same label.");
 		}
-		bool& success = conditionals[command->getLabel()] = false;
 
 		// if this command runs conditionally on the failures or successes of previous commands
 		if (!command->getConditionals()->empty())
@@ -3435,7 +3432,6 @@ void BattlescapeGame::processBattleScripts(const std::vector<BattleScript*>* scr
 		// if there's a chance a command won't execute by design, take that into account here.
 		if (RNG::percent(command->getChancesOfExecution()))
 		{
-			auto blocks = _save->getMapDataSets();
 			// each command can be attempted multiple times, as randomization within the rects may occur
 			for (int j = 0; j < command->getExecutions(); ++j)
 			{
@@ -3605,7 +3601,7 @@ bool OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command)
 	auto units = command->getUnitSet();
 	if (units.empty())
 	{
-		throw Exception("BattleScript generator encountered an error: no units defined for: " + command->getType());
+		throw Exception("BattleScript generator encountered an error: no units defined");
 	}
 	int zMin = command->getMinLevel();
 	int zMax = command->getMaxLevel();

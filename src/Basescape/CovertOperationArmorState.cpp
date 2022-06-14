@@ -46,9 +46,6 @@
 #include "../Ufopaedia/Ufopaedia.h"
 #include <algorithm>
 #include "../Engine/Unicode.h"
-
-
-
 #include "../Engine/Action.h"
 #include "../Engine/Game.h"
 #include "../Mod/Mod.h"

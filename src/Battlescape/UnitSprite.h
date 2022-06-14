@@ -52,7 +52,7 @@ private:
 	const BattleUnit *_unit;
 	const BattleItem *_itemR, *_itemL;
 	const SurfaceSet *_unitSurface, *_itemSurface, *_fireSurface, *_breathSurface, *_facingArrowSurface;
-	Surface *_dest, *_warnIndicator;
+	Surface* _warnIndicator, *_dest;
 	const SavedBattleGame *_save;
 	const Mod *_mod;
 	int _part, _animationFrame, _drawingRoutine;
