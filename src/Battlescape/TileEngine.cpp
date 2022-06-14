@@ -2037,9 +2037,6 @@ std::vector<TileEngine::ReactionScore> TileEngine::getSpottingUnits(BattleUnit* 
 					// can actually see the unit
 					visible(*i, tile))
 				{
-					bool test1 = (*i)->getFaction() == FACTION_HOSTILE;
-					bool test2 = unit->tryUncover();
-					bool test3 = !(*i)->getUnitWarned();
 					if ((*i)->getFaction() == FACTION_HOSTILE && !unit->tryUncover() && !(*i)->getUnitWarned())
 					{
 						continue;
@@ -2699,14 +2696,12 @@ void TileEngine::hit(BattleActionAttack attack, Position center, int power, cons
 
 	if (_save->isStealthMission())
 	{
-		auto units = _save->getUnits();
 		for (std::vector<BattleUnit*>::iterator i = _save->getUnits()->begin(); i != _save->getUnits()->end(); ++i)
 		{
 			if ((*i)->getFaction() == FACTION_HOSTILE && !(*i)->getUnitWarned() && !(*i)->isOut())
 			{
 				if ((*i)->getPosition() == tilePos || (*i)->checkViewSector(tilePos))
 				{
-					auto visibleTiles = (*i)->getVisibleTiles();
 					for (std::vector<Tile*>::const_iterator j = (*i)->getVisibleTiles()->begin(); j != (*i)->getVisibleTiles()->end(); ++j)
 					{
 						if ((*j) == tile)

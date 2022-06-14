@@ -213,7 +213,6 @@ bool CovertOperation::think(Game& engine, const Globe& globe)
 		std::string progressEvent = _rule->chooseProgressEvent();
 		if (!progressEvent.empty())
 		{
-			bool spawn = false;
 			if (!_rule->getRepeatProgressEvent() && _progressEventSpawned)
 				return false;
 			else
@@ -714,7 +713,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			{
 				damageRolls *= 2;
 			}
-			for (size_t j = 0; j < danger; j++)
+			for (int j = 0; j < danger; j++)
 			{
 				bool hit = RNG::generate(0, 99) < woundOdds;
 				if (hit)
@@ -793,7 +792,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			bool trainingManaSec = false;
 			if (mod.isManaTrainingSecondary())
 				trainingManaSec = true;
-			for (size_t j = 0; j < expRolls; j++)
+			for (int j = 0; j < expRolls; j++)
 			{
 				statID = RNG::generate(1, 8);  //choose stat
 				expGain = RNG::generate(1, 4); //choose how many experience it would be
@@ -920,7 +919,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			else
 			{
 				_results->addSoldierDamage((*j)->getName(), -10);
-				save.killSoldier(&mod, (*j)); //RIP
+				save.killSoldier(true, (*j)); //RIP
 			}
 			++it;
 		}

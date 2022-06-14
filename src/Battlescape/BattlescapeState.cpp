@@ -614,7 +614,7 @@ BattlescapeState::BattlescapeState() :
 		}
 	}
 
-	SDLKey buttons[] = {Options::keyBattleCenterEnemy1,
+	/*SDLKey buttons[] = {Options::keyBattleCenterEnemy1,
 						Options::keyBattleCenterEnemy2,
 						Options::keyBattleCenterEnemy3,
 						Options::keyBattleCenterEnemy4,
@@ -623,7 +623,7 @@ BattlescapeState::BattlescapeState() :
 						Options::keyBattleCenterEnemy7,
 						Options::keyBattleCenterEnemy8,
 						Options::keyBattleCenterEnemy9,
-						Options::keyBattleCenterEnemy10};
+						Options::keyBattleCenterEnemy10};*/
 	for (int i = 0; i < VISIBLE_MAX; ++i)
 	{
 		std::ostringstream tooltip;

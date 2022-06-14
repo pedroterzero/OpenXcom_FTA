@@ -235,7 +235,7 @@ void CovertOperationStartState::init()
 	_txtChances->setText(tr("STR_OPERATION_CHANCES_UC").arg(tr(getOperationOddsString(mod))));
 	_txtChances->setAlign(ALIGN_RIGHT);
 
-	_btnStart->setVisible(_soldiers.size() >= _rule->getSoldierSlots());
+	_btnStart->setVisible(static_cast<int>(_soldiers.size()) >= _rule->getSoldierSlots());
 	auto reqItems = _rule->getRequiredItemList();
 	if (!reqItems.empty())
 	{
@@ -284,10 +284,7 @@ void CovertOperationStartState::init()
 			x += 10;
 		}
 	}
-
-	SurfaceSet* customItemPreviews = _game->getMod()->getSurfaceSet("CustomItemPreviews");
 	x = 0;
-
 
 	Surface* frame2 = texture->getFrame(39);
 	for (int i = 0; i < _items->getTotalQuantity(); i += 4, x += 10)

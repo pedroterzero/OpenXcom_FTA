@@ -1813,7 +1813,7 @@ BattleUnit *BattlescapeGenerator::addAlien(Unit *rules, int alienRank, bool outs
 	{
 		int diff = _game->getSavedGame()->getDifficulty();
 		auto& custom = _game->getMod()->getAliensFacingCraftOdds();
-		if (custom.size() > diff)
+		if (static_cast<int>(custom.size()) > diff)
 		{
 			aliensFacingCraftOdds = custom[diff];
 		}

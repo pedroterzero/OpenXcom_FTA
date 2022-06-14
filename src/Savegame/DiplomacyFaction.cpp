@@ -44,8 +44,8 @@ namespace OpenXcom
 {
 
 DiplomacyFaction::DiplomacyFaction(const Mod* mod, const std::string& name):
-					_mod(mod), _reputationScore(0), _reputationLvL(0), _funds(0), _power(0), _vigilance(0),
-					_discovered(false), _thisMonthDiscovered(false), _repLvlChanged(false), _rule (nullptr), _helpTreatyTimer(0)
+	_mod(mod), _rule(nullptr), _reputationScore(0), _reputationLvL(0), _power(0), _vigilance(0), _helpTreatyTimer(0), _funds(0),
+	_discovered(false), _thisMonthDiscovered(false), _repLvlChanged(false)
 {
 	_rule = _mod->getDiplomacyFaction(name);
 	_items = new ItemContainer();
@@ -748,7 +748,6 @@ int64_t DiplomacyFaction::managePower(int64_t month, int64_t baseCost)
 	{
 		if (_funds < -reqFunds / 1.3)
 		{
-			int i = _funds + (reqFunds / 1.3);
 			dPower = static_cast<int>((-_funds + (reqFunds / 1.3)) / powerCost * 0.9);
 			if (dPower > _power)
 			{
@@ -874,7 +873,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 	//}
 
 	// let's count how many research project teams we can potentially have
-	int totalScientists = _staff->getItem("STR_SCIENTIST");
+	size_t totalScientists = static_cast<size_t>(_staff->getItem("STR_SCIENTIST"));
 	if (hasResearch)
 	{
 		for (auto y : _research)
@@ -883,7 +882,7 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 		}
 	}
 
-	int projectSpots = floor(totalScientists / 10);
+	size_t projectSpots = floor(totalScientists / 10);
 	if (totalScientists <= 10 && RNG::percent(totalScientists * 10))
 	{
 		projectSpots = 1;
@@ -901,9 +900,6 @@ void DiplomacyFaction::handleResearch(Game& engine, int64_t reqFunds)
 				continue; // we already know what is that!
 			}
 			RuleResearch* rRule = _mod->getResearch((*i));
-
-			bool a = !rRule->getDependencies().empty();
-			bool b = isResearched(rRule->getDependencies());
 
 			if (!rRule->getDependencies().empty() && isResearched(rRule->getDependencies()))// this one effectively splits xcom and factional research trees
 			{

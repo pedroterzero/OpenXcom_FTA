@@ -69,7 +69,7 @@ SavedBattleGame::SavedBattleGame(Mod *rule, Language *lang, bool isPreview) :
 	_lastSelectedUnit(0), _pathfinding(0), _tileEngine(0),
 	_reinforcementsItemLevel(0), _enviroEffects(nullptr), _ecEnabledFriendly(false), _ecEnabledHostile(false), _ecEnabledNeutral(false),
 	_globalShade(0), _side(FACTION_PLAYER), _turn(0), _bughuntMinTurn(20), _animFrame(0), _nameDisplay(false),
-	_debugMode(false), _bughuntMode(false), _aborted(false), _itemId(0), _stealthMission(false),
+	_debugMode(false), _bughuntMode(false), _aborted(false), _stealthMission(false), _itemId(0),
 	_vipEscapeType(ESCAPE_NONE), _vipSurvivalPercentage(0), _vipsSaved(0), _vipsLost(0), _vipsWaitingOutside(0), _vipsSavedScore(0), _vipsLostScore(0), _vipsWaitingOutsideScore(0),
 	_objectiveType(-1), _objectivesDestroyed(0), _objectivesNeeded(0),
 	_unitsFalling(false), _cheating(false), _tuReserved(BA_NONE), _kneelReserved(false), _depth(0),
@@ -3175,7 +3175,7 @@ void SavedBattleGame::defineStealth()
 	else if (!mission->getBattleScript().empty())
 	{
 		auto scripts = _rule->getBattleScript(mission->getBattleScript());
-		for (std::vector<BattleScript*>::const_iterator i = _rule->getBattleScript(mission->getBattleScript())->begin(); i != _rule->getBattleScript(mission->getBattleScript())->end(); ++i)
+		for (std::vector<BattleScript*>::const_iterator i = scripts->begin(); i != scripts->end(); ++i)
 		{
 			if ((*i)->getMinAlarm() > 0)
 			{

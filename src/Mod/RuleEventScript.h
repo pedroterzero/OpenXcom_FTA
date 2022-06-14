@@ -36,9 +36,9 @@ private:
 	int _firstMonth, _lastMonth, _executionOdds, _minDifficulty, _maxDifficulty;
 	int _minScore, _maxScore;
 	int _minLoyalty, _maxLoyalty;
+	int64_t _minFunds, _maxFunds;
 	int _allowedProcessor;
 	int _spawnGap, _randomSpawnGap;
-	int64_t _minFunds, _maxFunds;
 	std::string _missionVarName, _missionMarkerName;
 	int _counterMin, _counterMax;
 	std::map<std::string, int> _requiredReputation;
