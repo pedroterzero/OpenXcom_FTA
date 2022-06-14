@@ -108,7 +108,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          $MAYBE_SUDO cmake -DCMAKE_BINARY_DIR=/usr/local/bin --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} --target install
+          $MAYBE_SUDO cmake --build ${{ matrix.build-dir || 'build' }} -v -DCMAKE_BINARY_DIR=/usr/local/bin --config ${{ matrix.build-config || 'Release' }} --target install
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
