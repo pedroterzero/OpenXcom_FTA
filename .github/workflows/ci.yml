@@ -46,11 +46,11 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # - name: Set up MinGW
-      #   if: matrix.compiler == 'mingw64'
-      #   uses: egor-tensin/setup-mingw@v2
-      #   with:
-      #     platform: x64
+      - name: Set up MinGW
+        if: matrix.compiler == 'mingw64'
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: x64
 
       - name: Install packages (Ubuntu)
         if: runner.os == 'Linux'
@@ -58,14 +58,6 @@ jobs:
           sudo apt-get update
           sudo apt-get -yq --no-install-suggests --no-install-recommends install ccache ${{ matrix.packages }}
           sudo apt-get -yq --no-install-suggests --no-install-recommends install libsdl1.2-dev libsdl-mixer1.2-dev libsdl-image1.2-dev libsdl-gfx1.2-dev libyaml-cpp-dev
-
-      - name: Install packages (Ubuntu/mingw)
-        if: matrix.compiler == 'mingw64'
-        run: |
-          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86B72ED9
-          sudo add-apt-repository "deb [arch=amd64] https://pkg.mxe.cc/repos/apt `lsb_release -sc` main"
-          sudo apt-get update
-          sudo apt-get install mxe-x86-64-w64-mingw32.static-cc mxe-x86-64-w64-mingw32.static-cmake
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows' && matrix.packages
@@ -97,7 +89,6 @@ jobs:
             echo "MAYBE_SUDO=sudo" >> $GITHUB_ENV
           fi
           echo "CMAKE_BUILD_PARALLEL_LEVEL=`getconf _NPROCESSORS_ONLN 2>/dev/null || getconf NPROCESSORS_ONLN 2>/dev/null || echo 2`" >> $GITHUB_ENV
-
       - name: Download dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
@@ -110,46 +101,41 @@ jobs:
           wget -q "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip"
           unzip openxcom-deps-win-vc2017.zip
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-actor: true
+
       - name: Generate project files
-        if: matrix.compiler != 'mingw64'
         run: |
-          echo "CMAKE=$(which cmake)" >> $GITHUB_ENV
           cmake -B ${{ matrix.build-dir || 'build' }} ${{ matrix.build-src-dir || '.' }} -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNING=1 -DCHECK_CCACHE=1 ${{ matrix.cmake-args }}
         env:
           CC: ${{ matrix.compiler }}
           CXX: ${{ matrix.cpp-compiler }}
 
-      - name: Generate project files (mingw)
+      - name: Compile source code
+        if: matrix.compiler != 'mingw64'
+        run: |
+          cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
+
+      - name: Compile source code (mingw)
         if: matrix.compiler == 'mingw64'
         run: |
           GITISODATE=$(git show -s --format=%ci)
           GITDATE=$(date -d"$GITISODATE" +%Y-%m-%d)
           GITREF=$(git show -s --format=%h)
           OSARCH=win64
-          SHORTVERSION=$(/bin/echo -e "#include \"src/version.h\"\nOPENXCOM_FTA_VERSION_SHORT" | cpp | egrep -v '^(#.+|[[:space:]]+$)' | cut -d\" -f 2 | sed -e "s, ,-,g")
-          ZNAME="$SHORTVERSION-$GITREF-$GITDATE-$OSARCH.7z"
-          export PATH=/usr/lib/mxe/usr/bin:$PATH
-          # export PATH=/opt/mxe/usr/bin:$PATH
+          SHORTVERSION=`/bin/echo -e "#include \"src/version.h\"\nOPENXCOM_FTA_VERSION_SHORT" | cpp | egrep -v '^(#.+|[[:space:]]+$)' | cut -d\" -f 2 | sed -e "s, ,-,g"`
+          ZNAME=$SHORTVERSION-$GITREF-$GITDATE-$OSARCH.7z
+          export PATH=/opt/mxe/usr/bin:$PATH
 
-          TOOLCHAIN=/usr/lib/mxe/usr/bin/x86_64-w64-mingw32.static
-
-          echo "CMAKE=$TOOLCHAIN-cmake" >> $GITHUB_ENV
+          TOOLCHAIN=/opt/mxe/usr/bin/x86_64-w64-mingw32.static
 
           mkdir build iprefix
           cd build
           ${TOOLCHAIN}-cmake \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF \
             -DCMAKE_INSTALL_PREFIX=../iprefix ..
-
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-        with:
-          limit-access-to-actor: true
-
-      - name: Compile source code
-        # if: matrix.compiler != 'mingw64'
-        run: |
-          $CMAKE --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
 
 #      - name: Fix install path
 #        if: runner.os == 'macOS'
