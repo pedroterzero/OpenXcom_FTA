@@ -26,6 +26,8 @@ env:
 
     RUN apk add --no-cache bash grep libstdc++ make
 
+    ENTRYPOINT ["/bin/bash"]
+
     RUN touch /yolo
 
 jobs:
