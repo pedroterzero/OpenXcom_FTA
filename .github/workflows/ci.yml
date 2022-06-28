@@ -77,17 +77,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-        with:
-          limit-access-to-actor: true
-
       - name: Check mxe container
         id: check-mxe-container
         continue-on-error: true
         if: matrix.compiler == 'mingw'
         run: |
-          if docker inspect ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; then
+          if docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; then
             echo ::set-output name=exit_code::$?
           else
             echo ::set-output name=exit_code::$?
