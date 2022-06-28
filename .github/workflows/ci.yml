@@ -2,6 +2,9 @@
 # also change .travis.yml accordingly.
 name: ci
 
+permissions:
+  packages: write
+
 on: [push, pull_request]
 
 jobs:
