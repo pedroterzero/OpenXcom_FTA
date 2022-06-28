@@ -2,10 +2,29 @@
 # also change .travis.yml accordingly.
 name: ci
 
+# need to explicitly enable this here, otherwise even though it's correctly configured in github, it won't work
 permissions:
   packages: write
 
 on: [push, pull_request]
+
+env:
+  MXE_IMAGE_NAME: ghcr.io/${{ github.actor }}/mxe
+  MXE_IMAGE_VERSION: 0.1
+  MXE_DOCKERFILE: |
+    FROM alpine AS build
+    # RUN apk add --no autoconf automake bash binutils bison bzip2 flex g++ gdk-pixbuf gettext git gperf intltool libtool linux-headers lzip make openssl openssl-dev p7zip patch \
+        # perl python3 py3-mako ruby unzip wget xz zlib
+    # RUN cd /opt && git clone https://github.com/mxe/mxe.git
+    # RUN ln -s /usr/bin/python3 /usr/bin/python
+    # RUN cd /opt/mxe && export MXE_USE_CCACHE= && make MXE_PLUGIN_DIRS=plugins/gcc8 MXE_TARGETS=x86_64-w64-mingw32.static JOBS=8 gcc cmake sdl sdl_gfx sdl_mixer sdl_image yaml-cpp zlib
+
+    FROM scratch
+
+    COPY --from=build /opt/mxe/usr /opt/mxe/usr
+    COPY --from=build /opt/mxe/.ccache /opt/mxe/.ccache
+
+    RUN apk add --no-cache bash grep libstdc++ make
 
 jobs:
   build:
@@ -49,10 +68,14 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-#      - uses: actions/checkout@v3
+      # - uses: actions/checkout@v3
 
-      -
-        name: Login to GitHub Container Registry
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-actor: true
+
+      - name: Login to GitHub Container Registry
         if: matrix.compiler == 'mingw'
         uses: docker/login-action@v2
         with:
@@ -63,9 +86,8 @@ jobs:
       - name: Check container
         if: matrix.compiler == 'mingw'
         run: |
-          echo A ${{ github.actor }} B  ${{ secrets.GITHUB_TOKEN }}
-          docker pull ghcr.io/pedroterzero/mxe:0.1
-          docker inspect ghcr.io/pedroterzero/mxe:0.1
+          docker pull ${IMAGE_NAME}:${MXE_IMAGE_VERSION}
+          docker inspect ${IMAGE_NAME}:${MXE_IMAGE_VERSION}
           docker tag ghcr.io/pedroterzero/mxe:0.1 ghcr.io/pedroterzero/mxe:0.1-test
           docker push ghcr.io/pedroterzero/mxe:0.1-test
 
