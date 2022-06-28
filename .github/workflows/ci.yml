@@ -13,9 +13,9 @@ env:
   MXE_IMAGE_VERSION: 0.0.1
   MXE_DOCKERFILE: |
     FROM alpine AS build
-    RUN apk add --no autoconf automake bash binutils bison bzip2 flex g++ gdk-pixbuf gettext git gperf intltool \
-        libtool linux-headers lzip make openssl openssl-dev p7zip patch perl python3 py3-mako ruby unzip wget \
-        xz zlib
+    RUN apk add --no-cache autoconf automake bash binutils bison bzip2 flex g++ gdk-pixbuf gettext git gperf \
+        intltool libtool linux-headers lzip make openssl openssl-dev p7zip patch perl python3 py3-mako ruby \
+        unzip wget xz zlib
     RUN cd /opt && git clone https://github.com/mxe/mxe.git
     RUN ln -s /usr/bin/python3 /usr/bin/python
     RUN cd /opt/mxe && export MXE_USE_CCACHE= && make MXE_PLUGIN_DIRS=plugins/gcc8 MXE_TARGETS=x86_64-w64-mingw32.static JOBS=8 gcc cmake sdl sdl_gfx sdl_mixer sdl_image yaml-cpp zlib
@@ -100,6 +100,9 @@ jobs:
           echo "$MXE_DOCKERFILE" > Dockerfile
           docker build . -t ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
           docker push ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
+
+      - name: fail
+        run: exit 1
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
