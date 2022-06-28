@@ -24,8 +24,8 @@ jobs:
 
           - name: Linux
             os: ubuntu-20.04  # -latest is still stuck at 18.04
-            compiler: mingw32
-            cpp-compiler: mingw32
+            compiler: mingw64
+            cpp-compiler: mingw64
 
           # - name: Windows
           #   os: windows-latest
@@ -46,13 +46,13 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-        with:
-          limit-access-to-actor: true
+      # - name: Setup upterm session
+      #   uses: lhotari/action-upterm@v1
+      #   with:
+      #     limit-access-to-actor: true
 
       - name: Set up MinGW
-        if: matrix.compiler == 'mingw32'
+        if: matrix.compiler == 'mingw64'
         uses: egor-tensin/setup-mingw@v2
         with:
           platform: x64
@@ -108,12 +108,12 @@ jobs:
           CXX: ${{ matrix.cpp-compiler }}
 
       - name: Compile source code
-        if: matrix.compiler != 'mingw32'
+        if: matrix.compiler != 'mingw64'
         run: |
           cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
 
-      - name: Compile source code (mingw32)
-        if: matrix.compiler == 'mingw32'
+      - name: Compile source code (mingw)
+        if: matrix.compiler == 'mingw64'
         run: |
           GITISODATE=$(git show -s --format=%ci)
           GITDATE=$(date -d"$GITISODATE" +%Y-%m-%d)
