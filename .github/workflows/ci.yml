@@ -46,6 +46,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - uses: actions/checkout@v3
+
       -
         name: Login to GitHub Container Registry
         if: matrix.compiler == 'mingw'
@@ -58,7 +60,6 @@ jobs:
       - name: Check container
         if: matrix.compiler == 'mingw'
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
           docker pull ghcr.io/pedroterzero/mxe:0.1
           docker inspect ghcr.io/pedroterzero/mxe:0.1
 
