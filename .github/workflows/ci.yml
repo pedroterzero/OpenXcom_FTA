@@ -62,10 +62,10 @@ jobs:
       - name: Install packages (Ubuntu/mingw)
         if: matrix.compiler == 'mingw64'
         run: |
-          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86B72ED9 && \
-          sudo add-apt-repository "deb [arch=amd64] https://pkg.mxe.cc/repos/apt `lsb_release -sc` main" && \
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86B72ED9
+          sudo add-apt-repository "deb [arch=amd64] https://pkg.mxe.cc/repos/apt `lsb_release -sc` main"
           sudo apt-get update
-          sudo apt-get install apt-get install mxe-x86-64-w64-mingw32.static-cc mxe-x86-64-w64-mingw32.static-cmake
+          sudo apt-get install install mxe-x86-64-w64-mingw32.static-cc mxe-x86-64-w64-mingw32.static-cmake
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows' && matrix.packages
