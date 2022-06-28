@@ -21,11 +21,12 @@ env:
 
     FROM scratch
 
-    RUN touch /yolo
     #COPY --from=build /opt/mxe/usr /opt/mxe/usr
     #COPY --from=build /opt/mxe/.ccache /opt/mxe/.ccache
 
     RUN apk add --no-cache bash grep libstdc++ make
+
+    RUN touch /yolo
 
 jobs:
   build:
