@@ -118,7 +118,7 @@ jobs:
       - name: Generate project files
         if: matrix.compiler != 'mingw64'
         run: |
-          echo "CMAKE='$(which cmake)'" >> $GITHUB_ENV
+          echo "CMAKE=$(which cmake)" >> $GITHUB_ENV
           cmake -B ${{ matrix.build-dir || 'build' }} ${{ matrix.build-src-dir || '.' }} -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNING=1 -DCHECK_CCACHE=1 ${{ matrix.cmake-args }}
         env:
           CC: ${{ matrix.compiler }}
@@ -138,7 +138,7 @@ jobs:
 
           TOOLCHAIN=/usr/lib/mxe/usr/bin/x86_64-w64-mingw32.static
 
-          echo "CMAKE='$TOOLCHAIN-cmake'" >> $GITHUB_ENV
+          echo "CMAKE=$TOOLCHAIN-cmake" >> $GITHUB_ENV
 
           mkdir build iprefix
           cd build
