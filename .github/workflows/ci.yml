@@ -21,7 +21,7 @@ env:
 
     FROM scratch
 
-    touch /yolo
+    RUN touch /yolo
     #COPY --from=build /opt/mxe/usr /opt/mxe/usr
     #COPY --from=build /opt/mxe/.ccache /opt/mxe/.ccache
 
