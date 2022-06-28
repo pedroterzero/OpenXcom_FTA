@@ -88,14 +88,15 @@ jobs:
         continue-on-error: true
         if: matrix.compiler == 'mingw'
         run: |
-          # docker pull ${IMAGE_NAME}:${MXE_IMAGE_VERSION}
-          docker inspect ${IMAGE_NAME}:${MXE_IMAGE_VERSION}
+          # docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
+          docker inspect ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
 
       - name: Build mxe container
-        if: matrix.compiler == 'mingw' && steps.check-mxe-container.outputs.exit_code != 0
+#        if: matrix.compiler == 'mingw' && steps.check-mxe-container.outputs.exit_code != 0
+        if: steps.check-mxe-container.outputs.exit_code != 0
         run: |
           echo "$MXE_DOCKERFILE" > Dockerfile
-          docker build . -t ${IMAGE_NAME}:${MXE_IMAGE_VERSION}
+          docker build . -t ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
