@@ -110,24 +110,20 @@ jobs:
           wget -q "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip"
           unzip openxcom-deps-win-vc2017.zip
 
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-        with:
-          limit-access-to-actor: true
+      # - name: Setup upterm session
+      #   uses: lhotari/action-upterm@v1
+      #   with:
+      #     limit-access-to-actor: true
 
       - name: Generate project files
         run: |
+          echo "CMAKE='$(which cmake)'" >> $GITHUB_ENV
           cmake -B ${{ matrix.build-dir || 'build' }} ${{ matrix.build-src-dir || '.' }} -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNING=1 -DCHECK_CCACHE=1 ${{ matrix.cmake-args }}
         env:
           CC: ${{ matrix.compiler }}
           CXX: ${{ matrix.cpp-compiler }}
 
-      - name: Compile source code
-        if: matrix.compiler != 'mingw64'
-        run: |
-          cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
-
-      - name: Compile source code (mingw)
+      - name: Generate project files (mingw)
         if: matrix.compiler == 'mingw64'
         run: |
           GITISODATE=$(git show -s --format=%ci)
@@ -141,11 +137,18 @@ jobs:
 
           TOOLCHAIN=/usr/lib/mxe/usr/bin/x86_64-w64-mingw32.static
 
+          echo "CMAKE='$TOOLCHAIN-cmake'" >> $GITHUB_ENV
+
           mkdir build iprefix
           cd build
           ${TOOLCHAIN}-cmake \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF \
             -DCMAKE_INSTALL_PREFIX=../iprefix ..
+
+      - name: Compile source code
+        if: matrix.compiler != 'mingw64'
+        run: |
+          $CMAKE --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
 
 #      - name: Fix install path
 #        if: runner.os == 'macOS'
