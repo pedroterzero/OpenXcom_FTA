@@ -88,9 +88,11 @@ jobs:
         continue-on-error: true
         if: matrix.compiler == 'mingw'
         run: |
-          # docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
-          docker inspect ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; \
-          echo ::set-output name=exit_code::$?
+          if docker inspect ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; then
+            echo ::set-output name=exit_code::$?
+          else
+            echo ::set-output name=exit_code::$?
+          fi
 
       - name: Build mxe container
         if: matrix.compiler == 'mingw' && steps.check-mxe-container.outputs.exit_code != 0
