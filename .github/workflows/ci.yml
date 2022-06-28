@@ -89,7 +89,7 @@ jobs:
         if: matrix.compiler == 'mingw'
         run: |
           # docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
-          docker inspect ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
+          docker inspect ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; \
           echo ::set-output name=exit_code::$?
 
       - name: Build mxe container
