@@ -209,7 +209,7 @@ jobs:
         if: matrix.compiler == 'mingw'
         run: |
           mkdir build
-          docker run -v "$PWD":/app -v "$HOME/.ccache:/root/.ccache" -w app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION} sh -c "\
+          docker run -v "$PWD":/app -v "$HOME/.ccache:/root/.ccache" -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION} sh -c "\
             export PATH=/opt/mxe/usr/bin:\$PATH && cd build && /opt/mxe/usr/bin/x86_64-w64-mingw32.static-cmake -DCMAKE_BUILD_TYPE=Release -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF ..\
           "
       - name: Setup upterm session
