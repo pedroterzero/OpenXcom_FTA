@@ -63,7 +63,8 @@ jobs:
         if: matrix.compiler == 'mingw'
         run: |
           # check if the container is already built
-          docker inspect ghcr.io/inventorum-development-team/mxe:0.1
+          # docker inspect ghcr.io/inventorum-development-team/mxe:0.1
+          docker inspect ghcr.io/pedroterzero/mxe:0.1
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
