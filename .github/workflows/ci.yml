@@ -46,11 +46,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # - name: Setup upterm session
-      #   uses: lhotari/action-upterm@v1
-      #   with:
-      #     limit-access-to-actor: true
-
       - name: Set up MinGW
         if: matrix.compiler == 'mingw64'
         uses: egor-tensin/setup-mingw@v2
@@ -99,6 +94,11 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip" -OutFile "openxcom-deps-win-vc2017-newest.zip"
           Expand-Archive -Path "openxcom-deps-win-vc2017-newest.zip" -DestinationPath "."
+
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-actor: true
 
       - name: Generate project files
         run: |
