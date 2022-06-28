@@ -19,16 +19,15 @@ env:
     # RUN ln -s /usr/bin/python3 /usr/bin/python
     # RUN cd /opt/mxe && export MXE_USE_CCACHE= && make MXE_PLUGIN_DIRS=plugins/gcc8 MXE_TARGETS=x86_64-w64-mingw32.static JOBS=8 gcc cmake sdl sdl_gfx sdl_mixer sdl_image yaml-cpp zlib
 
-    FROM scratch
+    FROM alpine
+
+    RUN touch /yolo
 
     #COPY --from=build /opt/mxe/usr /opt/mxe/usr
     #COPY --from=build /opt/mxe/.ccache /opt/mxe/.ccache
 
     RUN apk add --no-cache bash grep libstdc++ make
 
-    ENTRYPOINT ["/bin/bash"]
-
-    RUN touch /yolo
 
 jobs:
   build:
