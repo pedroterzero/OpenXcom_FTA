@@ -488,8 +488,7 @@ void Base::addCovertOperation(CovertOperation* operation)
 void Base::removeCovertOperation(CovertOperation* operation)
 {
 	bool erased = false;
-	auto iter = std::find(std::begin(_covertOperations), std::end(_covertOperations), operation);
-	for (int k = 0; k < _covertOperations.size(); k++) {
+	for (size_t k = 0; k < _covertOperations.size(); k++) {
 		if (_covertOperations[k] == operation)
 		{
 			_covertOperations.erase(_covertOperations.begin() + k);

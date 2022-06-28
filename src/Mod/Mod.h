@@ -227,13 +227,15 @@ private:
 	bool _lessAliensDuringBaseDefense;
 	bool _allowCountriesToCancelAlienPact, _buildInfiltrationBaseCloseToTheCountry;
 	bool _allowAlienBasesOnWrongTextures;
-	bool _ftaGame, _researchTreeDisabled;
-	bool _ironManEnabled;
+	bool _ftaGame;
 	int _ftaGameLength;
+	bool _ironManEnabled, _researchTreeDisabled;
+	int _defaultFactionPowerCost;
 	int _kneelBonusGlobal, _oneHandedPenaltyGlobal;
 	int _enableCloseQuartersCombat, _closeQuartersAccuracyGlobal, _closeQuartersTuCostGlobal, _closeQuartersEnergyCostGlobal, _closeQuartersSneakUpGlobal;
 	int _noLOSAccuracyPenaltyGlobal;
 	int _surrenderMode;
+	int _coefBattlescape, _coefGeoscape, _coefDogfight, _coefResearch, _coefAlienMission, _coefUfo, _coefAlienBase, _noFundsPenalty, _noFundsValue, _performanceCap, _performanceFactor;
 	int _bughuntMinTurn, _bughuntMaxEnemies, _bughuntRank, _bughuntLowMorale, _bughuntTimeUnitsLeft;
 
 	int _manaMissingWoundThreshold = 200;
@@ -241,8 +243,6 @@ private:
 	bool _manaEnabled, _manaBattleUI, _manaTrainingPrimary, _manaTrainingSecondary, _manaReplenishAfterMission;
 	bool _healthReplenishAfterMission = true;
 	std::string _manaUnlockResearch;
-
-	int _coefBattlescape, _coefGeoscape, _coefDogfight, _coefResearch, _coefAlienMission, _coefUfo, _coefAlienBase, _noFundsPenalty, _noFundsValue, _performanceCap, _performanceFactor;
 
 	std::string _loseMoney, _loseRating, _loseDefeat;
 	int _ufoGlancingHitThreshold, _ufoBeamWidthParameter;
@@ -263,7 +263,7 @@ private:
 	int _tuRecoveryWakeUpNewTurn;
 	int _shortRadarRange;
 	int _buildTimeReductionScaling;
-	int _defaultFactionPowerCost;
+
 	int _defeatScore, _defeatFunds;
 	int _reputationBreakthroughValue;
 	bool _difficultyDemigod;

@@ -367,7 +367,6 @@ void CovertOperationSoldiersState::lstSoldiersClick(Action* action)
 		bool matched = false;
 		auto iter = std::find(std::begin(opSoldiers), std::end(opSoldiers), s);
 		bool busy = ((s->getCraft() && s->getCraft()->getStatus() == "STR_OUT") || s->getCovertOperation() || s->hasPendingTransformation());
-		bool psiUnavailable = false;
 		if (!Options::anytimePsiTraining && s->isInPsiTraining())
 		{
 			busy = true;

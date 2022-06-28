@@ -476,7 +476,7 @@ int MasterMind::getLoyaltyPerformanceBonus()
 		int loyalty = _game->getSavedGame()->getLoyalty();
 		if (loyalty > 100)
 		{
-			double ln = log(fabs(loyalty));
+			double ln = log(std::abs(loyalty));
 			int bonus = ceil(-9.79 + (2.23 * ln));
 			performance += bonus;
 		}

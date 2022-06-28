@@ -88,8 +88,8 @@ private:
 	std::vector<int> _pilots;
 	std::map<int, SoldierDeploymentData> _customSoldierDeployment;
 	std::vector<VehicleDeploymentData> _customVehicleDeployment;
-	int _skinIndex;
 	int _scientists, _engineers;
+	int _skinIndex;
 	ScriptValues<Craft> _scriptValues;
 
 	void recalcSpeedMaxRadian();

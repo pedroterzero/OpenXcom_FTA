@@ -80,6 +80,8 @@ private:
 	std::vector<ReequipStat> _missingItems;
 	std::map<const RuleItem*, int> _rounds, _roundsPainKiller, _roundsStimulant, _roundsHeal, _recoveredItems;
 	Uint8 _ammoColor;
+	/// 0 = score, 1 = stat improvement, 2 = recovered items
+	int _pageNumber;
 	std::map<int, RecoveryItem*> _recoveryStats;
 	bool _positiveScore, _destroyBase, _promotions, _showSellButton, _initDone;
 	std::map<int, int>  _containmentStateInfo;
@@ -104,8 +106,6 @@ private:
 	bool handleVipRecovery(BattleUnit *unit, Base *base, Craft *craft, bool result);
 	/// Reequips a craft after a mission.
 	void reequipCraft(Base *base, Craft *craft, bool vehicleItemsCanBeDestroyed);
-	/// 0 = score, 1 = stat improvement, 2 = recovered items
-	int _pageNumber;
 	/// Sets the visibility according to the _pageNumber
 	void applyVisibility();
 	/// Creates a string for the soldier stats table from a stat difference value

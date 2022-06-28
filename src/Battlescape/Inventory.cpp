@@ -895,7 +895,7 @@ void Inventory::mouseClick(Action *action, State *state)
 				else if (item == 0 || item == _selItem || canStack)
 				{
 					// If item fits into an empty slot or can be stacked try moving it there
-					if (!overlapItems(_selUnit, _selItem, slot, x, y) && slot->fitItemInSlot(_selItem->getRules(), x, y) || canStack)
+					if ((!overlapItems(_selUnit, _selItem, slot, x, y) && slot->fitItemInSlot(_selItem->getRules(), x, y)) || canStack)
 					{
 						if (!_tu || _selUnit->spendTimeUnits(_selItem->getSlot()->getCost(slot)))
 						{

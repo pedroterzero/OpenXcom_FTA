@@ -504,7 +504,6 @@ void SoldierInfoState::init()
 	{
 		_btnSack->setVisible(false);
 	}
-	bool test = _btnSack->getVisible();
 	_txtRank->setText(tr("STR_RANK_").arg(tr(_soldier->getRankString())));
 
 	_txtMissions->setText(tr("STR_MISSIONS").arg(_soldier->getMissions()));

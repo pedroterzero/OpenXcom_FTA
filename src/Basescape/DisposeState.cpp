@@ -198,7 +198,7 @@ void DisposeState::delayedInit()
 		if (_debriefingState) break;
 		if ((*i)->getStatus() != "STR_OUT")
 		{
-			TransferRow row = { TRANSFER_CRAFT, (*i), (*i)->getName(_game->getLanguage()), (*i)->getRules()->getSellCost(), 1, 0, 0, 1, -3, 0, 0, (*i)->getRules()->getSellCost() };
+			TransferRow row = { TRANSFER_CRAFT, (*i), (*i)->getName(_game->getLanguage()), (*i)->getRules()->getDisposeCost(), 1, 0, 0, 1, -3, 0, 0, (*i)->getRules()->getSellCost()};
 			_items.push_back(row);
 			std::string cat = getCategory(_items.size() - 1);
 			if (std::find(_cats.begin(), _cats.end(), cat) == _cats.end())
@@ -260,7 +260,7 @@ void DisposeState::delayedInit()
 		}
 		if (qty > 0 && (Options::canSellLiveAliens || !rule->isAlien()))
 		{
-			TransferRow row = { TRANSFER_ITEM, rule, tr(*i), rule->getDisposeCost(), qty, 0, 0 };
+			TransferRow row = { TRANSFER_ITEM, rule, tr(*i), rule->getDisposeCost(), qty, 0, 0, 1, rule->getListOrder(), 0, 0, 0 };
 			if ((_debriefingState != 0) && (_game->getSavedGame()->getAutosell(rule)))
 			{
 				row.amount = qty;
