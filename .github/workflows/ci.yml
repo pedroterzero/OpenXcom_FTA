@@ -110,11 +110,6 @@ jobs:
           wget -q "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip"
           unzip openxcom-deps-win-vc2017.zip
 
-      # - name: Setup upterm session
-      #   uses: lhotari/action-upterm@v1
-      #   with:
-      #     limit-access-to-actor: true
-
       - name: Generate project files
         if: matrix.compiler != 'mingw64'
         run: |
@@ -145,6 +140,11 @@ jobs:
           ${TOOLCHAIN}-cmake \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF \
             -DCMAKE_INSTALL_PREFIX=../iprefix ..
+
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-actor: true
 
       - name: Compile source code
         # if: matrix.compiler != 'mingw64'
