@@ -24,8 +24,8 @@ jobs:
 
           - name: Linux
             os: ubuntu-20.04  # -latest is still stuck at 18.04
-            compiler: mingw64
-            cpp-compiler: mingw64
+            compiler: mingw
+            cpp-compiler: mingw
 
           # - name: Windows
           #   os: windows-latest
@@ -60,12 +60,13 @@ jobs:
           sudo apt-get -yq --no-install-suggests --no-install-recommends install libsdl1.2-dev libsdl-mixer1.2-dev libsdl-image1.2-dev libsdl-gfx1.2-dev libyaml-cpp-dev
 
       - name: Install packages (Ubuntu/mingw)
-        if: matrix.compiler == 'mingw64'
+        if: matrix.compiler == 'mingw'
         run: |
-          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86B72ED9
-          sudo add-apt-repository "deb [arch=amd64] https://pkg.mxe.cc/repos/apt `lsb_release -sc` main"
-          sudo apt-get update
-          sudo apt-get install mxe-x86-64-w64-mingw32.static-cc mxe-x86-64-w64-mingw32.static-cmake
+          cd /opt
+          sudo git clone https://github.com/mxe/mxe.git
+          sudo chown -R $(whoami): mxe
+          cd /opt/mxe
+          make MXE_PLUGIN_DIRS=plugins/gcc8 MXE_TARGETS=x86_64-w64-mingw32.static JOBS=8 gcc cmake sdl sdl_gfx sdl_mixer sdl_image yaml-cpp zlib
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows' && matrix.packages
@@ -104,14 +105,14 @@ jobs:
           Invoke-WebRequest -Uri "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip" -OutFile "openxcom-deps-win-vc2017-newest.zip"
           Expand-Archive -Path "openxcom-deps-win-vc2017-newest.zip" -DestinationPath "."
 
-      - name: Download dependencies (mingw)
-        if: matrix.compiler == 'mingw64'
-        run: |
-          wget -q "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip"
-          unzip openxcom-deps-win-vc2017.zip
+      # - name: Download dependencies (mingw)
+      #   if: matrix.compiler == 'mingw'
+      #   run: |
+      #     wget -q "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip"
+      #     unzip openxcom-deps-win-vc2017.zip
 
       - name: Generate project files
-        if: matrix.compiler != 'mingw64'
+        if: matrix.compiler != 'mingw'
         run: |
           echo "CMAKE=$(which cmake)" >> $GITHUB_ENV
           cmake -B ${{ matrix.build-dir || 'build' }} ${{ matrix.build-src-dir || '.' }} -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNING=1 -DCHECK_CCACHE=1 ${{ matrix.cmake-args }}
@@ -120,7 +121,8 @@ jobs:
           CXX: ${{ matrix.cpp-compiler }}
 
       - name: Generate project files (mingw)
-        if: matrix.compiler == 'mingw64'
+        if: matrix.compiler == 'mingw'
+        # https://openxcom.org/forum/index.php/topic,7048.msg111478.html#msg111478
         run: |
           GITISODATE=$(git show -s --format=%ci)
           GITDATE=$(date -d"$GITISODATE" +%Y-%m-%d)
@@ -128,18 +130,16 @@ jobs:
           OSARCH=win64
           SHORTVERSION=$(/bin/echo -e "#include \"src/version.h\"\nOPENXCOM_FTA_VERSION_SHORT" | cpp | egrep -v '^(#.+|[[:space:]]+$)' | cut -d\" -f 2 | sed -e "s, ,-,g")
           ZNAME="$SHORTVERSION-$GITREF-$GITDATE-$OSARCH.7z"
-          export PATH=/usr/lib/mxe/usr/bin:$PATH
-          # export PATH=/opt/mxe/usr/bin:$PATH
+          export PATH=/opt/mxe/usr/bin:$PATH
 
-          TOOLCHAIN=/usr/lib/mxe/usr/bin/x86_64-w64-mingw32.static
+          TOOLCHAIN=/opt/mxe/usr/bin/x86_64-w64-mingw32.static
 
           echo "CMAKE=$TOOLCHAIN-cmake" >> $GITHUB_ENV
 
-          mkdir build iprefix
+          mkdir build
           cd build
           ${TOOLCHAIN}-cmake \
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF \
-            -DCMAKE_INSTALL_PREFIX=../iprefix ..
+            -DCMAKE_BUILD_TYPE=Release -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF ..
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
