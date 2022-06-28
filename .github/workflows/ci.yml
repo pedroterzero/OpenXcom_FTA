@@ -46,24 +46,19 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # -
-      #   name: Login to GitHub Container Registry
-      #   if: matrix.compiler == 'mingw'
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Log in to registry
+      -
+        name: Login to GitHub Container Registry
         if: matrix.compiler == 'mingw'
-        # This is where you will update the PAT to GITHUB_TOKEN
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
-
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check container
         if: matrix.compiler == 'mingw'
         run: |
+          docker pull ghcr.io/pedroterzero/mxe:0.1
           docker inspect ghcr.io/pedroterzero/mxe:0.1
 
       - name: Setup upterm session
