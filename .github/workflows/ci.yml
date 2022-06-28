@@ -103,6 +103,7 @@ jobs:
         run: |
           echo "$MXE_DOCKERFILE" > Dockerfile
           docker build . -t ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
+          docker push ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
