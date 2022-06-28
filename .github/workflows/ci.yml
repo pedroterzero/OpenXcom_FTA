@@ -116,6 +116,7 @@ jobs:
       #     limit-access-to-actor: true
 
       - name: Generate project files
+        if: matrix.compiler != 'mingw64'
         run: |
           echo "CMAKE='$(which cmake)'" >> $GITHUB_ENV
           cmake -B ${{ matrix.build-dir || 'build' }} ${{ matrix.build-src-dir || '.' }} -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNING=1 -DCHECK_CCACHE=1 ${{ matrix.cmake-args }}
