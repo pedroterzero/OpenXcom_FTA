@@ -10,7 +10,7 @@ on: [push, pull_request]
 
 env:
   MXE_IMAGE_NAME: ghcr.io/${{ github.actor }}/mxe
-  MXE_IMAGE_VERSION: 0.1
+  MXE_IMAGE_VERSION: 0.0.1
   MXE_DOCKERFILE: |
     FROM alpine AS build
     # RUN apk add --no autoconf automake bash binutils bison bzip2 flex g++ gdk-pixbuf gettext git gperf intltool libtool linux-headers lzip make openssl openssl-dev p7zip patch \
@@ -83,13 +83,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check container
+      - name: Check mxe container
+        id: check-mxe-container
+        continue-on-error: true
         if: matrix.compiler == 'mingw'
         run: |
-          docker pull ${IMAGE_NAME}:${MXE_IMAGE_VERSION}
+          # docker pull ${IMAGE_NAME}:${MXE_IMAGE_VERSION}
           docker inspect ${IMAGE_NAME}:${MXE_IMAGE_VERSION}
-          docker tag ghcr.io/pedroterzero/mxe:0.1 ghcr.io/pedroterzero/mxe:0.1-test
-          docker push ghcr.io/pedroterzero/mxe:0.1-test
+
+      - name: Build mxe container
+        if: matrix.compiler == 'mingw' && steps.check-mxe-container.outputs.exit_code != 0
+        run: |
+          echo "$MXE_DOCKERFILE" > Dockerfile
+          docker build . -t ${IMAGE_NAME}:${MXE_IMAGE_VERSION}
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
