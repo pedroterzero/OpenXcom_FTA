@@ -147,7 +147,7 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=../iprefix ..
 
       - name: Compile source code
-        if: matrix.compiler != 'mingw64'
+        # if: matrix.compiler != 'mingw64'
         run: |
           $CMAKE --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
 
