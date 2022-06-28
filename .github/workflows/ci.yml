@@ -51,6 +51,12 @@ jobs:
         with:
           limit-access-to-actor: true
 
+      - name: Set up MinGW
+        if: matrix.compiler == 'mingw32'
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: x64
+
       - name: Install packages (Ubuntu)
         if: runner.os == 'Linux'
         run: |
@@ -107,7 +113,7 @@ jobs:
           cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
 
       - name: Compile source code (mingw32)
-        if: matrix.compile == 'mingw32'
+        if: matrix.compiler == 'mingw32'
         run: |
           GITISODATE=$(git show -s --format=%ci)
           GITDATE=$(date -d"$GITISODATE" +%Y-%m-%d)
