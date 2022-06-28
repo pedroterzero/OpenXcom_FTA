@@ -12,31 +12,36 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Linux
-            os: ubuntu-20.04  # -latest is still stuck at 18.04
-            compiler: gcc
-            cpp-compiler: g++
+          # - name: Linux
+          #   os: ubuntu-20.04  # -latest is still stuck at 18.04
+          #   compiler: gcc
+          #   cpp-compiler: g++
+
+          # - name: Linux
+          #   os: ubuntu-20.04  # -latest is still stuck at 18.04
+          #   compiler: clang
+          #   cpp-compiler: clang++
 
           - name: Linux
             os: ubuntu-20.04  # -latest is still stuck at 18.04
-            compiler: clang
-            cpp-compiler: clang++
+            compiler: mingw32
+            cpp-compiler: mingw32
 
-          - name: Windows
-            os: windows-latest
-            packages: ccache
-            compiler: cl
-            cpp-compiler: cl
-            cmake-args: -A Win32
-            build-args: "/clp:NoSummary"
+          # - name: Windows
+          #   os: windows-latest
+          #   packages: ccache
+          #   compiler: cl
+          #   cpp-compiler: cl
+          #   cmake-args: -A Win32
+          #   build-args: "/clp:NoSummary"
 
-          - name: macOS
-            os: macOS-latest
-            packages: yaml-cpp sdl sdl_gfx sdl_image sdl_mixer
-            # cmake-args: -DCMAKE_BINARY_DIR=/usr/local/bin
-            compiler: clang
-            cpp-compiler: clang++
-            app-bundle: openxcom.app  # all other builds default to bin/
+          # - name: macOS
+          #   os: macOS-latest
+          #   packages: yaml-cpp sdl sdl_gfx sdl_image sdl_mixer
+          #   # cmake-args: -DCMAKE_BINARY_DIR=/usr/local/bin
+          #   compiler: clang
+          #   cpp-compiler: clang++
+          #   app-bundle: openxcom.app  # all other builds default to bin/
 
     runs-on: ${{ matrix.os }}
 
@@ -92,8 +97,28 @@ jobs:
           CXX: ${{ matrix.cpp-compiler }}
 
       - name: Compile source code
+        if: matrix.compiler != 'mingw32'
         run: |
           cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
+
+      - name: Compile source code (mingw32)
+        if: matrix.compile == 'mingw32'
+        run: |
+          GITISODATE=$(git show -s --format=%ci)
+          GITDATE=$(date -d"$GITISODATE" +%Y-%m-%d)
+          GITREF=$(git show -s --format=%h)
+          OSARCH=win64
+          SHORTVERSION=`/bin/echo -e "#include \"src/version.h\"\nOPENXCOM_FTA_VERSION_SHORT" | cpp | egrep -v '^(#.+|[[:space:]]+$)' | cut -d\" -f 2 | sed -e "s, ,-,g"`
+          ZNAME=$SHORTVERSION-$GITREF-$GITDATE-$OSARCH.7z
+          export PATH=/opt/mxe/usr/bin:$PATH
+
+          TOOLCHAIN=/opt/mxe/usr/bin/x86_64-w64-mingw32.static
+
+          mkdir build iprefix
+          cd build
+          ${TOOLCHAIN}-cmake \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF \
+            -DCMAKE_INSTALL_PREFIX=../iprefix ..
 
 #      - name: Fix install path
 #        if: runner.os == 'macOS'
