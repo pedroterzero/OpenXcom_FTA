@@ -11,7 +11,7 @@ on: [push, pull_request]
 env:
   # attempt to build it ourselves, if we can't access it
   MXE_IMAGE_FALLBACK_NAME: ghcr.io/${{ github.actor }}/mxe
-  MXE_IMAGE_NAME: ghcr.io/pedroterzero/mxeFOOBAR
+  MXE_IMAGE_NAME: ghcr.io/pedroterzero/mxe-foobar
   MXE_IMAGE_VERSION: 0.0.1
   MXE_DOCKERFILE: |
     FROM alpine AS build
@@ -212,12 +212,14 @@ jobs:
 
       - name: Compile source code (mingw)
         if: matrix.compiler == 'mingw'
+        continue-on-error: true
         run: |
           mkdir build
           docker run -v "$PWD":/app -v "$HOME/.ccache:/root/.ccache" -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION} sh -c "\
             export PATH=/opt/mxe/usr/bin:\$PATH && cd build && /opt/mxe/usr/bin/x86_64-w64-mingw32.static-cmake -DCMAKE_BUILD_TYPE=Release -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF .. && \
             make -j4 \
           "
+
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
         timeout-minutes: 10
