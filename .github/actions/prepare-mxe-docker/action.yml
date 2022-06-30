@@ -38,7 +38,7 @@ runs:
       run: |
         export MXE_IMAGE_NAME=ghcr.io/pedroterzero/mxe
         export MXE_IMAGE_VERSION=0.0.4
-        export MXE_IMAGE_FALLBACK_NAME: ghcr.io/${{ inputs.registry_username }}/mxe
+        export MXE_IMAGE_FALLBACK_NAME=ghcr.io/${{ inputs.registry_username }}/mxe
 
         if docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; then
           echo ::set-output name=exit_code::$?
