@@ -19,7 +19,7 @@ env:
         intltool libtool linux-headers lzip make openssl openssl-dev p7zip patch perl python3 py3-mako ruby \
         unzip wget xz zlib
     RUN cd /opt && git clone https://github.com/mxe/mxe.git
-    RUN cd /opt/mxe && git checkout ddd23aa211a6d6539f2d1a42ac80c6b269297ac7^ plugins/gcc8
+    RUN cd /opt/mxe && git checkout ddd23aa211a6d6539f2d1a42ac80c6b269297ac7^ plugins/gcc8/gcc8-overlay.mk
     RUN ln -s /usr/bin/python3 /usr/bin/python
     RUN cd /opt/mxe && make MXE_PLUGIN_DIRS=plugins/gcc8 MXE_TARGETS=x86_64-w64-mingw32.static JOBS=8 gcc cmake sdl sdl_gfx sdl_mixer sdl_image yaml-cpp zlib
 
