@@ -12,7 +12,7 @@ env:
   # attempt to build it ourselves, if we can't access it
   MXE_IMAGE_FALLBACK_NAME: ghcr.io/${{ github.actor }}/mxe
   MXE_IMAGE_NAME: ghcr.io/pedroterzero/mxe
-  MXE_IMAGE_VERSION: 0.0.2
+  MXE_IMAGE_VERSION: 0.0.3
   MXE_DOCKERFILE: |
     FROM debian:bullseye-slim AS build
     RUN apt update && apt-get install -y autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib \
