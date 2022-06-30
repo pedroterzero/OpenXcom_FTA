@@ -59,6 +59,7 @@ runs:
 
     - name: Build mxe container
       shell: bash
+      if: steps.check-mxe-container.outputs.exit_code != 0
       run: |
         cat << EOF > Dockerfile
         FROM debian:bullseye-slim AS build
