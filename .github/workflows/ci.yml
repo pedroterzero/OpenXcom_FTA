@@ -88,11 +88,11 @@ jobs:
           if docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; then
             echo ::set-output name=exit_code::$?
           elif docker pull ${MXE_IMAGE_FALLBACK_NAME}:${MXE_IMAGE_VERSION}; then
-            echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
             echo ::set-output name=exit_code::$?
+            echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
           else
-            echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
             echo ::set-output name=exit_code::$?
+            echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
           fi
 
       - name: Build mxe container
