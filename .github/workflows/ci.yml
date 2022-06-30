@@ -12,13 +12,14 @@ env:
   # attempt to build it ourselves, if we can't access it
   MXE_IMAGE_FALLBACK_NAME: ghcr.io/${{ github.actor }}/mxe
   MXE_IMAGE_NAME: ghcr.io/pedroterzero/mxe
-  MXE_IMAGE_VERSION: 0.0.1
+  MXE_IMAGE_VERSION: 0.0.2
   MXE_DOCKERFILE: |
     FROM alpine AS build
     RUN apk add --no-cache autoconf automake bash binutils bison bzip2 flex g++ gdk-pixbuf gettext git gperf \
         intltool libtool linux-headers lzip make openssl openssl-dev p7zip patch perl python3 py3-mako ruby \
         unzip wget xz zlib
     RUN cd /opt && git clone https://github.com/mxe/mxe.git
+    RUN cd /opt/mxe && git checkout ddd23aa211a6d6539f2d1a42ac80c6b269297ac7^ plugins/gcc8
     RUN ln -s /usr/bin/python3 /usr/bin/python
     RUN cd /opt/mxe && make MXE_PLUGIN_DIRS=plugins/gcc8 MXE_TARGETS=x86_64-w64-mingw32.static JOBS=8 gcc cmake sdl sdl_gfx sdl_mixer sdl_image yaml-cpp zlib
 
@@ -90,6 +91,7 @@ jobs:
             echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
             echo ::set-output name=exit_code::$?
           else
+            echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
             echo ::set-output name=exit_code::$?
           fi
 
