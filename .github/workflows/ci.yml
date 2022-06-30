@@ -4,29 +4,10 @@ name: ci
 
 # need to explicitly enable this here, otherwise even though it's correctly configured in github, it won't work
 permissions:
+  # this allows to write to the container registry
   packages: write
 
 on: [push, pull_request]
-
-env:
-  # attempt to build it ourselves, if we can't access it
-  MXE_IMAGE_FALLBACK_NAME: ghcr.io/${{ github.actor }}/mxe
-  MXE_IMAGE_NAME: ghcr.io/pedroterzero/mxe
-  MXE_IMAGE_VERSION: 0.0.4
-  MXE_DOCKERFILE: |
-    FROM debian:bullseye-slim AS build
-    RUN apt update && apt-get install -y autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib \
-        gettext git gperf intltool libc6-dev-i386 libgdk-pixbuf2.0-dev libltdl-dev libssl-dev libtool-bin \
-        libxml-parser-perl lzip make openssl p7zip-full patch perl pkg-config python3 python3-mako ruby sed \
-        unzip wget xz-utils
-    RUN cd /opt && git clone https://github.com/mxe/mxe.git
-    RUN ln -s /usr/bin/python3 /usr/bin/python
-    RUN cd /opt/mxe && make MXE_PLUGIN_DIRS=plugins/gcc12 MXE_TARGETS=x86_64-w64-mingw32.static JOBS=8 gcc cmake sdl sdl_gfx sdl_mixer sdl_image yaml-cpp zlib
-
-    FROM debian:bullseye-slim
-    COPY --from=build /opt/mxe/usr /opt/mxe/usr
-    COPY --from=build /opt/mxe/.ccache /opt/mxe/.ccache
-    RUN apt-get update && apt-get install -y make ccache && rm -rf /var/lib/apt/lists/*
 
 jobs:
   build:
@@ -70,48 +51,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # - uses: actions/checkout@v3
-
-      - name: Login to GitHub Container Registry
+      - name: Prepare MXE docker container
         if: matrix.compiler == 'mingw'
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check mxe container
-        id: check-mxe-container
-        continue-on-error: true
-        if: matrix.compiler == 'mingw'
-        run: |
-          if docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; then
-            echo ::set-output name=exit_code::$?
-          elif docker pull ${MXE_IMAGE_FALLBACK_NAME}:${MXE_IMAGE_VERSION}; then
-            echo ::set-output name=exit_code::$?
-            echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
-          else
-            echo ::set-output name=exit_code::$?
-            echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
-          fi
-
-          echo "DOCKER_CMD=docker run -v $PWD:/app -v $HOME/.ccache:/root/.ccache \
-           -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}" >> $GITHUB_ENV
-
-          cat $GITHUB_ENV
-
-      - name: Build mxe container
-        if: matrix.compiler == 'mingw' && steps.check-mxe-container.outputs.exit_code != 0
-        # if: steps.check-mxe-container.outputs.exit_code != 0
-        run: |
-          echo "$MXE_DOCKERFILE" > Dockerfile
-          docker build . -t ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
-          docker push ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
-
-      # - name: Setup upterm session
-      #   uses: lhotari/action-upterm@v1
-      #   with:
-      #     limit-access-to-actor: true
+        uses: ./.github/workflows/mxe-docker.yml
 
       - name: Install packages (Ubuntu)
         if: runner.os == 'Linux' && matrix.compiler != 'mingw'
