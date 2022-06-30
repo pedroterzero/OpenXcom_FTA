@@ -114,25 +114,17 @@ jobs:
       #     limit-access-to-actor: true
 
       - name: Install packages (Ubuntu)
+        if: matrix.compiler == 'mingw'
+        run: |
+          sudo apt-get update
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install ccache ${{ matrix.packages }}
+
+      - name: Install packages (Ubuntu)
         if: runner.os == 'Linux' && matrix.compiler != 'mingw'
         run: |
           sudo apt-get update
           sudo apt-get -yq --no-install-suggests --no-install-recommends install ccache ${{ matrix.packages }}
           sudo apt-get -yq --no-install-suggests --no-install-recommends install libsdl1.2-dev libsdl-mixer1.2-dev libsdl-image1.2-dev libsdl-gfx1.2-dev libyaml-cpp-dev
-
-      # - name: Install packages (Ubuntu/mingw)
-      #   if: matrix.compiler == 'mingw'
-      #   run: |
-      #     sudo apt-get update
-      #     # sudo apt-get install autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib gettext git gperf intltool \
-      #     #  libc6-dev-i386 libgdk-pixbuf2.0-dev libltdl-dev libssl-dev libtool-bin libxml-parser-perl lzip make openssl \
-      #     #  p7zip-full patch perl python3 python3-mako ruby sed unzip wget xz-utils
-      #     sudo apt-get install autopoint gperf intltool libtool-bin lzip python3-mako
-      #     cd /opt
-      #     sudo git clone https://github.com/mxe/mxe.git
-      #     sudo chown -R $(whoami): mxe
-      #     cd /opt/mxe
-      #     make MXE_PLUGIN_DIRS=plugins/gcc8 MXE_TARGETS=x86_64-w64-mingw32.static JOBS=8 gcc cmake sdl sdl_gfx sdl_mixer sdl_image yaml-cpp zlib
 
       - name: Install packages (Windows)
         if: runner.os == 'Windows' && matrix.packages
