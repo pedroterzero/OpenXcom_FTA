@@ -14,19 +14,19 @@ env:
   MXE_IMAGE_NAME: ghcr.io/pedroterzero/mxe
   MXE_IMAGE_VERSION: 0.0.2
   MXE_DOCKERFILE: |
-    FROM alpine AS build
-    RUN apk add --no-cache autoconf automake bash binutils bison bzip2 flex g++ gdk-pixbuf gettext git gperf \
-        intltool libtool linux-headers lzip make openssl openssl-dev p7zip patch perl python3 py3-mako ruby \
-        unzip wget xz zlib
+    FROM debian:bullseye-slim AS build
+    RUN apt update && apt-get install -y autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib \
+        gettext git gperf intltool libc6-dev-i386 libgdk-pixbuf2.0-dev libltdl-dev libssl-dev libtool-bin \
+        libxml-parser-perl lzip make openssl p7zip-full patch perl pkg-config python2 ruby sed unzip wget \
+        xz-utils
     RUN cd /opt && git clone https://github.com/mxe/mxe.git
-    RUN cd /opt/mxe && git checkout ddd23aa211a6d6539f2d1a42ac80c6b269297ac7^ plugins/gcc8/gcc8-overlay.mk
-    RUN ln -s /usr/bin/python3 /usr/bin/python
+    RUN cd /opt/mxe && git checkout 595cf68a00556655a143d5647d1322daad9f98a3
+    RUN ln -s /usr/bin/python2 /usr/bin/python
     RUN cd /opt/mxe && make MXE_PLUGIN_DIRS=plugins/gcc8 MXE_TARGETS=x86_64-w64-mingw32.static JOBS=8 gcc cmake sdl sdl_gfx sdl_mixer sdl_image yaml-cpp zlib
 
-    FROM alpine
+    FROM debian:bullseye-slim
     COPY --from=build /opt/mxe/usr /opt/mxe/usr
-    COPY --from=build /opt/mxe/.ccache /opt/mxe/.ccache
-    RUN apk add --no-cache bash ccache grep libstdc++ make
+    RUN apt-get update && apt-get install -y make ccache && rm -rf /var/lib/apt/lists/*
 
 jobs:
   build:
