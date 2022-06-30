@@ -95,7 +95,7 @@ jobs:
             echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
           fi
 
-          echo "DOCKER_CMD=docker run -v \"$PWD:/app\" -v \"$HOME/.ccache:/root/.ccache\" \
+          echo "DOCKER_CMD=docker run -v $PWD:/app -v $HOME/.ccache:/root/.ccache \
            -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}" >> $GITHUB_ENV
 
           cat $GITHUB_ENV
