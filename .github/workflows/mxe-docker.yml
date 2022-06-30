@@ -1,7 +1,7 @@
 name: Provide MXE docker container
 
 on:
-  workflow_call
+  workflow_call:
 
 env:
   # attempt to build it ourselves, if we can't access it
