@@ -71,6 +71,9 @@ jobs:
 
     steps:
       # - uses: actions/checkout@v3
+      - name: Prepare mxe container
+        if: matrix.compiler == 'mingw'
+        uses: ./.github/prepare-mxe-docker
 
       - name: Login to GitHub Container Registry
         if: matrix.compiler == 'mingw'
@@ -259,6 +262,12 @@ jobs:
             name: openxcom_${{ matrix.name }}_${{ matrix.compiler }}-${{ env.describe }}
             path: |
                 ${{ matrix.build-dir || 'build' }}/${{ matrix.app-bundle || 'bin' }}/**/*
+
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        timeout-minutes: 15
+        with:
+          limit-access-to-actor: true
 
       - name: ccache stats
         if: runner.os == 'Linux' || runner.os == 'macOS' || runner.os == 'Windows'
