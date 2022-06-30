@@ -75,48 +75,48 @@ jobs:
 #         if: matrix.compiler == 'mingw'
 #         uses: ./.github/actions/prepare-mxe-docker
 
-      - name: Login to GitHub Container Registry
-        if: matrix.compiler == 'mingw'
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+#       - name: Login to GitHub Container Registry
+#         if: matrix.compiler == 'mingw'
+#         uses: docker/login-action@v2
+#         with:
+#           registry: ghcr.io
+#           username: ${{ github.actor }}
+#           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check mxe container
-        id: check-mxe-container
-        continue-on-error: true
-        if: matrix.compiler == 'mingw'
-        run: |
-          if docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; then
-            echo ::set-output name=exit_code::$?
-          elif docker pull ${MXE_IMAGE_FALLBACK_NAME}:${MXE_IMAGE_VERSION}; then
-            echo ::set-output name=exit_code::$?
-            echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
-          else
-            echo ::set-output name=exit_code::$?
-            echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
-          fi
+#       - name: Check mxe container
+#         id: check-mxe-container
+#         continue-on-error: true
+#         if: matrix.compiler == 'mingw'
+#         run: |
+#           if docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; then
+#             echo ::set-output name=exit_code::$?
+#           elif docker pull ${MXE_IMAGE_FALLBACK_NAME}:${MXE_IMAGE_VERSION}; then
+#             echo ::set-output name=exit_code::$?
+#             echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
+#           else
+#             echo ::set-output name=exit_code::$?
+#             echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
+#           fi
 
-          echo "DOCKER_CMD=docker run -v $PWD:/app -v $HOME/.ccache:/root/.ccache \
-           -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}" >> $GITHUB_ENV
+#           echo "DOCKER_CMD=docker run -v $PWD:/app -v $HOME/.ccache:/root/.ccache \
+#            -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}" >> $GITHUB_ENV
 
-          cat $GITHUB_ENV
+#           cat $GITHUB_ENV
 
-      - name: Build mxe container
-        if: matrix.compiler == 'mingw' && steps.check-mxe-container.outputs.exit_code != 0
-        # if: steps.check-mxe-container.outputs.exit_code != 0
-        run: |
-          echo "$MXE_DOCKERFILE" > Dockerfile
-          docker build . -t ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
-          docker push ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
+#       - name: Build mxe container
+#         if: matrix.compiler == 'mingw' && steps.check-mxe-container.outputs.exit_code != 0
+#         # if: steps.check-mxe-container.outputs.exit_code != 0
+#         run: |
+#           echo "$MXE_DOCKERFILE" > Dockerfile
+#           docker build . -t ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
+#           docker push ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
 
       # - name: Setup upterm session
       #   uses: lhotari/action-upterm@v1
       #   with:
       #     limit-access-to-actor: true
 
-      - name: Install packages (Ubuntu)
+      - name: Install packages (mingw)
         if: matrix.compiler == 'mingw'
         run: |
           sudo apt-get update
@@ -154,6 +154,9 @@ jobs:
       - name: Prepare mxe container
         if: matrix.compiler == 'mingw'
         uses: ./.github/actions/prepare-mxe-docker
+        with:
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup environment
         shell: bash
