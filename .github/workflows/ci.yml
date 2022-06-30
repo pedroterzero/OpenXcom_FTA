@@ -95,6 +95,11 @@ jobs:
             echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
           fi
 
+          echo "DOCKER_CMD=docker run -v \"$PWD\":/app -v \"$HOME/.ccache:/root/.ccache\" \
+           -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}" >> $GITHUB_ENV
+
+          cat $GITHUB_ENV
+
       - name: Build mxe container
         if: matrix.compiler == 'mingw' && steps.check-mxe-container.outputs.exit_code != 0
         # if: steps.check-mxe-container.outputs.exit_code != 0
@@ -214,21 +219,15 @@ jobs:
 
       - name: Compile source code (mingw)
         if: matrix.compiler == 'mingw'
-        uses: addnab/docker-run-action@v3
-        with:
-          image: ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
-          run: |
-            export PATH=/opt/mxe/usr/bin:\$PATH && cd build && /opt/mxe/usr/bin/x86_64-w64-mingw32.static-cmake -DCMAKE_BUILD_TYPE=Release -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF -DCHECK_CCACHE=1 ..
-            make -j4 \
-
-
         # continue-on-error: true
-        # run: |
-        #   # mkdir build
-        #   # docker run -v "$PWD":/app -v "$HOME/.ccache:/root/.ccache" -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION} sh -c "\
-        #     export PATH=/opt/mxe/usr/bin:\$PATH && cd build && /opt/mxe/usr/bin/x86_64-w64-mingw32.static-cmake -DCMAKE_BUILD_TYPE=Release -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF -DCHECK_CCACHE=1 .. && \
-        #     make -j4 \
-        #   # "
+        run: |
+          mkdir build
+          $DOCKER_CMD sh -c "\
+            export PATH=/opt/mxe/usr/bin:\$PATH \
+            && cd build \
+            && /opt/mxe/usr/bin/x86_64-w64-mingw32.static-cmake -DCMAKE_BUILD_TYPE=Release -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF -DCHECK_CCACHE=1 .. \
+            && make -j4 \
+          "
 
       - name: Setup upterm session
         if: ${{ failure() }}
