@@ -178,12 +178,6 @@ jobs:
             path: |
                 ${{ matrix.build-dir || 'build' }}/${{ matrix.app-bundle || 'bin' }}/**/*
 
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-        timeout-minutes: 15
-        with:
-          limit-access-to-actor: true
-
       - name: ccache stats
         if: runner.os == 'Linux' || runner.os == 'macOS' || runner.os == 'Windows'
         run: ccache -s --max-size=390MB
