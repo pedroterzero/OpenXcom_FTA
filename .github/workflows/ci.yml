@@ -2,31 +2,11 @@
 # also change .travis.yml accordingly.
 name: ci
 
-# need to explicitly enable this here, otherwise even though it's correctly configured in github, it won't work
+# need to explicitly enable this here, otherwise even though it's correctly configured in github, it won't work (allow writing to container registry)
 permissions:
   packages: write
 
 on: [push, pull_request]
-
-# env:
-#   # attempt to build it ourselves, if we can't access it
-#   MXE_IMAGE_FALLBACK_NAME: ghcr.io/${{ github.actor }}/mxe
-#   MXE_IMAGE_NAME: ghcr.io/pedroterzero/mxe
-#   MXE_IMAGE_VERSION: 0.0.4
-#   MXE_DOCKERFILE: |
-#     FROM debian:bullseye-slim AS build
-#     RUN apt update && apt-get install -y autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib \
-#         gettext git gperf intltool libc6-dev-i386 libgdk-pixbuf2.0-dev libltdl-dev libssl-dev libtool-bin \
-#         libxml-parser-perl lzip make openssl p7zip-full patch perl pkg-config python3 python3-mako ruby sed \
-#         unzip wget xz-utils
-#     RUN cd /opt && git clone https://github.com/mxe/mxe.git
-#     RUN ln -s /usr/bin/python3 /usr/bin/python
-#     RUN cd /opt/mxe && make MXE_PLUGIN_DIRS=plugins/gcc12 MXE_TARGETS=x86_64-w64-mingw32.static JOBS=8 gcc cmake sdl sdl_gfx sdl_mixer sdl_image yaml-cpp zlib
-
-#     FROM debian:bullseye-slim
-#     COPY --from=build /opt/mxe/usr /opt/mxe/usr
-#     COPY --from=build /opt/mxe/.ccache /opt/mxe/.ccache
-#     RUN apt-get update && apt-get install -y make ccache && rm -rf /var/lib/apt/lists/*
 
 jobs:
   build:
@@ -70,52 +50,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # - uses: actions/checkout@v3
-#       - name: Prepare mxe container
-#         if: matrix.compiler == 'mingw'
-#         uses: ./.github/actions/prepare-mxe-docker
-
-#       - name: Login to GitHub Container Registry
-#         if: matrix.compiler == 'mingw'
-#         uses: docker/login-action@v2
-#         with:
-#           registry: ghcr.io
-#           username: ${{ github.actor }}
-#           password: ${{ secrets.GITHUB_TOKEN }}
-
-#       - name: Check mxe container
-#         id: check-mxe-container
-#         continue-on-error: true
-#         if: matrix.compiler == 'mingw'
-#         run: |
-#           if docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; then
-#             echo ::set-output name=exit_code::$?
-#           elif docker pull ${MXE_IMAGE_FALLBACK_NAME}:${MXE_IMAGE_VERSION}; then
-#             echo ::set-output name=exit_code::$?
-#             echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
-#           else
-#             echo ::set-output name=exit_code::$?
-#             echo "MXE_IMAGE_NAME=${MXE_IMAGE_FALLBACK_NAME}" >> $GITHUB_ENV
-#           fi
-
-#           echo "DOCKER_CMD=docker run -v $PWD:/app -v $HOME/.ccache:/root/.ccache \
-#            -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}" >> $GITHUB_ENV
-
-#           cat $GITHUB_ENV
-
-#       - name: Build mxe container
-#         if: matrix.compiler == 'mingw' && steps.check-mxe-container.outputs.exit_code != 0
-#         # if: steps.check-mxe-container.outputs.exit_code != 0
-#         run: |
-#           echo "$MXE_DOCKERFILE" > Dockerfile
-#           docker build . -t ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
-#           docker push ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}
-
-      # - name: Setup upterm session
-      #   uses: lhotari/action-upterm@v1
-      #   with:
-      #     limit-access-to-actor: true
-
       - name: Install packages (mingw)
         if: matrix.compiler == 'mingw'
         run: |
@@ -174,12 +108,6 @@ jobs:
           Invoke-WebRequest -Uri "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip" -OutFile "openxcom-deps-win-vc2017-newest.zip"
           Expand-Archive -Path "openxcom-deps-win-vc2017-newest.zip" -DestinationPath "."
 
-      # - name: Download dependencies (mingw)
-      #   if: matrix.compiler == 'mingw'
-      #   run: |
-      #     wget -q "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip"
-      #     unzip openxcom-deps-win-vc2017.zip
-
       - name: Generate project files
         if: matrix.compiler != 'mingw'
         run: |
@@ -188,27 +116,6 @@ jobs:
         env:
           CC: ${{ matrix.compiler }}
           CXX: ${{ matrix.cpp-compiler }}
-
-      # - name: Generate project files (mingw)
-      #   if: matrix.compiler == 'mingw'
-      #   # https://openxcom.org/forum/index.php/topic,7048.msg111478.html#msg111478
-      #   run: |
-      #     GITISODATE=$(git show -s --format=%ci)
-      #     GITDATE=$(date -d"$GITISODATE" +%Y-%m-%d)
-      #     GITREF=$(git show -s --format=%h)
-      #     OSARCH=win64
-      #     SHORTVERSION=$(/bin/echo -e "#include \"src/version.h\"\nOPENXCOM_FTA_VERSION_SHORT" | cpp | egrep -v '^(#.+|[[:space:]]+$)' | cut -d\" -f 2 | sed -e "s, ,-,g")
-      #     ZNAME="$SHORTVERSION-$GITREF-$GITDATE-$OSARCH.7z"
-      #     export PATH=/opt/mxe/usr/bin:$PATH
-
-      #     TOOLCHAIN=/opt/mxe/usr/bin/x86_64-w64-mingw32.static
-
-      #     echo "CMAKE=$TOOLCHAIN-cmake" >> $GITHUB_ENV
-
-      #     mkdir build
-      #     cd build
-      #     ${TOOLCHAIN}-cmake \
-      #       -DCMAKE_BUILD_TYPE=Release -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF ..
 
       # - name: Setup upterm session
       #   uses: lhotari/action-upterm@v1
@@ -259,11 +166,10 @@ jobs:
         if: matrix.compiler == 'mingw'
         shell: bash
         run: |
-          $DOCKER_CMD sh -c "\
+          ${{ steps.prepare-mxe-container.outputs.docker-cmd }} sh -c "\
             export PATH=/opt/mxe/usr/bin:\$PATH \
             && /opt/mxe/usr/bin/x86_64-w64-mingw32.static-cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} --target install
           "
-
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
         with:
