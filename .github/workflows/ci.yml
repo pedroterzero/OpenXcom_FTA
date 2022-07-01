@@ -88,7 +88,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.ccache
-          key: ccache-2-${{ runner.os }}-${{ matrix.compiler }}
+          # make sure we always update the cache by passing the run_id (otherwise actions/cache assumes a hit and never updates the cache)
+          key: ccache-${{ runner.os }}-${{ matrix.compiler }}-${{ github.run_id }}
+          restore-keys: ccache-${{ runner.os }}-${{ matrix.compiler }}-
 
       - name: Checkout
         uses: actions/checkout@v2
