@@ -186,7 +186,7 @@ jobs:
         run: |
           $MAYBE_SUDO cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} --target install
 
-      - name: Make install
+      - name: Make install (mingw)
         if: matrix.compiler == 'mingw'
         shell: bash
         run: |
