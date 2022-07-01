@@ -88,7 +88,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.ccache
-          key: ccache-${{ runner.os }}-${{ matrix.compiler }}
+          key: ccache-2-${{ runner.os }}-${{ matrix.compiler }}
 
       - name: Checkout
         uses: actions/checkout@v2
