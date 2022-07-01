@@ -76,17 +76,16 @@ jobs:
           # does not work??
           echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
 
-
-      - name: Setup upterm session
-        if: runner.os == 'macOS'
-        uses: lhotari/action-upterm@v1
-        timeout-minutes: 30
+      # - name: Setup upterm session
+      #   if: runner.os == 'macOS'
+      #   uses: lhotari/action-upterm@v1
+      #   timeout-minutes: 30
         # with:
           # limit-access-to-actor: true
 
       - name: Setup Cache
         if: runner.os == 'Linux' || runner.os == 'macOS' || runner.os == 'Windows'
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.ccache
           key: ccache-${{ runner.os }}-${{ matrix.compiler }}
