@@ -31,13 +31,13 @@ jobs:
             compiler: mingw
             cpp-compiler: mingw
 
-          # - name: Windows
-          #   os: windows-latest
-          #   packages: ccache
-          #   compiler: cl
-          #   cpp-compiler: cl
-          #   cmake-args: -A Win32
-          #   build-args: "/clp:NoSummary"
+          - name: Windows
+            os: windows-latest
+            packages: ccache
+            compiler: cl
+            cpp-compiler: cl
+            cmake-args: -A Win32
+            build-args: "/clp:NoSummary"
 
           - name: macOS
             os: macOS-latest
@@ -63,10 +63,10 @@ jobs:
           sudo apt-get -yq --no-install-suggests --no-install-recommends install ccache ${{ matrix.packages }}
           sudo apt-get -yq --no-install-suggests --no-install-recommends install libsdl1.2-dev libsdl-mixer1.2-dev libsdl-image1.2-dev libsdl-gfx1.2-dev libyaml-cpp-dev
 
-      # - name: Install packages (Windows)
-      #   if: runner.os == 'Windows' && matrix.packages
-      #   run: |
-      #     choco install ${{ matrix.packages }}
+      - name: Install packages (Windows)
+        if: runner.os == 'Windows' && matrix.packages
+        run: |
+          choco install ${{ matrix.packages }}
 
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
@@ -114,11 +114,11 @@ jobs:
           fi
           echo "CMAKE_BUILD_PARALLEL_LEVEL=`getconf _NPROCESSORS_ONLN 2>/dev/null || getconf NPROCESSORS_ONLN 2>/dev/null || echo 2`" >> $GITHUB_ENV
 
-      # - name: Download dependencies (Windows)
-      #   if: runner.os == `'Windows'`
-      #   run: |
-      #     Invoke-WebRequest -Uri "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip" -OutFile "openxcom-deps-win-vc2017-newest.zip"
-      #     Expand-Archive -Path "openxcom-deps-win-vc2017-newest.zip" -DestinationPath "."
+      - name: Download dependencies (Windows)
+        if: runner.os == `'Windows'`
+        run: |
+          Invoke-WebRequest -Uri "https://openxcom.org/download/dev/openxcom-deps-win-vc2017.zip" -OutFile "openxcom-deps-win-vc2017-newest.zip"
+          Expand-Archive -Path "openxcom-deps-win-vc2017-newest.zip" -DestinationPath "."
 
       - name: Generate project files
         if: matrix.compiler != 'mingw'
