@@ -72,7 +72,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install ccache ${{ matrix.packages }}
-          echo "CCACHE_DIR=~/.ccache" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
           # does not work??
           echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
 
