@@ -53,7 +53,7 @@ runs:
         fi
 
         echo "::set-output name=docker-cmd::docker run -v $PWD:/app -v $HOME/.ccache:/root/.ccache \
-          -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}" >> $GITHUB_ENV
+          -w /app --rm ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}"
 
         # cat $GITHUB_ENV
 
