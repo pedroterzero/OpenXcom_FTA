@@ -72,6 +72,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install ccache ${{ matrix.packages }}
+          echo /usr/local/opt/ccache/libexec >> $GITHUB_PATH
 
       - name: Setup upterm session
         if: runner.os == 'macOS'
