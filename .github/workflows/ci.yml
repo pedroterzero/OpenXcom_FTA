@@ -172,11 +172,12 @@ jobs:
             && /opt/mxe/usr/bin/x86_64-w64-mingw32.static-cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} --target install
           "
       - name: Archive artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
             name: openxcom_${{ matrix.name }}_${{ matrix.compiler }}-${{ env.describe }}
             path: |
                 ${{ matrix.build-dir || 'build' }}/${{ matrix.app-bundle || 'bin' }}/**/*
+                !${{ matrix.build-dir || 'build' }}/${{ matrix.app-bundle || 'bin' }}/libopenxcom.dll.a
 
       - name: ccache stats
         if: runner.os == 'Linux' || runner.os == 'macOS' || runner.os == 'Windows'
