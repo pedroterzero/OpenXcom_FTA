@@ -138,6 +138,7 @@ jobs:
             && /opt/mxe/usr/bin/x86_64-w64-mingw32.static-cmake -DCMAKE_BUILD_TYPE=Release -DDEV_BUILD=OFF -DBUILD_PACKAGE=OFF -DCHECK_CCACHE=1 .. \
             && make -j4 \
           "
+          sudo chown -R runner ~/.ccache
 
       - name: Setup upterm session
         if: ${{ failure() }}
