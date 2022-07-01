@@ -123,9 +123,6 @@ jobs:
       - name: Generate project files
         if: matrix.compiler != 'mingw'
         run: |
-          if [ $RUNNER_OS = "macOS" ]; then
-            echo MYPATHY $PATH
-          fi
           cmake -B ${{ matrix.build-dir || 'build' }} ${{ matrix.build-src-dir || '.' }} -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNING=1 -DCHECK_CCACHE=1 ${{ matrix.cmake-args }}
         env:
           CC: ${{ matrix.compiler }}
