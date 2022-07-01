@@ -72,7 +72,9 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install ccache ${{ matrix.packages }}
+          echo "Path before: $PATH"
           echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
+          echo "Path after: $PATH"
 
       - name: Setup upterm session
         if: runner.os == 'macOS'
@@ -119,7 +121,7 @@ jobs:
       - name: Generate project files
         if: matrix.compiler != 'mingw'
         run: |
-          echo "CMAKE=$(which cmake)" >> $GITHUB_ENV
+          # echo "CMAKE=$(which cmake)" >> $GITHUB_ENV
           cmake -B ${{ matrix.build-dir || 'build' }} ${{ matrix.build-src-dir || '.' }} -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNING=1 -DCHECK_CCACHE=1 ${{ matrix.cmake-args }}
         env:
           CC: ${{ matrix.compiler }}
@@ -133,7 +135,8 @@ jobs:
       - name: Compile source code
         if: matrix.compiler != 'mingw'
         run: |
-          $CMAKE --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
+          echo "Compile PATH: $PATH"
+          cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
 
       - name: Compile source code (mingw)
         if: matrix.compiler == 'mingw'
