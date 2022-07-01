@@ -124,11 +124,8 @@ jobs:
         if: matrix.compiler != 'mingw'
         run: |
           if [ $RUNNER_OS = "macOS" ]; then
-            echo $PATH
-            export PATH="/usr/local/opt/ccache/libexec:$PATH"
-            echo $PATH
+            echo MYPATHY $PATH
           fi
-
           cmake -B ${{ matrix.build-dir || 'build' }} ${{ matrix.build-src-dir || '.' }} -DCMAKE_BUILD_TYPE=Release -DENABLE_WARNING=1 -DCHECK_CCACHE=1 ${{ matrix.cmake-args }}
         env:
           CC: ${{ matrix.compiler }}
@@ -142,12 +139,6 @@ jobs:
       - name: Compile source code
         if: matrix.compiler != 'mingw'
         run: |
-          if [ $RUNNER_OS = "macOS" ]; then
-            echo $PATH
-            export PATH="/usr/local/opt/ccache/libexec:$PATH"
-            echo $PATH
-          fi
-
           cmake --build ${{ matrix.build-dir || 'build' }} -v --config ${{ matrix.build-config || 'Release' }} -- ${{ matrix.build-args }}
 
       - name: Compile source code (mingw)
