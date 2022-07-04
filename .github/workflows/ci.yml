@@ -41,7 +41,7 @@ jobs:
 
           - name: macOS
             os: macOS-latest
-            packages: yaml-cpp sdl sdl_gfx sdl_image sdl_mixer
+            packages: ccache sdl sdl_gfx sdl_image sdl_mixer
             # cmake-args: -DCMAKE_BINARY_DIR=/usr/local/bin
             compiler: clang
             cpp-compiler: clang++
@@ -71,7 +71,9 @@ jobs:
       - name: Install packages (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install ccache ${{ matrix.packages }}
+          brew install ${{ matrix.packages }}
+          wget https://raw.githubusercontent.com/Homebrew/homebrew-core/15db440a1b4e74444005500aa37aa914e92dd041/Formula/yaml-cpp.rb
+          brew install yaml-cpp.rb
           echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
           # does not work??
           echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
@@ -201,3 +203,4 @@ jobs:
       - name: ccache stats
         if: runner.os == 'Linux' || runner.os == 'macOS' || runner.os == 'Windows'
         run: ccache -s --max-size=390MB
+z
