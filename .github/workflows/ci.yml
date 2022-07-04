@@ -114,7 +114,7 @@ jobs:
           fi
           echo "CMAKE_BUILD_PARALLEL_LEVEL=`getconf _NPROCESSORS_ONLN 2>/dev/null || getconf NPROCESSORS_ONLN 2>/dev/null || echo 2`" >> $GITHUB_ENV
 
-          if [ -d ".github/workflows/patches/{$runner.os}" ]; then
+          if [ -d ".github/workflows/patches/${{ runner.os }}" ]; then
             # apply patches in dir
             for patch in .github/workflows/patches/${{ runner.os }}/*.patch; do
               echo "Applying patch $patch"
