@@ -21,8 +21,6 @@ runs:
       uses: docker/login-action@v2
       with:
         registry: ghcr.io
-        # username: ${{ github.actor }}
-        # password: ${{ secrets.GITHUB_TOKEN }}
         username: ${{ inputs.registry_username }}
         password: ${{ inputs.registry_password }}
 
@@ -31,7 +29,7 @@ runs:
       id: check-mxe-container
       run: |
         export MXE_IMAGE_NAME=ghcr.io/pedroterzero/mxe
-        export MXE_IMAGE_VERSION=0.0.4
+        export MXE_IMAGE_VERSION=0.0.5
         export MXE_IMAGE_FALLBACK_NAME=ghcr.io/${{ inputs.registry_username }}/mxe
 
         if docker pull ${MXE_IMAGE_NAME}:${MXE_IMAGE_VERSION}; then
@@ -55,6 +53,8 @@ runs:
       shell: bash
       if: steps.check-mxe-container.outputs.exit_code != 0
       run: |
+        export MXE_IMAGE_NAME=${{ steps.check-mxe-container.outputs.image-name }}
+
         cat << EOF > Dockerfile
         FROM debian:bullseye-slim AS build
         RUN apt update && apt-get install -y autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib \
