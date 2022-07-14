@@ -1130,6 +1130,7 @@ void DebriefingState::prepareDebriefing()
 	_stats.push_back(new DebriefingStat("STR_VIP_SAVED", false));
 	_stats.push_back(new DebriefingStat("STR_VIP_KILLED_BY_ALIENS", false));
 	_stats.push_back(new DebriefingStat("STR_VIP_KILLED_BY_XCOM_OPERATIVES", false));
+	_stats.push_back(new DebriefingStat("STR_ENEMY_VIP_TERMINATED", false));
 	_stats.push_back(new DebriefingStat("STR_SCIENTIST_JOINED_XCOM", false));
 	_stats.push_back(new DebriefingStat("STR_ENGINEER_JOINED_XCOM", false));
 	_stats.push_back(new DebriefingStat("STR_SOLDIER_JOINED_XCOM", false));
@@ -1536,10 +1537,17 @@ void DebriefingState::prepareDebriefing()
 		UnitFaction faction = (*j)->getFaction();
 		UnitFaction oldFaction = (*j)->getOriginalFaction();
 		int value = (*j)->getValue();
-		bool evacObj = false;
+		bool evacObj = false, terminateObj = false;
 		if ((*j)->getGeoscapeSoldier() == 0)
 		{
-			evacObj = (*j)->getUnitRules()->getSpecialObjectiveType() == "STR_FRIENDLY_VIP";
+			if ((*j)->getOriginalFaction() == FACTION_PLAYER)
+			{
+				evacObj = (*j)->getUnitRules()->getSpecialObjective() == SPECOBJ_FRIENDLY_VIP;
+			}
+			else if ((*j)->getOriginalFaction() == FACTION_HOSTILE)
+			{
+				terminateObj = (*j)->getUnitRules()->getSpecialObjective() == SPECOBJ_ENEMY_VIP;
+			}
 		}
 		Soldier *soldier = save->getSoldier((*j)->getId());
 
@@ -1568,7 +1576,11 @@ void DebriefingState::prepareDebriefing()
 
 		if (status == STATUS_DEAD)
 		{ // so this is a dead unit
-			if (oldFaction == FACTION_HOSTILE && (*j)->killedBy() == FACTION_PLAYER)
+			if (terminateObj)
+			{
+				addStat("STR_ENEMY_VIP_TERMINATED", 1, value);
+			}
+			else if (oldFaction == FACTION_HOSTILE && (*j)->killedBy() == FACTION_PLAYER)
 			{
 				addStat("STR_ALIENS_KILLED", 1, value);
 			}

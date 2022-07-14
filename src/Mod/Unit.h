@@ -33,6 +33,7 @@ class ModScript;
 class ScriptParserBase;
 
 enum SpecialAbility { SPECAB_NONE, SPECAB_EXPLODEONDEATH, SPECAB_BURNFLOOR, SPECAB_BURN_AND_EXPLODE };
+enum SpecialObjective { SPECOBJ_NONE, SPECOBJ_FRIENDLY_VIP, SPECOBJ_ENEMY_VIP };
 /**
  * This struct holds some plain unit attribute data together.
  */
@@ -425,11 +426,11 @@ private:
 	int _value, _moraleLossWhenKilled, _moveSound;
 	int _intelligence, _aggression, _spotter, _sniper, _energyRecovery;
 	SpecialAbility _specab;
+	SpecialObjective _specialObjective;
 	const RuleItem* _liveAlien = nullptr;
 	const Unit *_spawnUnit = nullptr;
 	const Unit* _altUnit = nullptr;
 	std::string _spawnUnitName;
-	std::string _specialObjectiveType;
 	bool _livingWeapon;
 	std::string _meleeWeapon, _psiWeapon, _altRecoveredUnit;
 	std::vector<std::vector<std::string> > _builtInWeaponsNames;
@@ -531,11 +532,10 @@ public:
 	bool getCapturable() const;
 	/// Checks if this unit can surrender.
 	bool canSurrender() const;
-	/// Gets special objective type of a unit.
-	const std::string& getSpecialObjectiveType() const { return _specialObjectiveType; };
+	/// Gets special objective of a unit.
+	SpecialObjective getSpecialObjective() const { return _specialObjective; }
 	/// Gets alternative unit for recovery.
 	const Unit* getAltUnit() const { return _altUnit; };
-	//const std::string& getAltRecoveredUnit() const { return _altUnit->getType(); }; //_altRecoveredUnit
 	/// Checks if this unit surrenders automatically, if all other units surrendered too.
 	bool autoSurrender() const;
 	bool isLeeroyJenkins() const { return _isLeeroyJenkins; };
