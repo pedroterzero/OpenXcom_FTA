@@ -435,6 +435,7 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 		_name = filename;
 	}
 	_ironman = brief["ironman"].as<bool>(_ironman);
+	_ftaGame = brief["ftaGame"].as<bool>(_ftaGame);
 
 	// Get full save data
 	YAML::Node doc = file[1];
@@ -447,7 +448,6 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 	_graphCountryToggles = doc["graphCountryToggles"].as<std::string>(_graphCountryToggles);
 	_graphFinanceToggles = doc["graphFinanceToggles"].as<std::string>(_graphFinanceToggles);
 	_loyalty = doc["loyalty"].as<int>(_loyalty);
-	_ftaGame = doc["ftaGame"].as<bool>(_ftaGame);
 	_lastMonthsLoyalty = doc["lastMonthsLoyalty"].as<int>(_lastMonthsLoyalty);
 	_funds = doc["funds"].as< std::vector<int64_t> >(_funds);
 	_maintenance = doc["maintenance"].as< std::vector<int64_t> >(_maintenance);
