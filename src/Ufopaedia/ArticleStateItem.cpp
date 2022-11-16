@@ -38,7 +38,6 @@
 
 namespace OpenXcom
 {
-
 	ArticleStateItem::ArticleStateItem(ArticleDefinitionItem *defs, std::shared_ptr<ArticleCommonState> state) : ArticleState(defs->id, std::move(state))
 	{
 		RuleItem *item = _game->getMod()->getItem(defs->id, true);
@@ -288,6 +287,27 @@ namespace OpenXcom
 		_txtInfo->setScrollable(true);
 		_txtInfo->setText(tr(defs->getTextForPage(_state->current_page)));
 
+		//Categories, such as Concealable and Silent
+		std::vector<std::string> itemTags = getItemTags(item);
+		if (itemTags.size() > 0)
+		{
+			_txtTags = new Text(300, 10, _txtInfo->getX(), _txtInfo->getY() + _txtInfo->getTextHeight());
+			add(_txtTags);
+			_txtTags->setColor(_textColor2);
+			_txtTags->setWordWrap(true);
+			_txtTags->setScrollable(false);
+			std::string tagsFinalText = ">";
+			for (int i = 0; i < itemTags.size(); i++)
+			{
+				tagsFinalText.append(itemTags[i]);
+				if (i != itemTags.size() - 1)
+				{
+					tagsFinalText.append(", ");
+				}
+			}
+			_txtTags->setText(tagsFinalText);
+		}		
+
 		// STATS FOR NERDS extract
 		_txtAccuracyModifier = new Text(300, 9, 8, 174);
 		_txtPowerBonus = new Text(300, 17, 8, 183);
@@ -479,6 +499,28 @@ namespace OpenXcom
 			}
 		}
 		return ss.str();
+	}
+
+	//This function returns a list of tags this item belongs to
+	//Those are represented as a vector of finalized strings
+	std::vector<std::string> ArticleStateItem::getItemTags(RuleItem *item)
+	{
+		std::vector<std::string> output = std::vector<std::string>();		
+		for (auto & category : item->getCategories())
+		{
+			//ADD checks for categories which are in categories array
+			if (category == "STR_CONCEALABLE")
+			{
+				output.push_back(tr("STR_CTG_CONCEALABLE"));
+				break;
+			}
+		}
+		if (item->getNoiseValue() == 0)
+		{
+			output.push_back(tr("STR_CTG_SILENT"));
+		}
+		//ADD checks for new categories, if there are any here
+		return output;
 	}
 
 	int ArticleStateItem::getDamageTypeTextColor(ItemDamageType dt)
