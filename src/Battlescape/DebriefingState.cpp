@@ -2051,6 +2051,15 @@ void DebriefingState::prepareDebriefing()
 				{
 					addStat(objectiveCompleteText, 1, objectiveCompleteScore);
 				}
+				//discard abort penalty. it's legal here
+				for (std::vector<DebriefingStat *>::iterator i = _stats.begin(); i != _stats.end(); ++i)
+				{
+					if ((*i)->item == "STR_MISSION_ABORTED")
+					{
+						_stats.erase(i);
+						break;
+					}
+				}
 			}
 			else
 			{
