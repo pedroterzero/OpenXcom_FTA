@@ -571,7 +571,7 @@ void BattleItem::moveToOwner(BattleUnit *owner)
  * Gets the item's inventory slot.
  * @return The slot id.
  */
-const RuleInventory *BattleItem::getSlot() const
+RuleInventory *BattleItem::getSlot() const
 {
 	return _inventorySlot;
 }
@@ -604,7 +604,7 @@ int BattleItem::getMoveToCost(const RuleInventory *slot) const
  * Sets the item's inventory slot.
  * @param slot The slot id.
  */
-void BattleItem::setSlot(const RuleInventory *slot)
+void BattleItem::setSlot(RuleInventory *slot)
 {
 	_inventorySlot = slot;
 }

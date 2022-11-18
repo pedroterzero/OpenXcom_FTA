@@ -911,10 +911,6 @@ public:
 	const std::string& getBaseConstructionUnlockResearch() const { return _baseConstructionUnlockResearch; } //FtA version
 	/// Gets the research topic required for using Ufopaedia.
 	const std::string& getUfopaediaUnlockResearch() const { return _ufopaediaUnlockResearch; }
-	/// Gets the research topic required for hiring new scientists.
-	const std::string &getHireScientistsUnlockResearch() const { return _hireScientistsUnlockResearch; }
-	/// Gets the research topic required for hiring new engineers.
-	const std::string &getHireEngineersUnlockResearch() const { return _hireEngineersUnlockResearch; }
 
 	/// Gets the threshold for defining a glancing hit on a ufo during interception
 	int getUfoGlancingHitThreshold() const { return _ufoGlancingHitThreshold; }
@@ -1044,7 +1040,7 @@ public:
 	/// Returns the sorted list of inventories.
 	const std::vector<std::string> &getInvsList() const;
 	/// Generates a new soldier.
-	Soldier *genSoldier(SavedGame *save, RuleSoldier* ruleSoldier, int nationality) const;
+	Soldier *genSoldier(SavedGame *save, const RuleSoldier* ruleSoldier, int nationality) const;
 	/// Gets the item to be used as fuel for ships.
 	std::string getAlienFuelName() const;
 	/// Gets the amount of alien fuel to recover

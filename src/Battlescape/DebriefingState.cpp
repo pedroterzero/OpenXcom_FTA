@@ -2963,7 +2963,8 @@ bool DebriefingState::handleVipRecovery(BattleUnit *unit, Base *base, Craft *cra
 			RuleSoldier* ruleSoldier = _game->getMod()->getSoldier(type);
 			if (ruleSoldier != 0)
 			{
-				Soldier *s = _game->getMod()->genSoldier(_game->getSavedGame(), ruleSoldier->getType());
+				int nationality = _game->getSavedGame()->selectSoldierNationalityByLocation(_game->getMod(), ruleSoldier, _base);
+				Soldier *s = _game->getMod()->genSoldier(_game->getSavedGame(), ruleSoldier, nationality);
 				unit->setGeoscapeSoldied(s);
 				UnitStats *stats = unit->getBaseStats();
 				s->setBothStats(stats);

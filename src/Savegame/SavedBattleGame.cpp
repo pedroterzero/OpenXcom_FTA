@@ -2858,7 +2858,7 @@ int SavedBattleGame::getMoraleLossModifierWhenKilled(BattleUnit* unit)
 
 	if (unit->getGeoscapeSoldier())
 	{
-		result = unit->getGeoscapeSoldier()->getRules()->getMoraleLossWhenKilled();
+		result = unit->getGeoscapeSoldier()->getRules()->getTransferTime();
 	}
 	else if (unit->getUnitRules())
 	{

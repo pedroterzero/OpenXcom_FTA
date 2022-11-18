@@ -3738,10 +3738,10 @@ bool OpenXcom::BattlescapeGame::scriptSpawnUnit(BattleScript* command)
 				unitRule,
 				faction,
 				_save->getUnits()->back()->getId() + 1,
-				faction != FACTION_PLAYER ? _save->getEnviroEffects() : nullptr,
-				unitRule->getArmor(),
+				faction != FACTION_PLAYER ? _save->getEnviroEffects() : nullptr, unitRule->getArmor(),
 				faction == FACTION_HOSTILE ? getMod()->getStatAdjustment(_parentState->getGame()->getSavedGame()->getDifficulty()) : nullptr,
-				getDepth());
+				getDepth(),
+				_save->getStartingCondition());
 
 			if (faction == FACTION_PLAYER)
 			{

@@ -597,12 +597,13 @@ void DiplomacyPurchaseState::btnOkClick(Action *)
 			case TRANSFER_SOLDIER:
 				for (int s = 0; s < i->amount; s++)
 				{
-					RuleSoldier *rule = (RuleSoldier*)i->rule;
+					const RuleSoldier *rule = (RuleSoldier*)i->rule;
 					int time = rule->getTransferTime();
 					if (time == 0)
 						time = _game->getMod()->getPersonnelTime();
 					t = new Transfer(time);
-					t->setSoldier(_game->getMod()->genSoldier(_game->getSavedGame(), rule->getType()));
+					int nationality = _game->getSavedGame()->selectSoldierNationalityByLocation(_game->getMod(), rule, _base);
+					t->setSoldier(_game->getMod()->genSoldier(_game->getSavedGame(), rule, nationality));
 					_base->getTransfers()->push_back(t);
 					_faction->getStaffContainer()->removeItem(rule->getType());
 				}

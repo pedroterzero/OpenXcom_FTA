@@ -88,7 +88,7 @@ private:
 	SavedBattleGame *_save;
 	const std::vector<Uint16> *_voxelData;
 	std::vector<VisibilityBlockCache> _blockVisibility;
-	const RuleInventory *_inventorySlotGround;
+	RuleInventory *_inventorySlotGround;
 	constexpr static int heightFromCenter[11] = {0,-2,+2,-4,+4,-6,+6,-8,+8,-12,+12};
 	bool _personalLighting;
 	Tile *_cacheTile;
@@ -165,7 +165,7 @@ public:
 	/// Recalculate all lighting in some area.
 	void calculateLighting(LightLayers layer, Position position = invalid, int eventRadius = 0, bool terrianChanged = false);
 	/// Adds unit directional lighting
-	void calculateUnitDirectionalLighting(MapSubset gs, BattleUnit *unit, BattleItem *w);
+	void calculateUnitDirectionalLighting(MapSubset gs, BattleUnit *unit, const BattleItem *w);
 	/// Handles tile hit.
 	int hitTile(Tile *tile, int damage, const RuleDamageType* type);
 	/// Handles experience training.
@@ -228,7 +228,7 @@ public:
 	/// Drop all unit items on ground.
 	void itemDropInventory(Tile *t, BattleUnit *unit, bool unprimeItems = false, bool deleteFixedItems = false);
 	/// Move item to other place in inventory or ground.
-	void itemMoveInventory(Tile *t, BattleUnit *unit, BattleItem *item, const RuleInventory *slot, int x, int y);
+	void itemMoveInventory(Tile *t, BattleUnit *unit, BattleItem *item, RuleInventory *slot, int x, int y);
 
 	/// Add moving unit.
 	void addMovingUnit(BattleUnit* unit);

@@ -574,7 +574,7 @@ void TileEngine::calculateUnitLighting(MapSubset gs)
 	}
 }
 
-void TileEngine::calculateUnitDirectionalLighting(MapSubset gs, BattleUnit *unit, BattleItem *w)
+void TileEngine::calculateUnitDirectionalLighting(MapSubset gs, BattleUnit *unit, const BattleItem *w)
 {
 	const auto size = unit->getArmor()->getSize();
 	const auto pos = unit->getPosition();
@@ -4719,7 +4719,7 @@ void TileEngine::itemDropInventory(Tile *t, BattleUnit *unit, bool unprimeItems,
 /**
  * Move item to other place in inventory or ground.
  */
-void TileEngine::itemMoveInventory(Tile *t, BattleUnit *unit, BattleItem *item, const RuleInventory *slot, int x, int y)
+void TileEngine::itemMoveInventory(Tile *t, BattleUnit *unit, BattleItem *item, RuleInventory *slot, int x, int y)
 {
 	// Handle dropping from/to ground.
 	if (slot != item->getSlot())

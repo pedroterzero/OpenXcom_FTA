@@ -1649,7 +1649,7 @@ bool Inventory::fitItem(RuleInventory *newSlot, BattleItem *item, std::string &w
 	{
 		if ((*itemInInventory)->getRules()->getType() == item->getRules()->getType())
 		{
-			auto itemSlot = (*itemInInventory)->getSlot();
+			RuleInventory *itemSlot = (*itemInInventory)->getSlot();
 			int slotX = (*itemInInventory)->getSlotX();
 			int slotY = (*itemInInventory)->getSlotY();
 			if (canBeStacked(item, *itemInInventory, itemSlot, slotX, slotY))

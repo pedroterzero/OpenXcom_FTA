@@ -50,7 +50,7 @@ namespace OpenXcom
  * @param armor Soldier armor.
  * @param id Unique soldier id for soldier generation.
  */
-Soldier::Soldier(RuleSoldier *rules, Armor *armor, int nationality, int id) :
+Soldier::Soldier(const RuleSoldier *rules, Armor *armor, int nationality, int id) :
 	_id(id), _nationality(0),
 	_improvement(0), _psiStrImprovement(0), _rules(rules), _rank(RANK_ROOKIE), _craft(0), _covertOperation(0),
 	_gender(GENDER_MALE), _look(LOOK_BLONDE), _lookVariant(0), _missions(0), _kills(0), _stuns(0), 
@@ -860,7 +860,7 @@ void Soldier::setLookVariant(int lookVariant)
  * Returns the soldier's rules.
  * @return rule soldier
  */
-RuleSoldier *Soldier::getRules() const
+const RuleSoldier *Soldier::getRules() const
 {
 	return _rules;
 }
@@ -1766,7 +1766,7 @@ void Soldier::transform(const Mod *mod, RuleSoldierTransformation *transformatio
 	else
 	{
 		// backup original soldier type, it will still be needed later for stat change calculations
-		RuleSoldier* sourceSoldierType = _rules;
+		const RuleSoldier* sourceSoldierType = _rules;
 
 		// change soldier type if needed
 		if (!Mod::isEmptyRuleName(transformationRule->getProducedSoldierType()) && _rules->getType() != transformationRule->getProducedSoldierType())
@@ -1984,7 +1984,7 @@ UnitStats Soldier::calculateStatChanges(const Mod *mod, RuleSoldierTransformatio
 	int sign = statChange.bravery < 0 ? -1 : 1;
 	statChange.bravery = ((statChange.bravery + (sign * 5)) / 10) * 10;
 
-	RuleSoldier *transformationSoldierType = _rules;
+	const RuleSoldier *transformationSoldierType = _rules;
 	if (!Mod::isEmptyRuleName(transformationRule->getProducedSoldierType()))
 	{
 		transformationSoldierType = mod->getSoldier(transformationRule->getProducedSoldierType());

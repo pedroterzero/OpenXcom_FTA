@@ -4855,7 +4855,7 @@ bool BattleUnit::checkViewSector(Position originPos, Position targetPos, int dir
 		{
 			int deltaX = targetPos.x - (originPos.x + x);
 			int deltaY = (originPos.y + y) - targetPos.y;
-			switch (useTurretDirection ? _directionTurret : _direction)
+			switch (direction)
 			{
 			case 0:
 				if ((deltaX + deltaY >= 0) && (deltaY - deltaX >= 0))
