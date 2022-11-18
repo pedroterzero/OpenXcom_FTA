@@ -300,7 +300,7 @@ void Inventory::drawGridLabels(bool showTuCost)
 			std::ostringstream ss;
 			ss << _game->getLanguage()->getString(i->getId());
 			ss << ":";
-			ss << _selItem->getSlot()->getCost(i);
+			ss << _selItem->getMoveToCost(i);
 			text.setText(ss.str().c_str());
 		}
 		else
@@ -837,7 +837,7 @@ void Inventory::mouseClick(Action *action, State *state)
 						}
 						else
 						{
-							if (!_tu || _selUnit->spendTimeUnits(item->getSlot()->getCost(newSlot)))
+							if (!_tu || _selUnit->spendTimeUnits(item->getMoveToCost(newSlot)))
 							{
 								placed = true;
 								moveItem(item, newSlot, 0, 0);
@@ -897,7 +897,7 @@ void Inventory::mouseClick(Action *action, State *state)
 					// If item fits into an empty slot or can be stacked try moving it there
 					if ((!overlapItems(_selUnit, _selItem, slot, x, y) && slot->fitItemInSlot(_selItem->getRules(), x, y)) || canStack)
 					{
-						if (!_tu || _selUnit->spendTimeUnits(_selItem->getSlot()->getCost(slot)))
+						if (!_tu || _selUnit->spendTimeUnits(_selItem->getMoveToCost(slot)))
 						{
 							moveItem(_selItem, slot, x, y);
 							setSelectedItem(0);
@@ -944,7 +944,7 @@ void Inventory::mouseClick(Action *action, State *state)
 						{
 							// 3. the cost of moving the new ammo from the current slot to the offhand
 							// Note: the cost for left/right hand might *NOT* be the same, but using the right hand "by definition"
-							tuCost += _selItem->getSlot()->getCost(_inventorySlotRightHand);
+							tuCost += _selItem->getMoveToCost(_inventorySlotRightHand);
 						}
 
 						BattleItem *weaponRightHand = _selUnit->getRightHandWeapon();
@@ -1049,7 +1049,7 @@ void Inventory::mouseClick(Action *action, State *state)
 					BattleItem *item = _selUnit->getItem(slot, x, y);
 					if (canBeStacked(item, _selItem, slot, x, y))
 					{
-						if (!_tu || _selUnit->spendTimeUnits(_selItem->getSlot()->getCost(slot)))
+						if (!_tu || _selUnit->spendTimeUnits(_selItem->getMoveToCost(slot)))
 						{
 							moveItem(_selItem, slot, item->getSlotX(), item->getSlotY());
 							setSelectedItem(0);
@@ -1318,7 +1318,7 @@ bool Inventory::unload(bool quickUnload)
 	if (cost.haveTU() && _selItem->getSlot()->getType() != INV_HAND)
 	{
 		// 1. move the weapon to the first free hand
-		cost.Time += _selItem->getSlot()->getCost(FirstFreeHand);
+		cost.Time += _selItem->getMoveToCost(FirstFreeHand);
 	}
 
 	std::string err;

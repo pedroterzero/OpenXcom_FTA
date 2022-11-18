@@ -48,7 +48,6 @@
 #include "../Mod/RuleCraftWeapon.h"
 #include "../Engine/Timer.h"
 #include "../Engine/Options.h"
-#include "../Engine/CrossPlatform.h"
 #include "../Engine/Unicode.h"
 #include "../Mod/RuleInterface.h"
 #include "../Battlescape/DebriefingState.h"
@@ -587,7 +586,7 @@ void SellState::btnOkClick(Action *)
 		}
 	};
 
-	auto cleanUpCraft = [&](Craft* craft, const RuleItem* rule, int toRemove) -> int
+	auto cleanUpCraft = [&](Craft* craft2, const RuleItem* rule, int toRemove) -> int
 	{
 		struct S
 		{
@@ -617,7 +616,7 @@ void SellState::btnOkClick(Action *)
 			}
 		};
 
-		for (auto*& w :* craft->getWeapons())
+		for (auto*& w :* craft2->getWeapons())
 		{
 			if (w != nullptr)
 			{
@@ -637,7 +636,7 @@ void SellState::btnOkClick(Action *)
 		}
 
 		Collections::deleteIf(
-			*craft->getVehicles(),
+			*craft2->getVehicles(),
 			[&](Vehicle* v)
 			{
 				auto clipType = v->getRules()->getVehicleClipAmmo();

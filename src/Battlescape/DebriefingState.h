@@ -99,7 +99,7 @@ private:
 	/// Recovers items from the battlescape.
 	void recoverItems(std::vector<BattleItem*> *from, Base *base);
 	/// Recovers a civilian from the battlescape.
-	void recoverCivilian(BattleUnit *from, Base *base);
+	void recoverCivilian(BattleUnit *from, Base *base, Craft* craft);
 	/// Recovers an alien from the battlescape.
 	void recoverAlien(BattleUnit *from, Base *base);
 	/// Handle friendly non X-COM unit  (VIP) recovery from the battlescape.

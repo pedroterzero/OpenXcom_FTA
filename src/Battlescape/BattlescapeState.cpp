@@ -610,7 +610,7 @@ BattlescapeState::BattlescapeState() :
 			// turn personal lights off
 			//_save->getTileEngine()->togglePersonalLighting();
 			// turn night vision on
-			_map->toggleNightVision();
+			_map->enableNightVision();
 		}
 	}
 
@@ -1208,9 +1208,7 @@ void BattlescapeState::btnKneelClick(Action *)
 			// update any path preview when unit kneels
 			if (_battleGame->getPathfinding()->isPathPreviewed())
 			{
-				_battleGame->getPathfinding()->calculate(_battleGame->getCurrentAction()->actor, _battleGame->getCurrentAction()->target, _battleGame->getCurrentAction()->getMoveType());
-				_battleGame->getPathfinding()->removePreview();
-				_battleGame->getPathfinding()->previewPath();
+				_battleGame->getPathfinding()->refreshPath();
 			}
 		}
 	}
@@ -1830,8 +1828,7 @@ void BattlescapeState::btnReserveClick(Action *action)
 		// update any path preview
 		if (_battleGame->getPathfinding()->isPathPreviewed())
 		{
-			_battleGame->getPathfinding()->removePreview();
-			_battleGame->getPathfinding()->previewPath();
+			_battleGame->getPathfinding()->refreshPath();
 		}
 	}
 }
@@ -3479,8 +3476,7 @@ void BattlescapeState::btnReserveKneelClick(Action *action)
 		// update any path preview
 		if (_battleGame->getPathfinding()->isPathPreviewed())
 		{
-			_battleGame->getPathfinding()->removePreview();
-			_battleGame->getPathfinding()->previewPath();
+			_battleGame->getPathfinding()->refreshPath();
 		}
 	}
 }
@@ -3562,7 +3558,7 @@ void BattlescapeState::txtTooltipInExtra(Action *action, bool leftHand, bool spe
 				// we can heal a unit that is at the same position, unconscious and healable(=woundable)
 				if ((*i)->getPosition() == selectedUnit->getPosition() && *i != selectedUnit && (*i)->getStatus() == STATUS_UNCONSCIOUS && ((*i)->isWoundable() || weaponRule->getAllowTargetImmune()) && weaponRule->getAllowTargetGround())
 				{
-					if ((*i)->getArmor()->getSize() != 1)
+					if ((*i)->isBigUnit())
 					{
 						// never EVER apply anything to 2x2 units on the ground
 						continue;

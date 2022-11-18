@@ -21,11 +21,9 @@
 #include <algorithm>
 #include <sstream>
 #include <climits>
-#include <unordered_map>
 #include <cassert>
 #include "../Engine/CrossPlatform.h"
 #include "../Engine/FileMap.h"
-#include "../Engine/SDL2Helpers.h"
 #include "../Engine/Palette.h"
 #include "../Engine/Font.h"
 #include "../Engine/Surface.h"
@@ -353,7 +351,7 @@ Mod::Mod() :
 	_inventoryOverlapsPaperdoll(false),
 	_maxViewDistance(20), _maxDarknessToSeeUnits(9), _maxStaticLightDistance(16), _maxDynamicLightDistance(24), _enhancedLighting(0),
 	_costHireEngineer(0), _costHireScientist(0),
-	_costEngineer(0), _costScientist(0), _timePersonnel(0), _initialFunding(0),
+	_costEngineer(0), _costScientist(0), _timePersonnel(0), _hireByCountryOdds(0), _hireByRegionOdds(0), _initialFunding(0),
 	_aiUseDelayBlaster(3), _aiUseDelayFirearm(0), _aiUseDelayGrenade(3), _aiUseDelayMelee(0), _aiUseDelayPsionic(0),
 	_aiFireChoiceIntelCoeff(5), _aiFireChoiceAggroCoeff(5), _aiExtendedFireModeChoice(false), _aiRespectMaxRange(false), _aiDestroyBaseFacilities(false),
 	_aiPickUpWeaponsMoreActively(false), _aiPickUpWeaponsMoreActivelyCiv(false),
@@ -375,7 +373,7 @@ Mod::Mod() :
 	_pilotAccuracyZeroPoint(55), _pilotAccuracyRange(40), _pilotReactionsZeroPoint(55), _pilotReactionsRange(60),
 	_performanceBonusFactor(0), _enableNewResearchSorting(false), _displayCustomCategories(0), _shareAmmoCategories(false), _showDogfightDistanceInKm(false), _showFullNameInAlienInventory(false),
 	_alienInventoryOffsetX(80), _alienInventoryOffsetBigUnit(32),
-	_hidePediaInfoButton(false), _extraNerdyPediaInfo(false),
+	_hidePediaInfoButton(false), _extraNerdyPediaInfoType(0),
 	_giveScoreAlsoForResearchedArtifacts(false), _statisticalBulletConservation(false), _stunningImprovesMorale(false),
 	_tuRecoveryWakeUpNewTurn(100), _shortRadarRange(0), _buildTimeReductionScaling(100),
 	_defeatScore(0), _defeatFunds(0), _difficultyDemigod(false), _startingTime(6, 1, 1, 1999, 12, 0, 0), _startingDifficulty(0),
@@ -500,11 +498,13 @@ Mod::Mod() :
 
 	_converter = new RuleConverter();
 	_statAdjustment.resize(MaxDifficultyLevels);
-	_statAdjustment[0].aimAndArmorMultiplier = 0.5;
+	_statAdjustment[0].aimMultiplier = 0.5;
+	_statAdjustment[0].armorMultiplier = 0.5;
 	_statAdjustment[0].growthMultiplier = 0;
 	for (size_t i = 1; i != MaxDifficultyLevels; ++i)
 	{
-		_statAdjustment[i].aimAndArmorMultiplier = 1.0;
+		_statAdjustment[i].aimMultiplier = 1.0;
+		_statAdjustment[i].armorMultiplier = 1.0;
 		_statAdjustment[i].growthMultiplier = (int)i;
 	}
 
@@ -1092,6 +1092,12 @@ void Mod::verifySpriteOffset(const std::string &parent, const std::vector<int>& 
  */
 void Mod::verifySoundOffset(const std::string &parent, const int& sound, const std::string &set) const
 {
+	if (Options::mute)
+	{
+		// when mute is set not sound data is loaded and we can't check for correct data
+		return;
+	}
+
 	auto* s = getSoundSet(set);
 
 	checkForSoftError(sound != Mod::NO_SOUND && s->getSound(sound) == nullptr, parent, "Wrong index " + std::to_string(sound) + " for sound set " + set, LOG_ERROR);
@@ -1102,6 +1108,12 @@ void Mod::verifySoundOffset(const std::string &parent, const int& sound, const s
  */
 void Mod::verifySoundOffset(const std::string &parent, const std::vector<int>& sounds, const std::string &set) const
 {
+	if (Options::mute)
+	{
+		// when mute is set not sound data is loaded and we can't check for correct data
+		return;
+	}
+
 	auto* s = getSoundSet(set);
 
 	for (auto sound : sounds)
@@ -2132,6 +2144,7 @@ void Mod::loadAll()
 	afterLoadHelper("units", this, _units, &Unit::afterLoad);
 	afterLoadHelper("soldiers", this, _soldiers, &RuleSoldier::afterLoad);
 	afterLoadHelper("facilities", this, _facilities, &RuleBaseFacility::afterLoad);
+	afterLoadHelper("startingConditions", this, _startingConditions, &RuleStartingCondition::afterLoad);
 	afterLoadHelper("enviroEffects", this, _enviroEffects, &RuleEnviroEffects::afterLoad);
 	afterLoadHelper("commendations", this, _commendations, &RuleCommendations::afterLoad);
 	afterLoadHelper("skills", this, _skills, &RuleSkill::afterLoad);
@@ -2243,6 +2256,7 @@ void Mod::loadAll()
 		_fixedUserOptions.erase("maximizeInfoScreens"); // FIXME: make proper categorisations in the next release
 		_fixedUserOptions.erase("oxceModValidationLevel");
 		_fixedUserOptions.erase("oxceAutoNightVisionThreshold");
+		_fixedUserOptions.erase("oxceAlternateCraftEquipmentManagement");
 
 		const std::vector<OptionInfo> &options = Options::getOptionInfo();
 		for (std::vector<OptionInfo>::const_iterator i = options.begin(); i != options.end(); ++i)
@@ -2253,6 +2267,16 @@ void Mod::loadAll()
 			}
 		}
 		Options::save();
+	}
+
+	// additional validation of options not visible in the GUI
+	{
+		if (Options::oxceMaxEquipmentLayoutTemplates < 10 ||
+			Options::oxceMaxEquipmentLayoutTemplates > SavedGame::MAX_EQUIPMENT_LAYOUT_TEMPLATES ||
+			Options::oxceMaxEquipmentLayoutTemplates % 10 != 0)
+		{
+			Options::oxceMaxEquipmentLayoutTemplates = 20;
+		}
 	}
 
 	Log(LOG_INFO) << "Loading ended.";
@@ -2776,6 +2800,8 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	_costEngineer = doc["costEngineer"].as<int>(_costEngineer);
 	_costScientist = doc["costScientist"].as<int>(_costScientist);
 	_timePersonnel = doc["timePersonnel"].as<int>(_timePersonnel);
+	_hireByCountryOdds = doc["hireByCountryOdds"].as<int>(_hireByCountryOdds);
+	_hireByRegionOdds = doc["hireByRegionOdds"].as<int>(_hireByRegionOdds);
 	_initialFunding = doc["initialFunding"].as<int>(_initialFunding);
 	_alienFuel = doc["alienFuel"].as<std::pair<std::string, int> >(_alienFuel);
 	_fontName = doc["fontName"].as<std::string>(_fontName);
@@ -2786,6 +2812,8 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	_baseConstructionUnlockResearch = doc["baseConstructionUnlockResearch"].as<std::string>(_baseConstructionUnlockResearch); // Duplication in FtA, works a bit difference
 	_hireScientistsUnlockResearch = doc["hireScientistsUnlockResearch"].as<std::string>(_hireScientistsUnlockResearch);
 	_hireEngineersUnlockResearch = doc["hireEngineersUnlockResearch"].as<std::string>(_hireEngineersUnlockResearch);
+	loadBaseFunction("mod", _hireScientistsRequiresBaseFunc, doc["hireScientistsRequiresBaseFunc"]);
+	loadBaseFunction("mod", _hireEngineersRequiresBaseFunc, doc["hireEngineersRequiresBaseFunc"]);
 	_destroyedFacility = doc["destroyedFacility"].as<std::string>(_destroyedFacility);
 
 	_aiUseDelayGrenade = doc["turnAIUseGrenade"].as<int>(_aiUseDelayGrenade);
@@ -2918,7 +2946,7 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	_alienInventoryOffsetX = doc["alienInventoryOffsetX"].as<int>(_alienInventoryOffsetX);
 	_alienInventoryOffsetBigUnit = doc["alienInventoryOffsetBigUnit"].as<int>(_alienInventoryOffsetBigUnit);
 	_hidePediaInfoButton = doc["hidePediaInfoButton"].as<bool>(_hidePediaInfoButton);
-	_extraNerdyPediaInfo = doc["extraNerdyPediaInfo"].as<bool>(_extraNerdyPediaInfo);
+	_extraNerdyPediaInfoType = doc["extraNerdyPediaInfoType"].as<int>(_extraNerdyPediaInfoType);
 	_giveScoreAlsoForResearchedArtifacts = doc["giveScoreAlsoForResearchedArtifacts"].as<bool>(_giveScoreAlsoForResearchedArtifacts);
 	_statisticalBulletConservation = doc["statisticalBulletConservation"].as<bool>(_statisticalBulletConservation);
 	_stunningImprovesMorale = doc["stunningImprovesMorale"].as<bool>(_stunningImprovesMorale);
@@ -3276,7 +3304,20 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	size_t count = 0;
 	for (YAML::const_iterator i = doc["aimAndArmorMultipliers"].begin(); i != doc["aimAndArmorMultipliers"].end() && count < MaxDifficultyLevels; ++i)
 	{
-		_statAdjustment[count].aimAndArmorMultiplier = (*i).as<double>(_statAdjustment[count].aimAndArmorMultiplier);
+		_statAdjustment[count].aimMultiplier = (*i).as<double>(_statAdjustment[count].aimMultiplier);
+		_statAdjustment[count].armorMultiplier = (*i).as<double>(_statAdjustment[count].armorMultiplier);
+		++count;
+	}
+	count = 0;
+	for (YAML::const_iterator i = doc["aimMultipliers"].begin(); i != doc["aimMultipliers"].end() && count < MaxDifficultyLevels; ++i)
+	{
+		_statAdjustment[count].aimMultiplier = (*i).as<double>(_statAdjustment[count].aimMultiplier);
+		++count;
+	}
+	count = 0;
+	for (YAML::const_iterator i = doc["armorMultipliers"].begin(); i != doc["armorMultipliers"].end() && count < MaxDifficultyLevels; ++i)
+	{
+		_statAdjustment[count].armorMultiplier = (*i).as<double>(_statAdjustment[count].armorMultiplier);
 		++count;
 	}
 	if (doc["statGrowthMultipliers"])
@@ -3485,7 +3526,9 @@ SavedGame *Mod::newSave(GameDifficulty diff) const
 		// Generate soldiers
 		for (size_t i = 0; i < randomTypes.size(); ++i)
 		{
-			Soldier *soldier = genSoldier(save, randomTypes[i]);
+			RuleSoldier* ruleSoldier = getSoldier(randomTypes[i], true);
+			int nationality = save->selectSoldierNationalityByLocation(this, ruleSoldier, nullptr); // -1 (unfortunately the first base is not placed yet)
+			Soldier *soldier = genSoldier(save, ruleSoldier, nationality);
 			base->getSoldiers()->push_back(soldier);
 			// Award soldier a special 'original eight' commendation
 			if (_commendations.find("STR_MEDAL_ORIGINAL8_NAME") != _commendations.end())
@@ -4576,14 +4619,10 @@ const std::vector<std::string> &Mod::getPsiRequirements() const
  * @param type The soldier type to generate.
  * @return Newly generated soldier.
  */
-Soldier *Mod::genSoldier(SavedGame *save, std::string type) const
+Soldier *Mod::genSoldier(SavedGame *save, RuleSoldier* ruleSoldier, int nationality) const
 {
 	Soldier *soldier = 0;
 	int newId = save->getId("STR_SOLDIER");
-	if (isEmptyRuleName(type))
-	{
-		type = _soldiersIndex.front();
-	}
 
 	// Check for duplicates
 	// Original X-COM gives up after 10 tries so might as well do the same here
@@ -4591,7 +4630,7 @@ Soldier *Mod::genSoldier(SavedGame *save, std::string type) const
 	for (int tries = 0; tries < 10 && duplicate; ++tries)
 	{
 		delete soldier;
-		soldier = new Soldier(getSoldier(type, true), getSoldier(type, true)->getDefaultArmor(), newId);
+		soldier = new Soldier(ruleSoldier, ruleSoldier->getDefaultArmor(), nationality, newId);
 		duplicate = false;
 		for (std::vector<Base*>::iterator i = save->getBases()->begin(); i != save->getBases()->end() && !duplicate; ++i)
 		{
@@ -5626,7 +5665,7 @@ void Mod::loadExtraResources()
 			Music *music = 0;
 			for (size_t j = 0; j < ARRAYLEN(priority) && music == 0; ++j)
 			{
-				music = loadMusic(priority[j], (*i).first, (*i).second->getCatPos(), (*i).second->getNormalization(), adlibcat, aintrocat, gmcat);
+				music = loadMusic(priority[j], (*i).second, adlibcat, aintrocat, gmcat);
 			}
 			if (music)
 			{
@@ -5915,20 +5954,19 @@ void Mod::modResources()
 /**
  * Loads the specified music file format.
  * @param fmt Format of the music.
- * @param file Filename of the music.
- * @param track Track number of the music, if stored in a CAT.
- * @param volume Volume modifier of the music, if stored in a CAT.
+ * @param rule Parameters of the music.
  * @param adlibcat Pointer to ADLIB.CAT if available.
  * @param aintrocat Pointer to AINTRO.CAT if available.
  * @param gmcat Pointer to GM.CAT if available.
  * @return Pointer to the music file, or NULL if it couldn't be loaded.
  */
-Music *Mod::loadMusic(MusicFormat fmt, const std::string &file, size_t track, float volume, CatFile *adlibcat, CatFile *aintrocat, GMCatFile *gmcat) const
+Music* Mod::loadMusic(MusicFormat fmt, RuleMusic* rule, CatFile* adlibcat, CatFile* aintrocat, GMCatFile* gmcat) const
 {
 	/* MUSIC_AUTO, MUSIC_FLAC, MUSIC_OGG, MUSIC_MP3, MUSIC_MOD, MUSIC_WAV, MUSIC_ADLIB, MUSIC_GM, MUSIC_MIDI */
 	static const std::string exts[] = { "", ".flac", ".ogg", ".mp3", ".mod", ".wav", "", "", ".mid" };
 	Music *music = 0;
 	auto soundContents = FileMap::getVFolderContents("SOUND");
+	size_t track = rule->getCatPos();
 	try
 	{
 		// Try Adlib music
@@ -5938,7 +5976,7 @@ Music *Mod::loadMusic(MusicFormat fmt, const std::string &file, size_t track, fl
 			{
 				if (track < adlibcat->size())
 				{
-					music = new AdlibMusic(volume);
+					music = new AdlibMusic(rule->getNormalization());
 					music->load(adlibcat->getRWops(track));
 				}
 				// separate intro music
@@ -5947,7 +5985,7 @@ Music *Mod::loadMusic(MusicFormat fmt, const std::string &file, size_t track, fl
 					track -= adlibcat->size();
 					if (track < aintrocat->size())
 					{
-						music = new AdlibMusic(volume);
+						music = new AdlibMusic(rule->getNormalization());
 						music->load(aintrocat->getRWops(track));
 					}
 					else
@@ -5970,7 +6008,7 @@ Music *Mod::loadMusic(MusicFormat fmt, const std::string &file, size_t track, fl
 		// Try digital tracks
 		else
 		{
-			std::string fname = file + exts[fmt];
+			std::string fname = rule->getName() + exts[fmt];
 			std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
 
 			if (soundContents.find(fname) != soundContents.end())

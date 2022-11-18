@@ -318,6 +318,7 @@ public:
 
 private:
 	std::string _type, _name, _nameAsAmmo; // two types of objects can have the same name
+	std::string _requiresBuyCountry;
 	std::vector<std::string> _requiresName;
 	std::vector<std::string> _requiresBuyName;
 	std::vector<const RuleResearch *> _requires, _requiresBuy;
@@ -330,7 +331,7 @@ private:
 
 	Unit* _vehicleUnit;
 	double _size;
-	int _costBuy, _costSell, _transferTime, _weight, _costDispose;
+	int _monthlyBuyLimit, _costBuy, _costSell, _transferTime, _weight, _costDispose;
 	int _throwRange, _underwaterThrowRange;
 	int _stackSize;
 	int _bigSprite;
@@ -370,20 +371,24 @@ private:
 	RuleItemFuseTrigger _fuseTriggerEvents;
 	bool _hiddenOnMinimap;
 	std::string _medikitActionName, _psiAttackName, _primeActionName, _unprimeActionName, _primeActionMessage, _unprimeActionMessage;
+
 	bool _twoHanded, _blockBothHands, _fixedWeapon, _fixedWeaponShow, _isConsumable, _isFireExtinguisher;
 	bool _isExplodingInHands, _specialUseEmptyHand, _specialUseEmptyHandShow;
+	int _inventoryMoveCostPercent = 100;
 	std::string _defaultInventorySlotName;
 	const RuleInventory* _defaultInventorySlot;
 	int _defaultInvSlotX, _defaultInvSlotY;
 	std::vector<std::string> _supportedInventorySectionsNames;
 	std::vector<const RuleInventory*> _supportedInventorySections;
 	int _waypoints, _invWidth, _invHeight;
+
 	int _painKiller, _heal, _stimulant;
 	BattleMediKitType _medikitType;
 	bool _medikitTargetSelf, _medikitTargetImmune;
 	int _medikitTargetMatrix;
 	std::string _medikitBackground;
 	int _woundRecovery, _healthRecovery, _stunRecovery, _energyRecovery, _manaRecovery, _moraleRecovery, _painKillerRecovery;
+
 	int _recoveryPoints;
 	int _armor;
 	int _turretType;
@@ -461,6 +466,8 @@ public:
 	const std::vector<const RuleResearch*> &getRequirements() const;
 	/// Gets the item's buy requirements.
 	const std::vector<const RuleResearch*> &getBuyRequirements() const;
+	/// Gets the allied country name required to buy this item.
+	const std::string& getRequiresBuyCountry() const { return _requiresBuyCountry; }
 	/// Gets the base functions required to buy craft.
 	RuleBaseFacilityFunctions getRequiresBuyBaseFunc() const { return _requiresBuyBaseFunc; }
 	/// Gets the dividers used for recovery of special items.
@@ -477,6 +484,8 @@ public:
 	double getSize() const;
 	/// Gets the item's reputation requirments.
 	const std::map<std::string, int>& getReputationRequirements() const { return _reputationRequirements; };
+	/// Gets the item's monthly buy limit.
+	int getMonthlyBuyLimit() const { return _monthlyBuyLimit; }
 	/// Gets the item's purchase cost.
 	int getBuyCost() const;
 	/// Gets the item's sale cost.
@@ -501,6 +510,9 @@ public:
 	int getHandSprite() const;
 	/// Gets the item's reference in SPICONS.DAT for special weapon button.
 	int getSpecialIconSprite() const;
+
+	/// Gets cost of moving item around inventory.
+	int getInventoryMoveCostPercent() const { return _inventoryMoveCostPercent; }
 	/// Gets if the item is two-handed.
 	bool isTwoHanded() const;
 	/// Gets if the item can only be used by both hands.
@@ -509,7 +521,6 @@ public:
 	bool isFixed() const;
 	/// Do show fixed weapon on unit.
 	bool getFixedShow() const;
-
 	/// Get name of the default inventory slot.
 	const RuleInventory* getDefaultInventorySlot() const { return _defaultInventorySlot; }
 	/// Get inventory slot default X position.

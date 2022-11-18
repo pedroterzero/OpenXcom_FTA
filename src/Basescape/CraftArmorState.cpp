@@ -35,7 +35,6 @@
 #include "../Savegame/Craft.h"
 #include "../Mod/Armor.h"
 #include "SoldierArmorState.h"
-#include "../Savegame/SavedGame.h"
 #include "../Savegame/ItemContainer.h"
 #include "../Mod/RuleInterface.h"
 #include "../Mod/RuleSoldier.h"
@@ -447,7 +446,7 @@ void CraftArmorState::lstSoldiersClick(Action *action)
 					Craft *c = _base->getCrafts()->at(_craft);
 					if (s->getCraft() == c)
 					{
-						s->setCraft(c, true);
+						s->setCraftAndMoveEquipment(c, _base, _game->getSavedGame()->getMonthsPassed() == -1, true);
 						_lstSoldiers->setCellText(_lstSoldiers->getSelectedRow(), 1, c->getName(_game->getLanguage()));
 						_lstSoldiers->setRowColor(_lstSoldiers->getSelectedRow(), _lstSoldiers->getSecondaryColor());
 					}

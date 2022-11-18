@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <algorithm>
 #include "RuleResearch.h"
 #include "../Engine/Exception.h"
 #include "../Engine/Collections.h"
@@ -48,6 +47,8 @@ void RuleResearch::load(const YAML::Node &node, Mod* mod, const ModScript& parse
 	_spawnedItem = node["spawnedItem"].as<std::string>(_spawnedItem);
 	_spawnedItemCount = node["spawnedItemCount"].as<int>(_spawnedItemCount);
 	mod->loadUnorderedNames(_name, _spawnedItemList, node["spawnedItemList"]);
+	mod->loadUnorderedNames(_name, _decreaseCounter, node["decreaseCounter"]);
+	mod->loadUnorderedNames(_name, _increaseCounter, node["increaseCounter"]);
 	_spawnedEvent = node["spawnedEvent"].as<std::string>(_spawnedEvent);
 	_cost = node["cost"].as<int>(_cost);
 	_points = node["points"].as<int>(_points);

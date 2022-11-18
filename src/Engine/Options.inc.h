@@ -68,6 +68,7 @@ OPT bool oxceUpdateCheck;
 OPT int autosaveSlots;
 
 OPT bool oxceLinks;
+OPT bool oxceAlternateCraftEquipmentManagement;
 OPT bool oxceUfoLandingAlert;
 OPT int oxceWoundedDefendBaseIf;
 OPT bool oxcePlayBriefingMusicDuringEquipment;
@@ -79,13 +80,19 @@ OPT bool oxceEnableOffCentreShooting;
 
 // OXCE hidden, accessible only via options.cfg
 OPT bool oxceFatFingerLinks;
+OPT int oxceThrottleMouseMoveEvent;
 OPT bool oxceHighlightNewTopicsHidden;
 OPT int oxceInterceptGuiMaintenanceTimeHidden;
 OPT bool oxceEnableUnitResponseSounds;
 OPT bool oxceEnableSlackingIndicator;
 OPT bool oxceEnablePaletteFlickerFix;
+OPT int oxceMaxEquipmentLayoutTemplates;
 OPT bool oxcePersonalLayoutIncludingArmor;
 OPT bool oxceManufactureFilterSuppliesOK;
+// 0 = not persisted; 1 = persisted per battle; 2 = persisted per campaign
+OPT int oxceTogglePersonalLightType;
+OPT int oxceToggleNightVisionType;
+OPT int oxceToggleBrightnessType;
 /**
  * Verification level of mod data.
  * Same levels supported as `SeverityLevel`.

@@ -56,8 +56,13 @@ namespace OpenXcom
 CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 		:  _base(base), _craft(craft), _otherCraftColor(0), _origSoldierOrder(*_base->getSoldiers()), _dynGetter(NULL)
 {
+	bool hidePreview = _game->getSavedGame()->getMonthsPassed() == -1;
 	Craft *c = _base->getCrafts()->at(_craft);
-	bool hidePreview = _game->getSavedGame()->getMonthsPassed() == -1 || !c->getRules()->getAllowLanding();
+	if (c && !c->getRules()->getBattlescapeTerrainData())
+	{
+		// no battlescape map available
+		hidePreview = true;
+	}
 
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
@@ -492,7 +497,7 @@ void CraftSoldiersState::lstSoldiersClick(Action *action)
 		Uint8 color = _lstSoldiers->getColor();
 		if (s->getCraft() == c)
 		{
-			s->setCraft(0);
+			s->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
 			_lstSoldiers->setCellText(row, 2, tr("STR_NONE_UC"));
 		}
 		else if ((s->getCraft() && s->getCraft()->getStatus() == "STR_OUT") || s->getCovertOperation() != 0 || s->hasPendingTransformation())
@@ -504,7 +509,7 @@ void CraftSoldiersState::lstSoldiersClick(Action *action)
 			auto space = c->getSpaceAvailable();
 			if (c->validateAddingSoldier(space, s))
 			{
-				s->setCraft(c, true);
+				s->setCraftAndMoveEquipment(c, _base, _game->getSavedGame()->getMonthsPassed() == -1, true);
 				_lstSoldiers->setCellText(row, 2, c->getName(_game->getLanguage()));
 				color = _lstSoldiers->getSecondaryColor();
 
@@ -575,7 +580,7 @@ void CraftSoldiersState::btnDeassignAllSoldiersClick(Action *action)
 			color = _lstSoldiers->getColor();
 			if ((*i)->getCraft() && (*i)->getCraft()->getStatus() != "STR_OUT")
 			{
-				(*i)->setCraft(0);
+				(*i)->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
 				_lstSoldiers->setCellText(row, 2, tr("STR_NONE_UC"));
 			}
 			else if ((*i)->getCraft() && (*i)->getCraft()->getStatus() == "STR_OUT")
@@ -604,7 +609,7 @@ void CraftSoldiersState::btnDeassignCraftSoldiersClick(Action *action)
 	{
 		if (s->getCraft() == c)
 		{
-			s->setCraft(0);
+			s->setCraftAndMoveEquipment(0, _base, _game->getSavedGame()->getMonthsPassed() == -1);
 			_lstSoldiers->setCellText(row, 2, tr("STR_NONE_UC"));
 			_lstSoldiers->setRowColor(row, _lstSoldiers->getColor());
 		}

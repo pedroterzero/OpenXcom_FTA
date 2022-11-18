@@ -21,7 +21,6 @@
 #include <vector>
 #include <string>
 #include <bitset>
-#include <type_traits>
 #include <SDL.h>
 #include <yaml-cpp/yaml.h>
 #include "../Engine/Options.h"
@@ -217,7 +216,7 @@ private:
 	int _maxViewDistance, _maxDarknessToSeeUnits;
 	int _maxStaticLightDistance, _maxDynamicLightDistance, _enhancedLighting;
 	int _costHireEngineer, _costHireScientist;
-	int _costEngineer, _costScientist, _timePersonnel, _initialFunding;
+	int _costEngineer, _costScientist, _timePersonnel, _hireByCountryOdds, _hireByRegionOdds, _initialFunding;
 	int _aiUseDelayBlaster, _aiUseDelayFirearm, _aiUseDelayGrenade, _aiUseDelayMelee, _aiUseDelayPsionic;
 	int _aiFireChoiceIntelCoeff, _aiFireChoiceAggroCoeff;
 	bool _aiExtendedFireModeChoice, _aiRespectMaxRange, _aiDestroyBaseFacilities;
@@ -258,7 +257,8 @@ private:
 	int _displayCustomCategories;
 	bool _shareAmmoCategories, _showDogfightDistanceInKm, _showFullNameInAlienInventory;
 	int _alienInventoryOffsetX, _alienInventoryOffsetBigUnit;
-	bool _hidePediaInfoButton, _extraNerdyPediaInfo;
+	bool _hidePediaInfoButton;
+	int _extraNerdyPediaInfoType;
 	bool _giveScoreAlsoForResearchedArtifacts, _statisticalBulletConservation, _stunningImprovesMorale;
 	int _tuRecoveryWakeUpNewTurn;
 	int _shortRadarRange;
@@ -271,6 +271,7 @@ private:
 	std::string _fontName, _finalResearch, _psiUnlockResearch, _fakeUnderwaterBaseUnlockResearch, _newBaseUnlockResearch;
 	std::string _ufopaediaUnlockResearch, _baseConstructionUnlockResearch;
 	std::string _hireScientistsUnlockResearch, _hireEngineersUnlockResearch;
+	RuleBaseFacilityFunctions _hireScientistsRequiresBaseFunc, _hireEngineersRequiresBaseFunc;
 
 	std::string _destroyedFacility;
 	YAML::Node _startingBaseDefault, _startingBaseBeginner, _startingBaseExperienced, _startingBaseVeteran, _startingBaseGenius, _startingBaseSuperhuman;
@@ -348,7 +349,7 @@ private:
 	/// Loads battlescape specific resources.
 	void loadBattlescapeResources();
 	/// Loads a specified music file.
-	Music* loadMusic(MusicFormat fmt, const std::string& file, size_t track, float volume, CatFile* adlibcat, CatFile* aintrocat, GMCatFile* gmcat) const;
+	Music* loadMusic(MusicFormat fmt, RuleMusic* rule, CatFile* adlibcat, CatFile* aintrocat, GMCatFile* gmcat) const;
 	/// Creates a transparency lookup table for a given palette.
 	void createTransparencyLUT(Palette *pal);
 	/// Loads a specified mod content.
@@ -771,16 +772,30 @@ public:
 	int getEnhancedLighting() const { return _enhancedLighting; }
 	/// Get basic damage type
 	const RuleDamageType *getDamageType(ItemDamageType type) const;
+
 	/// Gets the cost of hiring an engineer.
 	int getHireEngineerCost() const;
+	/// Gets the research topic required for hiring new engineers.
+	const std::string &getHireEngineersUnlockResearch() const { return _hireEngineersUnlockResearch; }
+	/// Gets the base functions required for hiring new engineers.
+	RuleBaseFacilityFunctions getHireEngineersRequiresBaseFunc() const { return _hireEngineersRequiresBaseFunc; }
 	/// Gets the cost of hiring a scientist.
 	int getHireScientistCost() const;
+	/// Gets the research topic required for hiring new scientists.
+	const std::string &getHireScientistsUnlockResearch() const { return _hireScientistsUnlockResearch; }
+	/// Gets the base functions topic required for hiring new scientists.
+	RuleBaseFacilityFunctions getHireScientistsRequiresBaseFunc() const { return _hireScientistsRequiresBaseFunc; }
 	/// Gets the monthly cost of an engineer.
 	int getEngineerCost() const;
 	/// Gets the monthly cost of a scientist.
 	int getScientistCost() const;
 	/// Gets the transfer time of personnel.
 	int getPersonnelTime() const;
+	/// Gets the odds of hiring soldiers by country.
+	int getHireByCountryOdds() const { return _hireByCountryOdds; }
+	/// Gets the odds of hiring soldiers by region.
+	int getHireByRegionOdds() const { return _hireByRegionOdds; }
+
 	/// Gets first turn when AI can use Blaster launcher.
 	int getAIUseDelayBlaster() const  {return _aiUseDelayBlaster;}
 	/// Gets first turn when AI can use firearms.
@@ -960,7 +975,7 @@ public:
 	/// Show the INFO button (where applicable) or not?
 	bool getShowPediaInfoButton() const { return !_hidePediaInfoButton; }
 	/// Display extra item info (accuracy modifier and power bonus) in the main pedia article?
-	bool getExtraNerdyPediaInfo() const { return _extraNerdyPediaInfo; }
+	int getExtraNerdyPediaInfoType() const { return _extraNerdyPediaInfoType; }
 	/// In debriefing, give score also for already researched alien artifacts?
 	bool getGiveScoreAlsoForResearchedArtifacts() const { return _giveScoreAlsoForResearchedArtifacts; }
 	/// When recovering ammo, should partially spent clip have a chance to recover as full?
@@ -1029,7 +1044,7 @@ public:
 	/// Returns the sorted list of inventories.
 	const std::vector<std::string> &getInvsList() const;
 	/// Generates a new soldier.
-	Soldier *genSoldier(SavedGame *save, std::string type = "") const;
+	Soldier *genSoldier(SavedGame *save, RuleSoldier* ruleSoldier, int nationality) const;
 	/// Gets the item to be used as fuel for ships.
 	std::string getAlienFuelName() const;
 	/// Gets the amount of alien fuel to recover

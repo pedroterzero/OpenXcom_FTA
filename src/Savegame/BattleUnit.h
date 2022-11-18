@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_set>
 #include "../Battlescape/Position.h"
+#include "../Mod/Armor.h"
 #include "../Mod/RuleItem.h"
 #include "Soldier.h"
 #include "BattleItem.h"
@@ -41,6 +42,7 @@ class Node;
 class Surface;
 class RuleInventory;
 class RuleEnviroEffects;
+class RuleStartingCondition;
 class Soldier;
 class SavedGame;
 class Language;
@@ -165,9 +167,14 @@ private:
 	bool _pickUpWeaponsMoreActively;
 	bool _disableIndicators;
 	MovementType _movementType;
+	MovementType _originalMovementType;
+	ArmorMoveCost _moveCostBase = { 0, 0 };
+	ArmorMoveCost _moveCostBaseFly = { 0, 0 };
+	ArmorMoveCost _moveCostBaseNormal = { 0, 0 };
 	std::vector<std::pair<Uint8, Uint8> > _recolor;
 	bool _capturable;
 	bool _vip;
+	bool _bannedInNextStage;
 	ScriptValues<BattleUnit> _scriptValues;
 
 	/// Calculate stat improvement.
@@ -190,6 +197,8 @@ private:
 	void prepareUnitSounds();
 	/// Helper function preparing unit response sounds.
 	void prepareUnitResponseSounds(const Mod *mod);
+	/// Helper function preparing the banned flag.
+	void prepareBannedFlag(const RuleStartingCondition* sc);
 	/// Applies percentual and/or flat adjustments to the use costs.
 	void applyPercentages(RuleItemUseCost &cost, const RuleItemUseCost &flat) const;
 	/// Helper function to aid with equipping stackable items (FTA)
@@ -207,13 +216,13 @@ public:
 	static void ScriptFill(ScriptWorkerBlit* w, const BattleUnit* item, const SavedBattleGame* save, int body_part, int anim_frame, int shade, int burn);
 
 	/// Creates a BattleUnit from solder.
-	BattleUnit(const Mod *mod, Soldier *soldier, int depth);
+	BattleUnit(const Mod *mod, Soldier *soldier, int depth, const RuleStartingCondition* sc);
 	/// Creates a BattleUnit from unit.
-	BattleUnit(const Mod *mod, Unit *unit, UnitFaction faction, int id, const RuleEnviroEffects* enviro, Armor *armor, StatAdjustment *adjustment, int depth);
+	BattleUnit(const Mod *mod, Unit *unit, UnitFaction faction, int id, const RuleEnviroEffects* enviro, Armor *armor, StatAdjustment *adjustment, int depth, const RuleStartingCondition* sc);
 	/// Updates BattleUnit's armor and related attributes (after a change/transformation of armor).
-	void updateArmorFromSoldier(const Mod *mod, Soldier *soldier, Armor *ruleArmor, int depth, bool inBattlescape);
+	void updateArmorFromSoldier(const Mod *mod, Soldier *soldier, Armor *ruleArmor, int depth, bool inBattlescape, const RuleStartingCondition* sc);
 	/// Updates BattleUnit's armor and related attributes (after a change/transformation of armor).
-	void updateArmorFromNonSoldier(const Mod* mod, Armor* newArmor, int depth);
+	void updateArmorFromNonSoldier(const Mod* mod, Armor* newArmor, int depth, const RuleStartingCondition* sc);
 	/// Cleans up the BattleUnit.
 	~BattleUnit();
 	/// Loads the unit from YAML.
@@ -571,10 +580,18 @@ public:
 	const std::vector<int> &getAnnoyedSounds() const { return _annoyedSound; }
 	/// Get the unit's move sound.
 	int getMoveSound() const;
+
+
 	/// Get whether the unit is affected by fatal wounds.
 	bool isWoundable() const;
 	/// Get whether the unit is affected by fear.
 	bool isFearable() const;
+	/// Is this unit capable of shooting beyond max. visual range?
+	bool isSniper() const;
+	/// Is small unit.
+	bool isSmallUnit() const;
+	/// Is big unit.
+	bool isBigUnit() const;
 	/// Get the unit's intelligence.
 	int getIntelligence() const;
 	/// Get the unit's aggression.
@@ -588,6 +605,7 @@ public:
 	int getMaxViewDistanceAtDay(const Armor *otherUnitArmor) const;
 	/// Get the units's special ability.
 	int getSpecialAbility() const;
+
 
 	/// Gets the unit's spawn unit.
 	const Unit *getSpawnUnit() const;
@@ -713,8 +731,12 @@ public:
 	void setEnviSmoke(int damage);
 	/// Calculate smoke and fire damage from environment.
 	void calculateEnviDamage(Mod *mod, SavedBattleGame *save);
+	/// Gets original unit's movement type.
+	MovementType getOriginalMovementType() const { return _originalMovementType; }
 	/// Use this function to check the unit's movement type.
-	MovementType getMovementType() const;
+	MovementType getMovementType() const { return _movementType; }
+	/// Set unit movement type.
+	void setMovementType(MovementType type) { _movementType = type; }
 	/// Gets the turn cost.
 	int getTurnCost() const;
 	/// Gets cost of standing up from kneeling.
@@ -773,8 +795,6 @@ public:
 	bool isLeeroyJenkins() const { return _isLeeroyJenkins; };
 	/// Gets the spotter score. This is the number of turns sniper AI units can use spotting info from this unit.
 	int getSpotterDuration() const;
-	/// Is this unit capable of shooting beyond max. visual range?
-	bool isSniper() const;
 	/// Remembers the unit's XP (used for shotguns).
 	void rememberXP();
 	/// Artificially alter a unit's XP (used for shotguns).
@@ -813,12 +833,21 @@ public:
 	void markAsVIP() { _vip = true; }
 	/// Is this a VIP unit?
 	bool isVIP() const { return _vip; }
+	/// Is this unit banned in the next stage?
+	bool isBannedInNextStage() const { return _bannedInNextStage; }
 	/// Is the unit eagerly picking up weapons?
 	bool getPickUpWeaponsMoreActively() const { return _pickUpWeaponsMoreActively; }
 	/// Show indicators for this unit or not?
 	bool indicatorsAreEnabled() const { return !_disableIndicators; }
 	/// Disable showing indicators for this unit.
 	void disableIndicators();
+
+	/// Multiplier of move cost.
+	ArmorMoveCost getMoveCostBase() const { return _moveCostBase; }
+	/// Multiplier of fly move cost.
+	ArmorMoveCost getMoveCostBaseFly() const { return _moveCostBaseFly; }
+	/// Multiplier of normal move cost.
+	ArmorMoveCost getMoveCostBaseNormal() const { return _moveCostBaseNormal; }
 };
 
 } //namespace OpenXcom

@@ -192,7 +192,8 @@ void GeoscapeEventState::eventLogic()
 	const Mod* mod = _game->getMod();
 	const RuleEvent& rule = _eventRule;
 
-	RuleRegion* regionRule = nullptr;
+	RuleRegion *regionRule = nullptr;
+	City* city = nullptr;
 	if (!rule.getRegionList().empty())
 	{
 		size_t pickRegion = RNG::generate(0, rule.getRegionList().size() - 1);
@@ -206,7 +207,7 @@ void GeoscapeEventState::eventLogic()
 			if (cities > 0)
 			{
 				size_t pickCity = RNG::generate(0, cities - 1);
-				City* city = regionRule->getCities()->at(pickCity);
+				city = regionRule->getCities()->at(pickCity);
 				place = city->getName(_game->getLanguage());
 			}
 		}
@@ -216,6 +217,20 @@ void GeoscapeEventState::eventLogic()
 
 		std::string messagePlus = tr(rule.getDescription()).arg(place);
 		_txtMessage->setText(messagePlus);
+	}
+
+	// even if the event isn't city-specific, we'll still pick one city randomly to represent the region (and maybe even a country)
+	if (regionRule)
+	{
+		if (!rule.isCitySpecific())
+		{
+			size_t cities = regionRule->getCities()->size();
+			if (cities > 0)
+			{
+				size_t pickCity = RNG::generate(0, cities - 1);
+				city = regionRule->getCities()->at(pickCity);
+			}
+		}
 	}
 
 	// 1. give/take score points
@@ -280,12 +295,17 @@ void GeoscapeEventState::eventLogic()
 				for (int i = 0; i < rule.getSpawnedPersons(); ++i)
 				{
 					Transfer* t = new Transfer(24);
-					Soldier* s = mod->genSoldier(save, ruleSoldier->getType());
+					int nationality = _game->getSavedGame()->selectSoldierNationalityByLocation(_game->getMod(), ruleSoldier, city);
+					Soldier* s = mod->genSoldier(save, ruleSoldier, nationality);
+					s->load(rule.getSpawnedSoldierTemplate(), mod, save, mod->getScriptGlobal(), true); // load from soldier template
 					if (!rule.getSpawnedPersonName().empty())
 					{
 						s->setName(tr(rule.getSpawnedPersonName()));
 					}
-					s->load(rule.getSpawnedSoldierTemplate(), mod, save, mod->getScriptGlobal(), true); // load from soldier template
+					else
+					{
+						s->genName();
+					}
 					t->setSoldier(s);
 					hq->getTransfers()->push_back(t);
 				}
@@ -321,6 +341,20 @@ void GeoscapeEventState::eventLogic()
 		if (randomItem)
 		{
 			itemsToTransfer[randomItem->getType()] += 1;
+		}
+	}
+
+	if (!rule.getRandomMultiItemList().empty())
+	{
+		size_t pickItem = RNG::generate(0, rule.getRandomMultiItemList().size() - 1);
+		auto& sublist = rule.getRandomMultiItemList().at(pickItem);
+		for (auto& pair : sublist)
+		{
+			const RuleItem* itemRule = mod->getItem(pair.first, true);
+			if (itemRule)
+			{
+				itemsToTransfer[itemRule->getType()] += pair.second;
+			}
 		}
 	}
 

@@ -44,7 +44,6 @@
 #include "SackSoldierState.h"
 #include "../Mod/RuleInterface.h"
 #include "../Mod/RuleSoldier.h"
-#include "../Mod/RuleSoldierBonus.h"
 #include "../Savegame/SoldierDeath.h"
 
 namespace OpenXcom

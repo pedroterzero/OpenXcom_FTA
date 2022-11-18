@@ -95,7 +95,7 @@ private:
 	ScriptValues<Soldier> _scriptValues;
 public:
 	/// Creates a new soldier.
-	Soldier(RuleSoldier *rules, Armor *armor, int id = 0);
+	Soldier(RuleSoldier *rules, Armor *armor, int nationality, int id = 0);
 	/// Cleans up the soldier.
 	~Soldier();
 	/// Loads the soldier from YAML.
@@ -106,6 +106,8 @@ public:
 	std::string getName(bool statstring = false, unsigned int maxLength = 20) const;
 	/// Sets the soldier's name.
 	void setName(const std::string &name);
+	/// Generates a new name based on nationality.
+	void genName();
 	/// Gets the soldier's callsign.
 	std::string getCallsign(unsigned int maxLength = 20) const;
 	/// Sets the soldier's callsign.
@@ -124,6 +126,8 @@ public:
 	CovertOperation* getCovertOperation() const { return _covertOperation; };
 	/// Sets the soldier's Covert Operation.
 	void setCovertOperation(CovertOperation* covertOperation) { _covertOperation = covertOperation; };
+	/// Sets the soldier's craft and automatically moves the equipment (if enabled).
+	void setCraftAndMoveEquipment(Craft* craft, Base* base, bool isNewBattle, bool resetCustomDeployment = false);
 	/// Gets the soldier's craft string.
 	std::string getCraftString(Language *lang, const BaseSumDailyRecovery& recovery) const;
 	/// Gets a string version of the soldier's rank.
@@ -318,6 +322,8 @@ public:
 
 private:
 	std::string generateCallsign(const std::vector<SoldierNamePool*> &names);
+	/// Automatically move equipment between the craft and the base when assigning/deassigning/reassigning soldiers.
+	void autoMoveEquipment(Craft* craft, Base* base, int toBase);
 
 };
 

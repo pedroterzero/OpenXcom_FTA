@@ -50,7 +50,6 @@
 #include "../Savegame/Region.h"
 #include "../Mod/RuleRegion.h"
 #include "../Savegame/AlienMission.h"
-#include "../Savegame/Waypoint.h"
 #include "DogfightErrorState.h"
 #include "../Mod/RuleInterface.h"
 #include "../Mod/Mod.h"
@@ -634,7 +633,7 @@ DogfightState::DogfightState(GeoscapeState *state, Craft *craft, Ufo *ufo, bool 
 		{
 			int diff = _game->getSavedGame()->getDifficulty();
 			auto& custom = _game->getMod()->getUfoEscapeCountdownCoefficients();
-			if (custom.size() > diff)
+			if (custom.size() > (size_t)diff)
 			{
 				escapeCountdown = _ufo->getRules()->getBreakOffTime() + RNG::generate(0, _ufo->getRules()->getBreakOffTime());
 				escapeCountdown = escapeCountdown * custom[diff] / 100;
@@ -1413,7 +1412,7 @@ void DogfightState::update()
 			{
 				_craft->returnToBase();
 			}
-			
+
 			// Need to give the craft at least one step advantage over the hunter-killer (to be able to escape)
 			if (_ufoIsAttacking)
 			{
@@ -1488,7 +1487,7 @@ void DogfightState::update()
 					{
 						int diff = _game->getSavedGame()->getDifficulty();
 						auto& custom = _game->getMod()->getRetaliationTriggerOdds();
-						if (custom.size() > diff)
+						if (custom.size() > (size_t)diff)
 						{
 							retaliationOdds = custom[diff] + race->getRetaliationAggression();
 						}
@@ -1508,7 +1507,7 @@ void DogfightState::update()
 					{
 						int diff = _game->getSavedGame()->getDifficulty();
 						auto& custom = _game->getMod()->getRetaliationBaseRegionOdds();
-						if (custom.size() > diff)
+						if (custom.size() > (size_t)diff)
 						{
 							retaliationUfoMissionRegionOdds = 100 - custom[diff];
 						}
@@ -1758,7 +1757,7 @@ void DogfightState::ufoFireWeapon()
 	{
 		int diff = _game->getSavedGame()->getDifficulty();
 		auto& custom = _game->getMod()->getUfoFiringRateCoefficients();
-		if (custom.size() > diff)
+		if (custom.size() > (size_t)diff)
 		{
 			fireCountdown = std::max(1, _ufo->getRules()->getWeaponReload() * custom[diff] / 100);
 		}

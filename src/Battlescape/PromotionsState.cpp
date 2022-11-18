@@ -27,6 +27,7 @@
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/Soldier.h"
+#include "../Savegame/Transfer.h"
 #include "../Engine/Options.h"
 #include "../Savegame/Transfer.h"
 
@@ -90,7 +91,7 @@ PromotionsState::PromotionsState()
 		{
 			if ((*j)->isPromoted())
 			{
-				_lstSoldiers->addRow(3, (*j)->getName().c_str(), tr((*j)->getRankString()).c_str(), (*i)->getName().c_str());
+				_lstSoldiers->addRow(3, (*j)->getName().c_str(), tr((*j)->getRankString()).c_str(), (*i)->getName().c_str()); //#FINNIKTODO: Change to role rank string if FtA
 			}
 		}
 		for (std::vector<Transfer*>::iterator k = (*i)->getTransfers()->begin(); k != (*i)->getTransfers()->end(); ++k) //special case for soldiers, recovered from VIPs

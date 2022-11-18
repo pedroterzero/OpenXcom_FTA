@@ -71,6 +71,7 @@ private:
 	const Armor* _armor;
 	std::string _specWeaponName;
 	const RuleItem* _specWeapon;
+	int _monthlyBuyLimit;
 	int _costBuy, _costSalary, _costSalarySquaddie, _costSalarySergeant, _costSalaryCaptain, _costSalaryColonel, _costSalaryCommander;
 	int _standHeight, _kneelHeight, _floatHeight;
 	int _femaleFrequency, _value, _transferTime, _moraleLossWhenKilled;
@@ -83,6 +84,7 @@ private:
 	std::vector<int> _selectWeaponSoundMale, _selectWeaponSoundFemale;
 	std::vector<int> _annoyedSoundMale, _annoyedSoundFemale;
 	std::vector<SoldierNamePool*> _names;
+	int _totalSoldierNamePoolWeight;
 	std::string _armorForAvatar;
 	int _avatarOffsetX, _avatarOffsetY, _flagOffset;
 	bool _allowPromotion, _allowPiloting, _showTypeInInventory;
@@ -124,6 +126,8 @@ public:
 	UnitStats getTrainingStatCaps() const;
 	/// Gets the improvement chances for pilots (after dogfight).
 	UnitStats getDogfightExperience() const;
+	/// Gets the monthly hiring limit.
+	int getMonthlyBuyLimit() const { return _monthlyBuyLimit; }
 	/// Gets the cost of the soldier.
 	int getBuyCost() const;
 	/// Does salary depend on rank?
@@ -190,6 +194,8 @@ public:
 	const std::vector<int> &getFemaleAnnoyedSounds() const { return _annoyedSoundFemale; }
 	/// Gets the pool list for soldier names.
 	const std::vector<SoldierNamePool*> &getNames() const;
+	/// Gets the total weight of all the soldier name pools.
+	int getTotalSoldierNamePoolWeight() const { return _totalSoldierNamePoolWeight; }
 	/// Gets the value - for score calculation.
 	int getValue() const;
 	/// Gets the soldier's transfer time.
