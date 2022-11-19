@@ -25,7 +25,7 @@
 namespace OpenXcom
 {
 
-RuleResearch::RuleResearch(const std::string &name) : _name(name), _spawnedItemCount(1), _cost(0), _points(0), _sequentialGetOneFree(false),
+RuleResearch::RuleResearch(const std::string &name) : _name(name), _spawnedItemCount(1), _cost(0), _points(0), _funds(0), _sequentialGetOneFree(false),
 													  _needItem(false), _destroyItem(false), _hidden(false), _listOrder(0)
 {
 }
@@ -33,6 +33,8 @@ RuleResearch::RuleResearch(const std::string &name) : _name(name), _spawnedItemC
 /**
  * Loads the research project from a YAML file.
  * @param node YAML node.
+ * @param mod
+ * @param parsers
  * @param listOrder The list weight for this research.
  */
 void RuleResearch::load(const YAML::Node &node, Mod* mod, const ModScript& parsers, int listOrder)
@@ -51,7 +53,9 @@ void RuleResearch::load(const YAML::Node &node, Mod* mod, const ModScript& parse
 	mod->loadUnorderedNames(_name, _increaseCounter, node["increaseCounter"]);
 	_spawnedEvent = node["spawnedEvent"].as<std::string>(_spawnedEvent);
 	_cost = node["cost"].as<int>(_cost);
+	_stats.merge(node["stats"].as<UnitStats>(_stats));
 	_points = node["points"].as<int>(_points);
+	_funds = node["funds"].as<int>(_funds);
 	mod->loadUnorderedNames(_name, _dependenciesName, node["dependencies"]);
 	mod->loadUnorderedNames(_name, _unlocksName, node["unlocks"]);
 	mod->loadUnorderedNames(_name, _disablesName, node["disables"]);
@@ -121,7 +125,7 @@ void RuleResearch::afterLoad(const Mod* mod)
 
 /**
  * Gets the cost of this ResearchProject.
- * @return The cost of this ResearchProject (in man/day).
+ * @return The cost of this ResearchProject (in man/day, or man/hours for FtA).
  */
 int RuleResearch::getCost() const
 {

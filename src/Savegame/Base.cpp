@@ -25,13 +25,17 @@
 #include "Craft.h"
 #include "CraftWeapon.h"
 #include "CovertOperation.h"
+#include "IntelProject.h"
+#include "BasePrisoner.h"
 #include "SavedGame.h"
 #include "../Mod/RuleCraft.h"
 #include "../Mod/Mod.h"
 #include "ItemContainer.h"
 #include "Soldier.h"
+#include "BasePrisoner.h"
 #include "../Engine/Language.h"
 #include "../Mod/RuleItem.h"
+#include "../Mod/RulePrisoner.h"
 #include "../Mod/Armor.h"
 #include "../Mod/RuleManufacture.h"
 #include "../Mod/RuleResearch.h"
@@ -80,6 +84,14 @@ Base::~Base()
 		delete *i;
 	}
 	for (std::vector<CovertOperation*>::iterator i = _covertOperations.begin(); i != _covertOperations.end(); ++i)
+	{
+		delete* i;
+	}
+	for (std::vector<IntelProject*>::iterator i = _intelProjects.begin(); i != _intelProjects.end(); ++i)
+	{
+		delete* i;
+	}
+	for (std::vector<BasePrisoner*>::iterator i = _prisoners.begin(); i != _prisoners.end(); ++i)
 	{
 		delete* i;
 	}
@@ -158,6 +170,35 @@ void Base::load(const YAML::Node &node, SavedGame *save, bool newGame, bool newB
 		}
 	}
 
+	for (YAML::const_iterator i = node["intelProjects"].begin(); i != node["intelProjects"].end(); ++i)
+	{
+		std::string name = (*i)["name"].as<std::string>();
+		if (_mod->getIntelProject(name))
+		{
+			IntelProject* p = new IntelProject(_mod->getIntelProject(name), this, 0);
+			p->load(*i);
+			_intelProjects.push_back(p);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load intelProjects " << name;
+		}
+	}
+
+	for (YAML::const_iterator i = node["prisoners"].begin(); i != node["prisoners"].end(); ++i)
+	{
+		std::string id = (*i)["id"].as<std::string>();
+		std::string type = (*i)["type"].as<std::string>();
+		BasePrisoner* prisoner = new BasePrisoner(_mod->getPrisonerRules(type), this, type, id);
+		prisoner->load(*i, _mod);
+		int soldierId = prisoner->getSoldierId();
+		if (soldierId >= 0)
+		{
+			prisoner->setGeoscapeSoldier(save->getSoldier(soldierId));
+		}
+		addPrisoner(prisoner);
+	}
+
 	for (YAML::const_iterator i = node["soldiers"].begin(); i != node["soldiers"].end(); ++i)
 	{
 		std::string type = (*i)["type"].as<std::string>(_mod->getSoldiersList().front());
@@ -166,6 +207,10 @@ void Base::load(const YAML::Node &node, SavedGame *save, bool newGame, bool newB
 			Soldier *s = new Soldier(_mod->getSoldier(type), nullptr, 0 /*nationality*/);
 			s->load(*i, _mod, save, _mod->getScriptGlobal());
 			s->setCraft(0);
+			s->setCovertOperation(0);
+			s->setResearchProject(0);
+			s->setProductionProject(0);
+			s->setActivePrisoner(0);
 			if (const YAML::Node &craft = (*i)["craft"])
 			{
 				CraftId craftId = Craft::loadId(craft);
@@ -190,6 +235,81 @@ void Base::load(const YAML::Node &node, SavedGame *save, bool newGame, bool newB
 					}
 				}
 			}
+			if (const YAML::Node &rp = (*i)["researchProject"])
+			{
+				std::string researchProject = rp.as<std::string>();
+				for (std::vector<ResearchProject *>::iterator j = _research.begin(); j != _research.end(); ++j)
+				{
+					if ((*j)->getRules()->getName() == researchProject)
+					{
+						s->setResearchProject((*j));
+						break;
+					}
+				}
+			}
+			if (const YAML::Node& pr = (*i)["production"])
+			{
+				std::string production = pr.as<std::string>();
+				bool set = false;
+				for (std::vector<Production*>::iterator j = _productions.begin(); j != _productions.end(); ++j)
+				{
+					if ((*j)->getRules()->getName() == production)
+					{
+						s->setProductionProject((*j));
+						set = true;
+						break;
+					}
+				}
+				if (!set)
+				{
+					Log(LOG_INFO) << "Attempt to link soldier to a facility...";
+					for (std::vector<BaseFacility*>::iterator j = _facilities.begin(); j != _facilities.end(); ++j)
+					{
+						if ((*j)->getRules()->getType() == production)
+						{
+							for (std::vector<Production*>::iterator k = _productions.begin(); k != _productions.end(); ++k)
+							{
+								if ((*k)->getFacility()->getRules()->getType() == production)
+								{
+									s->setProductionProject((*k));
+									set = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				if (!set)
+					Log(LOG_ERROR) << "Failed to link soldier with production: " << production;
+			}
+
+			if (const YAML::Node &ip = (*i)["intelProject"])
+			{
+				std::string intelProject = ip.as<std::string>();
+				for (std::vector< IntelProject*>::iterator j = _intelProjects.begin(); j != _intelProjects.end(); ++j)
+				{
+					if ((*j)->getName() == intelProject)
+					{
+						s->setIntelProject((*j));
+						break;
+					}
+				}
+			}
+
+			if (const YAML::Node& p = (*i)["activePrisoner"])
+			{
+				std::string prisoner = p.as<std::string>();
+				for (std::vector<BasePrisoner*>::iterator j = _prisoners.begin(); j != _prisoners.end(); ++j)
+				{
+					if ((*j)->getRules()->getType() == prisoner)
+					{
+						s->setActivePrisoner(*j);
+						break;
+					}
+				}
+			}
+
 			_soldiers.push_back(s);
 		}
 		else
@@ -250,6 +370,23 @@ void Base::load(const YAML::Node &node, SavedGame *save, bool newGame, bool newB
 		{
 			Production *p = new Production(_mod->getManufacture(item), 0);
 			p->load(*i);
+			if (_mod->getBaseFacility(item))
+			{
+				bool set = false;
+				for (std::vector<BaseFacility*>::iterator j = _facilities.begin(); j != _facilities.end(); ++j)
+				{
+					if ((*j)->getRules()->getType() == item)
+					{
+						p->setFacility(*j);
+						set = true;
+						break;
+					}
+				}
+				if (!set)
+				{
+					Log(LOG_ERROR) << "Failed to load manufacture " << item << " - can't find linked facility on base!";
+				}
+			}
 			_productions.push_back(p);
 		}
 		else
@@ -384,6 +521,14 @@ YAML::Node Base::save() const
 	{
 		node["covertOperations"].push_back((*i)->save());
 	}
+	for (std::vector<IntelProject*>::const_iterator i = _intelProjects.begin(); i != _intelProjects.end(); ++i)
+	{
+		node["intelProjects"].push_back((*i)->save());
+	}
+	for (std::vector<BasePrisoner*>::const_iterator i = _prisoners.begin(); i != _prisoners.end(); ++i)
+	{
+		node["prisoners"].push_back((*i)->save());
+	}
 	node["items"] = _items->save();
 	node["scientists"] = _scientists;
 	node["engineers"] = _engineers;
@@ -460,6 +605,19 @@ std::vector<Soldier*> *Base::getSoldiers()
 	return &_soldiers;
 }
 
+std::vector<Soldier*> Base::getPersonnel(SoldierRole role) const
+{
+	std::vector<Soldier *> result;
+	for (auto s : _soldiers)
+	{
+		if (s->getRoleRank(role) > 0)
+		{
+			result.push_back(s);
+		}
+	}
+	return result;
+}
+
 /**
  * Pre-calculates soldier stats with various bonuses.
  */
@@ -469,15 +627,6 @@ void Base::prepareSoldierStatsWithBonuses()
 	{
 		soldier->prepareStatsWithBonuses(_mod);
 	}
-}
-
-/**
- * Adds operation to base's covert operations list.
- * @param operation pointer to the CovertOPeration.
- */
-void Base::addCovertOperation(CovertOperation* operation)
-{
-	this->getCovertOperations().push_back(operation);
 }
 
 /**
@@ -495,6 +644,60 @@ void Base::removeCovertOperation(CovertOperation* operation)
 		}
 	}
 	if (!erased) { 	Log(LOG_ERROR) << "Covert Operation named " << operation->getOperationName() << " was not deleted from base " << this->getName() << " !"; }
+}
+
+/**
+ * Finds and erase intel project from base's intel projects list.
+ * @param operation pointer to the IntelProject.
+ */
+void Base::removeIntelProject(IntelProject* project)
+{
+	bool erased = false;
+	for (size_t k = 0; k < _intelProjects.size(); k++) {
+		if (_intelProjects[k] == project)
+		{
+			_intelProjects.erase(_intelProjects.begin() + k);
+			erased = true;
+		}
+	}
+	if (!erased) { 	Log(LOG_ERROR) << "Intelligence Project named " << project->getName() << " was not deleted from base " << this->getName() << " !"; }
+}
+
+void Base::removePrisoner(BasePrisoner* prisoner)
+{
+	bool erased = false;
+	for (size_t k = 0; k < _prisoners.size(); k++) {
+		if (_prisoners[k] == prisoner)
+		{
+			_prisoners.erase(_prisoners.begin() + k);
+			erased = true;
+		}
+	}
+	if (!erased) { Log(LOG_ERROR) << "Base prisoner with ID " << prisoner->getId() << " was not deleted from base " << this->getName() << " !"; }
+}
+
+int Base::getFreeInterrogationSpace()
+{
+	int total = 0, used = 0;
+	for (std::vector<BaseFacility*>::const_iterator i = _facilities.begin(); i != _facilities.end(); ++i)
+	{
+		if ((*i)->getBuildTime() == 0)
+		{
+			total += (*i)->getRules()->getInterrogationSpace();
+		}
+	}
+
+	for (auto p : _prisoners)
+	{
+		if (p->getPrisonerState() == PRISONER_STATE_INTERROGATION
+			|| p->getPrisonerState() == PRISONER_STATE_TORTURE
+			|| p->getPrisonerState() == PRISONER_STATE_REQRUITING)
+		{
+			used++;
+		}
+	}
+
+	return total - used;
 }
 
 /**
@@ -631,9 +834,9 @@ int Base::getAvailableSoldiers(bool checkCombatReadiness, bool includeWounded) c
 	int total = 0;
 	for (std::vector<Soldier*>::const_iterator i = _soldiers.begin(); i != _soldiers.end(); ++i)
 	{
-		if ((*i)->getCovertOperation() != 0)
+		if ((*i)->getCovertOperation() != 0 || ((*i)->getRoleRank(ROLE_SOLDIER) == 0))
 		{
-			//we do not want to count soldiers that are on covert operation
+			//we do not want to count not real soldiers or that are on covert operation
 		}
 		else
 		{
@@ -856,11 +1059,6 @@ int Base::getUsedQuarters() const
 			total += 1;
 		}
 	}
-	//reserve space for engeneers and scientists used in covert operations
-	for (std::vector<CovertOperation*>::const_iterator i = _covertOperations.begin(); i != _covertOperations.end(); ++i)
-	{
-		total += (*i)->getAssignedScientists() + (*i)->getAssignedEngineers();
-	}
 	return total;
 }
 
@@ -959,16 +1157,32 @@ int Base::getAvailableStores() const
  * by research projects in the base.
  * @return Laboratory space.
  */
-int Base::getUsedLaboratories() const
+int Base::getUsedLaboratories(bool fta, ResearchProject *exclude) const
 {
-	const std::vector<ResearchProject *> & research (getResearch());
 	int usedLabSpace = 0;
-	for (std::vector<ResearchProject *>::const_iterator itResearch = research.begin();
-		 itResearch != research.end();
-		 ++itResearch)
+	for (std::vector<ResearchProject *>::const_iterator iter = _research.begin(); iter != _research.end(); ++iter)
 	{
-		usedLabSpace += (*itResearch)->getAssigned();
+		if (exclude != nullptr && (*iter) == exclude)
+		{
+			continue;
+		}
+
+		if (fta)
+		{
+			for (auto s : _soldiers)
+			{
+				if ((*iter) == s->getResearchProject())
+				{
+					usedLabSpace++;
+				}
+			}
+		}
+		else
+		{
+			usedLabSpace += (*iter)->getAssigned();
+		}
 	}
+
 	return usedLabSpace;
 }
 
@@ -995,13 +1209,34 @@ int Base::getAvailableLaboratories() const
  * by manufacturing projects in the base.
  * @return Storage space.
  */
-int Base::getUsedWorkshops() const
+int Base::getUsedWorkshops(bool fta, Production* exclude) const
 {
 	int usedWorkShop = 0;
-	for (std::vector<Production *>::const_iterator iter = _productions.begin(); iter != _productions.end(); ++iter)
+	for (std::vector<Production*>::const_iterator iter = _productions.begin(); iter != _productions.end(); ++iter)
 	{
-		usedWorkShop += ((*iter)->getAssignedEngineers() + (*iter)->getRules()->getRequiredSpace());
+		if (exclude != nullptr && (*iter) == exclude)
+		{
+			continue;
+		}
+
+		int assigned = 0;
+		if (fta)
+		{
+			for (auto s : _soldiers)
+			{
+				if ((*iter) == s->getProductionProject())
+				{
+					assigned++;
+				}
+			}
+		}
+		else
+		{
+			assigned = (*iter)->getAssignedEngineers();
+		}
+		usedWorkShop += (assigned + (*iter)->getRules()->getRequiredSpace());
 	}
+
 	return usedWorkShop;
 }
 
@@ -1071,18 +1306,18 @@ int Base::getAvailableHangars() const
  * Return laboratories space not used by a ResearchProject
  * @return laboratories space not used by a ResearchProject
  */
-int Base::getFreeLaboratories() const
+int Base::getFreeLaboratories(bool fta, ResearchProject* exclude) const
 {
-	return getAvailableLaboratories() - getUsedLaboratories();
+	return getAvailableLaboratories() - getUsedLaboratories(fta, exclude);
 }
 
 /**
  * Return workshop space not used by a Production
  * @return workshop space not used by a Production
  */
-int Base::getFreeWorkshops() const
+int Base::getFreeWorkshops(bool fta, Production* exclude) const
 {
-	return getAvailableWorkshops() - getUsedWorkshops();
+	return getAvailableWorkshops() - getUsedWorkshops(fta, exclude);
 }
 
 /**
@@ -1101,6 +1336,15 @@ int Base::getFreePsiLabs() const
 int Base::getFreeContainment(int prisonType) const
 {
 	return getAvailableContainment(prisonType) - getUsedContainment(prisonType);
+}
+
+/**
+ * Return prison (for FtA type Base Prisoner).
+ * @return containment space not in use
+ */
+int Base::getFreePrisonSpace() const
+{
+	return getAvailablePrisonSpace() - getUsedPrisonSpace();
 }
 
 /**
@@ -1267,12 +1511,18 @@ std::pair<int, int> Base::getSoldierCountAndSalary(const std::string &soldier) c
 {
 	int total = 0;
 	int totalSalary = 0;
+	int rank = 0;
 	for (std::vector<Transfer*>::const_iterator i = _transfers.begin(); i != _transfers.end(); ++i)
 	{
 		if ((*i)->getType() == TRANSFER_SOLDIER && (*i)->getSoldier()->getRules()->getType() == soldier)
 		{
 			total++;
-			totalSalary += (*i)->getSoldier()->getRules()->getSalaryCost((*i)->getSoldier()->getRank());
+			rank = (*i)->getSoldier()->getBestRoleRank().second;
+			if (!rank)
+			{
+				rank = (int)(*i)->getSoldier()->getRank();
+			}
+			totalSalary += (*i)->getSoldier()->getRules()->getSalaryCost(rank);
 		}
 	}
 	for (std::vector<Soldier*>::const_iterator i = _soldiers.begin(); i != _soldiers.end(); ++i)
@@ -1280,7 +1530,12 @@ std::pair<int, int> Base::getSoldierCountAndSalary(const std::string &soldier) c
 		if ((*i)->getRules()->getType() == soldier)
 		{
 			total++;
-			totalSalary += (*i)->getRules()->getSalaryCost((*i)->getRank());
+			rank = (*i)->getBestRoleRank().second;
+			if (!rank)
+			{
+				rank = (int)(*i)->getRank();
+			}
+			totalSalary += (*i)->getRules()->getSalaryCost(rank);
 		}
 	}
 	return std::make_pair(total, totalSalary);
@@ -1294,16 +1549,27 @@ std::pair<int, int> Base::getSoldierCountAndSalary(const std::string &soldier) c
 int Base::getPersonnelMaintenance() const
 {
 	int total = 0;
+	int rank = 0;
 	for (std::vector<Transfer*>::const_iterator i = _transfers.begin(); i != _transfers.end(); ++i)
 	{
 		if ((*i)->getType() == TRANSFER_SOLDIER)
 		{
-			total += (*i)->getSoldier()->getRules()->getSalaryCost((*i)->getSoldier()->getRank());
+			rank = (*i)->getSoldier()->getBestRoleRank().second;
+			if (!rank)
+			{
+				rank = (int)(*i)->getSoldier()->getRank();
+			}
+			total += (*i)->getSoldier()->getRules()->getSalaryCost(rank);
 		}
 	}
 	for (std::vector<Soldier*>::const_iterator i = _soldiers.begin(); i != _soldiers.end(); ++i)
 	{
-		total += (*i)->getRules()->getSalaryCost((*i)->getRank());
+		rank = (*i)->getBestRoleRank().second;
+		if (!rank)
+		{
+			rank = (int)(*i)->getRank();
+		}
+		total += (*i)->getRules()->getSalaryCost(rank);
 	}
 	total += getTotalEngineers() * _mod->getEngineerCost();
 	total += getTotalScientists() * _mod->getScientistCost();
@@ -1569,6 +1835,19 @@ int Base::getAvailableContainment(int prisonType) const
 		if ((*i)->getBuildTime() == 0 && (*i)->getRules()->getPrisonType() == prisonType)
 		{
 			total += (*i)->getRules()->getAliens();
+		}
+	}
+	return total;
+}
+
+int Base::getAvailablePrisonSpace() const
+{
+	int total = 0;
+	for (std::vector<BaseFacility*>::const_iterator i = _facilities.begin(); i != _facilities.end(); ++i)
+	{
+		if ((*i)->getBuildTime() == 0)
+		{
+			total += (*i)->getRules()->getFtAPrisoneSpace();
 		}
 	}
 	return total;
@@ -2028,7 +2307,7 @@ void Base::destroyFacility(std::vector<BaseFacility*>::iterator facility)
 	{
 		// lab destruction: enforce lab space limits. take scientists off projects until
 		// it all evens out. research is not cancelled.
-		int toRemove = (*facility)->getRules()->getLaboratories() - getFreeLaboratories();
+		int toRemove = (*facility)->getRules()->getLaboratories() - getFreeLaboratories(_mod->isFTAGame());
 		for (std::vector<ResearchProject*>::iterator i = _research.begin(); i != _research.end() && toRemove > 0;)
 		{
 			if ((*i)->getAssigned() >= toRemove)
@@ -2050,7 +2329,7 @@ void Base::destroyFacility(std::vector<BaseFacility*>::iterator facility)
 	{
 		// workshop destruction: similar to lab destruction, but we'll lay off engineers instead
 		// in this case, however, production IS cancelled, as it takes up space in the workshop.
-		int toRemove = (*facility)->getRules()->getWorkshops() - getFreeWorkshops();
+		int toRemove = (*facility)->getRules()->getWorkshops() - getFreeWorkshops(_mod->isFTAGame());
 		Collections::deleteIf(_productions, _productions.size(),
 			[&](Production* p)
 			{
@@ -2205,6 +2484,7 @@ BasePlacementErrors Base::isAreaInUse(BaseAreaSubset area, const RuleBaseFacilit
 		int hangars = 0;
 		int psiLaboratories = 0;
 		int training = 0;
+		int prison = 0;
 
 		void add(const RuleBaseFacility* rule)
 		{
@@ -2219,6 +2499,7 @@ BasePlacementErrors Base::isAreaInUse(BaseAreaSubset area, const RuleBaseFacilit
 			hangars += rule->getCrafts();
 			psiLaboratories += rule->getPsiLaboratories();
 			training += rule->getTrainingFacilities();
+			prison += rule->getFtAPrisoneSpace();
 		}
 	};
 
@@ -2393,12 +2674,12 @@ BasePlacementErrors Base::isAreaInUse(BaseAreaSubset area, const RuleBaseFacilit
 	return (
 		(removed.quarters > 0 && available.quarters < getUsedQuarters()) ||
 		(removed.stores > 0 && available.stores < getUsedStores()) ||
-		(removed.laboratories > 0 && available.laboratories < getUsedLaboratories()) ||
-		(removed.workshops > 0 && available.workshops < getUsedWorkshops()) ||
+		(removed.laboratories > 0 && available.laboratories < getUsedLaboratories(_mod->isFTAGame())) ||
+		(removed.workshops > 0 && available.workshops < getUsedWorkshops(_mod->isFTAGame())) ||
 		(removed.hangars > 0 && available.hangars < getUsedHangars()) ||
 		(removed.psiLaboratories > 0 && available.psiLaboratories < getUsedPsiLabs()) ||
 		(removed.training > 0 && available.training < getUsedTraining()) ||
-		false
+		(removed.prison > 0 && available.prison < getUsedPrisonSpace())
 	) ? BPE_Used : BPE_None;
 }
 

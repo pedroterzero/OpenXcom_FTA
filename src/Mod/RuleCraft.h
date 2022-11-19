@@ -248,6 +248,7 @@ public:
 	int getMaxVehicles() const { return _maxVehicles; }
 	/// Gets the craft's monthly buy limit.
 	int getMonthlyBuyLimit() const { return _monthlyBuyLimit; }
+	/// Gets the craft's role requirments for piloting.
 	/// Gets the craft's cost.
 	int getBuyCost() const;
 	/// Gets the craft's rent for a month.

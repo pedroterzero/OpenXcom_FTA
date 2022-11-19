@@ -37,6 +37,7 @@
 #include "../Mod/Mod.h"
 #include "../Mod/Armor.h"
 #include "../Mod/Unit.h"
+#include "../Mod/RuleSoldier.h"
 #include "../Mod/RuleEnviroEffects.h"
 #include "../Mod/RuleInventory.h"
 #include "../Mod/RuleSkill.h"
@@ -63,19 +64,19 @@ namespace OpenXcom
 BattleUnit::BattleUnit(const Mod *mod, Soldier *soldier, int depth, const RuleStartingCondition* sc) :
 	_faction(FACTION_PLAYER), _originalFaction(FACTION_PLAYER), _killedBy(FACTION_PLAYER), _id(0), _tile(0),
 	_lastPos(Position()), _direction(0), _toDirection(0), _directionTurret(0), _toDirectionTurret(0),
-	_verticalDirection(0), _status(STATUS_STANDING), _wantsToSurrender(false), _isSurrendering(false), _walkPhase(0), _fallPhase(0), _kneeled(false), _floating(false),
-	_dontReselect(false), _fire(0), _currentAIState(0), _visible(false), _warned(false), _alarmed(false), _wasFriendlyFired(false), _freshReinforcement(false), _undercover(false), _revealed(false),
-	_exp{ }, _expTmp{ },
-	_motionPoints(0), _scannedTurn(-1), _kills(0), _hitByFire(false), _hitByAnything(false), _alreadyExploded(false), _fireMaxHit(0), _smokeMaxHit(0), _moraleRestored(0), _charging(0), _turnsSinceSpotted(255), _turnsLeftSpottedForSnipers(0),
+	_verticalDirection(0), _status(STATUS_STANDING), _wantsToSurrender(false), _isSurrendering(false), _wasFriendlyFired(false), _walkPhase(0), _fallPhase(0), _kneeled(false),
+	_floating(false), _dontReselect(false), _fire(0), _currentAIState(0), _visible(false), _exp{}, _expTmp{}, _motionPoints(0), _scannedTurn(-1), _kills(0),
+	_warned(false), _alarmed(false), _freshReinforcement(false), _undercover(false), _revealed(false),
+	_hitByFire(false), _hitByAnything(false), _alreadyExploded(false), _fireMaxHit(0), _smokeMaxHit(0), _moraleRestored(0), _charging(0), _turnsSinceSpotted(255), _turnsLeftSpottedForSnipers(0),
 	_statistics(), _murdererId(0), _mindControllerID(0), _fatalShotSide(SIDE_FRONT), _fatalShotBodyPart(BODYPART_HEAD), _armor(0),
-	_geoscapeSoldier(soldier), _unitRules(0), _rankInt(0), _turretType(-1), _hidingForTurn(false), _floorAbove(false), _respawn(false), _alreadyRespawned(false),
-	_isLeeroyJenkins(false), _summonedPlayerUnit(false), _resummonedFakeCivilian(false), _pickUpWeaponsMoreActively(false), _disableIndicators(false),
+	_geoscapeSoldier(soldier), _roles(0), _unitRules(0), _rankInt(0), _turretType(-1), _hidingForTurn(false), _floorAbove(false), _respawn(false), _alreadyRespawned(false),
+	_isLeeroyJenkins(false), _summonedPlayerUnit(false), _resummonedFakeCivilian(false), _pickUpWeaponsMoreActively(false), _disableIndicators(false), 
 	_capturable(true), _vip(false), _bannedInNextStage(false)
 {
 	_name = soldier->getName(true);
 	_id = soldier->getId();
 	_type = "SOLDIER";
-	_rank = soldier->getRankString();
+	_rank = soldier->getRankString(mod->isFTAGame());
 	_stats = *soldier->getCurrentStats();
 	_armor = soldier->getArmor();
 	_standHeight = _armor->getStandHeight() == -1 ? soldier->getRules()->getStandHeight() : _armor->getStandHeight();
@@ -125,6 +126,21 @@ BattleUnit::BattleUnit(const Mod *mod, Soldier *soldier, int depth, const RuleSt
 	case RANK_COLONEL:   rankbonus =  6; break;
 	case RANK_COMMANDER: rankbonus = 10; break;
 	default:             rankbonus =  0; break;
+	}
+
+	int roleRank = soldier->getBestRoleRank().second;
+	if (roleRank > 0)
+	{
+		if (roleRank >= 5)
+			rankbonus = 10;
+		else if (roleRank == 4)
+			rankbonus = 6;
+		else if (roleRank == 3)
+			rankbonus = 3;
+		else if (roleRank == 2)
+			rankbonus = 1;
+		else
+			rankbonus = 0;
 	}
 
 	_value = soldier->getRules()->getValue() + soldier->getMissions() + rankbonus;
@@ -440,7 +456,7 @@ BattleUnit::BattleUnit(const Mod *mod, Unit *unit, UnitFaction faction, int id, 
 	_motionPoints(0), _scannedTurn(-1), _kills(0), _hitByFire(false), _hitByAnything(false), _alreadyExploded(false), _fireMaxHit(0), _smokeMaxHit(0),
 	_moraleRestored(0), _charging(0), _turnsSinceSpotted(255), _turnsLeftSpottedForSnipers(0),
 	_statistics(), _murdererId(0), _mindControllerID(0), _fatalShotSide(SIDE_FRONT),
-	_fatalShotBodyPart(BODYPART_HEAD), _armor(armor), _geoscapeSoldier(0),  _unitRules(unit),
+	_fatalShotBodyPart(BODYPART_HEAD), _armor(armor), _geoscapeSoldier(0), _roles(0), _unitRules(unit),
 	_rankInt(0), _turretType(-1), _hidingForTurn(false), _respawn(false), _alreadyRespawned(false),
 	_isLeeroyJenkins(false), _summonedPlayerUnit(false), _resummonedFakeCivilian(false), _pickUpWeaponsMoreActively(false), _disableIndicators(false),
 	_vip(false), _bannedInNextStage(false)
@@ -456,6 +472,7 @@ BattleUnit::BattleUnit(const Mod *mod, Unit *unit, UnitFaction faction, int id, 
 	_type = unit->getType();
 	_rank = unit->getRank();
 	_race = unit->getRace();
+	_roles = unit->getRoles();
 	_stats = *unit->getStats();
 	_statsRandom = *unit->getRandomStats();
 	_standHeight = _armor->getStandHeight() == -1 ? unit->getStandHeight() : _armor->getStandHeight();
@@ -712,6 +729,8 @@ void BattleUnit::load(const YAML::Node &node, const Mod *mod, const ScriptGlobal
 	_freshReinforcement = node["freshReinforcement"].as<bool>(_freshReinforcement);
 	_dontReselect = node["dontReselect"].as<bool>(_dontReselect);
 	_charging = 0;
+	if (node["roles"])
+		loadRoles(node["roles"].as<std::vector<int> >());
 
 	if (const YAML::Node& spawn = node["spawnUnit"])
 	{
@@ -1472,7 +1491,7 @@ UnitFaction BattleUnit::getFaction() const
  * Sets geoscape soldier in case we create one for this unit in debreafing.
  * @param soldier Soldier.
  */
-void BattleUnit::setGeoscapeSoldied(Soldier* soldier)
+void BattleUnit::setGeoscapeSoldier(Soldier* soldier)
 {
 	_geoscapeSoldier = soldier;
 	// Set basic parameters as we would not need much of it stats.
@@ -3036,7 +3055,20 @@ bool BattleUnit::canStackToSlot(BattleItem* item, RuleInventory* slot, int x, in
 	{
 		return false;
 	}
-};
+}
+void BattleUnit::loadRoles(const std::vector<int>& r)
+{
+	_roles.clear();
+	for (auto i : r)
+	{
+		SoldierRole role = static_cast<SoldierRole>(i);
+		if (_roles.empty() || std::find(_roles.begin(), _roles.end(), role) == _roles.end())
+		{
+			_roles.push_back(role);
+		}
+	}
+}
+;
 
 /**
  * Fit item into inventory slot.
@@ -3110,7 +3142,7 @@ bool BattleUnit::addItem(BattleItem *item, const Mod *mod, bool allowSecondClip,
 			{
 				if (rule->getType() == i->getRules()->getType())
 				{
-					if (mod->getIsFTAGame() && rule->getStackSize() > 1) // FtA logic
+					if (mod->isFTAGame() && rule->getStackSize() > 1) // FtA logic
 					{
 						++tally;
 						if (allowSecondClip && rule->getBattleType() == BT_AMMO)
@@ -3215,7 +3247,7 @@ bool BattleUnit::addItem(BattleItem *item, const Mod *mod, bool allowSecondClip,
 					placed = true;
 				}
 				// if we have a stackable weapon i.e. throwing knife in one of the hands, put spare items in the inventory
-				if (!placed && mod->getIsFTAGame()
+				if (!placed && mod->isFTAGame()
 					&& item->getRules()->getStackSize() > 1
 					&&((getRightHandWeapon() && getRightHandWeapon()->getRules()->getType() == item->getRules()->getType())
 						||(getLeftHandWeapon() && getLeftHandWeapon()->getRules()->getType() == item->getRules()->getType())
@@ -3973,7 +4005,7 @@ void BattleUnit::addMeleeExp()
  */
 bool BattleUnit::hasGainedAnyExperience()
 {
-	return _exp.bravery || _exp.reactions || _exp.firing || _exp.psiSkill || _exp.psiStrength || _exp.melee || _exp.throwing || _exp.mana;
+	return _exp.empty();
 }
 
 void BattleUnit::updateGeoscapeStats(Soldier *soldier) const
@@ -4018,47 +4050,11 @@ bool BattleUnit::postMissionProcedures(const Mod *mod, SavedGame *geoscape, Save
 
 	auto recovery = (int)RNG::generate((healthLossOriginal*0.5),(healthLossOriginal*1.5));
 
-	if (_exp.bravery && stats->bravery < caps.bravery)
-	{
-		if (_exp.bravery > RNG::generate(0,10)) stats->bravery += 10;
-	}
-	if (_exp.reactions && stats->reactions < caps.reactions)
-	{
-		stats->reactions += improveStat(_exp.reactions);
-	}
-	if (_exp.firing && stats->firing < caps.firing)
-	{
-		stats->firing += improveStat(_exp.firing);
-	}
-	if (_exp.melee && stats->melee < caps.melee)
-	{
-		stats->melee += improveStat(_exp.melee);
-	}
-	if (_exp.throwing && stats->throwing < caps.throwing)
-	{
-		stats->throwing += improveStat(_exp.throwing);
-	}
-	if (_exp.psiSkill && stats->psiSkill < caps.psiSkill)
-	{
-		stats->psiSkill += improveStat(_exp.psiSkill);
-	}
-	if (_exp.psiStrength && stats->psiStrength < caps.psiStrength)
-	{
-		stats->psiStrength += improveStat(_exp.psiStrength);
-	}
-	if (mod->isManaTrainingPrimary())
-	{
-		if (_exp.mana && stats->mana < caps.mana)
-		{
-			stats->mana += improveStat(_exp.mana);
-		}
-	}
-
 	bool hasImproved = false;
 	if (hasGainedAnyExperience())
 	{
 		hasImproved = true;
-		if (s->getRank() == RANK_ROOKIE)
+		if (s->getRank() == RANK_ROOKIE && !mod->isFTAGame())
 			s->promoteRank();
 		int v;
 		v = caps.tu - stats->tu;
@@ -4074,9 +4070,16 @@ bool BattleUnit::postMissionProcedures(const Mod *mod, SavedGame *geoscape, Save
 		if (v > 0) stats->strength += RNG::generate(0, v/10 + 2);
 		v = caps.stamina - stats->stamina;
 		if (v > 0) stats->stamina += RNG::generate(0, v/10 + 2);
+
+		if (!mod->isManaTrainingPrimary())
+		{
+			_exp.mana = 0;
+		}
+		s->improvePrimaryStats(&_exp, ROLE_SOLDIER);
 	}
 
-	statsDiff.statGrowth += *stats; // add new stat
+	UnitStats *newStats = s->getCurrentStats();
+	statsDiff.statGrowth += *newStats; // add new stat
 
 	if (_armor->getInstantWoundRecovery())
 	{
@@ -4097,7 +4100,7 @@ bool BattleUnit::postMissionProcedures(const Mod *mod, SavedGame *geoscape, Save
 	}
 
 	//after mod execution this value could change
-	statsDiff.statGrowth = *stats - statsOld.statGrowth;
+	statsDiff.statGrowth = *newStats - statsOld.statGrowth;
 
 	s->setWoundRecovery(recovery);
 	s->setManaMissing(manaLoss);
@@ -4126,14 +4129,14 @@ bool BattleUnit::postMissionProcedures(const Mod *mod, SavedGame *geoscape, Save
  * @param Experience counter.
  * @return Stat increase.
  */
-int BattleUnit::improveStat(int exp) const
-{
-	if      (exp > 10) return RNG::generate(2, 6);
-	else if (exp > 5)  return RNG::generate(1, 4);
-	else if (exp > 2)  return RNG::generate(1, 3);
-	else if (exp > 0)  return RNG::generate(0, 1);
-	else               return 0;
-}
+//int BattleUnit::improveStat(int exp) const
+//{
+//	if      (exp > 10) return RNG::generate(2, 6);
+//	else if (exp > 5)  return RNG::generate(1, 4);
+//	else if (exp > 2)  return RNG::generate(1, 3);
+//	else if (exp > 0)  return RNG::generate(0, 1);
+//	else               return 0;
+//}
 
 /**
  * Get the unit's minimap sprite index. Used to display the unit on the minimap

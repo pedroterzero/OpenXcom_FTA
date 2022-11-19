@@ -22,6 +22,7 @@
 #include <yaml-cpp/yaml.h>
 #include "RuleBaseFacilityFunctions.h"
 #include "ModScript.h"
+#include "../Mod/Unit.h"
 
 namespace OpenXcom
 {
@@ -47,9 +48,10 @@ class RuleResearch
 	int _spawnedItemCount;
 	std::vector<std::string> _spawnedItemList;
 	std::vector<std::string> _decreaseCounter, _increaseCounter;
-	int _cost, _points;
+	int _cost, _points, _funds;
 	std::vector<std::string> _dependenciesName, _unlocksName, _disablesName, _reenablesName, _getOneFreeName, _requiresName;
 	RuleBaseFacilityFunctions _requiresBaseFunc;
+	UnitStats _stats;
 	std::vector<const RuleResearch*> _dependencies, _unlocks, _disables, _reenables, _getOneFree, _requires;
 	bool _sequentialGetOneFree;
 	std::vector<std::pair<std::string, std::vector<std::string> > > _getOneFreeProtectedName;
@@ -86,8 +88,8 @@ public:
 	bool needItem() const;
 	/// Checks if this ResearchProject consumes the corresponding Item when research completes.
 	bool destroyItem() const;
-	/// Checks if this ResearchProject is unavalible for manual research and would be discovered with a special condition (event, mission reward, research bonus or with YS).
-	bool isHidden() const { return _hidden; };
+	/// Checks if this ResearchProject is unavailable for manual research and would be discovered with a special condition (event, mission reward, research bonus or with YS).
+	bool isHidden() const { return _hidden; }
 	/// Gets the list of ResearchProjects unlocked by this research.
 	const std::vector<const RuleResearch*> &getUnlocked() const;
 	/// Gets the list of ResearchProjects disabled by this research.
@@ -96,6 +98,8 @@ public:
 	const std::vector<const RuleResearch*> &getReenabled() const;
 	/// Gets the points earned for discovering this ResearchProject.
 	int getPoints() const;
+	/// Gets funds required to discover this ResearchProject.
+	int getFunds() const { return _funds; }
 	/// Gets the list of ResearchProjects granted at random for free by this research.
 	const std::vector<const RuleResearch*> &getGetOneFree() const;
 	/// Gets the list(s) of ResearchProjects granted at random for free by this research (if a defined prerequisite is met).
@@ -106,6 +110,8 @@ public:
 	const std::vector<const RuleResearch*> &getRequirements() const;
 	/// Gets the base requirements for this ResearchProject.
 	RuleBaseFacilityFunctions getRequireBaseFunc() const { return _requiresBaseFunc; }
+	/// Get pointer to this ResearchProject's stats.
+	UnitStats getStats() const { return _stats; }
 	/// Gets the list weight for this research item.
 	int getListOrder() const;
 	/// Gets the cutscene to play when this item is researched

@@ -61,6 +61,7 @@ class RuleTerrain;
 class MapDataSet;
 class RuleSkill;
 class RuleSoldier;
+class RulePrisoner;
 class Unit;
 class Armor;
 class ArticleDefinition;
@@ -68,6 +69,7 @@ class RuleInventory;
 class RuleResearch;
 class RuleManufacture;
 class RuleManufactureShortcut;
+class RuleIntelProject;
 class RuleSoldierBonus;
 class RuleSoldierTransformation;
 class AlienRace;
@@ -183,6 +185,8 @@ private:
 	std::map<std::string, RuleResearch *> _research;
 	std::map<std::string, RuleManufacture *> _manufacture;
 	std::map<std::string, RuleManufactureShortcut *> _manufactureShortcut;
+	std::map<std::string, RuleIntelProject *> _intelligence;
+	std::map<std::string, RulePrisoner*> _prisoners;
 	std::map<std::string, RuleSoldierBonus *> _soldierBonus;
 	std::map<std::string, RuleSoldierTransformation *> _soldierTransformation;
 	std::map<std::string, UfoTrajectory *> _ufoTrajectories;
@@ -222,6 +226,7 @@ private:
 	bool _aiExtendedFireModeChoice, _aiRespectMaxRange, _aiDestroyBaseFacilities;
 	bool _aiPickUpWeaponsMoreActively, _aiPickUpWeaponsMoreActivelyCiv;
 	int _maxLookVariant, _tooMuchSmokeThreshold, _customTrainingFactor, _minReactionAccuracy;
+	int _researchTrainingFactor, _engineeringTrainingFactor, _intelTrainingFactor;
 	int _chanceToStopRetaliation;
 	bool _lessAliensDuringBaseDefense;
 	bool _allowCountriesToCancelAlienPact, _buildInfiltrationBaseCloseToTheCountry;
@@ -251,7 +256,7 @@ private:
 	int _crewEmergencyEvacuationSurvivalChance, _pilotsEmergencyEvacuationSurvivalChance;
 	int _soldiersPerSergeant, _soldiersPerCaptain, _soldiersPerColonel, _soldiersPerCommander;
 	int _pilotAccuracyZeroPoint, _pilotAccuracyRange, _pilotReactionsZeroPoint, _pilotReactionsRange;
-	int _pilotBraveryThresholds[3];
+	int _pilotBraveryThresholds[3], _pilotCooperationZeroPoint, _pilotCooperationRange, _pilotTrackingZeroPoint, _pilotTrackingRange;
 	int _performanceBonusFactor;
 	bool _enableNewResearchSorting;
 	int _displayCustomCategories;
@@ -269,7 +274,8 @@ private:
 	bool _difficultyDemigod;
 	std::pair<std::string, int> _alienFuel;
 	std::string _fontName, _finalResearch, _psiUnlockResearch, _fakeUnderwaterBaseUnlockResearch, _newBaseUnlockResearch;
-	std::string _ufopaediaUnlockResearch, _baseConstructionUnlockResearch;
+	std::string _ufopaediaUnlockResearch, _baseConstructionUnlockResearch, _alienTechUnlockResearch, _xenologyUnlockResearch;
+	std::string _craftsBeamUnlockResearch, _craftSynapseUnlockResearch, _craftGravControlUnlockResearch;
 	std::string _hireScientistsUnlockResearch, _hireEngineersUnlockResearch;
 	RuleBaseFacilityFunctions _hireScientistsRequiresBaseFunc, _hireEngineersRequiresBaseFunc;
 
@@ -303,7 +309,7 @@ private:
 
 	std::map<std::string, int> _ufopaediaSections;
 	std::vector<std::string> _countriesIndex, _extraGlobeLabelsIndex, _regionsIndex, _facilitiesIndex, _craftsIndex, _craftWeaponsIndex, _itemCategoriesIndex, _itemsIndex, _invsIndex, _ufosIndex;
-	std::vector<std::string> _aliensIndex, _enviroEffectsIndex, _startingConditionsIndex, _deploymentsIndex, _armorsIndex, _ufopaediaIndex, _ufopaediaCatIndex, _researchIndex, _manufactureIndex;
+	std::vector<std::string> _aliensIndex, _enviroEffectsIndex, _startingConditionsIndex, _deploymentsIndex, _armorsIndex, _ufopaediaIndex, _ufopaediaCatIndex, _researchIndex, _manufactureIndex, _intelligenceIndex, _prisonerIndex;
 	std::vector<std::string> _skillsIndex, _soldiersIndex, _soldierTransformationIndex, _soldierBonusIndex;
 	std::vector<std::string> _alienMissionsIndex, _terrainIndex, _customPalettesIndex, _arcScriptIndex, _eventScriptIndex, _eventIndex, _missionScriptIndex;
 	std::vector<std::string> _diplomacyFactionIndex;
@@ -311,7 +317,7 @@ private:
 	std::vector<std::string> _covertOperationIndex;
 	std::vector<std::vector<int> > _alienItemLevels;
 	std::vector<SDL_Color> _transparencies;
-	int _facilityListOrder, _craftListOrder, _covertOperationListOrder, _itemCategoryListOrder, _itemListOrder, _researchListOrder,  _manufactureListOrder;
+	int _facilityListOrder, _craftListOrder, _covertOperationListOrder, _itemCategoryListOrder, _itemListOrder, _researchListOrder,  _manufactureListOrder, _intelligenceListOrder;
 	int _soldierBonusListOrder, _transformationListOrder, _ufopaediaListOrder, _invListOrder, _soldierListOrder;
 	std::vector<ModData> _modData;
 	ModData* _modCurrent;
@@ -618,6 +624,18 @@ public:
 		{
 			rule = getEvent(name, true);
 		}
+		else if constexpr (std::is_same_v<T, RuleManufacture>)
+		{
+			rule = getManufacture(name, true);
+		}
+		else if constexpr (std::is_same_v<T, RuleIntelProject>)
+		{
+			rule = getIntelProject(name, true);
+		}
+		else if constexpr (std::is_same_v<T, RulePrisoner>)
+		{
+			rule = getPrisonerRules(name, true);
+		}
 		else
 		{
 			static_assert(sizeof(T) == 0, "Unsupported type to link");
@@ -701,7 +719,7 @@ public:
 	/// Gets skill rules.
 	RuleSkill *getSkill(const std::string &name, bool error = false) const;
 	/// Gets soldier unit rules.
-	RuleSoldier *getSoldier(const std::string &name, bool error = false) const;
+	const RuleSoldier *getSoldier(const std::string &name, bool error = false) const;
 	/// Gets the available soldiers.
 	const std::vector<std::string> &getSoldiersList() const;
 	/// Gets commendation rules.
@@ -828,6 +846,12 @@ public:
 	int getCustomTrainingFactor() const { return _customTrainingFactor; }
 	/// Gets the minimum firing accuracy for reaction fire (default = 0).
 	int getMinReactionAccuracy() const { return _minReactionAccuracy; }
+	/// Gets the custom scientist stats training factor in percent (default = 100).
+	int getResearchTrainingFactor() const { return _researchTrainingFactor; }
+	/// Gets the custom engineering stats training factor in percent (default = 100).
+	int getEngineerTrainingFactor() const { return _engineeringTrainingFactor; }
+	/// Gets the custom intelligence skills training factor in percent (default = 100).
+	int getIntelTrainingFactor() const { return _intelTrainingFactor; }
 	/// Gets the chance to stop retaliation after unsuccessful xcom base attack (default = 0).
 	int getChanceToStopRetaliation() const { return _chanceToStopRetaliation; }
 	/// Should a damaged UFO deploy less aliens during the base defense?
@@ -867,7 +891,7 @@ public:
 	/// Gets the bug hunt mode time units % parameter (default = 60).
 	int getBughuntTimeUnitsLeft() const { return _bughuntTimeUnitsLeft; }
 	/// Gets if we are playing FTA scenario.
-	bool getIsFTAGame() const { return _ftaGame; }
+	bool isFTAGame() const { return _ftaGame; }
 	/// Gets lenght of FtA game (while in alpha) in months
 	int getFTAGameLength() const { return _ftaGameLength; }
 	
@@ -911,6 +935,16 @@ public:
 	const std::string& getBaseConstructionUnlockResearch() const { return _baseConstructionUnlockResearch; } //FtA version
 	/// Gets the research topic required for using Ufopaedia.
 	const std::string& getUfopaediaUnlockResearch() const { return _ufopaediaUnlockResearch; }
+	/// Gets the research topic required for unlocking xenolinguistics stat.
+	const std::string& getAlienTechUnlockResearch() const { return _alienTechUnlockResearch; }
+	/// Gets the research topic required for unlocking xenolinguistics stat.
+	const std::string &getXenologyUnlockResearch() const { return _xenologyUnlockResearch; }
+	/// Gets the research topic required for unlocking beam operations stat.
+	const std::string &getBeamOperationsUnlockResearch() const { return _craftsBeamUnlockResearch; }
+	/// Gets the research topic required for unlocking synapsis stat.
+	const std::string &getCraftSynapseUnlockResearch() const { return _craftSynapseUnlockResearch; }
+	/// Gets the research topic required for unlocking gravity controlling stat.
+	const std::string &getGravControlUnlockResearch() const { return _craftGravControlUnlockResearch; }
 
 	/// Gets the threshold for defining a glancing hit on a ufo during interception
 	int getUfoGlancingHitThreshold() const { return _ufoGlancingHitThreshold; }
@@ -946,6 +980,14 @@ public:
 	int getPilotReactionsZeroPoint() const { return _pilotReactionsZeroPoint; }
 	/// Gets the reactions impact (as percentage of distance to zero point) on pilot's dodge ability in dogfight
 	int getPilotReactionsRange() const { return _pilotReactionsRange; }
+	/// Gets the coordination needed for no bonus/penalty
+	int getPilotCoordinationZeroPoint() const { return _pilotCooperationZeroPoint; }
+	/// Gets the coordination impact (as percentage of distance to zero point) on pilot's dodge ability in dogfight
+	int getPilotCoordinationRange() const { return _pilotCooperationRange; }
+	/// Gets the tracking needed for no bonus/penalty
+	int getPilotTrackingZeroPoint() const { return _pilotTrackingZeroPoint; }
+	/// Gets the tracking impact (as percentage of distance to zero point) on pilot's dodge ability in dogfight
+	int getPilotTrackingRange() const { return _pilotTrackingRange; }
 	/// Gets the pilot's bravery needed for very bold approach speed
 	int getPilotBraveryThresholdVeryBold() const { return _pilotBraveryThresholds[0]; }
 	/// Gets the pilot's bravery needed for bold approach speed
@@ -994,6 +1036,16 @@ public:
 	RuleManufacture *getManufacture (const std::string &id, bool error = false) const;
 	/// Gets the list of all manufacture projects.
 	const std::vector<std::string> &getManufactureList() const;
+	/// Gets the ruleset for a specific intelligence project.
+	RuleIntelProject *getIntelProject (const std::string &id, bool error = false) const;
+	/// Gets the list of all intelligence projects.
+	const std::vector<std::string> &getIntelProjectsList() const;
+
+	/// Gets the ruleset for a specific prisoner.
+	RulePrisoner* getPrisonerRules(const std::string& id, bool error = false) const;
+	/// Gets the list of all prisoner rules.
+	const std::vector<std::string>& getPrisonerRulesList() const;
+
 	/// Gets the ruleset for a specific soldier bonus type.
 	RuleSoldierBonus *getSoldierBonus(const std::string &id, bool error = false) const;
 	/// Gets the list of all soldier bonus types.

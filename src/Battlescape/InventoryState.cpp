@@ -89,6 +89,8 @@ InventoryState::InventoryState(bool tu, BattlescapeState *parent, Base *base, bo
 		_game->getScreen()->resetDisplay(false);
 	}
 
+	_ftaUI = _game->getMod()->isFTAGame();
+
 	// Create objects
 	_bg = new Surface(320, 200, 0, 0);
 	_soldier = new Surface(320, 200, 0, 0);
@@ -452,8 +454,13 @@ void InventoryState::init()
 			_reloadUnit = false;
 		}
 
+		SoldierRole role = s->getBestRole();
 		SurfaceSet *texture = _game->getMod()->getSurfaceSet("SMOKE.PCK");
 		auto frame = texture->getFrame(s->getRankSpriteBattlescape());
+		if (_ftaUI)
+		{
+			frame = texture->getFrame(s->getRoleRankSpriteBattlescape(role));
+		}
 		if (frame)
 		{
 			frame->blitNShade(_btnRank, 0, 0);
@@ -613,7 +620,7 @@ void InventoryState::updateStats()
 	}
 	bool showPsiStrength = (psiSkillWithoutAnyBonuses > 0 || (Options::psiStrengthEval && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements())));
 
-	bool ftaGame = _game->getMod()->getIsFTAGame();
+	bool ftaGame = _game->getMod()->isFTAGame();
 
 	auto updateStatLine = [&](Text* txtField, const std::string& elementId)
 	{
@@ -623,21 +630,21 @@ void InventoryState::updateStats()
 			switch (element->custom)
 			{
 				case 1:
-					txtField->setText(tr("STR_ACCURACY_SHORT").arg(unit->getBaseStats()->firing));
+					txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->firing));
 					break;
 				case 2:
-					txtField->setText(tr("STR_REACTIONS_SHORT").arg(unit->getBaseStats()->reactions));
+					txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->reactions));
 					break;
 				case 3:
 					if (ftaGame)
 					{
-						txtField->setText(tr("STR_MELEE_SHORT").arg(unit->getBaseStats()->melee));
+						txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->melee));
 						break;
 					}
 					else
 					{
 						if (psiSkillWithoutAnyBonuses > 0)
-							txtField->setText(tr("STR_PSIONIC_SKILL_SHORT").arg(unit->getBaseStats()->psiSkill));
+							txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->psiSkill));
 						else
 							txtField->setText("");
 						break;
@@ -646,7 +653,7 @@ void InventoryState::updateStats()
 					if (ftaGame)
 					{
 						if (psiSkillWithoutAnyBonuses > 0)
-							txtField->setText(tr("STR_PSIONIC_SKILL_SHORT").arg(unit->getBaseStats()->psiSkill));
+							txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->psiSkill));
 						else
 							txtField->setText("");
 						break;
@@ -654,19 +661,19 @@ void InventoryState::updateStats()
 					else
 					{
 						if (showPsiStrength)
-							txtField->setText(tr("STR_PSIONIC_STRENGTH_SHORT").arg(unit->getBaseStats()->psiStrength));
+							txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->psiStrength));
 						else
 							txtField->setText("");
 						break;
 					}
 				case 11:
-					txtField->setText(tr("STR_FIRING_SHORT").arg(unit->getBaseStats()->firing));
+					txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->firing));
 					break;
 				case 12:
-					txtField->setText(tr("STR_THROWING_SHORT").arg(unit->getBaseStats()->throwing));
+					txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->throwing));
 					break;
 				case 13:
-					txtField->setText(tr("STR_MELEE_SHORT").arg(unit->getBaseStats()->melee));
+					txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->melee));
 					break;
 				case 14:
 					if (showPsiStrength)
