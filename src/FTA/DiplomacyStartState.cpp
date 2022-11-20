@@ -99,7 +99,7 @@ DiplomacyStartState::DiplomacyStartState(Base* base, bool geoscape) : _base(base
 			_btnsInfo.push_back(btnInfo);
 			_txtsRep.push_back(txtRep);
 			add(btnTalk, "button", interfaceName);
-			btnTalk->setText(tr("STR_NEGOTIATION"));
+			btnTalk->setText(tr("STR_CONTACT_UC"));
 			btnTalk->onMouseClick((ActionHandler)&DiplomacyStartState::btnTalkClick);
 			_btnsTalk.push_back(btnTalk);
 			//trade buttons

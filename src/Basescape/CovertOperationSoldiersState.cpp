@@ -312,20 +312,11 @@ void CovertOperationSoldiersState::initList(size_t scrl)
 
 void CovertOperationSoldiersState::updateStrings()
 {
-	if (_operation->getRule()->getOptionalSoldierSlots() > 0)
-	{
-		std::ostringstream ss;
-		ss << _operation->getRule()->getSoldierSlots() << "+" << _operation->getRule()->getOptionalSoldierSlots();
-		_txtAvailable->setText(tr("STR_SPACE_AVAILABLE").arg(ss.str()));
-	}
-	else
-	{
-		_txtAvailable->setText(tr("STR_SPACE_AVAILABLE").arg(_operation->getRule()->getSoldierSlots()));
-	}
-
+	std::ostringstream ss;
+	ss << _operation->getRule()->getSoldierSlotsMin() << "/" << _operation->getRule()->getSoldierSlotsMax();
+	_txtAvailable->setText(tr("STR_SPACE_AVAILABLE").arg(ss.str()));
 	_txtUsed->setText(tr("STR_SPACE_USED").arg(_operation->getSoldiers().size()));
-	bool mod = _game->getSavedGame()->getDebugMode();
-	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(_game->getSavedGame()->getDebugMode()))));
 }
 
 /**
@@ -382,7 +373,7 @@ void CovertOperationSoldiersState::lstSoldiersClick(Action* action)
 		}
 		else if (s->hasFullHealth() && !isBusy)
 		{
-			int space = (_operation->getRule()->getSoldierSlots() + _operation->getRule()->getOptionalSoldierSlots()) - opSoldiers.size();
+			int space = (_operation->getRule()->getSoldierSlotsMin() + _operation->getRule()->getSoldierSlotsMax()) - opSoldiers.size();
 			if (space > 0)
 			{
 				_operation->addSoldier(s);

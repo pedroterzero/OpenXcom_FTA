@@ -38,9 +38,9 @@ class RuleCovertOperation
 {
 private:
 	std::string _name, _description, _successDescription, _failureDescription, _successBackground, _failureBackground, _successMusic, _failureMusic, _successEvent,  _failureEvent, _specialRule;
-	std::vector<std::string> _requires, _canceledBy, _allowedArmor, _successResearchList, _failureResearchList;
+	std::vector<std::string> _categories, _requires, _canceledBy, _allowedArmor, _successResearchList, _failureResearchList;
 	RuleBaseFacilityFunctions _requiresBaseFunc;
-	int _soldierSlots, _optionalSoldierSlots, _optionalSoldierEffect, _scientistEffect, _engineerEffect, _itemSpaceEffect, _armorEffect;
+	int _soldiersMin, _soldiersMax, _optionalSoldierEffect, _scientistEffect, _engineerEffect, _itemSpaceEffect, _armorEffect;
 	double _itemSpaceLimit;
 	int _baseChances, _costs, _successScore, _failureScore, _successLoyalty, _failureLoyalty, _successFunds, _failureFunds;
 	int  _danger, _trapChance, _progressEventChance, _concealedItemsBonus, _bonusItemsEffect;
@@ -61,6 +61,8 @@ public:
 	const std::string& getName() const { return _name; }
 	/// Gets the operation's description.
 	const std::string& getDescription() const { return _description; }
+	/// Gets the operation's category list.
+	const std::vector<std::string>& getCategories() const { return _categories; }
 	/// Gets the operation's success results description.
 	const std::string& getSuccessDescription() const { return _successDescription; }
 	/// Gets the operation's failure results description.
@@ -92,9 +94,9 @@ public:
 	/// Gets the operation's list of projects that would be discovered on failure.
 	const std::vector<std::string>& getFailureResearchList() const { return _failureResearchList; }
 	/// Gets the soldiers number that required by this operations.
-	int getSoldierSlots() const { return _soldierSlots; }
+	int getSoldierSlotsMin() const { return _soldiersMin; }
 	/// Gets the optional soldiers slots for this operations.
-	int getOptionalSoldierSlots() const { return _optionalSoldierSlots; }
+	int getSoldierSlotsMax() const { return _soldiersMax; }
 	/// Gets the optional soldiers slots effectiveness for this operations.
 	int getOptionalSoldierEffect() const { return _optionalSoldierEffect; }
 	/// Gets the optional scientist slots effectiveness for this operations.

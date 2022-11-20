@@ -101,8 +101,7 @@ CovertOperationArmorState::CovertOperationArmorState(Base* base, CovertOperation
 
 	_txtArmor->setText(tr("STR_ARMOR"));
 
-	bool mod = _game->getSavedGame()->getDebugMode();
-	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(_game->getSavedGame()->getDebugMode()))));
 
 	// populate sort options
 	std::vector<std::string> sortOptions;
@@ -253,8 +252,7 @@ void CovertOperationArmorState::init()
 		_lstSoldiers->setCellText(row, 2, tr((*i)->getArmor()->getType()));
 		row++;
 	}
-	bool mod = _game->getSavedGame()->getDebugMode();
-	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(_game->getSavedGame()->getDebugMode()))));
 }
 
 /**

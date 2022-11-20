@@ -68,11 +68,8 @@ CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOpera
 	_btnCancel = new TextButton(148, 16, 8, 176);
 	_btnStart = new TextButton(148, 16, 164, 176);
 
-	int lablesDX = 90;
-	int lableSpace = 3;
-	_txtSoldiersRequired = new Text(lablesDX, 9, 8, descrDY + 1);
-	_txtSoldiersAssigned = new Text(lablesDX, 9, 8, descrDY + 10);
-	_txtOptionalSoldiers = new Text(lablesDX, 9, lablesDX + 8 + lableSpace,   descrDY + 1);
+	_txtSoldiersRequired = new Text(186, 9, 8, descrDY + 1);
+	_txtSoldiersAssigned = new Text(186, 9, 8, descrDY + 10);
 	_btnSoldiers = new TextButton(64, 16, 8, descrDY + 20);
 	_btnEquipmet = new TextButton(64, 16, 8, descrDY + 37);
 	_btnArmor = new TextButton(64, 16, 8, descrDY + 54);
@@ -80,7 +77,8 @@ CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOpera
 	_crew = new Surface(220, 18, 77, descrDY + 19);
 	_equip = new Surface(220, 18, 77, descrDY + 37);
 
-	
+	_txtCategories = new Text(110, 9, 202, 98);
+	_txtCategoriesList = new Text(110, 27, 202, 108);
 	_txtDuration = new Text(304, 9, 8, 153);
 	_txtChances = new Text(304, 9, 8, 164);
 
@@ -93,13 +91,14 @@ CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOpera
 
 	add(_txtSoldiersRequired, "text", "newCovertOperationsMenu");
 	add(_txtSoldiersAssigned, "text", "newCovertOperationsMenu");
-	add(_txtOptionalSoldiers, "text", "newCovertOperationsMenu");
 	add(_btnSoldiers, "button", "newCovertOperationsMenu");
 	add(_btnEquipmet, "button", "newCovertOperationsMenu");
 	add(_btnArmor, "button", "newCovertOperationsMenu");
 	add(_crew);
 	add(_equip);
 
+	add(_txtCategories, "text", "newCovertOperationsMenu");
+	add(_txtCategoriesList, "text", "newCovertOperationsMenu");
 	add(_txtDuration, "text", "newCovertOperationsMenu");
 	add(_txtChances, "text", "newCovertOperationsMenu");
 	
@@ -112,6 +111,7 @@ CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOpera
 	_txtTitle->setAlign(ALIGN_CENTER);
 	_txtDescription->setText(tr(_rule->getDescription()));
 	_txtDescription->setWordWrap(true);
+	_txtDescription->setScrollable(true);
 
 	_btnStart->setText(tr("STR_START_OPERATION_US")); 
 	_btnStart->onMouseClick((ActionHandler)&CovertOperationStartState::btnStartClick);
@@ -121,9 +121,9 @@ CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOpera
 	_btnCancel->onMouseClick((ActionHandler)&CovertOperationStartState::btnCancelClick);
 	_btnCancel->onKeyboardPress((ActionHandler)&CovertOperationStartState::btnCancelClick, Options::keyCancel);
 
-	_txtSoldiersRequired->setText(tr("STR_SOLDIERS_REQUIRED").arg(rule->getSoldierSlots()));
-	
-	_txtOptionalSoldiers->setText(tr("STR_OPTIONAL_SOLDIERS").arg(rule->getOptionalSoldierSlots()));
+	std::ostringstream se;
+	se << _rule->getSoldierSlotsMin() << "/" << _rule->getSoldierSlotsMax();
+	_txtSoldiersRequired->setText(tr("STR_SOLDIERS_REQUIRED").arg(se.str()));
 
 	_btnSoldiers->setText(tr("STR_SOLDIERS_UC"));
 	_btnSoldiers->onMouseClick((ActionHandler)&CovertOperationStartState::btnSoldiersClick);
@@ -132,9 +132,29 @@ CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOpera
 	_btnArmor->setText(tr("STR_ARMOR"));
 	_btnArmor->onMouseClick((ActionHandler)&CovertOperationStartState::btnArmorClick);
 
-	_txtOptionalSoldiers->setVisible(_rule->getOptionalSoldierSlots() > 0);
-
-
+	auto cats = _rule->getCategories();
+	if (cats.size() > 0)
+	{
+		_txtCategories->setText(tr("STR_COVERT_OPS_CATEGORIES"));
+		_txtCategories->setAlign(ALIGN_RIGHT);
+		size_t pos = 0;
+		std::ostringstream ss;
+		for (const auto &it : cats)
+		{
+			if (pos > 0)
+				ss << ", ";
+			ss << tr(it);
+			pos++;
+		}
+		_txtCategoriesList->setText(ss.str());
+		_txtCategoriesList->setAlign(ALIGN_RIGHT);
+	}
+	else
+	{
+		_txtCategories->setVisible(false);
+		_txtCategoriesList->setVisible(false);
+		_txtCategoriesList->setWordWrap(true);
+	}
 }
 
 CovertOperationStartState::~CovertOperationStartState()
@@ -152,13 +172,12 @@ void CovertOperationStartState::init()
 	_txtSoldiersAssigned->setText(tr("STR_SOLDIERS_ASSIGNED").arg(_soldiers.size()));
 
 	bool debug = _game->getSavedGame()->getDebugMode();
-
 	_txtDuration->setText(tr("STR_OPERATION_DURATION_UC").arg(tr(getOperationTimeString(debug))));
 	_txtDuration->setAlign(ALIGN_RIGHT);
 	_txtChances->setText(tr("STR_OPERATION_CHANCES_UC").arg(tr(getOperationOddsString(debug))));
 	_txtChances->setAlign(ALIGN_RIGHT);
 
-	_btnStart->setVisible(_soldiers.size() >= (size_t)_rule->getSoldierSlots());
+	_btnStart->setVisible(_soldiers.size() >= (size_t)_rule->getSoldierSlotsMin());
 	auto reqItems = _rule->getRequiredItemList();
 	if (!reqItems.empty())
 	{
@@ -246,7 +265,8 @@ void CovertOperationStartState::btnStartClick(Action*)
 	{
 		newOperation->getItems()->addItem(it->first, it->second);
 		RuleItem* item = _game->getMod()->getItem(it->first);
-		if (item->getBattleType() == BT_PSIAMP) _hasPsiItems = true; //looks like this item can be used for psionic offence!
+		if (item->getBattleType() == BT_PSIAMP)
+			_hasPsiItems = true; //looks like this item can be used for psionic offence!
 	}
 	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 	{
@@ -257,8 +277,9 @@ void CovertOperationStartState::btnStartClick(Action*)
 		}
 		if (matched)
 		{
+			(*i)->clearBaseDuty();
 			(*i)->setCovertOperation(newOperation);
-			(*i)->setCraft(0);
+			
 			bool wasMatTraining = false;
 			bool wasPsiTraining = false;
 			if ((*i)->isInTraining())
@@ -355,10 +376,10 @@ std::string CovertOperationStartState::getOperationTimeString(bool mod)
 
 }
 
-std::string CovertOperationStartState::getOperationOddsString(bool mod)
+std::string CovertOperationStartState::getOperationOddsString(bool debug)
 {
 	int odds = round(getOperationOdds());
-	if (!mod)
+	if (!debug)
 	{
 		if (odds > 100)
 		{
@@ -398,11 +419,47 @@ std::string CovertOperationStartState::getOperationOddsString(bool mod)
 */
 double CovertOperationStartState::getOperationOdds()
 {
-	int startOdds = _rule->getBaseChances();
-	_chances = startOdds;
+	bool investigation = false, infiltration = false, negotiation = false, deception = false, engineering = false, science = false;
+	int statsNumber = 0;
+	auto cats = _rule->getCategories();
+	if (std::find(cats.begin(), cats.end(), "STR_INVESTIGATION") != cats.end())
+	{
+		investigation = true;
+		statsNumber++;
+	}
+	if (std::find(cats.begin(), cats.end(), "STR_INFILTRATION") != cats.end())
+	{
+		infiltration = true;
+		statsNumber++;
+	}
+	if (std::find(cats.begin(), cats.end(), "STR_NEGOTIATION") != cats.end())
+	{
+		negotiation = true;
+		statsNumber++;
+	}
+	if (std::find(cats.begin(), cats.end(), "STR_DECEPTION") != cats.end())
+	{
+		deception = true;
+		statsNumber++;
+	}
+	if (std::find(cats.begin(), cats.end(), "STR_ENGINEERING") != cats.end())
+	{
+		engineering = true;
+	}
+	if (std::find(cats.begin(), cats.end(), "STR_SCIENCE") != cats.end())
+	{
+		science = true;
+	}
+	if (!investigation && !infiltration && !negotiation && !deception)
+	{
+		investigation = true; // we use it as a default option for further calculations
+		statsNumber = 1;
+	}
+
+	_chances = _rule->getBaseChances();
 
 	GameDifficulty diff = _game->getSavedGame()->getDifficulty();
-
+	int staffCoeff = 1;
 	switch (diff)
 	{
 	case DIFF_BEGINNER:
@@ -418,25 +475,16 @@ double CovertOperationStartState::getOperationOdds()
 		break;
 	case DIFF_SUPERHUMAN:
 		_chances *= 0.85;
-		break;
-	default:
+		staffCoeff = 2;
 		break;
 	}
 
-	int requiredSoldiers = _rule->getSoldierSlots();
 	int assignedSoldiersN = _soldiers.size();
-	// lets process staff effectiveness
-	double slots = 0;
-	slots = _rule->getOptionalSoldierSlots();
-	if (slots > 0)
+	if (assignedSoldiersN > _rule->getSoldierSlotsMin())
 	{
-		_chances = _chances - slots * static_cast<double>(_rule->getOptionalSoldierEffect());
-		int optionalSoldiers = assignedSoldiersN - requiredSoldiers;
-		_chances = _chances + optionalSoldiers * static_cast<double>(_rule->getOptionalSoldierEffect());
-		slots = 0;
+		_chances += (assignedSoldiersN - _rule->getSoldierSlotsMin()) * _rule->getOptionalSoldierEffect();
 	}
 	//lets see if we need some decrease because of required items
-
 	std::map<std::string, int> bonItems = _rule->getBonusItemList();
 	if (!bonItems.empty())
 	{
@@ -453,7 +501,7 @@ double CovertOperationStartState::getOperationOdds()
 				}
 			}
 		}
-		_chances -= _rule->getBonusItemsEffect() * reqItemsN;
+		_chances -= (double)_rule->getBonusItemsEffect() * reqItemsN;
 	}
 	//now lets check soldier armor if we have something about it in rules
 	if (!_rule->getAllowedArmor().empty())
@@ -475,21 +523,27 @@ double CovertOperationStartState::getOperationOdds()
 	//lets process soldier stats as pure bonus
 	if (assignedSoldiersN > 0)
 	{
+		int scientistsN = 0;
+		int engineersN = 0;
 		int soldierMaxRank = 0;
 		int soldiersTotalRank = 0;
-		double soldierReactions = 0;
-		double soldierBrav = 0;
-		double soldiersPsi = 0;
-		double soldiersTU = 0;
-		double soldiersSta = 0;
+
 		//extract soldier stats we need for processing
-		for (auto& solIt : _soldiers) 
+		for (auto& s : _soldiers) 
 		{
+			auto stats = s->getStatsWithAllBonuses();
+			double soldierBonus = 0;
+
+			if (s->getRoleRank(ROLE_SCIENTIST) > 0)
+				scientistsN++;
+			if (s->getRoleRank(ROLE_ENGINEER) > 0)
+				engineersN++;
+
 			//lets get soldier effectiveness first, if any
 			double solEffectiveness = 100;
 			if (!_rule->getSoldierTypeEffectiveness().empty())
 			{
-				std::string solType = solIt->getRules()->getType();
+				std::string solType = s->getRules()->getType();
 				auto ruleType = _rule->getSoldierTypeEffectiveness();
 				for (std::map<std::string, int>::iterator t = ruleType.begin(); t != ruleType.end(); ++t)
 				{
@@ -500,47 +554,65 @@ double CovertOperationStartState::getOperationOdds()
 					}
 				}
 			}
-			_chances = _chances * (solEffectiveness / 100);
+
 			//lets make a bonus for having officer for field command and avg ranking
-			int rank = solIt->getBestRoleRank().second;
+			int rank = s->getBestRoleRank().second;
 			if (rank > soldierMaxRank)
 			{
 				soldierMaxRank = rank;
 			}
 			soldiersTotalRank += rank;
+
 			//now lets handle soldier stats
-			double reacCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->reactions, 2000, 2, 16, -9) ;
-			soldierReactions = soldierReactions + reacCalc * (solEffectiveness / 100);
-			int brav = solIt->getStatsWithAllBonuses()->bravery / 10;
-			soldierBrav = soldierBrav + static_cast<double>(brav) * (solEffectiveness / 100) - 3;
-			int psi = solIt->getStatsWithAllBonuses()->psiSkill;
+			if (investigation)
+			{
+				soldierBonus += (double)stats->investigation / 5;
+				soldierBonus += (double)stats->perseption / 10;
+				soldierBonus += (double)stats->interrogation / 10;
+				Log(LOG_DEBUG) << "Calculation investigation bonus of soldier " << s->getName() << ": " << soldierBonus;
+			}
+			if (infiltration)
+			{
+				soldierBonus += (double)stats->stealth / 5;
+				soldierBonus += (double)stats->perseption / 10;
+				soldierBonus += (double)stats->interrogation / 10;
+				soldierBonus += statEffectCalc(stats->bravery, 1800, 2.1, 15, -8);
+				Log(LOG_DEBUG) << "Calculation infiltration bonus of soldier " << s->getName() << ": " << soldierBonus;
+			}
+			if (negotiation)
+			{
+				soldierBonus += (double)stats->charisma / 3;
+				Log(LOG_DEBUG) << "Calculation negotiation bonus of soldier " << s->getName() << ": " << soldierBonus;
+			}
+			if (deception)
+			{
+				soldierBonus += (double)stats->deception / 3;
+				soldierBonus += statEffectCalc(stats->bravery, 1800, 2.1, 9, -5);
+				Log(LOG_DEBUG) << "Calculation deception bonus of soldier " << s->getName() << ": " << soldierBonus;
+			}
+
+			int psi = stats->psiSkill;
 			if (psi > 0 && _game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements())) //psi offensive bonus
-			{
-				double manaFactor = 1;
-				if (_game->getMod()->isManaFeatureEnabled())
-				{
-					int mana = solIt->getStatsWithAllBonuses()->mana;
-					manaFactor = (double)(mana - solIt->getManaMissing()) / (double)mana;
-				}
-				soldiersPsi = (statEffectCalc(psi, 8000, 2.2, 8, 0) + statEffectCalc(solIt->getStatsWithAllBonuses()->psiStrength, 8000, 2.2, 8, 0)) / 2 * manaFactor * (solEffectiveness / 100);
-			}
+				soldierBonus += (statEffectCalc(psi, 7000, 2.2, 8, 0) + statEffectCalc(stats->psiStrength, 7000, 2.2, 8, 0)) / 2;
 			else
-			{
-				soldiersPsi = statEffectCalc(solIt->getStatsWithAllBonuses()->psiStrength, 8000, 2.2, 8, 0) / 3; //as soldier still has psi defence and some excrescence capabilities
-			}
-			double tuCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->tu, 1400, 1.8, 15, -10);
-			soldiersTU = soldiersTU + tuCalc * (solEffectiveness / 100);
-			double staCalc = statEffectCalc(solIt->getStatsWithAllBonuses()->stamina, 1600, 1.8, 10, -6);
-			soldiersSta = soldiersSta + staCalc * (solEffectiveness / 100);
+				soldierBonus += statEffectCalc(stats->psiStrength, 8000, 2.2, 8, 0) / 4; //as soldier still has psi defence and some excrescence capabilities
+
+			soldierBonus = soldierBonus * solEffectiveness / 100 / statsNumber;
+			Log(LOG_DEBUG) << "Result soldier bonus: " << soldierBonus;
+			_chances = soldierBonus;
+			Log(LOG_DEBUG) << "_chances: " << _chances;
 		}
 
+		if (science)
+			_chances = _chances - (double)_rule->getScientistEffect() * staffCoeff + (double)scientistsN * _rule->getScientistEffect();
+		if (engineering)
+			_chances = _chances - (double)_rule->getEngineerEffect() * staffCoeff + (double)engineersN * _rule->getEngineerEffect();
+
+		Log(LOG_DEBUG) << "After civilian roles, chances are: " << _chances;
 		double officerEffect = -0.2321 * pow(soldierMaxRank, 2) + 2.5036 * soldierMaxRank + 0.0357; // cute nonlinear function for field officer + avg rank bonus
 		double rankEffect = (double)soldiersTotalRank / assignedSoldiersN;
-		double bravEffect = soldierBrav / assignedSoldiersN * 5;
-		double reactEffect = soldierReactions / assignedSoldiersN;
-		double tuEffect = soldiersTU / assignedSoldiersN;
-		double staEffect = soldiersSta / assignedSoldiersN;
-		_chances += rankEffect + bravEffect + reactEffect + soldiersPsi + tuEffect + staEffect + officerEffect;
+		Log(LOG_DEBUG) << "officerEffect: " << officerEffect << " , rankEffect: " << rankEffect;
+		_chances += officerEffect + rankEffect;
 
 		// let's check if itemset has specific FTA's item categories
 		if (!_rule->getAllowAllEquipment())
@@ -554,18 +626,18 @@ double CovertOperationStartState::getOperationOdds()
 			switch (diff)
 			{
 			case DIFF_BEGINNER:
-				diffCoeff = 0.95;
+				diffCoeff = 0.90;
 				break;
 			case DIFF_EXPERIENCED:
 				break;
 			case DIFF_VETERAN:
-				diffCoeff *= 1.2;
+				diffCoeff *= 1.1;
 				break;
 			case DIFF_GENIUS:
 				diffCoeff *= 1.3;
 				break;
 			case DIFF_SUPERHUMAN:
-				diffCoeff *= 1.5;
+				diffCoeff *= 1.7;
 				break;
 			}
 
@@ -573,27 +645,26 @@ double CovertOperationStartState::getOperationOdds()
 			{
 				RuleItem* item = _game->getMod()->getItem((*i).first);
 				if (!item->belongsToCategory("STR_CONCEALABLE"))
-				{
 					allConsealed = false;
-				}
 				if (item->belongsToCategory("STR_HEAVY_WEAPONS") && !item->belongsToCategory("STR_CLIPS"))
-				{
 					++heavy;
-				}
 			}
+
 			if (!allConsealed)
 			{
 				itemCatEffect = -itemConcealedBonusEffect * diffCoeff;
+				Log(LOG_DEBUG) << "!allConsealed, so itemCatEffect: " << itemCatEffect;
 			}
-			itemCatEffect = itemCatEffect - diffCoeff * heavy * itemConcealedBonusEffect * 4 / assignedSoldiersN;
+
+			itemCatEffect = itemCatEffect - diffCoeff * heavy * itemConcealedBonusEffect * 4;
+			Log(LOG_DEBUG) << "resulting itemCatEffect: " << itemCatEffect;
 			_chances += itemCatEffect;
+			Log(LOG_DEBUG) << ">>> Operation chances calculation finished with result:" << _chances;
 		}
 	}
 
 	if (_chances > 200) // we dont want too high chances
-	{
 		_chances = 200;
-	}
 	return _chances;
 }
 
@@ -603,12 +674,12 @@ int CovertOperationStartState::getOperationCost()
 	int reducedCost = _cost;
 	if (_chances > 100)
 	{
-		double bonus = (((_chances - 100) / (_chances - 82)) * 24) / 100; //some cute nonlinear calculation
+		double bonus = (_chances - 100) / (_chances - 82) * 24 / 100; //some cute nonlinear calculation
 		reducedCost -= std::round(_cost * bonus);
+		Log(LOG_DEBUG) << "We have _chances > 100, so we reduce time cost from: " << _cost << " down to: " << reducedCost;
 	}
 	return reducedCost;
 }
-
 
 /**
 * Removes soldier from covert operation start state
@@ -624,11 +695,20 @@ void CovertOperationStartState::removeSoldier(Soldier* soldier)
 	}
 }
 
+/**
+ * Expresses the effective influence of a soldier's characteristic on the result of an operation, based on the input coefficients
+ * https://github.com/723Studio/OpenXcom_FTA/wiki/Covert-operations#effective-stat-impact
+ * @param stat - soldier stat
+ * @param a - shifts the inflection of the graph to the right
+ * @param b - the slope of the inflection
+ * @param c - limits values from above
+ * @param d - initial value of the function at 0
+ * @return - effective value
+ */
 double CovertOperationStartState::statEffectCalc(int stat, double a, double b, double c, double d)
 {
 	double y0 = exp(pow(stat, b) / a) - 1;
-	double y1 = c * (y0/(y0 + 1)) + d;
-	return y1;
+	return c * (y0 / (y0 + 1)) + d;
 }
 
 void CovertOperationStartState::addSoldier(Soldier *soldier)

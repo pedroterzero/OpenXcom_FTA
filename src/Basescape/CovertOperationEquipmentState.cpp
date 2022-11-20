@@ -125,8 +125,7 @@ CovertOperationEquipmentState::CovertOperationEquipmentState(Base* base, CovertO
 	ss3 << tr("STR_SOLDIERS_UC") << ">" << Unicode::TOK_COLOR_FLIP << operation->getSoldiers().size();
 	_txtCrew->setText(ss3.str());
 
-	bool mod = _game->getSavedGame()->getDebugMode();
-	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(_game->getSavedGame()->getDebugMode()))));
 
 	// populate sort options
 	_categoryStrings.push_back("STR_ALL");
@@ -237,8 +236,7 @@ void CovertOperationEquipmentState::init()
 		double itemsSize = _operation->getItems()->getTotalSize(_game->getMod());
 		ss << itemsSize << "/" << _rule->getItemSpaceLimit();
 		_txtAvailable->setText(tr("STR_SPACE_USED").arg(ss.str()));
-		bool mod = _game->getSavedGame()->getDebugMode();
-		_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
+		_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(_game->getSavedGame()->getDebugMode()))));
 	}
 	_reload = true;
 }
@@ -602,8 +600,7 @@ void CovertOperationEquipmentState::updateQuantity()
 	double itemsSize = _operation->getItems()->getTotalSize(_game->getMod());
 	sse << itemsSize << "/" << _rule->getItemSpaceLimit();
 	_txtAvailable->setText(tr("STR_SPACE_USED").arg(sse.str()));
-	bool mod = _game->getSavedGame()->getDebugMode();
-	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(mod))));
+	_txtChances->setText(tr("STR_OPERATION_CHANCES_US").arg(tr(_operation->getOperationOddsString(_game->getSavedGame()->getDebugMode()))));
 }
 
 /**

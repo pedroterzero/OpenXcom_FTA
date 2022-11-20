@@ -16,10 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <algorithm>
 #include "RuleCovertOperation.h"
 #include "../Engine/RNG.h"
-#include "../fmath.h"
 #include "../Engine/Exception.h"
 #include "Mod.h"
 
@@ -31,11 +29,11 @@ namespace OpenXcom
 * type of RuleCovertOperation.
 * @param type String defining the type.
 */
-RuleCovertOperation::RuleCovertOperation(const std::string& name) : _name(name), _soldierSlots(1), _optionalSoldierSlots(0),
-	_optionalSoldierEffect(10), _scientistEffect(5), _engineerEffect(5), _itemSpaceEffect(10), _armorEffect(20),
+RuleCovertOperation::RuleCovertOperation(const std::string& name) : _name(name), _soldiersMin(1), _soldiersMax(1), _optionalSoldierEffect(0),
+	_scientistEffect(5), _engineerEffect(5), _itemSpaceEffect(10), _armorEffect(20),
 	_itemSpaceLimit(-1), _baseChances(50), _costs(0), _successScore(0), _failureScore(0),
 	_successLoyalty(0), _failureLoyalty(0), _successFunds(0), _failureFunds(0), _danger(0), _trapChance(0),
-	_progressEventChance(0), _concealedItemsBonus(10), _bonusItemsEffect(5), _repeatProgressEvent(false), _allowAllEquipment(false),
+	_progressEventChance(0), _concealedItemsBonus(20), _bonusItemsEffect(5), _repeatProgressEvent(false), _allowAllEquipment(false),
 	_removeRequiredItemsOnSuccess(true), _removeRequiredItemsOnFailure(false), _listOrder(0) 
 {
 }
@@ -59,6 +57,7 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	}
 	_name = node["name"].as<std::string>(_name);
 	_description = node["description"].as<std::string>(_description);
+	_categories = node["categories"].as<std::vector<std::string>>(_requires);
 	_successBackground = node["successBackground"].as<std::string>(_successBackground);
 	_failureBackground = node["failureBackground"].as<std::string>(_failureBackground);
 	_successDescription = node["successDescription"].as<std::string>(_successDescription);
@@ -74,12 +73,20 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_repeatProgressEvent = node["repeatProgressEvent"].as<bool>(_repeatProgressEvent);
 	_requires = node["requires"].as<std::vector<std::string>>(_requires);
 	mod->loadBaseFunction(_name, _requiresBaseFunc, node["requiresBaseFunc"]);
-	_soldierSlots = node["soldierSlots"].as<int>(_soldierSlots);
-	if (_soldierSlots < 1)
+	_soldiersMin = node["soldiersMin"].as<int>(_soldiersMin);
+	if (_soldiersMin < 1)
 	{
-		throw Exception("Error in loading operation '" + _name + "'! It must have at least 1 soldier.");
+		throw Exception("Error in loading operation '" + _name + "'! It must have at least 1 soldier!");
 	}
-	_optionalSoldierSlots = node["optionalSoldierSlots"].as<int>(_optionalSoldierSlots);
+	_soldiersMax = node["soldiersMax"].as<int>(_soldiersMax);
+	if (_soldiersMax == 0)
+	{
+		_soldiersMax = _soldiersMin;
+	}
+	else if (_soldiersMax < _soldiersMin)
+	{
+		throw Exception("Error in loading operation '" + _name + "'! soldiersMax < _soldiersMin!");
+	}
 	_optionalSoldierEffect = node["optionalSoldierEffect"].as<int>(_optionalSoldierEffect);
 	_scientistEffect = node["scientistEffect"].as<int>(_scientistEffect);
 	_engineerEffect = node["engineerEffect"].as<int>(_engineerEffect);
@@ -142,7 +149,6 @@ void RuleCovertOperation::load(const YAML::Node& node, Mod* mod, int listOrder)
 	_armorEffect = node["armorEffect"].as<int>(_armorEffect);
 	_soldierTypeEffectiveness = node["soldierTypeEffectiveness"].as<std::map<std::string, int>>(_soldierTypeEffectiveness);
 	_specialRule = node["specialRule"].as<std::string>(_specialRule);
-	
 	if (!_listOrder)
 	{
 		_listOrder = listOrder;

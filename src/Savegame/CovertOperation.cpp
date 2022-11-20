@@ -657,7 +657,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 	else
 		effCost = (int)ceil(ruleCost / 12.52);
 
-	int expRolls = effCost + (int)ceil(danger / 10);
+	int expRolls = effCost * mod.getCovertOpsExpFactor() / 100;
 	//limit experience gain
 	if (expRolls > 3 && expRolls <= 8)
 		expRolls = 6;
@@ -668,13 +668,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 
 	if (save.getMonthsPassed() > 24)
 		expRolls++; //bonus for lategame
-	int expRollsRandom = RNG::generate(-1, 1);
-	expRolls += expRollsRandom; //add more random
-	//experience is reduced for fail and critical fail
-	if (!operationResult && !criticalFail)
-		expRolls = (int)round(expRolls / 2);
-	else if (criticalFail)
-		expRolls = (int)round(expRolls / 3) - 2;
+	expRolls += RNG::generate(-2, 2); //add more random
 
 	//processing soldiers change before returning home
 	std::vector<Soldier*> soldiersToKill;
@@ -713,10 +707,12 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 			break;
 		case DIFF_SUPERHUMAN:
 			danger = std::max(danger * 2, danger + 4);
+			expRolls -= RNG::generate(0, 3);
 			break;
 		}
 	}
-	
+
+	Log(LOG_DEBUG) << "Background simulation, calculating soldier exp, expRolls:" << expRolls;
 	for (std::vector<Soldier*>::iterator i = soldiers.begin(); i != soldiers.end(); ++i)
 	{
 		bool dead = false;
@@ -869,6 +865,7 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 						break;
 					}
 				}
+				expRolls /= 2;
 			}
 			else if (danger > 0)
 			{
@@ -876,10 +873,27 @@ void CovertOperation::backgroundSimulation(Game& engine, bool operationResult, b
 				exp->perseption += RNG::generate(1, 2);
 			}
 
-			//#FINNIKTODO: add intel and other stats growth based on operation new operation rules
-
-
-
+			auto cats = _rule->getCategories();
+			if (std::find(cats.begin(), cats.end(), "STR_INVESTIGATION") != cats.end())
+			{
+				exp->investigation += RNG::generate(1, std::max(2, expRolls));
+				exp->perseption += RNG::generate(0, std::max(1, expRolls / 2));
+				exp->interrogation += RNG::generate(0, std::max(1, expRolls / 2));
+			}
+			if (std::find(cats.begin(), cats.end(), "STR_INFILTRATION") != cats.end())
+			{
+				exp->stealth += RNG::generate(1, std::max(2, expRolls));
+				exp->perseption += RNG::generate(0, std::max(1, expRolls / 2));
+				exp->interrogation += RNG::generate(0, std::max(1, expRolls / 2));
+			}
+			if (std::find(cats.begin(), cats.end(), "STR_NEGOTIATION") != cats.end())
+			{
+				exp->charisma += RNG::generate(1, std::max(3, static_cast<int>(expRolls * 1.5)));
+			}
+			if (std::find(cats.begin(), cats.end(), "STR_DECEPTION") != cats.end())
+			{
+				exp->deception += RNG::generate(1, std::max(3, static_cast<int>(expRolls * 1.5)));
+			}
 		}
 
 		if (!exp->empty())

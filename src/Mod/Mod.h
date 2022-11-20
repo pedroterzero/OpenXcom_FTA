@@ -257,7 +257,7 @@ private:
 	int _soldiersPerSergeant, _soldiersPerCaptain, _soldiersPerColonel, _soldiersPerCommander;
 	int _pilotAccuracyZeroPoint, _pilotAccuracyRange, _pilotReactionsZeroPoint, _pilotReactionsRange;
 	int _pilotBraveryThresholds[3], _pilotCooperationZeroPoint, _pilotCooperationRange, _pilotTrackingZeroPoint, _pilotTrackingRange;
-	int _performanceBonusFactor;
+	int _performanceBonusFactor, _covertOpsExperience;
 	bool _enableNewResearchSorting;
 	int _displayCustomCategories;
 	bool _shareAmmoCategories, _showDogfightDistanceInKm, _showFullNameInAlienInventory;
@@ -996,6 +996,8 @@ public:
 	int getPilotBraveryThresholdNormal() const { return _pilotBraveryThresholds[2]; }
 	/// Gets a performance bonus factor
 	int getPerformanceBonusFactor() const { return _performanceBonusFactor; }
+	/// Get coveert operations experience gain factor.
+	int getCovertOpsExpFactor() const { return _covertOpsExperience; }
 	/// Should the player have the option to sort the 'New Research' list?
 	bool getEnableNewResearchSorting() const { return _enableNewResearchSorting; }
 	/// Should custom categories be used in Buy/Sell/Transfer GUIs? 0=no, 1=yes, custom only, 2=both vanilla and custom.

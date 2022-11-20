@@ -42,7 +42,8 @@ private:
 	RuleCovertOperation* _rule;
 	Window* _window;
 	TextButton* _btnCancel, * _btnStart, * _btnSoldiers, * _btnEquipmet, * _btnArmor;
-	Text* _txtTitle, * _txtDescription, * _txtSoldiersRequired, * _txtSoldiersAssigned, * _txtOptionalSoldiers, * _txtDuration, * _txtChances;
+	Text* _txtTitle, * _txtDescription, * _txtSoldiersRequired, * _txtSoldiersAssigned;
+	Text* _txtCategories, *_txtCategoriesList, *_txtDuration, * _txtChances;
 	int _cost;
 	double _chances;
 	bool _hasPsiItems, _hasPsionics;
@@ -69,7 +70,7 @@ public:
 	/// Gets string that discribed prediction of timeframe that needs to finish the operation.
 	std::string getOperationTimeString(bool mod = false);
 	/// Gets string that discribed operations odds of success.
-	std::string getOperationOddsString(bool mod = false);
+	std::string getOperationOddsString(bool debug = false);
 
 	// *** Logic Section ***
 	/// Gets operation success chances.
