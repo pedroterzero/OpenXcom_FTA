@@ -600,7 +600,7 @@ void InventoryState::updateStats()
 {
 	BattleUnit *unit = _battleGame->getSelectedUnit();
 
-	_txtTus->setText(tr("STR_TIME_UNITS_SHORT").arg(unit->getTimeUnits()));
+	_txtTus->setText(tr(UnitStats::getStatString(&UnitStats::tu, UnitStats::STATSTR_SHORT)).arg(unit->getTimeUnits()));
 
 	int weight = unit->getCarriedWeight(_inv->getSelectedItem());
 	_txtWeight->setText(tr("STR_WEIGHT").arg(weight).arg(unit->getBaseStats()->strength));
@@ -633,18 +633,18 @@ void InventoryState::updateStats()
 					txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->firing));
 					break;
 				case 2:
-					txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->reactions));
+					txtField->setText(tr(UnitStats::getStatString(&UnitStats::reactions, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->reactions));
 					break;
 				case 3:
 					if (ftaGame)
 					{
-						txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->melee));
+						txtField->setText(tr(UnitStats::getStatString(&UnitStats::melee, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->melee));
 						break;
 					}
 					else
 					{
 						if (psiSkillWithoutAnyBonuses > 0)
-							txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->psiSkill));
+							txtField->setText(tr(UnitStats::getStatString(&UnitStats::psiSkill, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->psiSkill));
 						else
 							txtField->setText("");
 						break;
@@ -653,7 +653,7 @@ void InventoryState::updateStats()
 					if (ftaGame)
 					{
 						if (psiSkillWithoutAnyBonuses > 0)
-							txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->psiSkill));
+							txtField->setText(tr(UnitStats::getStatString(&UnitStats::psiSkill, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->psiSkill));
 						else
 							txtField->setText("");
 						break;
@@ -661,7 +661,7 @@ void InventoryState::updateStats()
 					else
 					{
 						if (showPsiStrength)
-							txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->psiStrength));
+							txtField->setText(tr(UnitStats::getStatString(&UnitStats::psiStrength, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->psiStrength));
 						else
 							txtField->setText("");
 						break;
@@ -670,10 +670,10 @@ void InventoryState::updateStats()
 					txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->firing));
 					break;
 				case 12:
-					txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->throwing));
+					txtField->setText(tr(UnitStats::getStatString(&UnitStats::throwing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->throwing));
 					break;
 				case 13:
-					txtField->setText(tr(UnitStats::getStatString(&UnitStats::firing, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->melee));
+					txtField->setText(tr(UnitStats::getStatString(&UnitStats::melee, UnitStats::STATSTR_SHORT)).arg(unit->getBaseStats()->melee));
 					break;
 				case 14:
 					if (showPsiStrength)
