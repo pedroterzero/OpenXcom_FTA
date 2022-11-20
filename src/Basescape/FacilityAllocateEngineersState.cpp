@@ -178,8 +178,20 @@ void FacilityAllocateEngineersState::initList(size_t scrl)
 			ss << (*i)->getStatsWithAllBonuses()->construction;
 			_lstEngineers->addRow(3, (*i)->getName(true, 19).c_str(), duty.c_str(), ss.str().c_str());
 
+			bool matched = false;
+			auto iter = std::find(std::begin(_engineers), std::end(_engineers), (*i));
+			if (iter != std::end(_engineers))
+			{
+				matched = true;
+			}
+
 			Uint8 color = _lstEngineers->getColor();
-			if (isBusy || !isFree)
+			if (matched)
+			{
+				color = _lstEngineers->getSecondaryColor();
+				_lstEngineers->setCellText(row, 1, tr("STR_ASSIGNED_UC"));
+			}
+			else if (isBusy || !isFree)
 			{
 				color = _otherCraftColor;
 			}
