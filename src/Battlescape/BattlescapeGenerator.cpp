@@ -248,6 +248,11 @@ void BattlescapeGenerator::nextStage()
 		Tile *tmpTile = s->getTile(u->getPosition());
 		return u->isInExitArea(END_POINT) || u->liesInExitArea(tmpTile, END_POINT);
 	};
+	// check if the unit is stunned hostile
+	auto isStunnedHostile = [](const BattleUnit* u)
+	{
+		return u->getOriginalFaction() == FACTION_HOSTILE && u->getStatus() == STATUS_UNCONSCIOUS;
+	};
 
 	// preventively drop all units from soldier's inventory (makes handling easier)
 	// 1. no alien/civilian living, dead or unconscious is allowed to transition
@@ -296,6 +301,11 @@ void BattlescapeGenerator::nextStage()
 	{
 		(*i)->clearVisibleUnits();
 		(*i)->clearVisibleTiles();
+
+		 if (_save->isAborted() && isInExit(*i) && isStunnedHostile(*i))	//don't kill stunned aliens laying in the exit area
+		{
+			 continue;
+		}
 
 		if ((*i)->getStatus() != STATUS_DEAD                              // if they're not dead
 			&& (((*i)->getOriginalFaction() == FACTION_PLAYER               // and they're a soldier
@@ -399,7 +409,8 @@ void BattlescapeGenerator::nextStage()
 		{
 			std::vector<BattleItem*> *toContainer = &removeFromGame;
 			// if it's recoverable, and it's not owned by someone
-			if ((((*i)->getUnit() && (*i)->getUnit()->getGeoscapeSoldier()) || (*i)->getRules()->isRecoverable()) && !(*i)->getOwner())
+			BattleUnit *tmpUnit = (*i)->getUnit();
+			if (((tmpUnit && tmpUnit->getGeoscapeSoldier()) || (*i)->getRules()->isRecoverable()) && !(*i)->getOwner())
 			{
 				// first off: don't count primed grenades on the floor
 				if ((*i)->getFuseTimer() == -1)
@@ -407,10 +418,10 @@ void BattlescapeGenerator::nextStage()
 					// protocol 1: all defenders dead, recover all items.
 					if (aliensAlive == 0 || autowin)
 					{
-						// any corpses or unconscious units get put in the skyranger, as well as any unresearched items
-						if (((*i)->getUnit() &&
-							((*i)->getUnit()->getOriginalFaction() != FACTION_PLAYER ||
-							(*i)->getUnit()->getStatus() == STATUS_DEAD))
+						// any corpses or unconscious units get put in the skyranger, as well as any unresearched items (UPD: except stunned aliens in exit area)
+						if ((tmpUnit &&
+							((tmpUnit->getOriginalFaction() != FACTION_PLAYER && !(isStunnedHostile(tmpUnit) && isInExit(tmpUnit) && _save->isAborted())) ||
+							tmpUnit->getStatus() == STATUS_DEAD))
 							|| !_game->getSavedGame()->isResearched((*i)->getRules()->getRequirements()))
 						{
 							toContainer = takeHomeGuaranteed;
@@ -441,9 +452,9 @@ void BattlescapeGenerator::nextStage()
 								else if (tile->getFloorSpecialTileType() == END_POINT)
 								{
 									// apply similar logic (for units) as in protocol 1
-									if ((*i)->getUnit() &&
-										((*i)->getUnit()->getOriginalFaction() != FACTION_PLAYER ||
-										(*i)->getUnit()->getStatus() == STATUS_DEAD))
+									if (tmpUnit &&
+										((tmpUnit->getOriginalFaction() != FACTION_PLAYER && !(isStunnedHostile(tmpUnit) && isInExit(tmpUnit) && _save->isAborted())) ||
+										tmpUnit->getStatus() == STATUS_DEAD))
 									{
 										toContainer = takeHomeConditional;
 									}
@@ -665,6 +676,24 @@ void BattlescapeGenerator::nextStage()
 					//reset TUs, regain energy, etc. but don't take damage or go berserk
 					(*j)->prepareNewTurn(false);
 				}
+			}
+		}
+		else if ((*j)->getStatus() == STATUS_UNCONSCIOUS) // transit stunned enemies
+		{
+			Node *node = _save->getSpawnNode(NR_XCOM, (*j));
+			if (node || placeUnitNearFriend(*j))
+			{
+				if (node)
+				{
+					_save->setUnitPosition((*j), node->getPosition());
+				}
+
+				if (!_craftInventoryTile)
+				{
+					_craftInventoryTile = (*j)->getTile();
+				}
+
+				(*j)->setInventoryTile(_craftInventoryTile);
 			}
 		}
 	}
