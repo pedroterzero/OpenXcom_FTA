@@ -6,6 +6,7 @@ set ( root_src
 )
 set ( basescape_src
   Basescape/BaseInfoState.cpp
+  Basescape/BaseInfoStateFtA.cpp
   Basescape/BasescapeState.cpp
   Basescape/BaseView.cpp
   Basescape/BuildFacilitiesState.cpp

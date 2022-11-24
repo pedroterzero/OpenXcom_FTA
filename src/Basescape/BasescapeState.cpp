@@ -25,7 +25,6 @@
 #include "../Interface/TextButton.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextEdit.h"
-#include "../FTA/MasterMind.h"
 #include "BaseView.h"
 #include "MiniBaseView.h"
 #include "../Savegame/SavedGame.h"
@@ -40,6 +39,7 @@
 #include "../Engine/Action.h"
 #include "../FTA/DiplomacyStartState.h"
 #include "BaseInfoState.h"
+#include "BaseInfoStateFtA.h"
 #include "SoldiersState.h"
 #include "CraftsState.h"
 #include "BuildFacilitiesState.h"
@@ -370,7 +370,14 @@ void BasescapeState::btnNewBaseClick(Action *)
  */
 void BasescapeState::btnBaseInfoClick(Action *)
 {
-	_game->pushState(new BaseInfoState(_base, this));
+	if (_fta)
+	{
+		_game->pushState(new BaseInfoStateFtA(_base, this));
+	}
+	else
+	{
+		_game->pushState(new BaseInfoState(_base, this));
+	}
 }
 
 /**
@@ -538,7 +545,14 @@ void BasescapeState::viewRightClick(Action *)
 	BaseFacility *f = _view->getSelectedFacility();
 	if (f == 0)
 	{
-		_game->pushState(new BaseInfoState(_base, this));
+		if (_fta)
+		{
+			_game->pushState(new BaseInfoStateFtA(_base, this));
+		}
+		else
+		{
+			_game->pushState(new BaseInfoState(_base, this));
+		}
 	}
 	else if (f->getRules()->getRightClickActionType() != 0)
 	{

@@ -1268,6 +1268,9 @@
     <ClCompile Include="Geoscape\PrisonReportState.cpp">
       <Filter>Geoscape</Filter>
     </ClCompile>
+    <ClCompile Include="Basescape\BaseInfoStateFtA.cpp">
+      <Filter>Basescape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2599,6 +2602,9 @@
     </ClInclude>
     <ClInclude Include="Geoscape\PrisonReportState.h">
       <Filter>Geoscape</Filter>
+    </ClInclude>
+    <ClInclude Include="Basescape\BaseInfoStateFtA.h">
+      <Filter>Basescape</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Copyright 2010-2016 OpenXcom Developers.
+ * Copyright 2010-2022 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -35,7 +35,7 @@ class Bar;
  * Base Info screen that shows all the
  * stats of a base from the Basescape.
  */
-class BaseInfoState : public State
+class BaseInfoStateFtA : public State
 {
 private:
 	Base *_base;
@@ -43,7 +43,7 @@ private:
 
 	Surface *_bg;
 	MiniBaseView *_mini;
-	TextButton *_btnOk, *_btnTransfers, *_btnStores, *_btnMonthlyCosts;
+	TextButton *_btnOk, *_btnTransfers, *_btnStores, *_btnMonthlyCosts, *_btnDispose;
 	TextEdit *_edtBase;
 
 	Text *_txtPersonnel, *_txtSoldiers, *_txtEngineers, *_txtScientists;
@@ -59,9 +59,9 @@ private:
 	Bar *_barDefense, *_barShortRange, *_barLongRange;
 public:
 	/// Creates the Base Info state.
-	BaseInfoState(Base *base, BasescapeState *state);
+	BaseInfoStateFtA(Base *base, BasescapeState *state);
 	/// Cleans up the Base Info state.
-	~BaseInfoState();
+	~BaseInfoStateFtA();
 	/// Updates the base stats.
 	void init() override;
 	/// Handler for changing the text on the Name edit.
@@ -76,6 +76,8 @@ public:
 	void btnTransfersClick(Action *action);
 	/// Handler for clicking the Stores button.
 	void btnStoresClick(Action *action);
+	/// Handler for clicking the Dispose button.
+	void btnDisposeClick(Action* action);
 	/// Handler for clicking the Monthly Costs button.
 	void btnMonthlyCostsClick(Action *action);
 };

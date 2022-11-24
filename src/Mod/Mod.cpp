@@ -142,6 +142,7 @@ int Mod::BASESCAPE_CURSOR;
 int Mod::BATTLESCAPE_CURSOR;
 int Mod::UFOPAEDIA_CURSOR;
 int Mod::GRAPHS_CURSOR;
+int Mod::BASEINFO_CURSOR;
 int Mod::DAMAGE_RANGE;
 int Mod::EXPLOSIVE_DAMAGE_RANGE;
 int Mod::FIRE_DAMAGE_RANGE[2];
@@ -201,6 +202,7 @@ void Mod::resetGlobalStatics()
 	BATTLESCAPE_CURSOR = 144;
 	UFOPAEDIA_CURSOR = 252;
 	GRAPHS_CURSOR = 252;
+	BASEINFO_CURSOR = 252;
 	DAMAGE_RANGE = 100;
 	EXPLOSIVE_DAMAGE_RANGE = 50;
 	FIRE_DAMAGE_RANGE[0] = 5;
@@ -2472,6 +2474,7 @@ void Mod::loadConstants(const YAML::Node &node)
 	BATTLESCAPE_CURSOR = node["battlescapeCursor"].as<int>(BATTLESCAPE_CURSOR);
 	UFOPAEDIA_CURSOR = node["ufopaediaCursor"].as<int>(UFOPAEDIA_CURSOR);
 	GRAPHS_CURSOR = node["graphsCursor"].as<int>(GRAPHS_CURSOR);
+	BASEINFO_CURSOR = node["baseinfoCursor"].as<int>(BASEINFO_CURSOR);
 	DAMAGE_RANGE = node["damageRange"].as<int>(DAMAGE_RANGE);
 	EXPLOSIVE_DAMAGE_RANGE = node["explosiveDamageRange"].as<int>(EXPLOSIVE_DAMAGE_RANGE);
 	size_t num = 0;

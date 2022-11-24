@@ -87,7 +87,7 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 	else
 	{
 		_cbxSortBy = new ComboBox(this, 148, 16, 8, 176, true);
-		_cbxScreenActions = new ComboBox(this, 0, 0, 1, 1, true); //would be hidden anyway
+		_cbxScreenActions = new ComboBox(this, 17, 16, -16, -16, true); //would be hidden anyway
 	}
 	_lstSoldiers = new TextList(288, 128, 8, 40);
 
