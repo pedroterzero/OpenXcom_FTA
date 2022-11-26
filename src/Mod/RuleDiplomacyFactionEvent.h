@@ -21,7 +21,6 @@
 #include <vector>
 #include <map>
 #include <yaml-cpp/yaml.h>
-#include "../Savegame/WeightedOptions.h"
 
 namespace OpenXcom
 {
@@ -79,18 +78,17 @@ public:
 	const std::map<std::string, bool>& getItemTriggers() const { return _itemTriggers; }
 
 	/// Gets the value for factional power change.
-	int getPowerChange() const { return _powerChange; };
+	int getPowerChange() const { return _powerChange; }
 	/// Gets the value for factional funds change.
-	int getFundsChange() const { return _fundsChange; };
+	int64_t getFundsChange() const { return _fundsChange; }
 	/// Gets the value for factional vigilance change.
-	int getVigilanceChange() const { return _vigilanceChange; };
+	int getVigilanceChange() const { return _vigilanceChange; }
 	/// Gets the list of items to add to factional storage.
 	const std::map<std::string, int>& getItemsToAdd() const { return _itemsToAdd; }
 	/// Gets the list of staff, that would join faction.
 	const std::map<std::string, int>& getStaffToAdd() const { return _staffToAdd; }
 	/// Gets the list of discovered researches.
-	const std::vector<std::string>& getDiscoveredResearches() const { return _discoveredResearches; };
-
+	const std::vector<std::string>& getDiscoveredResearches() const { return _discoveredResearches; }
 };
 
 }

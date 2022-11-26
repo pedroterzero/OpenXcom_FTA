@@ -34,7 +34,7 @@
 #include "../Savegame/Soldier.h"
 #include "../Savegame/Craft.h"
 #include "../Savegame/SavedGame.h"
-#include "SoldierInfoState.h"
+#include "SoldierInfoStateFtA.h"
 #include "../Mod/Armor.h"
 #include "../Mod/RuleCovertOperation.h"
 #include "../Mod/RuleInterface.h"
@@ -406,7 +406,7 @@ void CovertOperationSoldiersState::lstSoldiersClick(Action* action)
 	}
 	else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
 	{
-		_game->pushState(new SoldierInfoState(_base, row));
+		_game->pushState(new SoldierInfoStateFtA(_base, row));
 	}
 }
 

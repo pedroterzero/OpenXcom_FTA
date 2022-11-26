@@ -20,9 +20,6 @@
 #include <vector>
 #include <string>
 #include <yaml-cpp/yaml.h>
-#include <SDL_video.h>
-#include "MapBlock.h"
-#include "../Engine/Logger.h"
 
 namespace OpenXcom
 {
@@ -73,53 +70,53 @@ public:
 	/// Loads information from a ruleset file.
 	void load(const YAML::Node& node);
 	/// Gets what type of command this is.
-	BattleScriptCommand getType() const { return _type; };
+	BattleScriptCommand getType() const { return _type; }
 	/// Get the chances of this command executing.
-	int getChancesOfExecution() const { return _executionChances; };
+	int getChancesOfExecution() const { return _executionChances; }
 	/// Gets the label for this command.
-	int getLabel() const { return _label; };
+	int getLabel() const { return _label; }
 	/// Gets how many times this command repeats in one turn.
-	int getExecutions() const { return _executions; };
+	int getExecutions() const { return _executions; }
 	/// Gets how many times this command repeats in battlescape game session (controlled with variable).
-	int getMaxRuns() const { return _maxRuns; };
+	int getMaxRuns() const { return _maxRuns; }
 	/// Gets what conditions apply to this command.
-	const std::vector<int>* getConditionals() const { return &_conditionals; };
+	const std::vector<int>* getConditionals() const { return &_conditionals; }
 	/// Gets the groups vector for iteration.
-	const std::vector<int>* getGroups() const { return &_groups; };
+	const std::vector<int>* getGroups() const { return &_groups; }
 	/// Gets the blocks vector for iteration.
-	std::vector<std::string> getSpawnBlocks() const { return  _spawnBlocks; };
+	std::vector<std::string> getSpawnBlocks() const { return  _spawnBlocks; }
 	/// Gets the turn number that would start script execution.
-	int getStartTurn() const { return _startTurn; };
+	int getStartTurn() const { return _startTurn; }
 	/// Gets the turn number that would end script execution.
-	int getEndTurn() const { return _endTurn; };
+	int getEndTurn() const { return _endTurn; }
 	/// Gets the item set for command.
-	const std::vector<std::string> getItemSet() const { return _itemSet; };
+	const std::vector<std::string> getItemSet() const { return _itemSet; }
 	/// Gets the unit set for command.
-	const std::vector<std::string> getUnitSet() const { return _unitSet; };
+	const std::vector<std::string> getUnitSet() const { return _unitSet; }
 	/// Gets the side for unit, that would be spawned with command.
-	int getSide() const { return _unitSide; };
+	int getSide() const { return _unitSide; }
 	/// Gets pack size for units, that would be spawned with command.
-	int getPackSize() const { return _packSize; };
+	int getPackSize() const { return _packSize; }
 	/// Gets if pack size should be randomised with command.
-	bool getRandomPackSize() const { return _randomPackSize; };
+	bool getRandomPackSize() const { return _randomPackSize; }
 	/// Gets the min Z level for command.
-	int getMinLevel() const { return _minLevel; };
+	int getMinLevel() const { return _minLevel; }
 	/// Gets the max Z level for command.
-	int getMaxLevel() const { return _maxLevel; };
+	int getMaxLevel() const { return _maxLevel; }
 	/// Gets the min difficulty level for command.
-	int getMinDifficulty() const { return _minDifficulty; };
+	int getMinDifficulty() const { return _minDifficulty; }
 	/// Gets the max difficulty level for command.
-	int getMaxDifficulty() const { return _maxDifficulty; };
+	int getMaxDifficulty() const { return _maxDifficulty; }
 	/// Gets the min required alarm level to run this command.
-	int getMinAlarm() const { return _minAlarmLevel; };
+	int getMinAlarm() const { return _minAlarmLevel; }
 	/// Gets the max alarm level for this command to run.
-	int getMaxAlarm() const { return _maxAlarmLevel; };
+	int getMaxAlarm() const { return _maxAlarmLevel; }
 	/// Gets what conditions apply to this command.
-	const std::vector<int> *getSpawnNodeRanks() const { return &_spawnNodeRanks; };
+	const std::vector<int> *getSpawnNodeRanks() const { return &_spawnNodeRanks; }
 	/// Gets the list of battle messages for command.
-	std::map<int, BattleMessage> getBattleMessages() const { return _message; };
+	std::map<int, BattleMessage> getBattleMessages() const { return _message; }
 	/// Gets the script variable name.
-	std::string getVariableName() const { return _variable; };
+	std::string getVariableName() const { return _variable; }
 };
 
 }

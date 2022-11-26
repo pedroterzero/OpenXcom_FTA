@@ -36,7 +36,7 @@
 #include "../Savegame/BasePrisoner.h"
 #include "../Basescape/PrisonerInfoState.h"
 #include "PrisonerAllocateAgentsState.h"
-#include "SoldierInfoState.h"
+#include "SoldierInfoStateFtA.h"
 #include <algorithm>
 #include <climits>
 
@@ -370,7 +370,7 @@ void PrisonerAllocateAgentsState::lstAgentsClick(Action *action)
 	}
 	else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
 	{
-		_game->pushState(new SoldierInfoState(_base, _agentsNumbers.at(row)));
+		_game->pushState(new SoldierInfoStateFtA(_base, _agentsNumbers.at(row)));
 	}
 }
 

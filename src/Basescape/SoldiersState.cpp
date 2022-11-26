@@ -38,11 +38,11 @@
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/CovertOperation.h"
 #include "SoldierInfoState.h"
+#include "SoldierInfoStateFtA.h"
 #include "SoldierMemorialState.h"
 #include "SoldierTransformationState.h"
 #include "SoldierTransformationListState.h"
 #include "../Battlescape/InventoryState.h"
-#include "../Battlescape/BattlescapeGenerator.h"
 #include "../Savegame/SavedBattleGame.h"
 #include <algorithm>
 #include "../Engine/Unicode.h"
@@ -231,7 +231,7 @@ SoldiersState::SoldiersState(Base *base) : _base(base), _origSoldierOrder(*_base
 	{
 		PUSH_IN("STR_RANK", rankStat);
 	}
-	// FINNIKTODO-ROLES - add rank per roles
+	// #FINNIKTODO add rank per roles
 	PUSH_IN("STR_IDLE_DAYS", idleDaysStat);
 	PUSH_IN("STR_MISSIONS2", missionsStat);
 	PUSH_IN("STR_KILLS2", killsStat);
@@ -472,11 +472,11 @@ void SoldiersState::initList(size_t scrl)
 			for (auto &soldier : *_base->getSoldiers())
 			{
 				if (selAction == "STR_PERSONNEL_INFO" ||
-					(soldier->getRoleRank(ROLE_SOLDIER) > 0 && selAction == "STR_SOLDIER_INFO") ||
-					(soldier->getRoleRank(ROLE_PILOT) > 0 && selAction == "STR_PILOT_INFO") ||
-					(soldier->getRoleRank(ROLE_AGENT) > 0 && selAction == "STR_AGENT_INFO") ||
-					(soldier->getRoleRank(ROLE_SCIENTIST) > 0 && selAction == "STR_SCIENTIST_INFO") ||
-					(soldier->getRoleRank(ROLE_ENGINEER) > 0 && selAction == "STR_ENGINEER_INFO"))
+					soldier->getRoleRank(ROLE_SOLDIER) > 0 && selAction == "STR_SOLDIER_INFO" ||
+					soldier->getRoleRank(ROLE_PILOT) > 0 && selAction == "STR_PILOT_INFO" ||
+					soldier->getRoleRank(ROLE_AGENT) > 0 && selAction == "STR_AGENT_INFO" ||
+					soldier->getRoleRank(ROLE_SCIENTIST) > 0 && selAction == "STR_SCIENTIST_INFO" ||
+					soldier->getRoleRank(ROLE_ENGINEER) > 0 && selAction == "STR_ENGINEER_INFO")
 				{
 					_filteredListOfSoldiers.push_back(soldier);
 					_soldierNumbers.push_back(i); // don't forget soldier's number on the base!
@@ -486,6 +486,11 @@ void SoldiersState::initList(size_t scrl)
 		}
 		else
 		{
+			for (auto& soldier : *_base->getSoldiers())
+			{
+				_soldierNumbers.push_back(i);
+				i++;
+			}
 			_filteredListOfSoldiers = *_base->getSoldiers();
 			_lstSoldiers->setArrowColumn(188, ARROW_VERTICAL);
 		}
@@ -495,13 +500,14 @@ void SoldiersState::initList(size_t scrl)
 		offset = 20;
 		_lstSoldiers->setArrowColumn(-1, ARROW_VERTICAL);
 
+
 		// filtered list of soldiers eligible for transformation
 		RuleSoldierTransformation *transformationRule = _game->getMod()->getSoldierTransformation(selAction);
 		if (transformationRule)
 		{
 			for (auto& soldier : *_base->getSoldiers())
 			{
-				if ((soldier->getCraft() && soldier->getCraft()->getStatus() == "STR_OUT") || soldier->getCovertOperation() != 0)
+				if (soldier->getCraft() && soldier->getCraft()->getStatus() == "STR_OUT" || soldier->getCovertOperation() != 0)
 				{
 					// soldiers outside of the base are not eligible
 					continue;
@@ -779,7 +785,14 @@ void SoldiersState::lstSoldiersClick(Action *action)
 		selAction == "STR_SCIENTIST_INFO" ||
 		selAction == "STR_ENGINEER_INFO")
 	{
-		_game->pushState(new SoldierInfoState(_base, _soldierNumbers.at(_lstSoldiers->getSelectedRow())));
+		if (_ftaUI)
+		{
+			_game->pushState(new SoldierInfoStateFtA(_base, _soldierNumbers.at(_lstSoldiers->getSelectedRow())));
+		}
+		else
+		{
+			_game->pushState(new SoldierInfoState(_base, _soldierNumbers.at(_lstSoldiers->getSelectedRow())));
+		}
 	}
 	else
 	{

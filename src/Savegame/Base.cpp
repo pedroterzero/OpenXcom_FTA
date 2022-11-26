@@ -676,9 +676,9 @@ void Base::removePrisoner(BasePrisoner* prisoner)
 	if (!erased) { Log(LOG_ERROR) << "Base prisoner with ID " << prisoner->getId() << " was not deleted from base " << this->getName() << " !"; }
 }
 
-int Base::getFreeInterrogationSpace()
+int Base::getAvailableInterrogationSpace()
 {
-	int total = 0, used = 0;
+	int total = 0;
 	for (std::vector<BaseFacility*>::const_iterator i = _facilities.begin(); i != _facilities.end(); ++i)
 	{
 		if ((*i)->getBuildTime() == 0)
@@ -686,7 +686,13 @@ int Base::getFreeInterrogationSpace()
 			total += (*i)->getRules()->getInterrogationSpace();
 		}
 	}
+	return total;
+}
 
+int Base::getUsedInterrogationSpace()
+{
+	int used = 0;
+	
 	for (auto p : _prisoners)
 	{
 		if (p->getPrisonerState() == PRISONER_STATE_INTERROGATION
@@ -697,7 +703,7 @@ int Base::getFreeInterrogationSpace()
 		}
 	}
 
-	return total - used;
+	return used;
 }
 
 /**
@@ -834,7 +840,7 @@ int Base::getAvailableSoldiers(bool checkCombatReadiness, bool includeWounded) c
 	int total = 0;
 	for (std::vector<Soldier*>::const_iterator i = _soldiers.begin(); i != _soldiers.end(); ++i)
 	{
-		if ((*i)->getCovertOperation() != 0 || ((*i)->getRoleRank(ROLE_SOLDIER) == 0))
+		if ((*i)->getCovertOperation() != 0 || (*i)->getRoleRank(ROLE_SOLDIER) == 0)
 		{
 			//we do not want to count not real soldiers or that are on covert operation
 		}

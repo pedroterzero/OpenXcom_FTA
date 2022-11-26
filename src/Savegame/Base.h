@@ -161,7 +161,12 @@ public:
 	void addPrisoner(BasePrisoner* prisoner) { _prisoners.push_back(prisoner); }
 	/// Removes finished Intel Project.
 	void removePrisoner(BasePrisoner* project);
-	int getFreeInterrogationSpace();
+	/// Gets free interrogation space.
+	int getFreeInterrogationSpace() { return getAvailableInterrogationSpace() - getUsedInterrogationSpace(); }
+	/// Gets total interrogation space.
+	int getAvailableInterrogationSpace();
+	/// Gets used interrogation space.
+	int getUsedInterrogationSpace();
 	/// Gets the base's transfers.
 	std::vector<Transfer*> *getTransfers() { return &_transfers; }
 	/// Gets the base's transfers.

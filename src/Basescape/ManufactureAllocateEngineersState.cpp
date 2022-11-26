@@ -38,9 +38,8 @@
 #include "../Mod/RuleManufacture.h"
 #include "../Basescape/ManufactureInfoStateFtA.h"
 #include "../Basescape/ManufactureProductDetailsState.h"
-#include "SoldierInfoState.h"
+#include "SoldierInfoStateFtA.h"
 #include <algorithm>
-#include <climits>
 
 namespace OpenXcom
 {
@@ -396,7 +395,7 @@ void ManufactureAllocateEngineersState::lstEngineersClick(Action* action)
 	}
 	else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
 	{
-		_game->pushState(new SoldierInfoState(_base, _engineerNumbers.at(row)));
+		_game->pushState(new SoldierInfoStateFtA(_base, _engineerNumbers.at(row)));
 	}
 }
 

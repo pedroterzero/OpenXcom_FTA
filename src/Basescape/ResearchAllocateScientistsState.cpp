@@ -37,7 +37,7 @@
 #include "../Basescape/ResearchInfoStateFtA.h"
 #include "ResearchAllocateScientistsState.h"
 #include "ResearchProjectDetailsState.h"
-#include "SoldierInfoState.h"
+#include "SoldierInfoStateFtA.h"
 #include <algorithm>
 #include <climits>
 
@@ -403,7 +403,7 @@ void ResearchAllocateScientistsState::lstScientistsClick(Action *action)
 	}
 	else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
 	{
-		_game->pushState(new SoldierInfoState(_base, _scientistsNumbers.at(row)));
+		_game->pushState(new SoldierInfoStateFtA(_base, _scientistsNumbers.at(row)));
 	}
 }
 

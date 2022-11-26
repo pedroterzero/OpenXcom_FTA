@@ -17,7 +17,6 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "../Battlescape/BattlescapeGenerator.h"
-#include "../Battlescape/InventoryState.h"
 #include "../Engine/Action.h"
 #include "../Engine/Game.h"
 #include "../Engine/LocalizedText.h"
@@ -25,7 +24,6 @@
 #include "../Engine/Screen.h"
 #include "../Engine/Unicode.h"
 #include "../Geoscape/AllocatePsiTrainingState.h"
-#include "../Geoscape/AllocateTrainingState.h"
 #include "../Interface/ComboBox.h"
 #include "../Interface/Text.h"
 #include "../Interface/TextButton.h"
@@ -33,19 +31,14 @@
 #include "../Interface/Window.h"
 #include "../Mod/Mod.h"
 #include "../Mod/RuleSoldier.h"
-#include "../Mod/RuleSoldierTransformation.h"
 #include "../Savegame/Base.h"
 #include "../Savegame/CovertOperation.h"
 #include "../Savegame/SavedBattleGame.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Soldier.h"
-#include "SoldierInfoState.h"
-#include "SoldierMemorialState.h"
-#include "SoldierTransformationListState.h"
-#include "SoldierTransformationState.h"
 #include "PilotsState.h"
+#include "SoldierInfoStateFtA.h"
 #include <algorithm>
-#include <climits>
 
 namespace OpenXcom
 {
@@ -323,7 +316,7 @@ void PilotsState::btnOkClick(Action *)
  */
 void PilotsState::lstPilotsClick(Action *action)
 {
-	_game->pushState(new SoldierInfoState(_base, _soldierNumbers.at(_lstPilots->getSelectedRow())));
+	_game->pushState(new SoldierInfoStateFtA(_base, _soldierNumbers.at(_lstPilots->getSelectedRow())));
 }
 
 }

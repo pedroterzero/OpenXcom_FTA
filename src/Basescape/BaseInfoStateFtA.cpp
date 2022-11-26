@@ -31,6 +31,7 @@
 #include "MiniBaseView.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Base.h"
+#include "../Savegame/Soldier.h"
 #include "MonthlyCostsState.h"
 #include "TransfersState.h"
 #include "StoresState.h"
@@ -48,60 +49,77 @@ namespace OpenXcom
  */
 BaseInfoStateFtA::BaseInfoStateFtA(Base *base, BasescapeState *state) : _base(base), _state(state)
 {
-	
+
 	// Create objects
 	_bg = new Surface(320, 200, 0, 0);
-	_mini = new MiniBaseView(128, 16, 182, 8);
+	_mini = new MiniBaseView(128, 16, 182, 7);
 	_btnOk = new TextButton(21, 14, 8, 180);
 	_btnTransfers = new TextButton(63, 14, 31, 180);
 	_btnStores = new TextButton(50, 14, 96, 180);
 	_btnDispose = new TextButton(85, 14, 148, 180);
 	_btnMonthlyCosts = new TextButton(77, 14, 235, 180);
-	_edtBase = new TextEdit(this, 127, 16, 8, 8);
+	_edtBase = new TextEdit(this, 167, 16, 8, 7);
+	int y = 28;
+	int dY = 10;
+	_txtPersonnel = new Text(300, 9, 8, y);
+	y += dY;
+	_txtSoldiers = new Text(112, 9, 8, y);
+	_numSoldiers = new Text(37, 9, 126, y);
+	_barSoldiers = new Bar(150, 5, 166, y + 2); //bar is always 2 pixel lower
+	y += dY;
+	_txtQuarters = new Text(112, 9, 8, y);
+	_numQuarters = new Text(112, 9, 126, y);
+	_barQuarters = new Bar(112, 5, 166, y + 2);
+	y += dY;
+	_txtStores = new Text(112, 9, 8, y);
+	_numStores = new Text(37, 9, 126, y);
+	_barStores = new Bar(150, 5, 166, y + 2);
+	y += dY;
+	_txtLaboratories = new Text(112, 9, 8, y);
+	_numLaboratories = new Text(112, 9, 126, y);
+	_barLaboratories = new Bar(112, 5, 166, y + 2);
+	y += dY;
+	_txtWorkshops = new Text(112, 9, 8, y);
+	_numWorkshops = new Text(37, 9, 126, y);
+	_barWorkshops = new Bar(150, 5, 166, y + 2);
+	y += dY;
+	_txtGym = new Text(112, 9, 8, y);
+	_numGym = new Text(112, 9, 126, y);
+	_barGym = new Bar(112, 5, 166, y + 2);
+	y += dY;
+	_txtInterrogation = new Text(112, 9, 8, y);
+	_numInterrogation = new Text(37, 9, 126, y);
+	_barInterrogation = new Bar(150, 5, 166, y + 2);
+	y += dY;
+	_txtPrison = new Text(112, 9, 8, y);
+	_numPrison = new Text(112, 9, 126, y);
+	_barPrison = new Bar(112, 5, 166, y + 2);
+	y += dY;
+	_txtMonsters = new Text(112, 9, 8, y);
+	_numMonsters = new Text(37, 9, 126, y);
+	_barMonsters = new Bar(150, 5, 166, y + 2);
+	y += dY;
+	_txtContainment = new Text(112, 9, 8, y);
+	_numContainment = new Text(112, 9, 126, y);
+	_barContainment = new Bar(112, 5, 166, y + 2);
+	y += dY;
+	_txtPower = new Text(112, 9, 8, y);
+	_numPower = new Text(37, 9, 126, y);
+	_barPower = new Bar(150, 5, 166, y + 2);
+	y += dY;
+	_txtDefense = new Text(112, 9, 8, y);
+	_numDefense = new Text(112, 9, 126, y);
+	_barDefense = new Bar(112, 5, 166, y + 2);
+	y += dY;
 
-	_txtPersonnel = new Text(300, 9, 8, 30);
-	_txtSoldiers = new Text(114, 9, 8, 41);
-	_numSoldiers = new Text(40, 9, 126, 41);
-	_barSoldiers = new Bar(150, 5, 166, 43);
-	_txtEngineers = new Text(114, 9, 8, 51);
-	_numEngineers = new Text(40, 9, 126, 51);
-	_barEngineers = new Bar(150, 5, 166, 53);
-	_txtScientists = new Text(114, 9, 8, 61);
-	_numScientists = new Text(40, 9, 126, 61);
-	_barScientists = new Bar(150, 5, 166, 63);
-
-	_txtSpace = new Text(300, 9, 8, 72);
-	_txtQuarters = new Text(114, 9, 8, 83);
-	_numQuarters = new Text(40, 9, 126, 83);
-	_barQuarters = new Bar(150, 5, 166, 85);
-	_txtStores = new Text(114, 9, 8, 93);
-	_numStores = new Text(40, 9, 126, 93);
-	_barStores = new Bar(150, 5, 166, 95);
-	_txtLaboratories = new Text(114, 9, 8, 103);
-	_numLaboratories = new Text(40, 9, 126, 103);
-	_barLaboratories = new Bar(150, 5, 166, 105);
-	_txtWorkshops = new Text(114, 9, 8, 113);
-	_numWorkshops = new Text(40, 9, 126, 113);
-	_barWorkshops = new Bar(150, 5, 166, 115);
-	if (Options::containmentLimitsEnforced)
-	{
-		_txtContainment = new Text(114, 9, 8, 123);
-		_numContainment = new Text(40, 9, 126, 123);
-		_barContainment = new Bar(150, 5, 166, 125);
-	}
-	_txtHangars = new Text(114, 9, 8, Options::containmentLimitsEnforced ? 133 : 123);
-	_numHangars = new Text(40, 9, 126, Options::containmentLimitsEnforced ? 133 : 123);
-	_barHangars = new Bar(150, 5, 166, Options::containmentLimitsEnforced ? 135 : 125);
-
-	_txtDefense = new Text(114, 9, 8, Options::containmentLimitsEnforced ? 147 : 138);
-	_numDefense = new Text(40, 9, 126, Options::containmentLimitsEnforced ? 147 : 138);
-	_barDefense = new Bar(150, 5, 166, Options::containmentLimitsEnforced ? 149 : 140);
-	_txtShortRange = new Text(114, 9, 8, Options::containmentLimitsEnforced ? 157 : 153);
-	_numShortRange = new Text(40, 9, 126, Options::containmentLimitsEnforced ? 157 : 153);
-	_barShortRange = new Bar(150, 5, 166, Options::containmentLimitsEnforced ? 159 : 155);
-	_txtLongRange = new Text(114, 9, 8, Options::containmentLimitsEnforced ? 167 : 163);
-	_numLongRange = new Text(40, 9, 126, Options::containmentLimitsEnforced ? 167 : 163);
-	_barLongRange = new Bar(150, 5, 166, Options::containmentLimitsEnforced ? 169 : 165);
+	_txtRadar = new Text(112, 9, 8, y);
+	_numRadar = new Text(37, 9, 126, y);
+	_barRadar = new Bar(150, 5, 166, y + 2);
+	y += dY;
+	_txtGlobalDetection = new Text(112, 9, 8, y);
+	_numGlobalDetection = new Text(112, 9, 126, y);
+	_barGlobalDetection = new Bar(112, 5, 166, y + 2);
+	y += dY;
 
 	// Set palette
 	setStandardPalette("PAL_BASE_INFO");
@@ -119,46 +137,59 @@ BaseInfoStateFtA::BaseInfoStateFtA(Base *base, BasescapeState *state) : _base(ba
 	add(_txtPersonnel, "text1", "baseInfoFta");
 	add(_txtSoldiers, "text2", "baseInfoFta");
 	add(_numSoldiers, "numbers", "baseInfoFta");
-	add(_barSoldiers, "personnelBars", "baseInfoFta");
-	add(_txtEngineers, "text2", "baseInfoFta");
-	add(_numEngineers, "numbers", "baseInfoFta");
-	add(_barEngineers, "personnelBars", "baseInfoFta");
-	add(_txtScientists, "text2", "baseInfoFta");
-	add(_numScientists, "numbers", "baseInfoFta");
-	add(_barScientists, "personnelBars", "baseInfoFta");
+	add(_barSoldiers, "personnelBar", "baseInfoFta");
 
-	add(_txtSpace, "text1", "baseInfoFta");
 	add(_txtQuarters, "text2", "baseInfoFta");
 	add(_numQuarters, "numbers", "baseInfoFta");
 	add(_barQuarters, "facilityBars", "baseInfoFta");
+
 	add(_txtStores, "text2", "baseInfoFta");
 	add(_numStores, "numbers", "baseInfoFta");
 	add(_barStores, "facilityBars", "baseInfoFta");
+
 	add(_txtLaboratories, "text2", "baseInfoFta");
 	add(_numLaboratories, "numbers", "baseInfoFta");
 	add(_barLaboratories, "facilityBars", "baseInfoFta");
+
 	add(_txtWorkshops, "text2", "baseInfoFta");
 	add(_numWorkshops, "numbers", "baseInfoFta");
 	add(_barWorkshops, "facilityBars", "baseInfoFta");
-	//if (Options::containmentLimitsEnforced)
-	//{
-	//	add(_txtContainment, "text2", "baseInfoFta");
-	//	add(_numContainment, "numbers", "baseInfoFta");
-	//	add(_barContainment, "facilityBars", "baseInfoFta");
-	//}
-	add(_txtHangars, "text2", "baseInfoFta");
-	add(_numHangars, "numbers", "baseInfoFta");
-	add(_barHangars, "facilityBars", "baseInfoFta");
+
+	add(_txtGym, "text2", "baseInfoFta");
+	add(_numGym, "numbers", "baseInfoFta");
+	add(_barGym, "facilityBars", "baseInfoFta");
+
+	add(_txtInterrogation, "text2", "baseInfoFta");
+	add(_numInterrogation, "numbers", "baseInfoFta");
+	add(_barInterrogation, "facilityBars", "baseInfoFta");
+
+	add(_txtPrison, "text2", "baseInfoFta");
+	add(_numPrison, "numbers", "baseInfoFta");
+	add(_barPrison, "prisonBar", "baseInfoFta");
+
+	add(_txtMonsters, "text2", "baseInfoFta");
+	add(_numMonsters, "numbers", "baseInfoFta");
+	add(_barMonsters, "monstersBar", "baseInfoFta");
+
+	add(_txtContainment, "text2", "baseInfoFta");
+	add(_numContainment, "numbers", "baseInfoFta");
+	add(_barContainment, "containmentBar", "baseInfoFta");
+
+	add(_txtPower, "text2", "baseInfoFta");
+	add(_numPower, "numbers", "baseInfoFta");
+	add(_barPower, "powerBar", "baseInfoFta");
 
 	add(_txtDefense, "text2", "baseInfoFta");
 	add(_numDefense, "numbers", "baseInfoFta");
 	add(_barDefense, "defenceBar", "baseInfoFta");
-	add(_txtShortRange, "text2", "baseInfoFta");
-	add(_numShortRange, "numbers", "baseInfoFta");
-	add(_barShortRange, "detectionBars", "baseInfoFta");
-	add(_txtLongRange, "text2", "baseInfoFta");
-	add(_numLongRange, "numbers", "baseInfoFta");
-	add(_barLongRange, "detectionBars", "baseInfoFta");
+
+	add(_txtRadar, "text2", "baseInfoFta");
+	add(_numRadar, "numbers", "baseInfoFta");
+	add(_barRadar, "radarBar", "baseInfoFta");
+
+	add(_txtGlobalDetection, "text2", "baseInfoFta");
+	add(_numGlobalDetection, "numbers", "baseInfoFta");
+	add(_barGlobalDetection, "detectionBar", "baseInfoFta");
 
 	centerAllSurfaces();
 
@@ -198,50 +229,66 @@ BaseInfoStateFtA::BaseInfoStateFtA(Base *base, BasescapeState *state) : _base(ba
 	_edtBase->setBig();
 	_edtBase->onChange((ActionHandler)&BaseInfoStateFtA::edtBaseChange);
 
-	_txtPersonnel->setText(tr("STR_PERSONNEL_AVAILABLE_PERSONNEL_TOTAL"));
+	_txtPersonnel->setText(tr("STR_BASE_INFO_HEADER"));
 
 	_txtSoldiers->setText(tr("STR_SOLDIERS"));
 	_barSoldiers->setScale(1.0);
 
-	_txtEngineers->setText(tr("STR_ENGINEERS"));
-	_barEngineers->setScale(1.0);
-
-	_txtScientists->setText(tr("STR_SCIENTISTS"));
-	_barScientists->setScale(1.0);
-
-	_txtSpace->setText(tr("STR_SPACE_USED_SPACE_AVAILABLE"));
-
 	_txtQuarters->setText(tr("STR_LIVING_QUARTERS_PLURAL"));
-	_barQuarters->setScale(0.5);
+	_barQuarters->setScale(1.0);
 
 	_txtStores->setText(tr("STR_STORES"));
-	_barStores->setScale(0.5);
+	_barStores->setScale(0.2);
 
 	_txtLaboratories->setText(tr("STR_LABORATORIES"));
-	_barLaboratories->setScale(0.5);
+	_barLaboratories->setScale(1);
 
 	_txtWorkshops->setText(tr("STR_WORK_SHOPS"));
-	_barWorkshops->setScale(0.5);
+	_barWorkshops->setScale(1);
 
-	_txtHangars->setText(tr("STR_HANGARS"));
-	_barHangars->setScale(18.0);
+	_txtGym->setText(tr("STR_GYM"));
+	_barGym->setScale(2.5);
+
+	_txtInterrogation->setText(tr("STR_INTERROGATION_SPACE"));
+	_barInterrogation->setScale(2.5);
+
+	_txtPrison->setText(tr("STR_PRISON_CELLS"));
+	_barPrison->setScale(2.5);
+
+	_txtMonsters->setText(tr("STR_CREATURES_CONTAINMENT"));
+	_barMonsters->setScale(2.5);
+
+	_txtContainment->setText(tr("STR_ALIEN_CONTAINMENT"));
+	_barContainment->setScale(2.5);
+
+	_txtPower->setText(tr("STR_POWER_GRID"));
+	_barPower->setScale(1);
 
 	_txtDefense->setText(tr("STR_DEFENSE_STRENGTH"));
-	_barDefense->setScale(0.125);
+	_barDefense->setScale(0.025);
 
-	_txtShortRange->setText(tr("STR_SHORT_RANGE_DETECTION"));
-	_barShortRange->setScale(25.0);
+	_txtRadar->setText(tr("STR_RADAR_STREINGH"));
+	_barRadar->setScale(0.125);
 
-	_txtLongRange->setText(tr("STR_LONG_RANGE_DETECTION"));
-	_barLongRange->setScale(25.0);
+	_txtGlobalDetection->setText(tr("STR_GLOBAL_DETECTION"));
+	_barGlobalDetection->setScale(18.0);
+
+	if (!_game->getSavedGame()->isResearched(_game->getMod()->getResearch("STR_CREATURES_CONTAINMENT")))
+	{
+		_txtMonsters->setVisible(false);
+		_numMonsters->setVisible(false);
+		_barMonsters->setVisible(false);
+	}
+	if (!_game->getSavedGame()->isResearched(_game->getMod()->getResearch("STR_ALIEN_CONTAINMENT")))
+	{
+		_txtContainment->setVisible(false);
+		_numContainment->setVisible(false);
+		_barContainment->setVisible(false);
+	}
 }
 
-/**
- *
- */
 BaseInfoStateFtA::~BaseInfoStateFtA()
 {
-
 }
 
 /**
@@ -252,96 +299,103 @@ void BaseInfoStateFtA::init()
 	State::init();
 	_edtBase->setText(_base->getName());
 
+	int freeSoldiers = 0;
+	auto recovery = _base->getSumRecoveryPerDay();
+	bool isBusy = false, isFree = false;
+	for (std::vector<Soldier*>::iterator s = _base->getSoldiers()->begin(); s != _base->getSoldiers()->end(); ++s)
+	{
+		(*s)->getCurrentDuty(_game->getLanguage(), recovery, isBusy, isFree);
+		if (isFree)
+		{
+			freeSoldiers++;
+		}
+	}
 	std::ostringstream ss;
-	ss << _base->getAvailableSoldiers() << ":" << _base->getTotalSoldiers();
+	ss << freeSoldiers << ":" << _base->getSoldiers()->size();
 	_numSoldiers->setText(ss.str());
-
-	_barSoldiers->setMax(_base->getTotalSoldiers());
-	_barSoldiers->setValue(_base->getAvailableSoldiers());
+	_barSoldiers->setMax(_base->getSoldiers()->size());
+	_barSoldiers->setValue(freeSoldiers);
 
 	std::ostringstream ss2;
-	ss2 << _base->getAvailableEngineers() << ":" << _base->getTotalEngineers();
-	_numEngineers->setText(ss2.str());
-
-	_barEngineers->setMax(_base->getTotalEngineers());
-	_barEngineers->setValue(_base->getAvailableEngineers());
-
-	std::ostringstream ss3;
-	ss3 << _base->getAvailableScientists() << ":" << _base->getTotalScientists();
-	_numScientists->setText(ss3.str());
-
-	_barScientists->setMax(_base->getTotalScientists());
-	_barScientists->setValue(_base->getAvailableScientists());
-
-
-	std::ostringstream ss4;
-	ss4 << _base->getUsedQuarters() << ":" << _base->getAvailableQuarters();
-	_numQuarters->setText(ss4.str());
-
+	ss2 << _base->getUsedQuarters() << ":" << _base->getAvailableQuarters();
+	_numQuarters->setText(ss2.str());
 	_barQuarters->setMax(_base->getAvailableQuarters());
 	_barQuarters->setValue(_base->getUsedQuarters());
 
-	std::ostringstream ss5;
-	ss5 << (int)floor(_base->getUsedStores() + 0.05) << ":" << _base->getAvailableStores();
-	_numStores->setText(ss5.str());
-
+	std::ostringstream ss3;
+	ss3 << (int)floor(_base->getUsedStores() + 0.05) << ":" << _base->getAvailableStores();
+	_numStores->setText(ss3.str());
 	_barStores->setMax(_base->getAvailableStores());
 	_barStores->setValue((int)floor(_base->getUsedStores() + 0.05));
 
-	std::ostringstream ss6;
-	ss6 << _base->getUsedLaboratories() << ":" << _base->getAvailableLaboratories();
-	_numLaboratories->setText(ss6.str());
-
+	std::ostringstream ss4;
+	ss4 << _base->getUsedLaboratories() << ":" << _base->getAvailableLaboratories();
+	_numLaboratories->setText(ss4.str());
 	_barLaboratories->setMax(_base->getAvailableLaboratories());
 	_barLaboratories->setValue(_base->getUsedLaboratories());
 
-	std::ostringstream ss7;
-	ss7 << _base->getUsedWorkshops() << ":" << _base->getAvailableWorkshops();
-	_numWorkshops->setText(ss7.str());
-
+	std::ostringstream ss5;
+	ss5 << _base->getUsedWorkshops() << ":" << _base->getAvailableWorkshops();
+	_numWorkshops->setText(ss5.str());
 	_barWorkshops->setMax(_base->getAvailableWorkshops());
 	_barWorkshops->setValue(_base->getUsedWorkshops());
 
-	if (Options::containmentLimitsEnforced)
-	{
-		std::ostringstream ss72;
-		ss72 << _base->getUsedContainment(0) << ":" << _base->getAvailableContainment(0);
-		_numContainment->setText(ss72.str());
+	std::ostringstream ss6;
+	ss6 << _base->getUsedTraining() << ":" << _base->getAvailableTraining();
+	_numGym->setText(ss6.str());
+	_barGym->setMax(_base->getAvailableTraining());
+	_barGym->setValue(_base->getUsedTraining());
 
-		_barContainment->setMax(_base->getAvailableContainment(0));
-		_barContainment->setValue(_base->getUsedContainment(0));
-	}
+	std::ostringstream ss7;
+	ss7 << _base->getUsedInterrogationSpace() << ":" << _base->getAvailableInterrogationSpace();
+	_numInterrogation->setText(ss7.str());
+	_barInterrogation->setMax(_base->getAvailableInterrogationSpace());
+	_barInterrogation->setValue(_base->getUsedInterrogationSpace());
 
 	std::ostringstream ss8;
-	ss8 << _base->getUsedHangars() << ":" << _base->getAvailableHangars();
-	_numHangars->setText(ss8.str());
+	ss8 << _base->getUsedPrisonSpace() << ":" << _base->getAvailablePrisonSpace();
+	_numPrison->setText(ss8.str());
+	_barPrison->setMax(_base->getAvailablePrisonSpace());
+	_barPrison->setValue(_base->getUsedPrisonSpace());
 
-	_barHangars->setMax(_base->getAvailableHangars());
-	_barHangars->setValue(_base->getUsedHangars());
+	std::ostringstream ss9; //monsters use containment type 1
+	ss9 << _base->getUsedContainment(1) << ":" << _base->getAvailableContainment(1);
+	_numMonsters->setText(ss9.str());
+	_barMonsters->setMax(_base->getAvailableContainment(1));
+	_barMonsters->setValue(_base->getUsedContainment(1));
 
+	std::ostringstream ss10; //aliens use containment type 0
+	ss10 << _base->getUsedContainment(0) << ":" << _base->getAvailableContainment(0);
+	_numContainment->setText(ss10.str());
+	_barContainment->setMax(_base->getAvailableContainment(0));
+	_barContainment->setValue(_base->getUsedContainment(0));
 
-	std::ostringstream ss9;
-	ss9 << _base->getDefenseValue();
-	_numDefense->setText(ss9.str());
+	//#FINNIKTODO power generation here
+	std::ostringstream ss11; //power generation hardcoded placeholder, https://github.com/723Studio/OpenXcom_FTA/issues/177
+	ss11 << 20 << ":" << 26;
+	_numPower->setText(ss11.str());
+	_barPower->setMax(26);
+	_barPower->setValue(20);
 
+	std::ostringstream ss12;
+	ss12 << _base->getDefenseValue();
+	_numDefense->setText(ss12.str());
 	_barDefense->setMax(_base->getDefenseValue());
 	_barDefense->setValue(_base->getDefenseValue());
 
-	std::ostringstream ss10;
-	int shortRangeDetection = _base->getShortRangeDetection();
-	ss10 << shortRangeDetection;
-	_numShortRange->setText(ss10.str());
+	//#FINNIKTODO radar strength here
+	std::ostringstream ss13; //radar strength placeholder, https://github.com/723Studio/OpenXcom_FTA/issues/215
+	ss13 << 520;
+	_numRadar->setText(ss13.str());
+	_barRadar->setMax(520);
+	_barRadar->setValue(520);
 
-	_barShortRange->setMax(shortRangeDetection);
-	_barShortRange->setValue(shortRangeDetection);
-
-	std::ostringstream ss11;
-	int longRangeDetection = _base->getLongRangeDetection();
-	ss11 << longRangeDetection;
-	_numLongRange->setText(ss11.str());
-
-	_barLongRange->setMax(longRangeDetection);
-	_barLongRange->setValue(longRangeDetection);
+	//#FINNIKTODO global detection here
+	std::ostringstream ss14; //global detection placeholder, https://github.com/723Studio/OpenXcom_FTA/issues/215
+	ss14 << 2;
+	_numGlobalDetection->setText(ss14.str());
+	_barGlobalDetection->setMax(2);
+	_barGlobalDetection->setValue(2);
 }
 
 /**

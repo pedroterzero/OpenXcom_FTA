@@ -69,6 +69,7 @@ set ( basescape_src
   Basescape/SoldierDiaryOverviewState.cpp
   Basescape/SoldierDiaryPerformanceState.cpp
   Basescape/SoldierInfoState.cpp
+  Basescape/SoldierInfoStateFtA.cpp
   Basescape/SoldierMemorialState.cpp
   Basescape/SoldierSortUtil.cpp
   Basescape/SoldiersState.cpp

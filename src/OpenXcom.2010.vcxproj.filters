@@ -23,7 +23,7 @@
     <ClCompile Include="Basescape\SellState.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
-    <ClCompile Include="Basescape\SoldierInfoState.cpp">
+    <ClCompile Include="Basescape\SoldierInfoStateFtA.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
     <ClCompile Include="Basescape\SoldiersState.cpp">
@@ -1271,6 +1271,9 @@
     <ClCompile Include="Basescape\BaseInfoStateFtA.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
+    <ClCompile Include="Basescape\SoldierInfoState.cpp">
+      <Filter>Basescape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -1301,7 +1304,7 @@
     <ClInclude Include="Basescape\SellState.h">
       <Filter>Basescape</Filter>
     </ClInclude>
-    <ClInclude Include="Basescape\SoldierInfoState.h">
+    <ClInclude Include="Basescape\SoldierInfoStateFtA.h">
       <Filter>Basescape</Filter>
     </ClInclude>
     <ClInclude Include="Basescape\SoldiersState.h">
@@ -2604,6 +2607,9 @@
       <Filter>Geoscape</Filter>
     </ClInclude>
     <ClInclude Include="Basescape\BaseInfoStateFtA.h">
+      <Filter>Basescape</Filter>
+    </ClInclude>
+    <ClInclude Include="Basescape\SoldierInfoState.h">
       <Filter>Basescape</Filter>
     </ClInclude>
   </ItemGroup>

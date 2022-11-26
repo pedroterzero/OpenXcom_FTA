@@ -33,7 +33,7 @@
 #include "../Savegame/ResearchProject.h"
 #include "../Savegame/Soldier.h"
 #include "ScientistsState.h"
-#include "SoldierInfoState.h"
+#include "SoldierInfoStateFtA.h"
 #include <climits>
 
 namespace OpenXcom
@@ -167,7 +167,7 @@ void ScientistsState::btnOkClick(Action *)
  */
 void ScientistsState::lstScientistsClick(Action *action)
 {
-	_game->pushState(new SoldierInfoState(_base, _soldierNumbers.at(_lstScientist->getSelectedRow())));
+	_game->pushState(new SoldierInfoStateFtA(_base, _soldierNumbers.at(_lstScientist->getSelectedRow())));
 }
 
 }

@@ -517,6 +517,7 @@ void AllocateTrainingState::lstSoldiersClick(Action *action)
 		{
 			if (_base->getUsedTraining() < _base->getAvailableTraining())
 			{
+				soldier->clearBaseDuty();
 				_lstSoldiers->setCellText(_sel, 8, tr("STR_YES").c_str());
 				_lstSoldiers->setRowColor(_sel, _lstSoldiers->getSecondaryColor());
 				_space--;

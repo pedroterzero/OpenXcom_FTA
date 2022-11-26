@@ -20,6 +20,8 @@
 #include "SoldierDiaryPerformanceState.h"
 #include "SoldierDiaryMissionState.h"
 #include "SoldierInfoState.h"
+#include "SoldierInfoStateFtA.h"
+
 #include <sstream>
 #include "../Mod/Mod.h"
 #include "../Engine/Game.h"
@@ -47,6 +49,23 @@ namespace OpenXcom
  * @param soldierInfoState Pointer to the Soldier Info screen.
  */
 SoldierDiaryOverviewState::SoldierDiaryOverviewState(Base *base, size_t soldierId, SoldierInfoState *soldierInfoState) : _base(base), _soldierId(soldierId), _soldierInfoState(soldierInfoState)
+{
+	drawUi();
+}
+
+SoldierDiaryOverviewState::SoldierDiaryOverviewState(Base* base, size_t soldierId, SoldierInfoStateFtA* soldierInfoStateFtA) : _base(base), _soldierId(soldierId), _soldierInfoStateFtA(soldierInfoStateFtA)
+{
+	drawUi();
+}
+
+/**
+ *
+ */
+SoldierDiaryOverviewState::~SoldierDiaryOverviewState()
+{
+}
+
+void SoldierDiaryOverviewState::drawUi()
 {
 	if (_base == 0)
 	{
@@ -159,15 +178,6 @@ SoldierDiaryOverviewState::SoldierDiaryOverviewState(Base *base, size_t soldierI
 	_lstDiary->setMargin(8);
 	_lstDiary->onMouseClick((ActionHandler)&SoldierDiaryOverviewState::lstDiaryInfoClick);
 }
-
-/**
- *
- */
-SoldierDiaryOverviewState::~SoldierDiaryOverviewState()
-{
-
-}
-
 /**
  *  Clears all the variables and reinitializes the list of medals for the soldier.
  *
@@ -252,6 +262,8 @@ void SoldierDiaryOverviewState::init()
 	}
 }
 
+
+
 /**
  * Set the soldier's Id.
  */
@@ -266,7 +278,14 @@ void SoldierDiaryOverviewState::setSoldierId(size_t soldier)
  */
 void SoldierDiaryOverviewState::btnOkClick(Action *)
 {
-	_soldierInfoState->setSoldierId(_soldierId);
+	if (_soldierInfoState)
+	{
+		_soldierInfoState->setSoldierId(_soldierId);
+	}
+	else
+	{
+		_soldierInfoStateFtA->setSoldierId(_soldierId);
+	}
 	_game->popState();
 }
 
