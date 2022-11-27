@@ -39,12 +39,14 @@ class TileEngine;
 class RuleStartingCondition;
 class RuleEnviroEffects;
 class BattleItem;
+class BattleObject;
 class BattleUnit;
 class Mod;
 class State;
 class ItemContainer;
 class Craft;
 class RuleItem;
+class RuleObject;
 class AlienDeployment;
 class Ufo;
 class HitLog;
@@ -79,6 +81,8 @@ private:
 	std::vector<Node*> _nodes;
 	std::vector<BattleUnit*> _units;
 	std::vector<BattleItem*> _items, _deleted;
+	std::vector<BattleObject*> _battleObjects;
+	int _itemObjectivesNumber;
 	Pathfinding *_pathfinding;
 	TileEngine *_tileEngine;
 	std::string _missionType, _strTarget, _strCraftOrBase, _alienCustomDeploy, _alienCustomMission;
@@ -225,6 +229,8 @@ public:
 	std::vector<Node*> *getNodes();
 	/// Gets a pointer to the list of items.
 	std::vector<BattleItem*> *getItems();
+	/// Gets a pointer to the list of battle objects.
+	std::vector<BattleObject*>* getBattleObjects() { return &_battleObjects; };
 	/// Gets a pointer to the list of units.
 	std::vector<BattleUnit*> *getUnits();
 	/// Gets terrain size x.
@@ -445,6 +451,8 @@ public:
 	BattleItem *createItemForTile(const RuleItem *rule, Tile *tile);
 	/// Create new item for tile.
 	BattleItem *createItemForTile(const std::string& type, Tile *tile);
+	/// Create new object for tile.
+	BattleObject *createObjectForTile(const RuleObject *rule, Tile *tile);
 	/// Create new temporary unit.
 	BattleUnit *createTempUnit(const Unit *rules, UnitFaction faction, int nextUnitId = -1);
 	/// Converts a unit into a unit of another type.

@@ -29,6 +29,7 @@ namespace OpenXcom
 class SavedBattleGame;
 class BattleUnit;
 class BattleItem;
+class BattleObject;
 class Tile;
 class RuleSkill;
 struct BattleAction;
@@ -211,6 +212,10 @@ public:
 	int meleeAttackCalculate(BattleActionAttack::ReadOnly attack, const BattleUnit *victim);
 	/// Attempts a melee attack action.
 	bool meleeAttack(BattleActionAttack attack, BattleUnit *victim, int terrainMeleeTilePart = 0);
+	/// Attempts a hacking attack.
+	bool hackAttack(BattleAction& action, BattleUnit* target);
+	/// Attempts hacking a battle object
+	bool hackObject(BattleAction& action, BattleObject* object);
 
 	/// Remove the medikit from the game if consumable and empty.
 	void medikitRemoveIfEmpty(BattleAction *action);

@@ -113,6 +113,9 @@ set ( battlescape_src
   Battlescape/ExplosionBState.cpp
   Battlescape/ExtendedBattlescapeLinksState.cpp
   Battlescape/ExtendedInventoryLinksState.cpp
+  Battlescape/HackingBState.cpp
+  Battlescape/HackingState.cpp
+  Battlescape/HackingView.cpp
   Battlescape/InfoboxOKState.cpp
   Battlescape/InfoboxState.cpp
   Battlescape/Inventory.cpp
@@ -363,6 +366,7 @@ set ( mod_src
   Mod/RuleManufactureShortcut.cpp
   Mod/RuleMissionScript.cpp
   Mod/RuleMusic.cpp
+  Mod/RuleObject.cpp
   Mod/RulePrisoner.cpp
   Mod/RuleRegion.cpp
   Mod/RuleResearch.cpp
@@ -392,6 +396,7 @@ set ( savegame_src
   Savegame/BaseFacility.cpp
   Savegame/BasePrisoner.cpp
   Savegame/BattleItem.cpp
+  Savegame/BattleObject.cpp
   Savegame/BattleUnit.cpp
   Savegame/Country.cpp
   Savegame/CovertOperation.cpp

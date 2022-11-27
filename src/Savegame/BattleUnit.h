@@ -31,6 +31,7 @@ namespace OpenXcom
 
 class Tile;
 class BattleItem;
+class BattleObject;
 class Armor;
 class Unit;
 class BattlescapeGame;
@@ -105,6 +106,7 @@ private:
 	std::vector<BattleUnit *> _visibleUnits, _unitsSpottedThisTurn;
 	std::vector<Tile *> _visibleTiles;
 	std::unordered_set<Tile *> _visibleTilesLookup;
+	std::vector<BattleObject*> _visibleBattleObjects;
 	int _tu, _energy, _health, _morale, _stunlevel, _mana;
 	bool _kneeled, _floating, _dontReselect;
 	bool _haveNoFloorBelow = false;
@@ -847,7 +849,14 @@ public:
 	bool indicatorsAreEnabled() const { return !_disableIndicators; }
 	/// Disable showing indicators for this unit.
 	void disableIndicators();
-
+	/// Checks if this unit can be hacked.
+	bool canBeHacked() const;
+	/// Add battle object to visible battle objects.
+	bool addToVisibleBattleObjects(BattleObject* battleObject);
+	/// Get the list of visible battle objects.
+	std::vector<BattleObject*>* getVisibleBattleObjects();
+	/// Clear visible battle objects.
+	void clearVisibleBattleObjects();
 	/// Multiplier of move cost.
 	ArmorMoveCost getMoveCostBase() const { return _moveCostBase; }
 	/// Multiplier of fly move cost.

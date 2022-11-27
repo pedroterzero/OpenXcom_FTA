@@ -31,6 +31,7 @@ namespace OpenXcom
 class MapData;
 class BattleUnit;
 class BattleItem;
+class BattleObject;
 class RuleInventory;
 class SavedBattleGame;
 class ScriptParserBase;
@@ -128,13 +129,13 @@ protected:
 	Sint16 _EnergyMarker = -1;
 	Sint8 _preview = -1;
 	Uint8 _overlaps = 0;
-
+	BattleObject* _battleObject = nullptr;
 
 public:
 	/// Creates a tile.
-	Tile(Position pos, SavedBattleGame* save);
+	Tile(Position pos, SavedBattleGame *save);
 	/// Copy constructor.
-	Tile(Tile&&) = default;
+	Tile(Tile &&) = default;
 	/// Cleans up a tile.
 	~Tile();
 	/// Load the tile from yaml
@@ -223,6 +224,9 @@ public:
 	/// Open a door, returns the ID, 0(normal), 1(ufo) or -1 if no door opened.
 	int openDoor(TilePart part, BattleUnit *unit = 0, BattleActionType reserve = BA_NONE, bool rClick = false);
 
+	///Switch tilepart to AltMCD, return true if successful
+	bool switchToAltMCD(TilePart part);
+
 	/**
 	 * Check if the ufo door is open or opening. Used for visibility/light blocking checks.
 	 * This function assumes that there never are 2 doors on 1 tile or a door and another wall on 1 tile.
@@ -294,6 +298,8 @@ public:
 	int getShade() const;
 	/// Destroy a tile part.
 	bool destroy(TilePart part, SpecialTileType type);
+	/// Destroy battle object
+	void deleteBattleObject();
 	/// Damage a tile part.
 	bool damage(TilePart part, int power, SpecialTileType type);
 	/// Set a "virtual" explosive on this tile, to detonate later.
@@ -357,6 +363,10 @@ public:
 	void addItem(BattleItem *item, RuleInventory *ground);
 	/// Remove item
 	void removeItem(BattleItem *item);
+	/// Get pointer to the BattleObject
+	BattleObject* getBattleObject() const { return _battleObject; };
+	/// Set BattleObject
+	void setBattleObject(BattleObject* object);
 	/// Get top-most item
 	BattleItem* getTopItem();
 	/// New turn preparations.

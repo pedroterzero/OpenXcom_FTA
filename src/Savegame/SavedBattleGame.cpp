@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <vector>
 #include "BattleItem.h"
+#include "BattleObject.h"
 #include "ItemContainer.h"
 #include "Base.h"
 #include "Craft.h"
@@ -124,6 +125,10 @@ SavedBattleGame::~SavedBattleGame()
 	for (std::vector<BattleItem*>::iterator i = _deleted.begin(); i != _deleted.end(); ++i)
 	{
 		delete *i;
+	}
+	for (std::vector<BattleObject*>::iterator i = _battleObjects.begin(); i != _battleObjects.end(); ++i)
+	{
+		delete* i;
 	}
 
 	delete _pathfinding;
@@ -297,6 +302,22 @@ void SavedBattleGame::load(const YAML::Node &node, Mod *mod, SavedGame* savedGam
 				unit->setAIModule(aiModule);
 			}
 		}
+	}
+
+	for (YAML::const_iterator i = node["battleObjects"].begin(); i != node["battleObjects"].end(); ++i)
+	{
+		BattleObject* object;
+		int id = (*i)["id"].as<int>();
+		std::string type = (*i)["type"].as<std::string>();
+		if (!mod->getObject(type))
+			continue;
+		object = new BattleObject(mod->getObject(type));
+		object->load(*i, mod);
+		
+		Position pos = (*i)["position"].as<Position>(Position(-1, -1, -1));
+		getTile(pos)->setBattleObject(object);
+		_battleObjects.push_back(object);
+
 	}
 
 	using ItemVec = std::vector<BattleItem*>&;
@@ -645,6 +666,13 @@ YAML::Node SavedBattleGame::save() const
 		else
 		{
 			node["items"].push_back((*i)->save(this->getMod()->getScriptGlobal()));
+		}
+	}
+	for (std::vector<BattleObject*>::const_iterator i = _battleObjects.begin(); i != _battleObjects.end(); ++i)
+	{
+		if ((*i)->getTile()!=NULL) //if battleObject deleted
+		{
+			node["battleObjects"].push_back((*i)->save());
 		}
 	}
 	node["tuReserved"] = (int)_tuReserved;
