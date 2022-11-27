@@ -51,7 +51,7 @@ private:
 	Base* _base;
 	CovertOperationStartState* _operation;
 	Uint8 _otherCraftColor;
-	std::vector<Soldier*> _origSoldierOrder;
+	std::vector<Soldier*> _origSoldierOrder, _filteredListOfSoldiers;
 	std::vector<SortFunctor*> _sortFunctors;
 	getStatFn_t _dynGetter;
 	/// initializes the display list based on the craft soldier's list and the position to display

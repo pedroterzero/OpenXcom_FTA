@@ -68,8 +68,8 @@ CovertOperationStartState::CovertOperationStartState(Base* base, RuleCovertOpera
 	_btnCancel = new TextButton(148, 16, 8, 176);
 	_btnStart = new TextButton(148, 16, 164, 176);
 
-	_txtSoldiersRequired = new Text(186, 9, 8, descrDY + 1);
-	_txtSoldiersAssigned = new Text(186, 9, 8, descrDY + 10);
+	_txtSoldiersRequired = new Text(220, 9, 8, descrDY + 1);
+	_txtSoldiersAssigned = new Text(220, 9, 8, descrDY + 10);
 	_btnSoldiers = new TextButton(64, 16, 8, descrDY + 20);
 	_btnEquipmet = new TextButton(64, 16, 8, descrDY + 37);
 	_btnArmor = new TextButton(64, 16, 8, descrDY + 54);
@@ -527,7 +527,6 @@ double CovertOperationStartState::getOperationOdds()
 		int engineersN = 0;
 		int soldierMaxRank = 0;
 		int soldiersTotalRank = 0;
-
 		//extract soldier stats we need for processing
 		for (auto& s : _soldiers) 
 		{
@@ -599,17 +598,26 @@ double CovertOperationStartState::getOperationOdds()
 
 			soldierBonus = soldierBonus * solEffectiveness / 100 / statsNumber;
 			Log(LOG_DEBUG) << "Result soldier bonus: " << soldierBonus;
-			_chances = soldierBonus;
+			_chances += soldierBonus;
+			soldierBonus = 0;
 			Log(LOG_DEBUG) << "_chances: " << _chances;
 		}
 
 		if (science)
-			_chances = _chances - (double)_rule->getScientistEffect() * staffCoeff + (double)scientistsN * _rule->getScientistEffect();
+		{
+			_chances -= (double)_rule->getScientistEffect() * staffCoeff + (double)scientistsN * _rule->getScientistEffect();
+			Log(LOG_DEBUG) << "After science bonus, chances are: " << _chances;
+		}
 		if (engineering)
-			_chances = _chances - (double)_rule->getEngineerEffect() * staffCoeff + (double)engineersN * _rule->getEngineerEffect();
-
-		Log(LOG_DEBUG) << "After civilian roles, chances are: " << _chances;
-		double officerEffect = -0.2321 * pow(soldierMaxRank, 2) + 2.5036 * soldierMaxRank + 0.0357; // cute nonlinear function for field officer + avg rank bonus
+		{
+			_chances -= (double)_rule->getEngineerEffect() * staffCoeff + (double)engineersN * _rule->getEngineerEffect();
+			Log(LOG_DEBUG) << "After engineer bonus, chances are: " << _chances;
+		}
+		double officerEffect = 0;
+		if (assignedSoldiersN > 3)
+		{
+			officerEffect = -0.2321 * pow(soldierMaxRank, 2) + 2.5036 * soldierMaxRank + 0.0357; // cute nonlinear function for field officer + avg rank bonus
+		}
 		double rankEffect = (double)soldiersTotalRank / assignedSoldiersN;
 		Log(LOG_DEBUG) << "officerEffect: " << officerEffect << " , rankEffect: " << rankEffect;
 		_chances += officerEffect + rankEffect;

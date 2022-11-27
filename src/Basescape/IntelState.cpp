@@ -17,6 +17,8 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "IntelState.h"
+#include "AgentsState.h"
+#include "IntelAllocateAgentsState.h"
 #include <sstream>
 #include "../Engine/Action.h"
 #include "../Engine/Game.h"
@@ -29,7 +31,6 @@
 #include "../Interface/Text.h"
 #include "../Interface/TextList.h"
 #include "../Savegame/Base.h"
-#include "../Savegame/SavedGame.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/IntelProject.h"
 #include "../Basescape/PrisonManagementState.h"
@@ -108,8 +109,8 @@ IntelState::IntelState(Base *base) : _base(base)
 	_lstProjects->setMargin(2);
 	_lstProjects->setWordWrap(true);
 	_lstProjects->onMouseClick((ActionHandler)&IntelState::onSelectProject, SDL_BUTTON_LEFT);
-	_lstProjects->onMouseClick((ActionHandler)&IntelState::onProjectDetails, SDL_BUTTON_MIDDLE);
-	_lstProjects->onMouseClick((ActionHandler)&IntelState::onProjectDetails, SDL_BUTTON_RIGHT);
+	//_lstProjects->onMouseClick((ActionHandler)&IntelState::onProjectDetails, SDL_BUTTON_MIDDLE);
+	//_lstProjects->onMouseClick((ActionHandler)&IntelState::onProjectDetails, SDL_BUTTON_RIGHT);
 }
 
 /**
@@ -143,7 +144,7 @@ void IntelState::btnPrisonClick(Action *)
  */
 void IntelState::btnAgentsClick(Action *action)
 {
-	//_game->pushState(new ScientistsState(_base));
+	_game->pushState(new AgentsState(_base));
 }
 
 /**
@@ -153,21 +154,21 @@ void IntelState::btnAgentsClick(Action *action)
 void IntelState::onSelectProject(Action *)
 {
 	const std::vector<IntelProject*> & baseProjects(_base->getIntelProjects());
-	auto project = baseProjects[_lstProjects->getSelectedRow()];
+	IntelProject *project = baseProjects[_lstProjects->getSelectedRow()];
 
-	//_game->pushState(new ResearchInfoState(_base, project)); //#FINNIKTODO
+	_game->pushState(new IntelAllocateAgentsState(_base, project));
 }
 
-/**
-* Opens the IntelProjectDetails for the corresponding project.
-* @param action Pointer to an action.
-*/
-void IntelState::onProjectDetails(Action* action)
-{
-	const std::vector<IntelProject*>& baseProjects(_base->getIntelProjects());
-	auto selectedTopic = baseProjects[_lstProjects->getSelectedRow()]->getRules();
-	//_game->pushState(new TechTreeViewerState(selectedTopic, 0)); //#FINNIKTODO
-}
+///**
+//* Opens the IntelProjectDetails for the corresponding project.
+//* @param action Pointer to an action.
+//*/
+//void IntelState::onProjectDetails(Action* action)
+//{
+//	const std::vector<IntelProject*>& baseProjects(_base->getIntelProjects());
+//	auto selectedTopic = baseProjects[_lstProjects->getSelectedRow()]->getRules();
+//	//_game->pushState(new TechTreeViewerState(selectedTopic, 0)); //#FINNIKTODO
+//}
 
 /**
  * Updates the research list
@@ -239,7 +240,7 @@ void IntelState::fillProjectList(size_t scrl)
 	
 	_txtAgentsAvailable->setText(tr("STR_AGENTS_AVAILABLE").arg(freeAgents));
 	_txtAgentsAllocated->setText(tr("STR_AGENTS_ALLOCATED").arg(busyAgents));
-	_txtIntelSpace->setText(tr("STR_INTEL_SPACE_AVAILABLE").arg(_base->getFreeLaboratories(true)));
+	_txtIntelSpace->setText(tr("STR_FREE_INTERROGATION_SPACE").arg(_base->getFreeInterrogationSpace()));
 
 	if (scrl)
 		_lstProjects->scrollTo(scrl);

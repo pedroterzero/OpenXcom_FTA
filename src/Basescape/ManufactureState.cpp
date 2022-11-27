@@ -39,6 +39,7 @@
 #include "ManufactureInfoState.h"
 #include "ManufactureInfoStateFtA.h"
 #include "TechTreeViewerState.h"
+#include "EngineersState.h"
 #include <algorithm>
 
 namespace OpenXcom
@@ -54,8 +55,17 @@ ManufactureState::ManufactureState(Base *base) : _base(base)
 	_ftaUi = _game->getMod()->isFTAGame();
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
-	_btnNew = new TextButton(148, 16, 8, 176);
-	_btnOk = new TextButton(148, 16, 164, 176);
+	if (_ftaUi)
+	{
+		_btnOk = new TextButton(96, 16, 216, 176);
+		_btnNew = new TextButton(96, 16, 8, 176);
+	}
+	else
+	{
+		_btnOk = new TextButton(148, 16, 164, 176);
+		_btnNew = new TextButton(148, 16, 8, 176);
+	}
+	_btnEngineers = new TextButton(96, 16, 112, 176);
 	_txtTitle = new Text(310, 17, 5, 8);
 	_txtAvailable = new Text(150, 9, 8, 24);
 	_txtAllocated = new Text(150, 9, 160, 24);
@@ -74,6 +84,7 @@ ManufactureState::ManufactureState(Base *base) : _base(base)
 	add(_window, "window", "manufactureMenu");
 	add(_btnNew, "button", "manufactureMenu");
 	add(_btnOk, "button", "manufactureMenu");
+	add(_btnEngineers, "button", "manufactureMenu");
 	add(_txtTitle, "text1", "manufactureMenu");
 	add(_txtAvailable, "text1", "manufactureMenu");
 	add(_txtAllocated, "text1", "manufactureMenu");
@@ -99,6 +110,10 @@ ManufactureState::ManufactureState(Base *base) : _base(base)
 	_btnOk->setText(tr("STR_OK"));
 	_btnOk->onMouseClick((ActionHandler)&ManufactureState::btnOkClick);
 	_btnOk->onKeyboardPress((ActionHandler)&ManufactureState::btnOkClick, Options::keyCancel);
+
+	_btnEngineers->setText(tr("STR_ENGINEERS_LC"));
+	_btnEngineers->onMouseClick((ActionHandler)&ManufactureState::btnEngineersClick);
+	_btnEngineers->setVisible(_ftaUi);
 
 	_txtTitle->setBig();
 	_txtTitle->setAlign(ALIGN_CENTER);
@@ -167,6 +182,14 @@ void ManufactureState::init()
 void ManufactureState::btnOkClick(Action *)
 {
 	_game->popState();
+}
+/**
+* Opens Scientists list screen.
+* @param action Pointer to an action.
+*/
+void ManufactureState::btnEngineersClick(Action* action)
+{
+	_game->pushState(new EngineersState(_base));
 }
 
 /**

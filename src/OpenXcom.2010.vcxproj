@@ -227,6 +227,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\libs\miniz\miniz.c" />
+    <ClCompile Include="Basescape\AgentsState.cpp" />
     <ClCompile Include="Basescape\BaseInfoState.cpp" />
     <ClCompile Include="Basescape\BaseInfoStateFtA.cpp" />
     <ClCompile Include="Basescape\BasescapeState.cpp" />
@@ -251,9 +252,11 @@
     <ClCompile Include="Basescape\CraftWeaponsState.cpp" />
     <ClCompile Include="Basescape\DismantleFacilityState.cpp" />
     <ClCompile Include="Basescape\DisposeState.cpp" />
+    <ClCompile Include="Basescape\EngineersState.cpp" />
     <ClCompile Include="Basescape\FacilityAllocateEngineersState.cpp" />
     <ClCompile Include="Basescape\GlobalManufactureState.cpp" />
     <ClCompile Include="Basescape\GlobalResearchState.cpp" />
+    <ClCompile Include="Basescape\IntelAllocateAgentsState.cpp" />
     <ClCompile Include="Basescape\IntelState.cpp" />
     <ClCompile Include="Basescape\ManageAlienContainmentState.cpp" />
     <ClCompile Include="Basescape\ManufactureAllocateEngineersState.cpp" />
@@ -651,6 +654,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libs\miniz\miniz.h" />
+    <ClInclude Include="Basescape\AgentsState.h" />
     <ClInclude Include="Basescape\BaseInfoState.h" />
     <ClInclude Include="Basescape\BaseInfoStateFtA.h" />
     <ClInclude Include="Basescape\BasescapeState.h" />
@@ -675,9 +679,11 @@
     <ClInclude Include="Basescape\CraftWeaponsState.h" />
     <ClInclude Include="Basescape\DismantleFacilityState.h" />
     <ClInclude Include="Basescape\DisposeState.h" />
+    <ClInclude Include="Basescape\EngineersState.h" />
     <ClInclude Include="Basescape\FacilityAllocateEngineersState.h" />
     <ClInclude Include="Basescape\GlobalManufactureState.h" />
     <ClInclude Include="Basescape\GlobalResearchState.h" />
+    <ClInclude Include="Basescape\IntelAllocateAgentsState.h" />
     <ClInclude Include="Basescape\IntelState.h" />
     <ClInclude Include="Basescape\ManufactureAllocateEngineersState.h" />
     <ClInclude Include="Basescape\ManufactureDependenciesTreeState.h" />

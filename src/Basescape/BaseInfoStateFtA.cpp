@@ -300,6 +300,7 @@ void BaseInfoStateFtA::init()
 	_edtBase->setText(_base->getName());
 
 	int freeSoldiers = 0;
+	int size = _base->getSoldiers()->size();
 	auto recovery = _base->getSumRecoveryPerDay();
 	bool isBusy = false, isFree = false;
 	for (std::vector<Soldier*>::iterator s = _base->getSoldiers()->begin(); s != _base->getSoldiers()->end(); ++s)
@@ -311,10 +312,10 @@ void BaseInfoStateFtA::init()
 		}
 	}
 	std::ostringstream ss;
-	ss << freeSoldiers << ":" << _base->getSoldiers()->size();
+	ss << size - freeSoldiers << ":" << size;
 	_numSoldiers->setText(ss.str());
-	_barSoldiers->setMax(_base->getSoldiers()->size());
-	_barSoldiers->setValue(freeSoldiers);
+	_barSoldiers->setMax(size);
+	_barSoldiers->setValue(size - freeSoldiers);
 
 	std::ostringstream ss2;
 	ss2 << _base->getUsedQuarters() << ":" << _base->getAvailableQuarters();

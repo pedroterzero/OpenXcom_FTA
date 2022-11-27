@@ -50,7 +50,7 @@ private:
 	Base *_base;
 	size_t _craft;
 	Uint8 _otherCraftColor;
-	std::vector<Soldier *> _origSoldierOrder;
+	std::vector<Soldier *> _origSoldierOrder, _filteredListOfSoldiers;
 	std::vector<SortFunctor *> _sortFunctors;
 	std::vector<int> _soldierNumbers;
 	bool _ftaUI, _isInterceptor, _isMultipurpose;
@@ -71,18 +71,7 @@ public:
 	void btnPreviewClick(Action *action);
 	/// Updates the soldiers list.
 	void init() override;
-	/// Handler for clicking the Soldiers reordering button.
-	void lstItemsLeftArrowClick(Action *action);
-	/// Moves a soldier up.
-	void moveSoldierUp(Action *action, unsigned int row, bool max = false);
-	/// Handler for clicking the Soldiers reordering button.
-	void lstItemsRightArrowClick(Action *action);
-	/// Moves a soldier down.
-	void moveSoldierDown(Action *action, unsigned int row, bool max = false);
-	/// Handler for clicking the Soldiers list.
 	void lstSoldiersClick(Action *action);
-	/// Handler for pressing-down a mouse-button in the list.
-	void lstSoldiersMousePress(Action *action);
 	/// Handler for changing the screen actions combo box.
 	void cbxScreenActionsChange(Action *action);
 	/// Handler for clicking the De-assign All Soldiers button.

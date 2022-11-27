@@ -36,8 +36,8 @@ class PrisonerInfoState;
 struct SortFunctor;
 
 /**
-* Allocate Scientists screen that lets the player
-* pick the personnel to assign to the project.
+* Allocate Agents screen that lets the player
+* pick the personnel to assign to the prisoner and choose actions.
  */
 class PrisonerAllocateAgentsState : public State
 {
@@ -50,7 +50,7 @@ private:
 	Base *_base;
 	PrisonerInfoState* _selectedPrisoner;
 	Uint8 _otherCraftColor;
-	std::vector<Soldier*> _origAgentOrder;
+	std::vector<Soldier*> _origAgentOrder, _filteredListOfAgents;
 	std::vector<SortFunctor*> _sortFunctors;
 	std::vector<int> _agentsNumbers;
 	getStatFn_t _dynGetter;

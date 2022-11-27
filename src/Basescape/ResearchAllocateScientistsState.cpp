@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "ResearchAllocateScientistsState.h"
 #include "../Engine/Action.h"
 #include "../Engine/Game.h"
 #include "../Engine/LocalizedText.h"
@@ -35,11 +36,9 @@
 #include "../Savegame/Soldier.h"
 #include "../Savegame/ResearchProject.h"
 #include "../Basescape/ResearchInfoStateFtA.h"
-#include "ResearchAllocateScientistsState.h"
 #include "ResearchProjectDetailsState.h"
 #include "SoldierInfoStateFtA.h"
 #include <algorithm>
-#include <climits>
 
 namespace OpenXcom
 {
@@ -250,6 +249,19 @@ void ResearchAllocateScientistsState::initList(size_t scrl)
 {
 	int row = 0;
 	_lstScientists->clearList();
+	_filteredListOfScientists.clear();
+	_scientistsNumbers.clear();
+	int i = 0;
+
+	for (auto &soldier : *_base->getSoldiers())
+	{
+		if (soldier->getRoleRank(ROLE_SCIENTIST) > 0)
+		{
+			_filteredListOfScientists.push_back(soldier);
+			_scientistsNumbers.push_back(i);
+		}
+		i++;
+	}
 
 	if (_dynGetter != NULL)
 	{
@@ -262,49 +274,43 @@ void ResearchAllocateScientistsState::initList(size_t scrl)
 
 	auto recovery = _base->getSumRecoveryPerDay();
 	bool isBusy = false, isFree = false;
-	unsigned int it = 0;
-	for (std::vector<Soldier *>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+	for (std::vector<Soldier *>::iterator s = _filteredListOfScientists.begin(); s != _filteredListOfScientists.end(); ++s)
 	{
-		if ((*i)->getRoleRank(ROLE_SCIENTIST) > 0)
+		std::string duty = (*s)->getCurrentDuty(_game->getLanguage(), recovery, isBusy, isFree, LAB);
+		if (_dynGetter != NULL)
 		{
-			_scientistsNumbers.push_back(it); // don't forget soldier's number on the base!
-			std::string duty = (*i)->getCurrentDuty(_game->getLanguage(), recovery, isBusy, isFree, LAB);
-			if (_dynGetter != NULL)
-			{
-				// call corresponding getter
-				int dynStat = (*_dynGetter)(_game, *i);
-				std::ostringstream ss;
-				ss << dynStat;
-				_lstScientists->addRow(3, (*i)->getName(true, 19).c_str(), duty.c_str(), ss.str().c_str());
-			}
-			else
-			{
-				_lstScientists->addRow(2, (*i)->getName(true, 19).c_str(), duty.c_str());
-			}
-
-			Uint8 color = _lstScientists->getColor();
-			bool matched = false;
-			auto scientists = _planningProject->getScientists();
-			auto iter = std::find(std::begin(scientists), std::end(scientists), (*i));
-			if (iter != std::end(scientists))
-			{
-				matched = true;
-			}
-
-			if (matched)
-			{
-				color = _lstScientists->getSecondaryColor();
-				_lstScientists->setCellText(row, 1, tr("STR_ASSIGNED_UC"));
-			}
-			else if (isBusy || !isFree)
-			{
-				color = _otherCraftColor;
-			}
-
-			_lstScientists->setRowColor(row, color);
-			row++;
+			// call corresponding getter
+			int dynStat = (*_dynGetter)(_game, *s);
+			std::ostringstream ss;
+			ss << dynStat;
+			_lstScientists->addRow(3, (*s)->getName(true, 19).c_str(), duty.c_str(), ss.str().c_str());
 		}
-		it++;
+		else
+		{
+			_lstScientists->addRow(2, (*s)->getName(true, 19).c_str(), duty.c_str());
+		}
+
+		Uint8 color = _lstScientists->getColor();
+		bool matched = false;
+		auto scientists = _planningProject->getScientists();
+		auto iter = std::find(std::begin(scientists), std::end(scientists), (*s));
+		if (iter != std::end(scientists))
+		{
+			matched = true;
+		}
+
+		if (matched)
+		{
+			color = _lstScientists->getSecondaryColor();
+			_lstScientists->setCellText(row, 1, tr("STR_ASSIGNED_UC"));
+		}
+		else if (isBusy || !isFree)
+		{
+			color = _otherCraftColor;
+		}
+
+		_lstScientists->setRowColor(row, color);
+		row++;
 	}
 	if (scrl)
 		_lstScientists->scrollTo(scrl);

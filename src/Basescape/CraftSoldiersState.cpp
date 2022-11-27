@@ -167,94 +167,98 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 	{
 		PUSH_IN("STR_RANK", rankStat);
 	}
-	if (_ftaUI && _isInterceptor)
+	// #FINNIKTODO add rank per roles
+	PUSH_IN("STR_IDLE_DAYS", idleDaysStat);
+	PUSH_IN("STR_MISSIONS2", missionsStat);
+	PUSH_IN("STR_KILLS2", killsStat);
+	PUSH_IN("STR_WOUND_RECOVERY2", woundRecoveryStat);
+	if (_game->getMod()->isManaFeatureEnabled() && !_game->getMod()->getReplenishManaAfterMission() && showPsiStats)
 	{
-		// pilot section
-		PUSH_IN("STR_MANEUVERING", maneuveringStat);
-		PUSH_IN("STR_MISSILE_OPERATION", missilesStat);
-		PUSH_IN("STR_DOGFIGHT", dogfightStat);
-		PUSH_IN("STR_BRAVERY", braveryStat);
-		PUSH_IN("STR_TRACKING", trackingStat);
-		PUSH_IN("STR_COOPERATION", cooperationStat);
-		if (_game->getSavedGame()->isResearched(_game->getMod()->getBeamOperationsUnlockResearch()))
-		{
-			PUSH_IN("STR_BEAMS_OPERATION", beamsStat);
-		}
-		if (_game->getSavedGame()->isResearched(_game->getMod()->getCraftSynapseUnlockResearch()))
-		{
-			PUSH_IN("STR_SYNAPTIC_CONNECTIVITY", synapticStat);
-		}
-		if (_game->getSavedGame()->isResearched(_game->getMod()->getGravControlUnlockResearch()))
-		{
-			PUSH_IN("STR_GRAVITY_MANIPULATION", gravityStat);
-		}
+		PUSH_IN("STR_MANA_MISSING", manaMissingStat);
 	}
-	else
-	{
-		PUSH_IN("STR_IDLE_DAYS", idleDaysStat);
-		PUSH_IN("STR_MISSIONS2", missionsStat);
-		PUSH_IN("STR_KILLS2", killsStat);
-		PUSH_IN("STR_WOUND_RECOVERY2", woundRecoveryStat);
-		if (_game->getMod()->isManaFeatureEnabled() && !_game->getMod()->getReplenishManaAfterMission() && showPsiStats)
-		{
-			PUSH_IN("STR_MANA_MISSING", manaMissingStat);
-		}
-		PUSH_IN("STR_TIME_UNITS", tuStat);
-		PUSH_IN("STR_STAMINA", staminaStat);
-		PUSH_IN("STR_HEALTH", healthStat);
-		PUSH_IN("STR_BRAVERY", braveryStat);
-		PUSH_IN("STR_REACTIONS", reactionsStat);
-		PUSH_IN("STR_FIRING_ACCURACY", firingStat);
-		PUSH_IN("STR_THROWING_ACCURACY", throwingStat);
-		PUSH_IN("STR_MELEE_ACCURACY", meleeStat);
-		PUSH_IN("STR_STRENGTH", strengthStat);
-	}
+	PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::tu), tuStat);
+	PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::stamina), staminaStat);
+	PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::health), healthStat);
+	PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::bravery), braveryStat);
+	PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::reactions), reactionsStat);
+	PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::firing), firingStat);
+	PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::throwing), throwingStat);
+	PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::melee), meleeStat);
+	PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::strength), strengthStat);
 	if (showPsiStats)
 	{
 		if (_game->getMod()->isManaFeatureEnabled())
 		{
 			// "unlock" is checked later
-			PUSH_IN("STR_MANA_POOL", manaStat);
+			PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::mana), manaStat);
 		}
-		PUSH_IN("STR_PSIONIC_STRENGTH", psiStrengthStat);
-		PUSH_IN("STR_PSIONIC_SKILL", psiSkillStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::psiStrength), psiStrengthStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::psiSkill), psiSkillStat);
 	}
+	if (_ftaUI)
+	{
+		//pilot section
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::maneuvering), maneuveringStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::missiles), missilesStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::dogfight), dogfightStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::tracking), trackingStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::cooperation), cooperationStat);
+		if (_game->getSavedGame()->isResearched(_game->getMod()->getBeamOperationsUnlockResearch()))
+		{
+			PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::beams), beamsStat);
+		}
+		if (_game->getSavedGame()->isResearched(_game->getMod()->getCraftSynapseUnlockResearch()))
+		{
+			PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::synaptic), synapticStat);
+		}
+		if (_game->getSavedGame()->isResearched(_game->getMod()->getGravControlUnlockResearch()))
+		{
+			PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::gravity), gravityStat);
+		}
 
-	// scientist section
-	PUSH_IN("STR_PHYSICS_UC", physicsStat);
-	PUSH_IN("STR_CHEMISTRY_UC", chemistryStat);
-	PUSH_IN("STR_BIOLOGY_UC", biologyStat);
-	PUSH_IN("STR_INSIGHT_UC", insightStat);
-	PUSH_IN("STR_DATA_ANALISIS_UC", dataStat);
-	PUSH_IN("STR_COMPUTER_SCIENCE_UC", computersStat);
-	PUSH_IN("STR_TACTICS_UC", tacticsStat);
-	PUSH_IN("STR_MATERIAL_SCIENCE_UC", materialsStat);
-	PUSH_IN("STR_DESIGNING_UC", designingStat);
-	if (_game->getSavedGame()->isResearched(_game->getMod()->getAlienTechUnlockResearch()))
-	{
-		PUSH_IN("STR_ALIEN_TECH_UC", alienTechStat);
-	}
-	if (showPsiStats)
-	{
-		PUSH_IN("STR_PSIONICS_UC", psionicsStat);
-	}
-	if (_game->getSavedGame()->isResearched(_game->getMod()->getXenologyUnlockResearch()))
-	{
-		PUSH_IN("STR_XENOLINGUISTICS_UC", xenolinguisticsStat);
-	}
-	// engineer section
-	PUSH_IN("STR_WEAPONRY_UC", weaponryStat);
-	PUSH_IN("STR_EXPLOSIVES_UC", explosivesStat);
-	PUSH_IN("STR_MICROELECTRONICS_UC", microelectronicsStat);
-	PUSH_IN("STR_METALLURGY_UC", metallurgyStat);
-	PUSH_IN("STR_PROCESSING_UC", processingStat);
-	PUSH_IN("STR_EFFICIENCY_UC", efficiencyStat);
-	PUSH_IN("STR_DILIGENCE_UC", diligenceStat);
-	PUSH_IN("STR_HACKING_UC", hackingStat);
-	PUSH_IN("STR_CONSTRUCTION_UC", constructionStat);
-	if (_game->getSavedGame()->isResearched(_game->getMod()->getAlienTechUnlockResearch()))
-	{
-		PUSH_IN("STR_REVERSE_ENGINEERING_UC", reverseEngineeringStat);
+		// scientist section
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::physics), physicsStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::chemistry), chemistryStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::biology), biologyStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::insight), insightStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::data), dataStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::computers), computersStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::tactics), tacticsStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::materials), materialsStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::designing), designingStat);
+		if (_game->getSavedGame()->isResearched(_game->getMod()->getAlienTechUnlockResearch()))
+		{
+			PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::alienTech), alienTechStat);
+		}
+		if (showPsiStats)
+		{
+			PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::psionics), psionicsStat);
+		}
+		if (_game->getSavedGame()->isResearched(_game->getMod()->getXenologyUnlockResearch()))
+		{
+			PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::xenolinguistics), xenolinguisticsStat);
+		}
+		// engineer section
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::weaponry), weaponryStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::explosives), explosivesStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::microelectronics), microelectronicsStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::metallurgy), metallurgyStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::processing), processingStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::efficiency), efficiencyStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::diligence), diligenceStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::hacking), hackingStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::construction), constructionStat);
+		if (_game->getSavedGame()->isResearched(_game->getMod()->getAlienTechUnlockResearch()))
+		{
+			PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::reverseEngineering), reverseEngineeringStat);
+		}
+		// agent section
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::stealth), stealthStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::perseption), perseptionStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::charisma), charismaStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::investigation), investigationStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::deception), deceptionStat);
+		PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::interrogation), interrogationStat);
 	}
 
 #undef PUSH_IN
@@ -268,26 +272,22 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 	if (_ftaUI)
 	{
 		_availableOptions.push_back("STR_ALL_ROLES");
-		//_availableOptions.push_back("STR_RECOMMENDED_ROLES");
+		_availableOptions.push_back("STR_RECOMMENDED_ROLES");
 	}
 	else
 	{
 		_cbxScreenActions->setVisible(false);
 	}
 	_cbxScreenActions->setOptions(_availableOptions, true);
-	_cbxScreenActions->setSelected(0); //should be 1 when process fixed
+	_cbxScreenActions->setSelected(1);
 	_cbxScreenActions->onChange((ActionHandler)&CraftSoldiersState::cbxScreenActionsChange);
 
-	_lstSoldiers->setArrowColumn(188, ARROW_VERTICAL);
 	_lstSoldiers->setColumns(3, 106, 98, 76);
 	_lstSoldiers->setAlign(ALIGN_RIGHT, 3);
 	_lstSoldiers->setSelectable(true);
 	_lstSoldiers->setBackground(_window);
 	_lstSoldiers->setMargin(8);
-	_lstSoldiers->onLeftArrowClick((ActionHandler)&CraftSoldiersState::lstItemsLeftArrowClick);
-	_lstSoldiers->onRightArrowClick((ActionHandler)&CraftSoldiersState::lstItemsRightArrowClick);
 	_lstSoldiers->onMouseClick((ActionHandler)&CraftSoldiersState::lstSoldiersClick, 0);
-	_lstSoldiers->onMousePress((ActionHandler)&CraftSoldiersState::lstSoldiersMousePress);
 }
 
 /**
@@ -414,11 +414,28 @@ void CraftSoldiersState::initList(size_t scrl)
 	int row = 0;
 	_soldierNumbers.clear();
 	_lstSoldiers->clearList();
+	_filteredListOfSoldiers.clear();
+	_soldierNumbers.clear();
+	int i = 0;
 
 	std::string selAction = "STR_RECOMMENDED_ROLES";
 	if (!_availableOptions.empty())
 	{
 		selAction = _availableOptions.at(_cbxScreenActions->getSelected());
+	}
+
+	for (auto& soldier : *_base->getSoldiers())
+	{
+		if (soldier->getRoleRank(ROLE_SOLDIER) > 0 && !_isInterceptor //case for dropship
+			|| _isInterceptor && soldier->getRoleRank(ROLE_PILOT) > 0 //case for interceptor
+			|| _isMultipurpose && (soldier->getRoleRank(ROLE_PILOT) > 0 || soldier->getRoleRank(ROLE_SOLDIER) > 0) //case for multipurpose craft
+			|| selAction == "STR_ALL_ROLES" //case we want to see everyone
+			|| !_ftaUI)
+		{
+			_filteredListOfSoldiers.push_back(soldier);
+			_soldierNumbers.push_back(i);
+		}
+		i++;
 	}
 
 	if (_dynGetter != NULL)
@@ -433,47 +450,37 @@ void CraftSoldiersState::initList(size_t scrl)
 	Craft *c = _base->getCrafts()->at(_craft);
 	auto recovery = _base->getSumRecoveryPerDay();
 	bool isBusy = false, isFree = false;
-	int it = 0;
-	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
+	for (std::vector<Soldier*>::iterator s = _filteredListOfSoldiers.begin(); s != _filteredListOfSoldiers.end(); ++s)
 	{
-		if (((*i)->getRoleRank(ROLE_SOLDIER) > 0 && !_isInterceptor) //case for dropship
-			|| (_isInterceptor && (*i)->getRoleRank(ROLE_PILOT) > 0) //case for interceptor
-			|| (_isMultipurpose && ((*i)->getRoleRank(ROLE_PILOT) > 0 || (*i)->getRoleRank(ROLE_SOLDIER) > 0)) //case for multipurpose craft
-			|| selAction == "STR_ALL_ROLES" //case we wank to see everyone
-			|| !_ftaUI)
+		std::string duty = (*s)->getCurrentDuty(_game->getLanguage(), recovery, isBusy, isFree);
+		if (_dynGetter != NULL)
 		{
-			_soldierNumbers.push_back(it); // don't forget soldier's number on the base!
-			std::string duty = (*i)->getCurrentDuty(_game->getLanguage(), recovery, isBusy, isFree);
-			if (_dynGetter != NULL)
-			{
-				// call corresponding getter
-				int dynStat = (*_dynGetter)(_game, *i);
-				std::ostringstream ss;
-				ss << dynStat;
-				_lstSoldiers->addRow(4, (*i)->getName(true, 19).c_str(), tr((*i)->getRankString(_ftaUI)).c_str(), duty.c_str(), ss.str().c_str());
-			}
-			else
-			{
-				_lstSoldiers->addRow(3, (*i)->getName(true, 19).c_str(), tr((*i)->getRankString(_ftaUI)).c_str(), duty.c_str());
-			}
-
-			Uint8 color;
-			if ((*i)->getCraft() == c)
-			{
-				color = _lstSoldiers->getSecondaryColor();
-			}
-			else if (isBusy || !isFree)
-			{
-				color = _otherCraftColor;
-			}
-			else
-			{
-				color = _lstSoldiers->getColor();
-			}
-			_lstSoldiers->setRowColor(row, color);
-			row++;
+			// call corresponding getter
+			int dynStat = (*_dynGetter)(_game, *s);
+			std::ostringstream ss;
+			ss << dynStat;
+			_lstSoldiers->addRow(4, (*s)->getName(true, 19).c_str(), tr((*s)->getRankString(_ftaUI)).c_str(), duty.c_str(), ss.str().c_str());
 		}
-		it++;
+		else
+		{
+			_lstSoldiers->addRow(3, (*s)->getName(true, 19).c_str(), tr((*s)->getRankString(_ftaUI)).c_str(), duty.c_str());
+		}
+
+		Uint8 color;
+		if ((*s)->getCraft() == c)
+		{
+			color = _lstSoldiers->getSecondaryColor();
+		}
+		else if (isBusy || !isFree)
+		{
+			color = _otherCraftColor;
+		}
+		else
+		{
+			color = _lstSoldiers->getColor();
+		}
+		_lstSoldiers->setRowColor(row, color);
+		row++;
 	}
 	if (scrl)
 		_lstSoldiers->scrollTo(scrl);
@@ -498,111 +505,6 @@ void CraftSoldiersState::init()
 		_btnPreview->setText(tr("STR_CRAFT_DEPLOYMENT_PREVIEW_SAVED"));
 	else
 		_btnPreview->setText(tr("STR_CRAFT_DEPLOYMENT_PREVIEW"));
-}
-
-/**
- * Reorders a soldier up.
- * @param action Pointer to an action.
- */
-void CraftSoldiersState::lstItemsLeftArrowClick(Action *action)
-{
-	unsigned int row = _lstSoldiers->getSelectedRow();
-	if (row > 0)
-	{
-		if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
-		{
-			moveSoldierUp(action, row);
-		}
-		else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
-		{
-			moveSoldierUp(action, row, true);
-		}
-	}
-	_cbxSortBy->setText(tr("STR_SORT_BY"));
-	_cbxSortBy->setSelected(-1);
-}
-
-/**
- * Moves a soldier up on the list.
- * @param action Pointer to an action.
- * @param row Selected soldier row.
- * @param max Move the soldier to the top?
- */
-void CraftSoldiersState::moveSoldierUp(Action *action, unsigned int row, bool max)
-{
-	Soldier *s = _base->getSoldiers()->at(row);
-	if (max)
-	{
-		_base->getSoldiers()->erase(_base->getSoldiers()->begin() + row);
-		_base->getSoldiers()->insert(_base->getSoldiers()->begin(), s);
-	}
-	else
-	{
-		_base->getSoldiers()->at(row) = _base->getSoldiers()->at(row - 1);
-		_base->getSoldiers()->at(row - 1) = s;
-		if (row != _lstSoldiers->getScroll())
-		{
-			SDL_WarpMouse(action->getLeftBlackBand() + action->getXMouse(), action->getTopBlackBand() + action->getYMouse() - static_cast<Uint16>(8 * action->getYScale()));
-		}
-		else
-		{
-			_lstSoldiers->scrollUp(false);
-		}
-	}
-	initList(_lstSoldiers->getScroll());
-}
-
-/**
- * Reorders a soldier down.
- * @param action Pointer to an action.
- */
-void CraftSoldiersState::lstItemsRightArrowClick(Action *action)
-{
-	unsigned int row = _lstSoldiers->getSelectedRow();
-	size_t numSoldiers = _base->getSoldiers()->size();
-	if (0 < numSoldiers && INT_MAX >= numSoldiers && row < numSoldiers - 1)
-	{
-		if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
-		{
-			moveSoldierDown(action, row);
-		}
-		else if (action->getDetails()->button.button == SDL_BUTTON_RIGHT)
-		{
-			moveSoldierDown(action, row, true);
-		}
-	}
-	_cbxSortBy->setText(tr("STR_SORT_BY"));
-	_cbxSortBy->setSelected(-1);
-}
-
-/**
- * Moves a soldier down on the list.
- * @param action Pointer to an action.
- * @param row Selected soldier row.
- * @param max Move the soldier to the bottom?
- */
-void CraftSoldiersState::moveSoldierDown(Action *action, unsigned int row, bool max)
-{
-	Soldier *s = _base->getSoldiers()->at(row);
-	if (max)
-	{
-		_base->getSoldiers()->erase(_base->getSoldiers()->begin() + row);
-		_base->getSoldiers()->insert(_base->getSoldiers()->end(), s);
-	}
-	else
-	{
-		_base->getSoldiers()->at(row) = _base->getSoldiers()->at(row + 1);
-		_base->getSoldiers()->at(row + 1) = s;
-		if (row != _lstSoldiers->getVisibleRows() - 1 + _lstSoldiers->getScroll())
-		{
-			SDL_WarpMouse(action->getLeftBlackBand() + action->getXMouse(), action->getTopBlackBand() + action->getYMouse() + static_cast<Uint16>(8 * action->getYScale()));
-		}
-		else
-		{
-			_lstSoldiers->scrollDown(false);
-		}
-	}
-	initList(_lstSoldiers->getScroll());
 }
 
 /**
@@ -680,36 +582,6 @@ void CraftSoldiersState::lstSoldiersClick(Action *action)
 		else
 		{
 			_game->pushState(new SoldierInfoState(_base, _soldierNumbers.at(row)));
-		}
-	}
-}
-
-/**
- * Handles the mouse-wheels on the arrow-buttons.
- * @param action Pointer to an action.
- */
-void CraftSoldiersState::lstSoldiersMousePress(Action *action)
-{
-	if (Options::changeValueByMouseWheel == 0)
-		return;
-	unsigned int row = _lstSoldiers->getSelectedRow();
-	size_t numSoldiers = _base->getSoldiers()->size();
-	if (action->getDetails()->button.button == SDL_BUTTON_WHEELUP &&
-		row > 0)
-	{
-		if (action->getAbsoluteXMouse() >= _lstSoldiers->getArrowsLeftEdge() &&
-			action->getAbsoluteXMouse() <= _lstSoldiers->getArrowsRightEdge())
-		{
-			moveSoldierUp(action, row);
-		}
-	}
-	else if (action->getDetails()->button.button == SDL_BUTTON_WHEELDOWN &&
-			 0 < numSoldiers && INT_MAX >= numSoldiers && row < numSoldiers - 1)
-	{
-		if (action->getAbsoluteXMouse() >= _lstSoldiers->getArrowsLeftEdge() &&
-			action->getAbsoluteXMouse() <= _lstSoldiers->getArrowsRightEdge())
-		{
-			moveSoldierDown(action, row);
 		}
 	}
 }

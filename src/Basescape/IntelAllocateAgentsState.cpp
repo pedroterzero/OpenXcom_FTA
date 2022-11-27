@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "PrisonerAllocateAgentsState.h"
+#include "IntelAllocateAgentsState.h"
 #include "../Engine/Action.h"
 #include "../Engine/Game.h"
 #include "../Engine/Options.h"
@@ -34,8 +34,9 @@
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/BasePrisoner.h"
-#include "../Basescape/PrisonerInfoState.h"
 #include "SoldierInfoStateFtA.h"
+#include "../Mod/RuleIntelProject.h"
+#include "../Savegame/IntelProject.h"
 #include <algorithm>
 
 namespace OpenXcom
@@ -46,8 +47,8 @@ namespace OpenXcom
  * @param base Pointer to the base to get info from.
  * @param operation Pointer to starting (not committed) covert operation.
  */
-PrisonerAllocateAgentsState::PrisonerAllocateAgentsState(Base *base, PrisonerInfoState* selectedPrisoner)
-	: _base(base), _selectedPrisoner(selectedPrisoner), _otherCraftColor(0), _origAgentOrder(*_base->getSoldiers()), _dynGetter(NULL)
+IntelAllocateAgentsState::IntelAllocateAgentsState(Base *base, IntelProject* project)
+	: _base(base), _project(project), _otherCraftColor(0), _origAgentOrder(*_base->getSoldiers()), _dynGetter(NULL)
 {
 	// Create objects
 	_window = new Window(this, 320, 200, 0, 0);
@@ -60,33 +61,33 @@ PrisonerAllocateAgentsState::PrisonerAllocateAgentsState(Base *base, PrisonerInf
 	_lstAgents = new TextList(288, 128, 8, 40);
 
 	// Set palette
-	setInterface("prisonerAllocateAgents");
+	setInterface("intelAllocateAgents");
 
-	add(_window, "window", "prisonerAllocateAgents");
-	add(_btnOk, "button", "prisonerAllocateAgents");
-	//add(_btnInfo, "button", "prisonerAllocateAgents");
-	add(_txtTitle, "text", "prisonerAllocateAgents");
-	add(_txtName, "text", "prisonerAllocateAgents");
-	add(_txtAssignment, "text", "prisonerAllocateAgents");
-	add(_lstAgents, "list", "prisonerAllocateAgents");
-	add(_cbxSortBy, "button", "prisonerAllocateAgents");
+	add(_window, "window", "intelAllocateAgents");
+	add(_btnOk, "button", "intelAllocateAgents");
+	//add(_btnInfo, "button", "intelAllocateAgents");
+	add(_txtTitle, "text", "intelAllocateAgents");
+	add(_txtName, "text", "intelAllocateAgents");
+	add(_txtAssignment, "text", "intelAllocateAgents");
+	add(_lstAgents, "list", "intelAllocateAgents");
+	add(_cbxSortBy, "button", "intelAllocateAgents");
 
-	_otherCraftColor = _game->getMod()->getInterface("prisonerAllocateAgents")->getElement("otherCraft")->color;
+	_otherCraftColor = _game->getMod()->getInterface("intelAllocateAgents")->getElement("otherCraft")->color;
 
 	centerAllSurfaces();
 
 	// Set up objects
-	setWindowBackground(_window, "prisonerAllocateAgents");
+	setWindowBackground(_window, "intelAllocateAgents");
 
 	_btnOk->setText(tr("STR_OK"));
-	_btnOk->onMouseClick((ActionHandler)&PrisonerAllocateAgentsState::btnOkClick);
-	_btnOk->onKeyboardPress((ActionHandler)&PrisonerAllocateAgentsState::btnOkClick, Options::keyCancel);
+	_btnOk->onMouseClick((ActionHandler)&IntelAllocateAgentsState::btnOkClick);
+	_btnOk->onKeyboardPress((ActionHandler)&IntelAllocateAgentsState::btnOkClick, Options::keyCancel);
 
 	//_btnInfo->setText(tr("STR_INFO"));
 	//_btnInfo->onMouseClick((ActionHandler)&PrisonerAllocateAgentsState::btnInfoClick);
 
 	_txtTitle->setBig();
-	_txtTitle->setText(tr(_selectedPrisoner->getPrisioner()->getNameAndId()));
+	_txtTitle->setText(tr(_project->getRules()->getName()));
 	_txtTitle->setWordWrap(true);
 	_txtTitle->setVerticalAlign(ALIGN_MIDDLE);
 
@@ -126,7 +127,7 @@ PrisonerAllocateAgentsState::PrisonerAllocateAgentsState(Base *base, PrisonerInf
 
 	_cbxSortBy->setOptions(sortOptions);
 	_cbxSortBy->setSelected(0);
-	_cbxSortBy->onChange((ActionHandler)&PrisonerAllocateAgentsState::cbxSortByChange);
+	_cbxSortBy->onChange((ActionHandler)&IntelAllocateAgentsState::cbxSortByChange);
 	_cbxSortBy->setText(tr("STR_SORT_BY"));
 
 	_lstAgents->setColumns(2, 106, 174);
@@ -134,13 +135,13 @@ PrisonerAllocateAgentsState::PrisonerAllocateAgentsState(Base *base, PrisonerInf
 	_lstAgents->setSelectable(true);
 	_lstAgents->setBackground(_window);
 	_lstAgents->setMargin(8);
-	_lstAgents->onMouseClick((ActionHandler)&PrisonerAllocateAgentsState::lstAgentsClick, 0);
+	_lstAgents->onMouseClick((ActionHandler)&IntelAllocateAgentsState::lstAgentsClick, 0);
 }
 
 /**
  * cleans up dynamic state
  */
-PrisonerAllocateAgentsState::~PrisonerAllocateAgentsState()
+IntelAllocateAgentsState::~IntelAllocateAgentsState()
 {
 	for (std::vector<SortFunctor *>::iterator it = _sortFunctors.begin();
 		 it != _sortFunctors.end(); ++it)
@@ -153,7 +154,7 @@ PrisonerAllocateAgentsState::~PrisonerAllocateAgentsState()
  * Sorts the soldiers list by the selected criterion
  * @param action Pointer to an action.
  */
-void PrisonerAllocateAgentsState::cbxSortByChange(Action *)
+void IntelAllocateAgentsState::cbxSortByChange(Action *)
 {
 	bool ctrlPressed = _game->isCtrlPressed();
 	size_t selIdx = _cbxSortBy->getSelected();
@@ -218,9 +219,20 @@ void PrisonerAllocateAgentsState::cbxSortByChange(Action *)
  * Returns to the previous screen.
  * @param action Pointer to an action.
  */
-void PrisonerAllocateAgentsState::btnOkClick(Action *)
+void IntelAllocateAgentsState::btnOkClick(Action *)
 {
-	_selectedPrisoner->setAssignedAgents();
+	for (auto s : *_base->getSoldiers())
+	{
+		if (s->getIntelProject() == _project)
+		{
+			s->clearBaseDuty();
+		}
+	}
+
+	for (auto s : _assignedAgents)
+	{
+		s->setIntelProject(_project);
+	}
 	_game->popState();
 }
 
@@ -232,13 +244,14 @@ void PrisonerAllocateAgentsState::btnOkClick(Action *)
 /**
  * Shows the soldiers in a list at specified offset/scroll.
  */
-void PrisonerAllocateAgentsState::initList(size_t scrl)
+void IntelAllocateAgentsState::initList(size_t scrl)
 {
 	int row = 0;
 	_lstAgents->clearList();
 
 	_filteredListOfAgents.clear();
 	_agentsNumbers.clear();
+	_assignedAgents.clear();
 	int i = 0;
 
 	for (auto& soldier : *_base->getSoldiers())
@@ -280,7 +293,7 @@ void PrisonerAllocateAgentsState::initList(size_t scrl)
 
 		Uint8 color = _lstAgents->getColor();
 		bool matched = false;
-		auto agents = _selectedPrisoner->getAgents();
+		auto agents = *_base->getSoldiers();
 		auto iter = std::find(std::begin(agents), std::end(agents), (*s));
 		if (iter != std::end(agents))
 		{
@@ -291,6 +304,7 @@ void PrisonerAllocateAgentsState::initList(size_t scrl)
 		{
 			color = _lstAgents->getSecondaryColor();
 			_lstAgents->setCellText(row, 1, tr("STR_ASSIGNED_UC"));
+			_assignedAgents.insert(*s);
 		}
 		else if (isBusy || !isFree)
 		{
@@ -308,7 +322,7 @@ void PrisonerAllocateAgentsState::initList(size_t scrl)
 /**
  * Shows the soldiers in a list.
  */
-void PrisonerAllocateAgentsState::init()
+void IntelAllocateAgentsState::init()
 {
 	State::init();
 	_base->prepareSoldierStatsWithBonuses(); // refresh stats for sorting
@@ -319,7 +333,7 @@ void PrisonerAllocateAgentsState::init()
  * Shows the selected soldier's info.
  * @param action Pointer to an action.
  */
-void PrisonerAllocateAgentsState::lstAgentsClick(Action *action)
+void IntelAllocateAgentsState::lstAgentsClick(Action *action)
 {
 	double mx = action->getAbsoluteXMouse();
 	if (mx >= _lstAgents->getArrowsLeftEdge() && mx < _lstAgents->getArrowsRightEdge())
@@ -333,7 +347,7 @@ void PrisonerAllocateAgentsState::lstAgentsClick(Action *action)
 		Uint8 color = _lstAgents->getColor();
 		bool isBusy = false, isFree = false, matched = false;
 		std::string duty = s->getCurrentDuty(_game->getLanguage(), _base->getSumRecoveryPerDay(), isBusy, isFree, INTEL);
-		auto agents = _selectedPrisoner->getAgents();
+		auto agents = *_base->getSoldiers();
 		auto iter = std::find(std::begin(agents), std::end(agents), s);
 		if (iter != std::end(agents))
 		{
@@ -341,12 +355,11 @@ void PrisonerAllocateAgentsState::lstAgentsClick(Action *action)
 		}
 		if (matched)
 		{
-			_selectedPrisoner->removeAgent(s);
+			_assignedAgents.erase(s);
 			if (s->getActivePrisoner())
 			{
-				if (s->getActivePrisoner() == _selectedPrisoner->getPrisioner())
+				if (s->getIntelProject() == _project)
 				{
-					s->setActivePrisoner(0);
 					color = _lstAgents->getColor();
 					_lstAgents->setCellText(row, 1, tr("STR_NONE_UC"));
 				}
@@ -369,7 +382,7 @@ void PrisonerAllocateAgentsState::lstAgentsClick(Action *action)
 		{
 			_lstAgents->setCellText(row, 1, tr("STR_ASSIGNED_UC"));
 			color = _lstAgents->getSecondaryColor();
-			_selectedPrisoner->addAgent(s);
+			_assignedAgents.insert(s);
 		}
 
 		_lstAgents->setRowColor(row, color);

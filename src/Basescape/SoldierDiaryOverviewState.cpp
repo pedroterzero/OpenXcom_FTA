@@ -48,12 +48,12 @@ namespace OpenXcom
  * @param soldierId ID of the selected soldier.
  * @param soldierInfoState Pointer to the Soldier Info screen.
  */
-SoldierDiaryOverviewState::SoldierDiaryOverviewState(Base *base, size_t soldierId, SoldierInfoState *soldierInfoState) : _base(base), _soldierId(soldierId), _soldierInfoState(soldierInfoState)
+SoldierDiaryOverviewState::SoldierDiaryOverviewState(Base *base, size_t soldierId, SoldierInfoState *soldierInfoState) : _base(base), _soldierId(soldierId), _soldierInfoState(soldierInfoState), _soldierInfoStateFtA(0)
 {
 	drawUi();
 }
 
-SoldierDiaryOverviewState::SoldierDiaryOverviewState(Base* base, size_t soldierId, SoldierInfoStateFtA* soldierInfoStateFtA) : _base(base), _soldierId(soldierId), _soldierInfoStateFtA(soldierInfoStateFtA)
+SoldierDiaryOverviewState::SoldierDiaryOverviewState(Base* base, size_t soldierId, SoldierInfoStateFtA* soldierInfoStateFtA) : _base(base), _soldierId(soldierId), _soldierInfoState(0), _soldierInfoStateFtA(soldierInfoStateFtA)
 {
 	drawUi();
 }

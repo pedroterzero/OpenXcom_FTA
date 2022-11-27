@@ -54,7 +54,7 @@ public:
 	void btnAgentsClick(Action* action);
 	/// Handler for clicking the Intel Projects list.
 	void onSelectProject(Action* action);
-	void onProjectDetails(Action* action);
+	//void onProjectDetails(Action* action);
 	/// Fills the CovertOperation list with Base CovertOperation.
 	void fillProjectList(size_t scrl);
 	/// Updates the CovertOperation list.

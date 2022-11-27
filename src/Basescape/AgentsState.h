@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Copyright 2010-2016 OpenXcom Developers.
+ * Copyright 2010-2022 OpenXcom Developers.
  *
  * This file is part of OpenXcom.
  *
@@ -19,7 +19,6 @@
  */
 #include "../Engine/State.h"
 #include <vector>
-#include "SoldierSortUtil.h"
 
 namespace OpenXcom
 {
@@ -28,52 +27,37 @@ class TextButton;
 class Window;
 class Text;
 class TextList;
-class ComboBox;
 class Base;
-class Soldier;
-struct SortFunctor;
 
 /**
  * Soldiers screen that lets the player
  * manage all the soldiers in a base.
  */
-class SoldiersState : public State
+class AgentsState : public State
 {
 private:
-	TextButton *_btnOk, *_btnPsiTraining, *_btnTraining, *_btnMemorial;
+	TextButton *_btnOk;
 	Window *_window;
-	Text *_txtTitle, *_txtName, *_txtRank, *_txtCraft;
-	ComboBox *_cbxSortBy, *_cbxScreenActions;
-	TextList *_lstSoldiers;
+	Text *_txtTitle, *_txtName, *_txtProject;
+	TextList *_lstAgents;
 	Base *_base;
-	std::vector<Soldier *> _origSoldierOrder, _filteredListOfSoldiers;
-	std::vector<SortFunctor *> _sortFunctors;
-	getStatFn_t _dynGetter;
-	std::vector<std::string> _availableOptions;
-	bool _ftaUI;
+	Uint8 _otherDutyColor;
 	std::vector<int> _soldierNumbers;
-	///initializes the display list based on the craft soldier's list and the position to display
+	//getStatFn_t _dynGetter;
+	/// initializes the display list based on the craft soldier's list and the position to display
 	void initList(size_t scrl);
-  public:
+
+public:
 	/// Creates the Soldiers state.
-	SoldiersState(Base *base);
+	AgentsState(Base *base);
 	/// Cleans up the Soldiers state.
-	~SoldiersState();
-	/// Handler for changing the sort by combobox.
-	void cbxSortByChange(Action *action);
+	~AgentsState();
 	/// Updates the soldier names.
 	void init() override;
 	/// Handler for clicking the OK button.
 	void btnOkClick(Action *action);
-	/// Handler for clicking the Psi Training button.
-	void btnPsiTrainingClick(Action *action);
-	void btnTrainingClick(Action *action);
-	/// Handler for clicking the Memorial button.
-	void btnMemorialClick(Action *action);
-	/// Handler for changing the screen actions combo box.
-	void cbxScreenActionsChange(Action *action);
-	/// Handler for clicking the Soldiers list.
-	void lstSoldiersClick(Action *action);
+	/// Handler for clicking the Scientists list.
+	void lstAgentsClick(Action *action);
 };
 
 }

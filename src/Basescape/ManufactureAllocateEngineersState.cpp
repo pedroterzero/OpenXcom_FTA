@@ -242,6 +242,19 @@ void ManufactureAllocateEngineersState::initList(size_t scrl)
 {
 	int row = 0;
 	_lstEngineers->clearList();
+	_filteredListOfEngineers.clear();
+	_engineerNumbers.clear();
+	int i = 0;
+
+	for (auto& soldier : *_base->getSoldiers())
+	{
+		if (soldier->getRoleRank(ROLE_SCIENTIST) > 0)
+		{
+			_filteredListOfEngineers.push_back(soldier);
+			_engineerNumbers.push_back(i);
+		}
+		i++;
+	}
 
 	if (_dynGetter != NULL)
 	{
@@ -254,49 +267,43 @@ void ManufactureAllocateEngineersState::initList(size_t scrl)
 
 	auto recovery = _base->getSumRecoveryPerDay();
 	bool isBusy = false, isFree = false;
-	unsigned int it = 0;
 	for (std::vector<Soldier*>::iterator i = _base->getSoldiers()->begin(); i != _base->getSoldiers()->end(); ++i)
 	{
-		if ((*i)->getRoleRank(ROLE_ENGINEER) > 0)
+		std::string duty = (*i)->getCurrentDuty(_game->getLanguage(), recovery, isBusy, isFree, WORK);
+		if (_dynGetter != NULL)
 		{
-			_engineerNumbers.push_back(it); // don't forget soldier's number on the base!
-			std::string duty = (*i)->getCurrentDuty(_game->getLanguage(), recovery, isBusy, isFree, WORK);
-			if (_dynGetter != NULL)
-			{
-				// call corresponding getter
-				int dynStat = (*_dynGetter)(_game, *i);
-				std::ostringstream ss;
-				ss << dynStat;
-				_lstEngineers->addRow(3, (*i)->getName(true, 19).c_str(), duty.c_str(), ss.str().c_str());
-			}
-			else
-			{
-				_lstEngineers->addRow(2, (*i)->getName(true, 19).c_str(), duty.c_str());
-			}
-
-			Uint8 color = _lstEngineers->getColor();
-			bool matched = false;
-			auto engineers = _planningProject->getEngineers();
-			auto iter = std::find(std::begin(engineers), std::end(engineers), (*i));
-			if (iter != std::end(engineers))
-			{
-				matched = true;
-			}
-
-			if (matched)
-			{
-				color = _lstEngineers->getSecondaryColor();
-				_lstEngineers->setCellText(row, 1, tr("STR_ASSIGNED_UC"));
-			}
-			else if (isBusy || !isFree)
-			{
-				color = _otherCraftColor;
-			}
-
-			_lstEngineers->setRowColor(row, color);
-			row++;
+			// call corresponding getter
+			int dynStat = (*_dynGetter)(_game, *i);
+			std::ostringstream ss;
+			ss << dynStat;
+			_lstEngineers->addRow(3, (*i)->getName(true, 19).c_str(), duty.c_str(), ss.str().c_str());
 		}
-		it++;
+		else
+		{
+			_lstEngineers->addRow(2, (*i)->getName(true, 19).c_str(), duty.c_str());
+		}
+
+		Uint8 color = _lstEngineers->getColor();
+		bool matched = false;
+		auto engineers = _planningProject->getEngineers();
+		auto iter = std::find(std::begin(engineers), std::end(engineers), (*i));
+		if (iter != std::end(engineers))
+		{
+			matched = true;
+		}
+
+		if (matched)
+		{
+			color = _lstEngineers->getSecondaryColor();
+			_lstEngineers->setCellText(row, 1, tr("STR_ASSIGNED_UC"));
+		}
+		else if (isBusy || !isFree)
+		{
+			color = _otherCraftColor;
+		}
+
+		_lstEngineers->setRowColor(row, color);
+		row++;
 	}
 	if (scrl)
 		_lstEngineers->scrollTo(scrl);

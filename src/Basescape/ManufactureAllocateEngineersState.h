@@ -50,7 +50,7 @@ private:
 	Base* _base;
 	ManufactureInfoStateFtA* _planningProject;
 	Uint8 _otherCraftColor;
-	std::vector<Soldier*> _origSoldierOrder;
+	std::vector<Soldier*> _origSoldierOrder, _filteredListOfEngineers;
 	std::vector<SortFunctor*> _sortFunctors;
 	std::vector<int> _engineerNumbers;
 	getStatFn_t _dynGetter;

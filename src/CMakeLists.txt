@@ -5,6 +5,7 @@ set ( root_src
   md5.cpp
 )
 set ( basescape_src
+  Basescape/AgentsState.cpp
   Basescape/BaseInfoState.cpp
   Basescape/BaseInfoStateFtA.cpp
   Basescape/BasescapeState.cpp
@@ -29,9 +30,11 @@ set ( basescape_src
   Basescape/CraftWeaponsState.cpp
   Basescape/DismantleFacilityState.cpp
   Basescape/DisposeState.cpp
+  Basescape/EngineersState.cpp
   Basescape/FacilityAllocateEngineersState.cpp
   Basescape/GlobalManufactureState.cpp
   Basescape/GlobalResearchState.cpp
+  Basescape/IntelAllocateAgentsState.cpp
   Basescape/IntelState.cpp
   Basescape/ManageAlienContainmentState.cpp
   Basescape/ManufactureAllocateEngineersState.cpp

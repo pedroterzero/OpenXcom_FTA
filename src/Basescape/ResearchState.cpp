@@ -156,7 +156,7 @@ void ResearchState::btnNewClick(Action *)
 }
 
 /**
- * Returns to the previous screen.
+ * Opens Scientists list screen.
  * @param action Pointer to an action.
  */
 void ResearchState::btnScientistsClick(Action *action)
