@@ -2342,6 +2342,7 @@ int *SavedBattleGame::getCurrentItemId()
 Node *SavedBattleGame::getSpawnNode(int nodeRank, BattleUnit *unit)
 {
 	int highestPriority = -1;
+	int lowestPriority = INT16_MAX;
 	std::vector<Node*> compliantNodes;
 
 	for (std::vector<Node*>::iterator i = getNodes()->begin(); i != getNodes()->end(); ++i)
@@ -2358,14 +2359,38 @@ Node *SavedBattleGame::getSpawnNode(int nodeRank, BattleUnit *unit)
 			&& (*i)->getPriority() > 0								// priority 0 is no spawn place
 			&& setUnitPosition(unit, (*i)->getPosition(), true))	// check if not already occupied
 		{
-			if ((*i)->getPriority() > highestPriority)
+			bool civ = false;
+			if (unit->getGeoscapeSoldier())
 			{
-				highestPriority = (*i)->getPriority();
-				compliantNodes.clear(); // drop the last nodes, as we found a higher priority now
+				auto s = unit->getGeoscapeSoldier();
+				if (s->getRoleRank(ROLE_SOLDIER) < 1 && s->getRoleRank(ROLE_AGENT) < 1)
+				{
+					civ = true;
+				}
 			}
-			if ((*i)->getPriority() == highestPriority)
+			if (!civ) //vanilla case
 			{
-				compliantNodes.push_back((*i));
+				if ((*i)->getPriority() > highestPriority)
+				{
+					highestPriority = (*i)->getPriority();
+					compliantNodes.clear(); // drop the last nodes, as we found a higher priority now
+				}
+				if ((*i)->getPriority() == highestPriority)
+				{
+					compliantNodes.push_back(*i);
+				}
+			}
+			else
+			{
+				if ((*i)->getPriority() < lowestPriority)
+				{
+					lowestPriority = (*i)->getPriority();
+					compliantNodes.clear(); // drop the last nodes, as we found a lower priority now
+				}
+				if ((*i)->getPriority() == lowestPriority)
+				{
+					compliantNodes.push_back(*i);
+				}
 			}
 		}
 	}
