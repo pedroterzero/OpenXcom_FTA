@@ -122,7 +122,6 @@ SoldierInfoStateFtA::SoldierInfoStateFtA(Base *base, size_t soldierId) : _base(b
 	add(_edtSoldier, "text1", "soldierInfo");
 	add(_btnSack, "button", "soldierInfo");
 	add(_btnDiary, "button", "soldierInfo");
-	add(_cbxRoles, "button", "soldierInfo");
 	add(_txtRank, "text1", "soldierInfo");
 	add(_txtMissions, "text1", "soldierInfo");
 	add(_txtKills, "text1", "soldierInfo");
@@ -134,6 +133,7 @@ SoldierInfoStateFtA::SoldierInfoStateFtA(Base *base, size_t soldierId) : _base(b
 	add(_txtDead, "text2", "soldierInfo");
 
 	addStatLines();
+	add(_cbxRoles, "button", "soldierInfo");
 
 	centerAllSurfaces();
 
