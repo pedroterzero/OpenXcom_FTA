@@ -4387,8 +4387,6 @@ bool TileEngine::hackAttack(BattleAction& action, BattleUnit* target)
 	if (!target)
 		return false;
 
-	// TODO: Add XP training
-
 	// Award MC battle unit kill
 	BattleUnitKills killStat;
 	killStat.setUnitStats(target);

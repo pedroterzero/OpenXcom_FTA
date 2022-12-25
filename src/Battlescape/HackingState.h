@@ -21,8 +21,6 @@
 
 namespace OpenXcom
 {
-
-
 class InteractiveSurface;
 class HackingView;
 class Text;
@@ -31,11 +29,12 @@ class Timer;
 //class BattleItem;
 class BattleUnit;
 class BattleObject;
+class Soldier;
 class Tile;
 class TileEngine;
-struct BattleAction;
 class HackingNode;
 class ConsoleTextManager;
+struct BattleAction;
 
 typedef void (State::* LogHandler)(HackingNode*);
 
@@ -53,6 +52,8 @@ class HackingState : public State
 	InteractiveSurface* _exitButton;
 	Tile* _targetTile;
 	BattleUnit* _targetUnit = nullptr;
+	BattleUnit* _sourceUnit = nullptr;
+	Soldier* _soldier = nullptr;
 	BattleObject* _targetObject = nullptr;
 //	BattleItem* _item; // we may need it later
 	BattleAction* _action;
@@ -62,6 +63,9 @@ class HackingState : public State
 	ConsoleTextManager* _consoleManager;
 	int _timeUnits{ 0 }, _maxTimeUnits{ 0 }, _health{ 0 }, _maxHealth{ 0 };
 	int _tuBaseCost, _tuFirewallCost, _hpFirewallCost;
+	double _sourceHacking = 0;
+	double _targetHacking = 0;
+	bool _result;
 
 
 	/// Updates the hacking device info.

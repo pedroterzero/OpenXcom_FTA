@@ -518,6 +518,8 @@ public:
 	void addManaExp(int weaponStat);
 	/// Adds one to the melee exp counter.
 	void addMeleeExp();
+	/// Adds one the hacking exp counter.
+	void addHackingExp();
 	/// Did the unit gain any experience yet?
 	bool hasGainedAnyExperience();
 	/// Updates the stats of a Geoscape soldier.
@@ -851,6 +853,8 @@ public:
 	void disableIndicators();
 	/// Checks if this unit can be hacked.
 	bool canBeHacked() const;
+	/// Process effects on unit, that occures after hacking
+	void hackingPostProcess(bool result);
 	/// Add battle object to visible battle objects.
 	bool addToVisibleBattleObjects(BattleObject* battleObject);
 	/// Get the list of visible battle objects.

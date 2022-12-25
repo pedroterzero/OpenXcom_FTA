@@ -43,6 +43,7 @@ private:
 	const RuleObject* _rules;
 	Tile* _tile;
 	int _hackingDefence;
+	int _failedAttempts;
 	bool _wasHacked, _isDiscovered;
 	Position _position;
 
@@ -56,31 +57,33 @@ public:
 	/// Saves the item to YAML.
 	YAML::Node save() const;
 	/// Gets the item's ruleset.
-	const RuleObject* getRules() const { return _rules; };
+	const RuleObject* getRules() const { return _rules; }
 
 	/// Gets the item's tile.
-	Tile* getTile() const { return _tile; };
+	Tile* getTile() const { return _tile; }
 	/// Sets the tile.
-	void setTile(Tile* tile) { _tile = tile; };
+	void setTile(Tile* tile) { _tile = tile; }
 	/// Gets it's unique id.
-	int getId() const { return _id; };
+	int getId() const { return _id; }
 
 	/// Gets a flag if the object was hacked.
-	void setWasHacked(bool wasHacked) { _wasHacked = wasHacked; };
+	void setWasHacked(bool wasHacked) { _wasHacked = wasHacked; }
 	/// Checks a flag if the object was hacked.
-	bool isWasHacked() const { return _wasHacked; };
+	bool isWasHacked() const { return _wasHacked; }
 	/// Gets the objects's hacking defence value.
-	int getHackingDefence() const { return _hackingDefence; };
+	int getHackingDefence() const { return _hackingDefence; }
 	/// Sets the objects's hacking defence value.
-	void setHackingDefence(int hackingDefence) { _hackingDefence = hackingDefence; };
+	void setHackingDefence(int hackingDefence) { _hackingDefence = hackingDefence; }
 	///returns a tile radius of alterations caused by hacking
 
 	/// Checks if this object can be hacked
 	bool canBeHacked() const { return !_wasHacked && _hackingDefence != 0; }
 
-	Position getPosition() { return _position; } ;
+	void hackingPostProcess(bool result);
 
-	void setPosition(Position pos) { _position = pos; };
+	Position getPosition() { return _position; }
+
+	void setPosition(Position pos) { _position = pos; }
 };
 
 }

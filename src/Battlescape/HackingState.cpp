@@ -25,7 +25,6 @@
 #include "../Engine/Action.h"
 #include "../Engine/Game.h"
 #include "../Engine/InteractiveSurface.h"
-#include "../Engine/LocalizedText.h"
 #include "../Engine/Options.h"
 #include "../Engine/Screen.h"
 #include "../Engine/Timer.h"
@@ -34,8 +33,8 @@
 #include "../Savegame/BattleUnit.h"
 #include "../Savegame/BattleUnitStatistics.h"
 #include "../Mod/Mod.h"
-#include "../Mod/RuleInterface.h"
 #include "../Savegame/BattleItem.h"
+#include "../Savegame/BattleObject.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/SavedBattleGame.h"
 
@@ -51,7 +50,7 @@ class ConsoleTextManager
 	Text* _consoleTxt;
 	int _maxNumLines;
 public:
-	ConsoleTextManager(Text* txtField, int numLines = 14) : _consoleTxt(txtField), _maxNumLines(numLines) {};
+	ConsoleTextManager(Text* txtField, int numLines = 14) : _consoleTxt(txtField), _maxNumLines(numLines) {}
 	void addMessage(std::string msg);
 };
 void ConsoleTextManager::addMessage(std::string msg)
@@ -93,7 +92,7 @@ std::string toString(type t)
  * @param tileEngine Pointer to a TileEngine
  */
 //HackingState::HackingState(BattleAction* action, BattleUnit* targetUnit, TileEngine* tileEngine) : _action(action), _targetUnit(targetUnit), _tileEngine(tileEngine)
-HackingState::HackingState(BattleAction* action, Tile* targetTile, TileEngine* tileEngine) : _action(action), _targetTile(targetTile), _tileEngine(tileEngine)
+HackingState::HackingState(BattleAction* action, Tile* targetTile, TileEngine* tileEngine) : _targetTile(targetTile), _action(action), _tileEngine(tileEngine), _result(false)
 {
 	if (Options::maximizeInfoScreens)
 	{
@@ -103,12 +102,37 @@ HackingState::HackingState(BattleAction* action, Tile* targetTile, TileEngine* t
 	}
 	_targetUnit = _targetTile->getUnit();
 	_targetObject = _targetTile->getBattleObject();
+	if (_targetUnit == nullptr && _targetObject == nullptr)
+	{
+		//oh, that's bad...
+		throw Exception("Hacking logic failed - Hacking target was not defined in targetTile!");
+	}
+	_sourceUnit = _action->weapon->getOwner();
+	if (_sourceUnit == nullptr)
+	{
+		throw Exception("Hacking logic failed - no sourceUnit defined!");
+	}
+	_soldier = _sourceUnit->getGeoscapeSoldier();
+	auto mod = _game->getMod();
 
-	_tuBaseCost = _game->getMod()->getHackingBaseTuCost();
-	_tuFirewallCost = _game->getMod()->getHackingFirewallBaseTuCost();
-	_hpFirewallCost = _game->getMod()->getHackingFirewallBaseHpCost();
-	_maxTimeUnits = _action->weapon->getRules()->getHackingTU();
-	_maxHealth = _action->weapon->getRules()->getHackingHP();
+	_tuBaseCost = mod->getHackingBaseTuCost();
+	_tuFirewallCost = mod->getHackingFirewallBaseTuCost();
+	_hpFirewallCost = mod->getHackingFirewallBaseHpCost();
+	_sourceHacking = _sourceUnit->getBaseStats()->hacking;
+	double hackingTuModifier = mod->getHackingStatToTuCoef();
+	hackingTuModifier /= 100;
+	double hackingHpMidifier = mod->getHackingStatToHpCoef();
+	hackingHpMidifier /= 100;
+	if (_targetUnit)
+	{
+		_targetHacking = _targetUnit->getBaseStats()->hacking;
+	}
+	else if (_targetObject)
+	{
+		_targetHacking = _targetObject->getHackingDefence();
+	}
+	_maxTimeUnits = _action->weapon->getRules()->getHackingTU() + ceil(_sourceHacking / hackingTuModifier) - ceil(_targetHacking / hackingTuModifier);
+	_maxHealth = _action->weapon->getRules()->getHackingHP() + ceil(_sourceHacking / hackingHpMidifier) - ceil(_targetHacking / hackingHpMidifier);
 
 	_bg = new Surface(320, 200);
 	_hackingView = new HackingView(164, 121, 41, 26);
@@ -262,6 +286,14 @@ void HackingState::onExitClick(Action*)
 		Screen::updateScale(Options::battlescapeScale, Options::baseXBattlescape, Options::baseYBattlescape, true);
 		_game->getScreen()->resetDisplay(false);
 	}
+	if (_targetUnit)
+	{
+		_targetUnit->hackingPostProcess(_result);
+	}
+	if (_targetObject)
+	{
+		_targetObject->hackingPostProcess(_result);
+	}
 	_game->popState();
 }
 
@@ -290,6 +322,16 @@ void HackingState::onNodeClick(Action* action)
 			if (_targetObject)
 			{
 				_tileEngine->hackObject(*_action, _targetObject);
+			}
+			if (_sourceHacking < _targetHacking || RNG::percent(30))
+			{
+				_sourceUnit->addHackingExp(); //base exp
+			}
+			if (_game->getSavedGame()->getDifficulty() != DIFF_SUPERHUMAN
+				&& _sourceHacking < _targetHacking
+				&& RNG::percent(100 - (_game->getSavedGame()->getDifficulty() + 1) * 20))
+			{
+				_sourceUnit->addHackingExp(); //extra exp!
 			}
 			onExitClick(0);
 		}
@@ -326,6 +368,10 @@ void HackingState::onNodeClick(Action* action)
 				_hackingView->activateNode(node);
 				revealNeighbours(node);
 				_hackingView->revealFirewall(node);  // Show the entire firewall once it's been breached
+				if (_sourceHacking < _targetHacking && RNG::percent(50)) // extra exp roll
+				{
+					_sourceUnit->addHackingExp();
+				}
 			}
 			else
 			{

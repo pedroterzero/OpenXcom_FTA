@@ -368,9 +368,9 @@ Mod::Mod()
 	  _enableCloseQuartersCombat(0), _closeQuartersAccuracyGlobal(100), _closeQuartersTuCostGlobal(12), _closeQuartersEnergyCostGlobal(8), _closeQuartersSneakUpGlobal(0), _noLOSAccuracyPenaltyGlobal(-1), _surrenderMode(0),
 	  _coefBattlescape(100), _coefGeoscape(100), _coefDogfight(100), _coefResearch(100), _coefAlienMission(100), _coefUfo(100), _coefAlienBase(100), _noFundsPenalty(200), _noFundsValue(-100000), _performanceCap(0), _performanceFactor(0), _bughuntMinTurn(999),
 	  _bughuntMaxEnemies(2), _bughuntRank(0), _bughuntLowMorale(40), _bughuntTimeUnitsLeft(60), _manaEnabled(false),
-	  _manaBattleUI(false), _manaTrainingPrimary(false), _manaTrainingSecondary(false), _manaReplenishAfterMission(true), _loseMoney("loseGame"),
-    _hackingBaseTuCost(10), _hackingFirewallBaseTuCost(10), _hackingFirewallBaseHpCost(10),
-	  _loseRating("loseGame"), _loseDefeat("loseGame"), _ufoGlancingHitThreshold(0),
+	  _manaBattleUI(false), _manaTrainingPrimary(false), _manaTrainingSecondary(false), _manaReplenishAfterMission(true),
+      _hackingBaseTuCost(5),_hackingFirewallBaseTuCost(10), _hackingFirewallBaseHpCost(5), _hackingStatToTuCoef(250), _hackingStatToHpCoef(500),
+      _loseMoney("loseGame"), _loseRating("loseGame"), _loseDefeat("loseGame"), _ufoGlancingHitThreshold(0),
 	  _ufoBeamWidthParameter(1000), _escortRange(20),
 	  _drawEnemyRadarCircles(1), _escortsJoinFightAgainstHK(true), _hunterKillerFastRetarget(true), _crewEmergencyEvacuationSurvivalChance(100),
 	  _pilotsEmergencyEvacuationSurvivalChance(100), _soldiersPerSergeant(5),
@@ -2930,6 +2930,9 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	_hackingBaseTuCost = doc["hackingBaseTuCost"].as<int>(_hackingBaseTuCost);
 	_hackingFirewallBaseTuCost = doc["hackingFirewallBaseTuCost"].as<int>(_hackingFirewallBaseTuCost);
 	_hackingFirewallBaseHpCost = doc["hackingFirewallBaseHpCost"].as<int>(_hackingFirewallBaseHpCost);
+	_hackingStatToTuCoef = doc["hackingStatToTuCoef"].as<int>(_hackingStatToTuCoef);
+	_hackingStatToHpCoef = doc["hackingStatToHpCoef"].as<int>(_hackingStatToHpCoef);
+
 
 	if (const YAML::Node& nodeLoyalty = doc["loyaltySettings"])
 	{

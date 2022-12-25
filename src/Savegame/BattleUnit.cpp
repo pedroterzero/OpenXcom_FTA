@@ -4003,6 +4003,14 @@ void BattleUnit::addMeleeExp()
 }
 
 /**
+ * Adds one the hacking exp counter.
+ */
+void BattleUnit::addHackingExp()
+{
+	_exp.hacking++;
+}
+
+/**
  * Did the unit gain any experience yet?
  */
 bool BattleUnit::hasGainedAnyExperience()
@@ -5579,6 +5587,25 @@ bool BattleUnit::canBeHacked() const
 	return (_armor->getHackingDefense() != 0 &&
 			getFaction() != FACTION_PLAYER &&
 			getOriginalFaction() != FACTION_PLAYER);
+}
+
+/**
+ * Process battleobject value updates on hacking
+ * @param result - result of hacking, true if success
+ */
+void BattleUnit::hackingPostProcess(bool result)
+{
+	if (getOriginalFaction() != FACTION_PLAYER || getOriginalFaction() != FACTION_NEUTRAL) // just in case
+	{
+		_stats.hacking += ceil(_stats.hacking * RNG::generate(0.3, 0.7));
+		if (!result)
+		{
+			//we buff the unit on failed hacking
+			_stats.firing += ceil(_stats.firing * RNG::generate(0.1, 0.4));
+			_stats.reactions += ceil(_stats.reactions * RNG::generate(0.1, 0.3));
+			_stats.melee += ceil(_stats.melee * RNG::generate(0.05, 0.45));
+		}
+	}
 }
 
 /**

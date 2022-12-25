@@ -35,7 +35,7 @@ namespace OpenXcom
 * @param rules Pointer to ruleset.
 * @param id The id of the object.
 */
-BattleObject::BattleObject(const RuleObject* rules) : _rules(rules), _tile(0), _hackingDefence(0), _wasHacked(false), _isDiscovered(false)
+BattleObject::BattleObject(const RuleObject* rules) : _rules(rules), _tile(0), _hackingDefence(0), _failedAttempts(0), _wasHacked(false), _isDiscovered(false)
 {
 	if (_rules)
 	{
@@ -58,6 +58,7 @@ BattleObject::~BattleObject()
 void BattleObject::load(const YAML::Node& node, Mod* mod)
 {
 	_hackingDefence = node["hackingDefence"].as<int>(_hackingDefence);
+	_failedAttempts = node["failedAttempts"].as<int>(_failedAttempts);
 	_wasHacked = node["wasHacked"].as<bool>(_wasHacked);
 	_position = node["position"].as<Position>(_position);
 }
@@ -72,11 +73,25 @@ YAML::Node BattleObject::save() const
 	node["id"] = _id;
 	node["type"] = _rules->getType();
 	node["hackingDefence"] = _hackingDefence;
+	node["failedAttempts"] = _failedAttempts;
 	node["wasHacked"] = _wasHacked;
 	if (_tile)
 		node["position"] = _tile->getPosition();
 
 	return node;
+}
+
+/**
+ * Process battleobject value updates on hacking
+ * @param result - result of hacking, true if success 
+ */
+void BattleObject::hackingPostProcess(bool result)
+{
+	setHackingDefence(ceil(getHackingDefence() * RNG::generate(0.3, 0.7)));
+	if (!result)
+	{
+		_failedAttempts++;
+	}
 }
 
 /**
