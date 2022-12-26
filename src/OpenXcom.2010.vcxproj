@@ -264,6 +264,7 @@
     <ClCompile Include="Basescape\ManufactureInfoState.cpp" />
     <ClCompile Include="Basescape\ManufactureProductDetailsState.cpp" />
     <ClCompile Include="Basescape\ManufactureState.cpp" />
+    <ClCompile Include="Basescape\MontlySoldierExperienceState.cpp" />
     <ClCompile Include="Basescape\NewManufactureListState.cpp" />
     <ClCompile Include="Basescape\ManufactureInfoStateFtA.cpp" />
     <ClCompile Include="Basescape\MiniBaseView.cpp" />
@@ -694,6 +695,7 @@
     <ClInclude Include="Basescape\ManufactureDependenciesTreeState.h" />
     <ClInclude Include="Basescape\ManufactureInfoState.h" />
     <ClInclude Include="Basescape\ManufactureProductDetailsState.h" />
+    <ClInclude Include="Basescape\MontlySoldierExperienceState.h" />
     <ClInclude Include="Basescape\NewManufactureListState.h" />
     <ClInclude Include="Basescape\ManageAlienContainmentState.h" />
     <ClInclude Include="Basescape\ManufactureInfoStateFtA.h" />

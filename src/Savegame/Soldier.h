@@ -100,7 +100,8 @@ private:
 	std::vector<SoldierRoleRanks*> _roles;
 	const RuleSoldier *_rules;
 	UnitStats _initialStats, _currentStats, _tmpStatsWithSoldierBonuses, _tmpStatsWithAllBonuses;
-	UnitStats _dailyDogfightExperienceCache, _dogfightExperience, _researchExperience, _engineerExperience, _intelExperience;
+	UnitStats _dailyDogfightExperienceCache, _monthlyExperienceCache;
+	UnitStats _dogfightExperience, _researchExperience, _engineerExperience, _intelExperience;
 	SoldierRank _rank;
 	Craft *_craft;
 	CovertOperation *_covertOperation;
@@ -142,7 +143,7 @@ private:
 	/// Loads the soldier from YAML.
 	void load(const YAML::Node& node, const Mod *mod, SavedGame *save, const ScriptGlobal *shared, bool soldierTemplate = false);
 	/// Saves the soldier to YAML.
-	YAML::Node save(const ScriptGlobal *shared) const;
+	YAML::Node save(const ScriptGlobal *shared);
 	/// Gets the soldier's name.
 	std::string getName(bool statstring = false, unsigned int maxLength = 20) const;
 	/// Sets the soldier's name.
@@ -424,6 +425,10 @@ private:
 	UnitStats* getDailyDogfightExperienceCache();
 	/// Resets the daily dogfight experience cache.
 	void resetDailyDogfightExperienceCache();
+	/// Gets a pointer to the monthly soldier experience cache.
+	UnitStats* getMonthlyExperienceCache();
+	/// Resets the monthly soldier experience cache.
+	void resetMonthlyExperienceCache();
 
 private:
 	std::string generateCallsign(const std::vector<SoldierNamePool*> &names);

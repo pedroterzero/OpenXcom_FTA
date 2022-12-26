@@ -1200,6 +1200,7 @@ bool Craft::checkup()
 		{
 			auto stats = (*i)->getDogfightExperience();
 			(*i)->improvePrimaryStats(stats, ROLE_PILOT);
+			(*i)->clearDogfightExperience();
 			if ((*i)->rolePromoteSoldier(ROLE_PILOT))
 			{
 				promote = true;

@@ -232,13 +232,13 @@ public:
 	/// Sets if the game is in ironman mode.
 	void setIronman(bool ironman);
 	/// Gets if the game is FtA game.
-	bool isFtAGame() const { return _ftaGame; };
+	bool isFtAGame() const { return _ftaGame; }
 	/// Sets if the game is FtA game.
-	void setFtAGame(bool ftaGame) { _ftaGame = ftaGame; };
+	void setFtAGame(bool ftaGame) { _ftaGame = ftaGame; }
 	/// Sets game object pointer
-	static void setGamePtr(Game *game) { _game = game; };
+	static void setGamePtr(Game *game) { _game = game; }
 	/// Gets our game.
-	Game *getGame() { return _game; };
+	Game *getGame() { return _game; }
 	/// Gets the current funds.
 	int64_t getFunds() const;
 	/// Gets the list of funds from previous months.
@@ -246,13 +246,13 @@ public:
 	/// Sets new funds.
 	void setFunds(int64_t funds);
 	/// Gets the current loyalty score.
-	int getLoyalty() const { return _loyalty; };
+	int getLoyalty() const { return _loyalty; }
 	/// Sets the new loyalty score.
-	void setLoyalty(int loyalty) { _loyalty = loyalty; };
+	void setLoyalty(int loyalty) { _loyalty = loyalty; }
 	/// Gets the last month loyalty score.
-	int getLastMonthsLoyalty() const { return _lastMonthsLoyalty; };
+	int getLastMonthsLoyalty() const { return _lastMonthsLoyalty; }
 	/// Sets the new last month loyalty score.
-	void setLastMonthsLoyalty(int loyalty) { _lastMonthsLoyalty = loyalty; };
+	void setLastMonthsLoyalty(int loyalty) { _lastMonthsLoyalty = loyalty; }
 	/// Gets the current globe longitude.
 	double getGlobeLongitude() const;
 	/// Sets the new globe longitude.
@@ -318,11 +318,11 @@ public:
 	/// Sets the item as hidden or unhidden
 	void setHiddenPurchaseItemsStatus(const std::string &itemName, bool hidden);
 	/// Add covert operation to the "performed operation" list
-	void addPerformedCovertOperation(const std::string& operation) { _performedOperations.push_back(operation); };
+	void addPerformedCovertOperation(const std::string& operation) { _performedOperations.push_back(operation); }
 	/// Remove covert operation from the "performed operation" list
 	void removePerformedCovertOperation(const std::string& operation);
 	/// Get list of performed operations
-	const std::vector<std::string>& getPerformedCovertOperations() { return _performedOperations; };
+	const std::vector<std::string>& getPerformedCovertOperations() { return _performedOperations; }
 	/// Selects a "getOneFree" topic for the given research rule.
 	const RuleResearch* selectGetOneFree(const RuleResearch* research);
 	/// Remove a research from the "already discovered" list

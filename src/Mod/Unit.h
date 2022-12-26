@@ -339,7 +339,7 @@ struct UnitStats
 		investigation = (stats.investigation ? stats.investigation : investigation);
 		deception = (stats.deception ? stats.deception : deception);
 		interrogation = (stats.interrogation ? stats.interrogation : interrogation);
-	};
+	}
 
 	bool empty()
 	{
@@ -865,7 +865,7 @@ public:
 	/// Gets the value - for score calculation.
 	int getValue() const;
 	/// Percentage modifier for morale loss when this unit is killed.
-	int getMoraleLossWhenKilled() { return _moraleLossWhenKilled; };
+	int getMoraleLossWhenKilled() { return _moraleLossWhenKilled; }
 	/// Gets the death sound id.
 	const std::vector<int> &getDeathSounds() const;
 	/// Gets the unit's panic sounds.
@@ -970,42 +970,78 @@ namespace YAML
 			node["psiSkill"] = rhs.psiSkill;
 			node["melee"] = rhs.melee;
 			node["mana"] = rhs.mana;
-			node["maneuvering"] = rhs.maneuvering;
-			node["missiles"] = rhs.missiles;
-			node["dogfight"] = rhs.dogfight;
-			node["tracking"] = rhs.tracking;
-			node["cooperation"] = rhs.cooperation;
-			node["beams"] = rhs.beams;
-			node["synaptic"] = rhs.synaptic;
-			node["gravity"] = rhs.gravity;
-			node["physics"] = rhs.physics;
-			node["chemistry"] = rhs.chemistry;
-			node["biology"] = rhs.biology;
-			node["insight"] = rhs.insight;
-			node["data"] = rhs.data;
-			node["computers"] = rhs.computers;
-			node["tactics"] = rhs.tactics;
-			node["materials"] = rhs.materials;
-			node["designing"] = rhs.designing;
-			node["psionics"] = rhs.psionics;
-			node["xenolinguistics"] = rhs.xenolinguistics;
-			node["weaponry"] = rhs.weaponry;
-			node["explosives"] = rhs.explosives;
-			node["efficiency"] = rhs.efficiency;
-			node["microelectronics"] = rhs.microelectronics;
-			node["metallurgy"] = rhs.metallurgy;
-			node["processing"] = rhs.processing;
-			node["hacking"] = rhs.hacking;
-			node["construction"] = rhs.construction;
-			node["diligence"] = rhs.diligence;
-			node["alienTech"] = rhs.alienTech;
-			node["reverseEngineering"] = rhs.reverseEngineering;
-			node["stealth"] = rhs.stealth;
-			node["perseption"] = rhs.perseption;
-			node["charisma"] = rhs.charisma;
-			node["investigation"] = rhs.investigation;
-			node["deception"] = rhs.deception;
-			node["interrogation"] = rhs.interrogation;
+			if (rhs.maneuvering > 0)
+				node["maneuvering"] = rhs.maneuvering;
+			if (rhs.missiles > 0)
+				node["missiles"] = rhs.missiles;
+			if (rhs.dogfight > 0)
+				node["dogfight"] = rhs.dogfight;
+			if (rhs.tracking > 0)
+				node["tracking"] = rhs.tracking;
+			if (rhs.cooperation > 0)
+				node["cooperation"] = rhs.cooperation;
+			if (rhs.beams > 0)
+				node["beams"] = rhs.beams;
+			if (rhs.synaptic > 0)
+				node["synaptic"] = rhs.synaptic;
+			if (rhs.gravity > 0)
+				node["gravity"] = rhs.gravity;
+			if (rhs.physics > 0)
+				node["physics"] = rhs.physics;
+			if (rhs.chemistry > 0)
+				node["chemistry"] = rhs.chemistry;
+			if (rhs.biology > 0)
+				node["biology"] = rhs.biology;
+			if (rhs.insight > 0)
+				node["insight"] = rhs.insight;
+			if (rhs.data > 0)
+				node["data"] = rhs.data;
+			if (rhs.computers > 0)
+				node["computers"] = rhs.computers;
+			if (rhs.tactics > 0)
+				node["tactics"] = rhs.tactics;
+			if (rhs.materials > 0)
+				node["materials"] = rhs.materials;
+			if (rhs.designing > 0)
+				node["designing"] = rhs.designing;
+			if (rhs.psionics > 0)
+				node["psionics"] = rhs.psionics;
+			if (rhs.xenolinguistics > 0)
+				node["xenolinguistics"] = rhs.xenolinguistics;
+			if (rhs.weaponry > 0)
+				node["weaponry"] = rhs.weaponry;
+			if (rhs.explosives > 0)
+				node["explosives"] = rhs.explosives;
+			if (rhs.efficiency > 0)
+				node["efficiency"] = rhs.efficiency;
+			if (rhs.microelectronics > 0)
+				node["microelectronics"] = rhs.microelectronics;
+			if (rhs.metallurgy > 0)
+				node["metallurgy"] = rhs.metallurgy;
+			if (rhs.processing > 0)
+				node["processing"] = rhs.processing;
+			if (rhs.hacking > 0)
+				node["hacking"] = rhs.hacking;
+			if (rhs.construction > 0)
+				node["construction"] = rhs.construction;
+			if (rhs.diligence > 0)
+				node["diligence"] = rhs.diligence;
+			if (rhs.alienTech > 0)
+				node["alienTech"] = rhs.alienTech;
+			if (rhs.reverseEngineering > 0)
+				node["reverseEngineering"] = rhs.reverseEngineering;
+			if (rhs.stealth > 0)
+				node["stealth"] = rhs.stealth;
+			if (rhs.perseption > 0)
+				node["perseption"] = rhs.perseption;
+			if (rhs.charisma > 0)
+				node["charisma"] = rhs.charisma;
+			if (rhs.investigation > 0)
+				node["investigation"] = rhs.investigation;
+			if (rhs.deception > 0)
+				node["deception"] = rhs.deception;
+			if (rhs.interrogation > 0)
+				node["interrogation"] = rhs.interrogation;
 			return node;
 		}
 

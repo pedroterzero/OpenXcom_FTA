@@ -69,6 +69,7 @@
 #include "../Basescape/TechTreeViewerState.h"
 #include "../Basescape/GlobalManufactureState.h"
 #include "../Basescape/GlobalResearchState.h"
+#include "../Basescape/MontlySoldierExperienceState.h"
 #include "../Menu/CutsceneState.h"
 #include "../Menu/ErrorMessageState.h"
 #include "GraphsState.h"
@@ -2205,6 +2206,7 @@ void GeoscapeState::time1Hour()
 					if ((*s)->getProductionProject() == j->first)
 					{
 						(*s)->improvePrimaryStats((*s)->getEngineerExperience(), ROLE_ENGINEER);
+						(*s)->clearEngineerExperience();
 						if ((*s)->rolePromoteSoldier(ROLE_ENGINEER))
 						{
 							promotedSoldiers.push_back((*s));
@@ -3039,6 +3041,10 @@ void GeoscapeState::btnGlobalResearchClick(Action *)
 void GeoscapeState::btnDogfightExperienceClick(Action *)
 {
 	if (_fta)
+	{
+		_game->pushState(new MontlySoldierExperienceState(0));
+	}
+	else
 	{
 		_game->pushState(new DogfightExperienceState());
 	}
@@ -4603,6 +4609,7 @@ void GeoscapeState::handleResearch(Base* base)
 			for (auto [fst, snd] : scientists)
 			{
 				fst->improvePrimaryStats(fst->getResearchExperience(), ROLE_SCIENTIST);
+				fst->clearResearchExperience();
 				if (fst->rolePromoteSoldier(ROLE_SCIENTIST))
 				{
 					promotedSoldiers.push_back(fst);

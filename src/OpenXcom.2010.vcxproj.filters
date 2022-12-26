@@ -1298,6 +1298,9 @@
     <ClCompile Include="Basescape\IntelAllocateAgentsState.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
+    <ClCompile Include="Basescape\MontlySoldierExperienceState.cpp">
+      <Filter>Basescape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2658,6 +2661,9 @@
       <Filter>Basescape</Filter>
     </ClInclude>
     <ClInclude Include="Basescape\IntelAllocateAgentsState.h">
+      <Filter>Basescape</Filter>
+    </ClInclude>
+    <ClInclude Include="Basescape\MontlySoldierExperienceState.h">
       <Filter>Basescape</Filter>
     </ClInclude>
   </ItemGroup>

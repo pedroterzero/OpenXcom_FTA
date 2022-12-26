@@ -46,6 +46,7 @@ set ( basescape_src
   Basescape/ManufactureState.cpp
   Basescape/MiniBaseView.cpp
   Basescape/MonthlyCostsState.cpp
+  Basescape/MontlySoldierExperienceState.cpp
   Basescape/NewManufactureListState.cpp
   Basescape/NewResearchListState.cpp
   Basescape/PilotsState.cpp

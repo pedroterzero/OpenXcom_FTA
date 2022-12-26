@@ -312,6 +312,7 @@ void AltMonthlyReportState::btnOkClick(Action*)
 				{
 					_soldiersMedalled.push_back(soldier);
 				}
+				soldier->resetMonthlyExperienceCache();
 			}
 		}
 		if (!_soldiersMedalled.empty())
@@ -475,10 +476,10 @@ std::string AltMonthlyReportState::calculateUpdates()
 	//handle loyalty updating
 	if (!_gameOver)
 	{
-		int funds = save->getFunds();
+		int64_t funds = save->getFunds();
 		if (funds < 0)
 		{
-			int noFundsV = _game->getMod()->getLoyaltyNoFundsValue();
+			int64_t noFundsV = _game->getMod()->getLoyaltyNoFundsValue();
 			if (funds < noFundsV)
 			{
 				int	discontent = _game->getMod()->getLoyaltyNoFundsPenalty() * _game->getSavedGame()->getDifficultyCoefficient();
