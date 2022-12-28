@@ -405,7 +405,7 @@ private:
 	int _listOrder, _maxRange, _minRange, _dropoff, _bulletSpeed, _explosionSpeed, _shotgunPellets;
 	int _shotgunBehaviorType, _shotgunSpread, _shotgunChoke;
 	std::map<std::string, std::string> _zombieUnitByArmorMale, _zombieUnitByArmorFemale, _zombieUnitByType;
-	std::string _zombieUnit, _spawnUnit;
+	std::string _zombieUnit, _spawnUnit, _spawnSoldier;
 	int _spawnUnitFaction;
 	int _targetMatrix;
 	bool _LOSRequired, _underwaterOnly, _landOnly, _psiReqiured, _manaRequired;
@@ -921,6 +921,8 @@ public:
 	bool isManaRequired() const;
 	/// Get the associated special type of this item.
 	int getSpecialType() const;
+	/// Get name of geoscape soldier spawned from this item.
+	const std::string& getSpawnedSoldier() const { return _spawnSoldier; }
 	/// Get the color offset to use for the vapor trail.
 	int getVaporColor(int depth) const;
 	/// Gets the vapor cloud density.

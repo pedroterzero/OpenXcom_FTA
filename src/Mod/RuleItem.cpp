@@ -691,6 +691,7 @@ void RuleItem::load(const YAML::Node &node, Mod *mod, int listOrder, const ModSc
 	mod->loadNameNull(_type, _zombieUnit, node["zombieUnit"]);
 	mod->loadNameNull(_type, _spawnUnit, node["spawnUnit"]);
 	_spawnUnitFaction = node["spawnUnitFaction"].as<int>(_spawnUnitFaction);
+	_spawnSoldier = node["spawnSoldier"].as<std::string>(_spawnSoldier);
 	if (node["psiTargetMatrix"])
 	{
 		// TODO: just backwards-compatibility, remove in 2022, update ruleset validator too

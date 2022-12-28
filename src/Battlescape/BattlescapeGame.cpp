@@ -71,6 +71,9 @@
 #include "../fmath.h"
 
 #include "HackingBState.h"
+#include "../Savegame/Base.h"
+#include "../Savegame/CovertOperation.h"
+
 namespace OpenXcom
 {
 
@@ -2452,11 +2455,126 @@ void BattlescapeGame::spawnNewUnit(BattleActionAttack attack, Position position)
 }
 
 /**
+ * Spawns a new geoscape soldier with dedicated battle unit mid-battle
+ * @param attack BattleActionAttack that calls to spawn the unit
+ * @param position Tile position to try and spawn unit on
+ */
+void BattlescapeGame::spawnNewSoldier(BattleActionAttack attack, Position position)
+{
+	if (!attack.damage_item) // no idea how this happened, but make sure we have an item
+		return;
+
+	auto save = getSave()->getGeoscapeSave();
+	const RuleItem* item = attack.damage_item->getRules();
+	const RuleSoldier *rule = getMod()->getSoldier(item->getSpawnedSoldier());
+
+	Soldier* soldier = new Soldier(rule, rule->getDefaultArmor(), 0, getSave()->getGeoscapeSave()->getId("STR_SOLDIER"));
+
+	//we need to find a base for the soldier
+	Base* base = 0;
+	for (std::vector<Base*>::iterator i = save->getBases()->begin(); i != save->getBases()->end(); ++i)
+	{
+		if ((*i)->isInBattlescape())
+		{
+			base = *i;
+			break;
+		}
+		// in case we have a craft - check which craft it is about
+		for (std::vector<Craft*>::iterator j = (*i)->getCrafts()->begin(); j != (*i)->getCrafts()->end(); ++j)
+		{
+			if ((*j)->isInBattlescape())
+			{
+				base = *i;
+				break;
+			}
+		}
+
+		if (base != nullptr)
+			break;
+
+		for (std::vector<CovertOperation*>::const_iterator c = (*i)->getCovertOperations().begin(); c != (*i)->getCovertOperations().end(); ++c)
+		{
+			if ((*c)->isInBattlescape())
+			{
+				base = *i;
+				break;
+			}
+		}
+
+		if (base != nullptr)
+			break;
+	}
+	if (!base) //in case we can't find it
+	{
+		base = save->getBases()->at(0);
+	}
+	
+
+	//now we generate battlescape data
+	BattleUnit* newUnit = new BattleUnit(getMod(), soldier, getDepth(), getSave()->getStartingCondition());
+	// Validate the position for the unit, checking if there's a surrounding tile if necessary
+	int checkDirection = attack.attacker ? (attack.attacker->getDirection() + 4) % 8 : 0;
+	bool positionValid = getTileEngine()->isPositionValidForUnit(position, newUnit, true, checkDirection);
+	if (positionValid) // Place the unit and initialize it in the battlescape
+	{
+		int unitDirection = attack.attacker ? attack.attacker->getDirection() : RNG::generate(0, 7);
+		// If this is a tank, arm it with its weapon
+		if (getMod()->getItem(newUnit->getType()) && getMod()->getItem(newUnit->getType())->isFixed())
+		{
+			const RuleItem* newUnitWeapon = getMod()->getItem(newUnit->getType());
+			if (!_save->isPreview())
+			{
+				_save->createItemForUnit(newUnitWeapon, newUnit, true);
+				if (newUnitWeapon->getVehicleClipAmmo())
+				{
+					const RuleItem* ammo = newUnitWeapon->getVehicleClipAmmo();
+					BattleItem* ammoItem = _save->createItemForUnit(ammo, newUnit);
+					if (ammoItem)
+					{
+						ammoItem->setAmmoQuantity(newUnitWeapon->getVehicleClipSize());
+					}
+				}
+			}
+			newUnit->setTurretType(newUnitWeapon->getTurretType());
+		}
+
+		for (auto a : _save->getAlienDeploymet()->getUndercoverArmors())
+		{
+			if (a == newUnit->getArmor()->getType())
+			{
+				newUnit->setUndercover(true);
+				break;
+			}
+		}
+
+		// Initialize the unit and its position
+		newUnit->setTile(_save->getTile(position), _save);
+		newUnit->setPosition(position);
+		newUnit->setDirection(unitDirection);
+		newUnit->clearTimeUnits();
+		getSave()->getUnits()->push_back(newUnit);
+		newUnit->setVisible(true);
+		getSave()->initUnit(newUnit);
+		getTileEngine()->calculateFOV(newUnit->getPosition());  //happens fairly rarely, so do a full recalc for units in range to handle the potential unit visible cache issues.
+		getTileEngine()->applyGravity(newUnit->getTile());
+
+		base->getSoldiers()->push_back(soldier);
+	}
+	else
+	{
+		delete newUnit;
+		delete soldier;
+	}
+
+}
+
+/**
  * Spawns units from items primed before battle
  */
 void BattlescapeGame::spawnFromPrimedItems()
 {
 	std::vector<BattleItem*> itemsSpawningUnits;
+	std::vector<BattleItem*> itemsSpawningSoldiers;
 
 	for (std::vector<BattleItem*>::iterator i = _save->getItems()->begin(); i != _save->getItems()->end(); ++i)
 	{
@@ -2464,11 +2582,19 @@ void BattlescapeGame::spawnFromPrimedItems()
 		{
 			continue;
 		}
-		if (!(*i)->getRules()->getSpawnUnit().empty() && !(*i)->getXCOMProperty() && !(*i)->isSpecialWeapon())
+		if ((*i)->getRules()->getBattleType() == BT_GRENADE
+			&& (*i)->getFuseTimer() == 0
+			&& (*i)->isFuseEnabled()
+			&& !(*i)->getXCOMProperty()
+			&& !(*i)->isSpecialWeapon())
 		{
-			if ((*i)->getRules()->getBattleType() == BT_GRENADE && (*i)->getFuseTimer() == 0 && (*i)->isFuseEnabled())
+			if (!(*i)->getRules()->getSpawnUnit().empty())
 			{
-				itemsSpawningUnits.push_back((*i));
+				itemsSpawningUnits.push_back(*i);
+			}
+			if (!(*i)->getRules()->getSpawnedSoldier().empty())
+			{
+				itemsSpawningSoldiers.push_back(*i);
 			}
 		}
 	}
@@ -2476,6 +2602,12 @@ void BattlescapeGame::spawnFromPrimedItems()
 	for (BattleItem *item : itemsSpawningUnits)
 	{
 		spawnNewUnit(item);
+		_save->removeItem(item);
+	}
+
+	for (BattleItem* item : itemsSpawningSoldiers)
+	{
+		spawnNewSoldier(BattleActionAttack{ BA_NONE, nullptr, item, item, }, item->getTile()->getPosition());
 		_save->removeItem(item);
 	}
 }

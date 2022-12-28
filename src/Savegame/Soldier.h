@@ -137,7 +137,6 @@ private:
   public:
 	/// Creates a new soldier.
 	Soldier(const RuleSoldier *rules, Armor *armor, int nationality, int id = 0);
-	Soldier(RuleSoldier* rules, Armor* armor, BattleUnit* unit, int id = 0);
 	/// Cleans up the soldier.
 	~Soldier();
 	/// Loads the soldier from YAML.
