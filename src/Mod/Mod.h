@@ -943,7 +943,7 @@ public:
 	/// Gets the research topic required for unlocking xenolinguistics stat.
 	const std::string& getAlienTechUnlockResearch() const { return _alienTechUnlockResearch; }
 	/// Gets the research topic required for unlocking xenolinguistics stat.
-	const std::string &getXenologyUnlockResearch() const { return _xenologyUnlockResearch; }
+	const std::string &getXenolinguisticsUnlockResearch() const { return _xenologyUnlockResearch; }
 	/// Gets the research topic required for unlocking beam operations stat.
 	const std::string &getBeamOperationsUnlockResearch() const { return _craftsBeamUnlockResearch; }
 	/// Gets the research topic required for unlocking synapsis stat.

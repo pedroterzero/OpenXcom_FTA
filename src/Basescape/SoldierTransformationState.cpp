@@ -17,6 +17,7 @@
  * along with OpenXcom.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "SoldierTransformationState.h"
+#include "SoldierTransformationStatsState.h"
 #include <sstream>
 #include <algorithm>
 #include "../Engine/Action.h"
@@ -30,6 +31,7 @@
 #include "../Interface/TextList.h"
 #include "../Interface/Window.h"
 #include "../Mod/Mod.h"
+#include "../Mod/RuleInterface.h"
 #include "../Mod/RuleSoldier.h"
 #include "../Mod/RuleSoldierBonus.h"
 #include "../Mod/RuleSoldierTransformation.h"
@@ -38,6 +40,8 @@
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/Transfer.h"
+
+#include <complex.h>
 
 namespace OpenXcom
 {
@@ -50,11 +54,14 @@ namespace OpenXcom
  * @param filteredListOfSoldiers Pointer to the list of available soldiers
  */
 SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation *transformationRule, Base *base, Soldier *sourceSoldier, std::vector<Soldier *> *filteredListOfSoldiers) :
-	_transformationRule(transformationRule), _base(base), _sourceSoldier(sourceSoldier), _filteredListOfSoldiers(filteredListOfSoldiers)
+			_transformationRule(transformationRule), _base(base), _sourceSoldier(sourceSoldier), _filteredListOfSoldiers(filteredListOfSoldiers)
 {
+	_ftaUI = _game->getMod()->isFTAGame();
+
 	_window = new Window(this, 320, 200, 0, 0);
 	_btnCancel = new TextButton(148, 16, 8, 176);
 	_btnStart = new TextButton(148, 16, 164, 176);
+	_btnStats = new TextButton(70, 16, 87, 176);
 
 	_btnLeftArrow = new TextButton(16, 16, 8, 8);
 	_btnRightArrow = new TextButton(16, 16, 296, 8);
@@ -72,6 +79,10 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 	_lstRequiredItems = new TextList(270, 32, 25, 99);
 
 	_lstStatChanges = new TextList(288, 40, 16, 133);
+
+	_txtSoldierBonus = new Text(141, 9, 16, 133);
+	_lstBonuses = new TextList(136, 32, 16, 142);
+	_txtTooltip = new Text(147, 42, 164, 132);
 
 	// Set palette
 	setInterface("soldierTransformation");
@@ -97,6 +108,11 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 
 	add(_lstStatChanges, "list2", "soldierTransformation");
 
+	add(_txtSoldierBonus, "text", "soldierTransformation");
+	add(_lstBonuses, "list1", "soldierTransformation");
+	add(_txtTooltip, "text", "soldierTransformation");
+	add(_btnStats, "button", "soldierTransformation");
+
 	centerAllSurfaces();
 
 	// Set up objects
@@ -109,6 +125,9 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 	_btnStart->setText(tr(_transformationRule->getName()));
 	_btnStart->onMouseClick((ActionHandler)&SoldierTransformationState::btnStartClick);
 	_btnStart->onKeyboardPress((ActionHandler)&SoldierTransformationState::btnStartClick, Options::keyOk);
+
+	_btnStats->setText(tr("STR_STATS"));
+	_btnStats->onMouseClick((ActionHandler)&SoldierTransformationState::btnStatsClick);
 
 	if (_filteredListOfSoldiers->size() > 1)
 	{
@@ -143,16 +162,19 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 
 	_lstRequiredItems->setColumns(3, 140, 75, 55);
 
-	if (_game->getMod()->isManaFeatureEnabled())
+	if (!_ftaUI)
 	{
-		_lstStatChanges->setColumns(14, 72, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0);
+		if (_game->getMod()->isManaFeatureEnabled())
+		{
+			_lstStatChanges->setColumns(14, 72, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0);
+		}
+		else
+		{
+			_lstStatChanges->setColumns(13, 90, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0);
+		}
+		_lstStatChanges->setAlign(ALIGN_RIGHT);
+		_lstStatChanges->setAlign(ALIGN_LEFT, 0);
 	}
-	else
-	{
-		_lstStatChanges->setColumns(13, 90, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 0);
-	}
-	_lstStatChanges->setAlign(ALIGN_RIGHT);
-	_lstStatChanges->setAlign(ALIGN_LEFT, 0);
 
 	if (!_transformationRule->getDescription().empty())
 	{
@@ -172,6 +194,25 @@ SoldierTransformationState::SoldierTransformationState(RuleSoldierTransformation
 		_txtRecoveryTime->setY(_txtRecoveryTime->getY() + 24);
 		_txtCost->setY(_txtCost->getY() + 24);
 		_txtDescription->setHeight(_txtDescription->getHeight() + 24);
+	}
+
+	if (!_transformationRule->getSoldierBonusType().empty() && _ftaUI)
+	{
+		_txtSoldierBonus->setText(tr(_transformationRule->getSoldierBonusType()));
+		_lstBonuses->setColumns(1, 136);
+		_lstBonuses->setSelectable(true);
+		_lstBonuses->setBackground(_window);
+		_lstBonuses->setMargin(2);
+		_lstBonuses->setWordWrap(true);
+		_tagMapping.clear();
+		_lstBonuses->onMouseOver((ActionHandler)&SoldierTransformationState::showToolTip);
+		_txtTooltip->setColor(_game->getMod()->getInterface("soldierTransformation")->getElement("text")->color2);
+		_txtTooltip->setWordWrap(true);
+	}
+	else
+	{
+		_txtSoldierBonus->setVisible(false);
+		_lstBonuses->setVisible(false);
 	}
 
 	initTransformationData();
@@ -322,155 +363,110 @@ void SoldierTransformationState::initTransformationData()
 		randomFlags += UnitStats::isRandom(_transformationRule->getPercentGainedMin(), _transformationRule->getPercentGainedMax());
 	}
 
+	if (_ftaUI)
+	{
+		if (changedStatsMin.empty() && changedStatsMax.empty() && bonusStats.empty())
+		{
+			_btnStats->setVisible(false);
+		}
+		else
+		{
+			_btnCancel->setWidth(70);
+		}
+
+		if (bonusRule)
+		{
+			addScriptTags(bonusRule->getScriptValuesRaw());
+		}
+		else
+		{
+			_txtSoldierBonus->setVisible(false);
+			_lstBonuses->setVisible(false);
+		}
+		return; //we don't need to render the rest info for FtA
+	}
+
 	if (_game->getMod()->isManaFeatureEnabled())
 	{
 		bool showMana = _game->getSavedGame()->isManaUnlocked(_game->getMod());
-
-		if (_game->getMod()->isFTAGame() && !showMana && !_game->getSavedGame()->isResearched(_game->getMod()->getPsiRequirements()))
+		_lstStatChanges->addRow(14, "",
+								tr("STR_TIME_UNITS_ABBREVIATION").c_str(),
+								tr("STR_STAMINA_ABBREVIATION").c_str(),
+								tr("STR_HEALTH_ABBREVIATION").c_str(),
+								tr("STR_BRAVERY_ABBREVIATION").c_str(),
+								tr("STR_REACTIONS_ABBREVIATION").c_str(),
+								tr("STR_FIRING_ACCURACY_ABBREVIATION").c_str(),
+								tr("STR_THROWING_ACCURACY_ABBREVIATION").c_str(),
+								tr("STR_MELEE_ACCURACY_ABBREVIATION").c_str(),
+								tr("STR_STRENGTH_ABBREVIATION").c_str(),
+								tr("STR_MANA_ABBREVIATION").c_str(),
+								tr("STR_PSIONIC_STRENGTH_ABBREVIATION").c_str(),
+								tr("STR_PSIONIC_SKILL_ABBREVIATION").c_str(),
+								"");
+		_lstStatChanges->addRow(14, tr("STR_CURRENT_STATS").c_str(),
+								formatStat(currentStats.tu, false, false).c_str(),
+								formatStat(currentStats.stamina, false, false).c_str(),
+								formatStat(currentStats.health, false, false).c_str(),
+								formatStat(currentStats.bravery, false, false).c_str(),
+								formatStat(currentStats.reactions, false, false).c_str(),
+								formatStat(currentStats.firing, false, false).c_str(),
+								formatStat(currentStats.throwing, false, false).c_str(),
+								formatStat(currentStats.melee, false, false).c_str(),
+								formatStat(currentStats.strength, false, false).c_str(),
+								formatStat(currentStats.mana, false, !showMana).c_str(),
+								formatStat(currentStats.psiStrength, false, !showPsiStrength).c_str(),
+								formatStat(currentStats.psiSkill, false, !showPsiSkill).c_str(),
+								"");
+		_lstStatChanges->addRow(14, tr(twoRows ? "STR_CHANGES_MIN" : "STR_CHANGES").c_str(),
+								formatStat(changedStatsMin.tu, true, rerollFlags.tu || randomFlags.tu).c_str(),
+								formatStat(changedStatsMin.stamina, true, rerollFlags.stamina || randomFlags.stamina).c_str(),
+								formatStat(changedStatsMin.health, true, rerollFlags.health || randomFlags.health).c_str(),
+								formatStat(changedStatsMin.bravery, true, rerollFlags.bravery || randomFlags.bravery).c_str(),
+								formatStat(changedStatsMin.reactions, true, rerollFlags.reactions || randomFlags.reactions).c_str(),
+								formatStat(changedStatsMin.firing, true, rerollFlags.firing || randomFlags.firing).c_str(),
+								formatStat(changedStatsMin.throwing, true, rerollFlags.throwing || randomFlags.throwing).c_str(),
+								formatStat(changedStatsMin.melee, true, rerollFlags.melee || randomFlags.melee).c_str(),
+								formatStat(changedStatsMin.strength, true, rerollFlags.strength || randomFlags.strength).c_str(),
+								formatStat(changedStatsMin.mana, true, !showMana || rerollFlags.mana || randomFlags.mana).c_str(),
+								formatStat(changedStatsMin.psiStrength, true, !showPsiStrength || rerollFlags.psiStrength || randomFlags.psiStrength).c_str(),
+								formatStat(changedStatsMin.psiSkill, true, !showPsiSkill || rerollFlags.psiSkill || randomFlags.psiSkill).c_str(),
+								"");
+		if (twoRows)
 		{
-			_lstStatChanges->addRow(11, "",
-									tr("STR_TIME_UNITS_ABBREVIATION").c_str(),
-									tr("STR_STAMINA_ABBREVIATION").c_str(),
-									tr("STR_HEALTH_ABBREVIATION").c_str(),
-									tr("STR_BRAVERY_ABBREVIATION").c_str(),
-									tr("STR_REACTIONS_ABBREVIATION").c_str(),
-									tr("STR_FIRING_ACCURACY_ABBREVIATION").c_str(),
-									tr("STR_THROWING_ACCURACY_ABBREVIATION").c_str(),
-									tr("STR_MELEE_ACCURACY_ABBREVIATION").c_str(),
-									tr("STR_STRENGTH_ABBREVIATION").c_str(),
+			_lstStatChanges->addRow(14, tr("STR_CHANGES_MAX").c_str(),
+									formatStat(changedStatsMax.tu, true, rerollFlags.tu).c_str(),
+									formatStat(changedStatsMax.stamina, true, rerollFlags.stamina).c_str(),
+									formatStat(changedStatsMax.health, true, rerollFlags.health).c_str(),
+									formatStat(changedStatsMax.bravery, true, rerollFlags.bravery).c_str(),
+									formatStat(changedStatsMax.reactions, true, rerollFlags.reactions).c_str(),
+									formatStat(changedStatsMax.firing, true, rerollFlags.firing).c_str(),
+									formatStat(changedStatsMax.throwing, true, rerollFlags.throwing).c_str(),
+									formatStat(changedStatsMax.melee, true, rerollFlags.melee).c_str(),
+									formatStat(changedStatsMax.strength, true, rerollFlags.strength).c_str(),
+									formatStat(changedStatsMax.mana, true, !showMana || rerollFlags.mana).c_str(),
+									formatStat(changedStatsMax.psiStrength, true, !showPsiStrength || rerollFlags.psiStrength).c_str(),
+									formatStat(changedStatsMax.psiSkill, true, !showPsiSkill || rerollFlags.psiSkill).c_str(),
 									"");
-			_lstStatChanges->addRow(11, tr("STR_CURRENT_STATS").c_str(),
-									formatStat(currentStats.tu, false, false).c_str(),
-									formatStat(currentStats.stamina, false, false).c_str(),
-									formatStat(currentStats.health, false, false).c_str(),
-									formatStat(currentStats.bravery, false, false).c_str(),
-									formatStat(currentStats.reactions, false, false).c_str(),
-									formatStat(currentStats.firing, false, false).c_str(),
-									formatStat(currentStats.throwing, false, false).c_str(),
-									formatStat(currentStats.melee, false, false).c_str(),
-									formatStat(currentStats.strength, false, false).c_str(),
-									"");
-			_lstStatChanges->addRow(11, tr(twoRows ? "STR_CHANGES_MIN" : "STR_CHANGES").c_str(),
-									formatStat(changedStatsMin.tu, true, rerollFlags.tu || randomFlags.tu).c_str(),
-									formatStat(changedStatsMin.stamina, true, rerollFlags.stamina || randomFlags.stamina).c_str(),
-									formatStat(changedStatsMin.health, true, rerollFlags.health || randomFlags.health).c_str(),
-									formatStat(changedStatsMin.bravery, true, rerollFlags.bravery || randomFlags.bravery).c_str(),
-									formatStat(changedStatsMin.reactions, true, rerollFlags.reactions || randomFlags.reactions).c_str(),
-									formatStat(changedStatsMin.firing, true, rerollFlags.firing || randomFlags.firing).c_str(),
-									formatStat(changedStatsMin.throwing, true, rerollFlags.throwing || randomFlags.throwing).c_str(),
-									formatStat(changedStatsMin.melee, true, rerollFlags.melee || randomFlags.melee).c_str(),
-									formatStat(changedStatsMin.strength, true, rerollFlags.strength || randomFlags.strength).c_str(),
-									"");
-			if (twoRows)
-			{
-				_lstStatChanges->addRow(11, tr("STR_CHANGES_MAX").c_str(),
-										formatStat(changedStatsMax.tu, true, rerollFlags.tu).c_str(),
-										formatStat(changedStatsMax.stamina, true, rerollFlags.stamina).c_str(),
-										formatStat(changedStatsMax.health, true, rerollFlags.health).c_str(),
-										formatStat(changedStatsMax.bravery, true, rerollFlags.bravery).c_str(),
-										formatStat(changedStatsMax.reactions, true, rerollFlags.reactions).c_str(),
-										formatStat(changedStatsMax.firing, true, rerollFlags.firing).c_str(),
-										formatStat(changedStatsMax.throwing, true, rerollFlags.throwing).c_str(),
-										formatStat(changedStatsMax.melee, true, rerollFlags.melee).c_str(),
-										formatStat(changedStatsMax.strength, true, rerollFlags.strength).c_str(),
-										"");
-			}
-			if (bonusRule)
-			{
-				_lstStatChanges->addRow(11, tr("STR_BONUS_STATS").c_str(),
-										formatStat(bonusStats.tu, true, false).c_str(),
-										formatStat(bonusStats.stamina, true, false).c_str(),
-										formatStat(bonusStats.health, true, false).c_str(),
-										formatStat(bonusStats.bravery, true, false).c_str(),
-										formatStat(bonusStats.reactions, true, false).c_str(),
-										formatStat(bonusStats.firing, true, false).c_str(),
-										formatStat(bonusStats.throwing, true, false).c_str(),
-										formatStat(bonusStats.melee, true, false).c_str(),
-										formatStat(bonusStats.strength, true, false).c_str(),
-										"");
-			}
 		}
-		else // OXCE way
+		if (bonusRule)
 		{
-			_lstStatChanges->addRow(14, "",
-									tr("STR_TIME_UNITS_ABBREVIATION").c_str(),
-									tr("STR_STAMINA_ABBREVIATION").c_str(),
-									tr("STR_HEALTH_ABBREVIATION").c_str(),
-									tr("STR_BRAVERY_ABBREVIATION").c_str(),
-									tr("STR_REACTIONS_ABBREVIATION").c_str(),
-									tr("STR_FIRING_ACCURACY_ABBREVIATION").c_str(),
-									tr("STR_THROWING_ACCURACY_ABBREVIATION").c_str(),
-									tr("STR_MELEE_ACCURACY_ABBREVIATION").c_str(),
-									tr("STR_STRENGTH_ABBREVIATION").c_str(),
-									tr("STR_MANA_ABBREVIATION").c_str(),
-									tr("STR_PSIONIC_STRENGTH_ABBREVIATION").c_str(),
-									tr("STR_PSIONIC_SKILL_ABBREVIATION").c_str(),
+			_lstStatChanges->addRow(14, tr("STR_BONUS_STATS").c_str(),
+									formatStat(bonusStats.tu, true, false).c_str(),
+									formatStat(bonusStats.stamina, true, false).c_str(),
+									formatStat(bonusStats.health, true, false).c_str(),
+									formatStat(bonusStats.bravery, true, false).c_str(),
+									formatStat(bonusStats.reactions, true, false).c_str(),
+									formatStat(bonusStats.firing, true, false).c_str(),
+									formatStat(bonusStats.throwing, true, false).c_str(),
+									formatStat(bonusStats.melee, true, false).c_str(),
+									formatStat(bonusStats.strength, true, false).c_str(),
+									formatStat(bonusStats.mana, true, false).c_str(),
+									formatStat(bonusStats.psiStrength, true, false).c_str(),
+									formatStat(bonusStats.psiSkill, true, false).c_str(),
 									"");
-			_lstStatChanges->addRow(14, tr("STR_CURRENT_STATS").c_str(),
-									formatStat(currentStats.tu, false, false).c_str(),
-									formatStat(currentStats.stamina, false, false).c_str(),
-									formatStat(currentStats.health, false, false).c_str(),
-									formatStat(currentStats.bravery, false, false).c_str(),
-									formatStat(currentStats.reactions, false, false).c_str(),
-									formatStat(currentStats.firing, false, false).c_str(),
-									formatStat(currentStats.throwing, false, false).c_str(),
-									formatStat(currentStats.melee, false, false).c_str(),
-									formatStat(currentStats.strength, false, false).c_str(),
-									formatStat(currentStats.mana, false, !showMana).c_str(),
-									formatStat(currentStats.psiStrength, false, !showPsiStrength).c_str(),
-									formatStat(currentStats.psiSkill, false, !showPsiSkill).c_str(),
-									"");
-			_lstStatChanges->addRow(14, tr(twoRows ? "STR_CHANGES_MIN" : "STR_CHANGES").c_str(),
-									formatStat(changedStatsMin.tu, true, rerollFlags.tu || randomFlags.tu).c_str(),
-									formatStat(changedStatsMin.stamina, true, rerollFlags.stamina || randomFlags.stamina).c_str(),
-									formatStat(changedStatsMin.health, true, rerollFlags.health || randomFlags.health).c_str(),
-									formatStat(changedStatsMin.bravery, true, rerollFlags.bravery || randomFlags.bravery).c_str(),
-									formatStat(changedStatsMin.reactions, true, rerollFlags.reactions || randomFlags.reactions).c_str(),
-									formatStat(changedStatsMin.firing, true, rerollFlags.firing || randomFlags.firing).c_str(),
-									formatStat(changedStatsMin.throwing, true, rerollFlags.throwing || randomFlags.throwing).c_str(),
-									formatStat(changedStatsMin.melee, true, rerollFlags.melee || randomFlags.melee).c_str(),
-									formatStat(changedStatsMin.strength, true, rerollFlags.strength || randomFlags.strength).c_str(),
-									formatStat(changedStatsMin.mana, true, !showMana || rerollFlags.mana || randomFlags.mana).c_str(),
-									formatStat(changedStatsMin.psiStrength, true, !showPsiStrength || rerollFlags.psiStrength || randomFlags.psiStrength).c_str(),
-									formatStat(changedStatsMin.psiSkill, true, !showPsiSkill || rerollFlags.psiSkill || randomFlags.psiSkill).c_str(),
-									"");
-			if (twoRows)
-			{
-				_lstStatChanges->addRow(14, tr("STR_CHANGES_MAX").c_str(),
-										formatStat(changedStatsMax.tu, true, rerollFlags.tu).c_str(),
-										formatStat(changedStatsMax.stamina, true, rerollFlags.stamina).c_str(),
-										formatStat(changedStatsMax.health, true, rerollFlags.health).c_str(),
-										formatStat(changedStatsMax.bravery, true, rerollFlags.bravery).c_str(),
-										formatStat(changedStatsMax.reactions, true, rerollFlags.reactions).c_str(),
-										formatStat(changedStatsMax.firing, true, rerollFlags.firing).c_str(),
-										formatStat(changedStatsMax.throwing, true, rerollFlags.throwing).c_str(),
-										formatStat(changedStatsMax.melee, true, rerollFlags.melee).c_str(),
-										formatStat(changedStatsMax.strength, true, rerollFlags.strength).c_str(),
-										formatStat(changedStatsMax.mana, true, !showMana || rerollFlags.mana).c_str(),
-										formatStat(changedStatsMax.psiStrength, true, !showPsiStrength || rerollFlags.psiStrength).c_str(),
-										formatStat(changedStatsMax.psiSkill, true, !showPsiSkill || rerollFlags.psiSkill).c_str(),
-										"");
-			}
-			if (bonusRule)
-			{
-				_lstStatChanges->addRow(14, tr("STR_BONUS_STATS").c_str(),
-										formatStat(bonusStats.tu, true, false).c_str(),
-										formatStat(bonusStats.stamina, true, false).c_str(),
-										formatStat(bonusStats.health, true, false).c_str(),
-										formatStat(bonusStats.bravery, true, false).c_str(),
-										formatStat(bonusStats.reactions, true, false).c_str(),
-										formatStat(bonusStats.firing, true, false).c_str(),
-										formatStat(bonusStats.throwing, true, false).c_str(),
-										formatStat(bonusStats.melee, true, false).c_str(),
-										formatStat(bonusStats.strength, true, false).c_str(),
-										formatStat(bonusStats.mana, true, false).c_str(),
-										formatStat(bonusStats.psiStrength, true, false).c_str(),
-										formatStat(bonusStats.psiSkill, true, false).c_str(),
-										"");
-			}
 		}
 	}
-	else // OXCE no mana
+	else
 	{
 		_lstStatChanges->addRow(13, "",
 			tr("STR_TIME_UNITS_ABBREVIATION").c_str(),
@@ -734,6 +730,53 @@ void SoldierTransformationState::btnRightArrowClick(Action *action)
 
 	_sourceSoldier = *iter;
 	initTransformationData();
+}
+
+void SoldierTransformationState::btnStatsClick(Action* action)
+{
+	_game->pushState(new SoldierTransformationStatsState(_transformationRule, _sourceSoldier));
+}
+
+void SoldierTransformationState::showToolTip(Action* action)
+{
+	int row = _lstBonuses->getSelectedRow();
+	if (row >= 0)
+	{
+		int i = _tagMapping.at(row);
+		getScriptTags(_game->getMod()->getSoldierBonus(_transformationRule->getSoldierBonusType(), false)->getScriptValuesRaw(), i);
+	}
+}
+
+
+template<typename T, typename I>
+void SoldierTransformationState::addScriptTags(const ScriptValues<T, I>& values)
+{
+	auto& tagValues = values.getValuesRaw();
+	ArgEnum index = ScriptParserBase::getArgType<ScriptTag<T, I>>();
+	auto tagNames = _game->getMod()->getScriptGlobal()->getTagNames().at(index);
+	int row = 0;
+	for (size_t i = 0; i < tagValues.size(); ++i)
+	{
+		if (tagValues[i] > 0)
+		{
+			std::string nameAsString = tr(tagNames.values[i].name.toString().substr(4));
+			std::ostringstream ss;
+			ss << tr(tagNames.values[i].name.toString().substr(4)) << ": " << tagValues[i];
+			_lstBonuses->addRow(1, ss.str().c_str());
+			_tagMapping.emplace(row, i);
+			row++;
+		}
+	}
+}
+
+template<typename T, typename I>
+void SoldierTransformationState::getScriptTags(const ScriptValues<T, I>& vec, int i)
+{
+	ArgEnum index = ScriptParserBase::getArgType<ScriptTag<T, I>>();
+	auto tagNames = _game->getMod()->getScriptGlobal()->getTagNames().at(index);
+	std::ostringstream ss;
+	ss << tagNames.values[i].name.toString().substr(4) << "_DESCRIPTION";
+	_txtTooltip->setText(tr(ss.str()));
 }
 
 }

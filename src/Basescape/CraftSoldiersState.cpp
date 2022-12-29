@@ -234,7 +234,7 @@ CraftSoldiersState::CraftSoldiersState(Base *base, size_t craft)
 		{
 			PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::psionics), psionicsStat);
 		}
-		if (_game->getSavedGame()->isResearched(_game->getMod()->getXenologyUnlockResearch()))
+		if (_game->getSavedGame()->isResearched(_game->getMod()->getXenolinguisticsUnlockResearch()))
 		{
 			PUSH_IN(OpenXcom::UnitStats::getStatString(&UnitStats::xenolinguistics), xenolinguisticsStat);
 		}

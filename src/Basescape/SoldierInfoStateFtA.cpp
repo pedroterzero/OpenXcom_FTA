@@ -1521,7 +1521,7 @@ void SoldierInfoStateFtA::updateVisibility()
 			_barPsionics->setVisible(true);
 		}
 		
-		if (_game->getSavedGame()->isResearched(_game->getMod()->getXenologyUnlockResearch()))
+		if (_game->getSavedGame()->isResearched(_game->getMod()->getXenolinguisticsUnlockResearch()))
 		{
 			_txtXenolinguistics->setVisible(true);
 			_numXenolinguistics->setVisible(true);

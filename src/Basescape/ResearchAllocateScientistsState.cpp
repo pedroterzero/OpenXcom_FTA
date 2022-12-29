@@ -130,7 +130,7 @@ ResearchAllocateScientistsState::ResearchAllocateScientistsState(Base *base, Res
 	{
 		PUSH_IN("STR_PSIONICS_UC", psionicsStat);
 	}
-	if (_game->getSavedGame()->isResearched(_game->getMod()->getXenologyUnlockResearch()))
+	if (_game->getSavedGame()->isResearched(_game->getMod()->getXenolinguisticsUnlockResearch()))
 	{
 		PUSH_IN("STR_XENOLINGUISTICS_UC", xenolinguisticsStat);
 	}
