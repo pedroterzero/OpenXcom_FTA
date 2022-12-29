@@ -129,13 +129,6 @@ jobs:
           "
           sudo chown -R runner ~/.ccache
 
-      - name: Setup upterm session
-        if: ${{ failure() }}
-        uses: lhotari/action-upterm@v1
-        timeout-minutes: 15
-        with:
-          limit-access-to-actor: true
-
         # Note, this is bogus on MacOS, as it installs shaders et al twice.
         # Windows installs under C:/Program Files (x86)/OpenXcom/bin (where the
         # 'bin' is pretty redundant) and Linux installs under various dirs under
